@@ -99,8 +99,8 @@ encryption = "age"
 [data.container]
     engine = {{ promptStringOnce . "containerEngine" "Container engine to use (podman or docker)" "podman" | quote }}
 
-[data.noteshub]
-    vault = {{ promptStringOnce . "noteshubVault" "Notes Hub vault location" "~/Library/Mobile Documents/iCloud~com~logseq~logseq/Documents/PKM" | quote}}
+[data.obsidian]
+    vault = {{ promptStringOnce . "obsidianVault" "Obsidian vault location" "~/Library/Mobile Documents/iCloud~md~obsidian/Documents/" | quote }}
 
 [data.go]
     enabled = {{ promptBoolOnce . "goEnabled" "Enable Go development environment?" false }}

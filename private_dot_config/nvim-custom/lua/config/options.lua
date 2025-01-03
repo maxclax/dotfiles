@@ -77,6 +77,9 @@ vim.opt.cursorcolumn = true
 vim.opt.splitbelow = true
 vim.opt.splitright = true
 
+-- set up diagnostics
+require("utils.diagnostics").setup_diagnostics()
+
 -- fold settings (treesitter or LSP)
 vim.opt.foldcolumn = "0"
 vim.opt.foldenable = true
@@ -92,6 +95,14 @@ vim.opt.foldtext = "v:lua.custom_foldtext()"
 function M.treesitter_foldexpr()
   vim.opt.foldmethod = "expr"
   vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+end
+function M.lsp_foldexpr()
+  -- vim.api.nvim_set_option_value("foldmethod", "expr", { scope = "local" })
+  -- vim.api.nvim_set_option_value("foldexpr", "v:lua.vim.lsp.foldexpr()", { scope = "local" })
+  -- vim.api.nvim_set_option_value("foldtext", "v:lua.vim.lsp.foldtext()", { scope = "local" })
+  vim.opt.foldmethod = "expr"
+  vim.opt.foldexpr = "v:lua.vim.lsp.foldexpr()"
+  vim.opt.foldtext = "v:lua.custom_foldtext()"
 end
 
 -- scroll off

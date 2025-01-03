@@ -59,6 +59,7 @@ return {
 			},
 			suggestion = {
 				enabled = true,
+				-- use the built-in keymapping for "accept" (<M-l>)
 				auto_trigger = true,
 				accept = false, -- disable built-in keymapping
 				keymap = {
@@ -101,6 +102,7 @@ return {
 		end,
 		keys = require("config.keymaps").setup_copilot_keymaps(),
 	},
+
 	{
 		"CopilotC-Nvim/CopilotChat.nvim",
 		lazy = true,

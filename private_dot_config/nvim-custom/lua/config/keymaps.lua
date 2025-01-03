@@ -90,11 +90,6 @@ vim.keymap.set("n", "<leader>xq", "<cmd>copen<cr>", { desc = "Quickfix List" })
 vim.keymap.set("n", "[q", vim.cmd.cprev, { desc = "Previous quickfix" })
 vim.keymap.set("n", "]q", vim.cmd.cnext, { desc = "Next quickfix" })
 
--- Disable arrow keys to encourage hjkl usage.
-vim.keymap.set("", "<Up>", "<Nop>", { noremap = true })
-vim.keymap.set("", "<Down>", "<Nop>", { noremap = true })
-vim.keymap.set("", "<Left>", "<Nop>", { noremap = true })
-vim.keymap.set("", "<Right>", "<Nop>", { noremap = true })
 -- diagnostic
 local function diagnostic_goto(next, severity)
   local go = next and vim.diagnostic.goto_next or vim.diagnostic.goto_prev
@@ -161,31 +156,40 @@ function M.setup_lsp_autocmd_keymaps(event)
   -- Jump to the definition of the word under your cursor.
   --  This is where a variable was first declared, or where a function is defined, etc.
   --  To jump back, press <C-t>.
-  map("gd", require("telescope.builtin").lsp_definitions, "[G]oto [D]efinition")
+
+  -- map("gd", require("telescope.builtin").lsp_definitions, "[G]oto [D]efinition")
+  map("gd", "<cmd>FzfLua lsp_definitions jump_to_single_result=true ignore_current_line=true<cr>", "[G]oto [D]efinition")
 
   -- Find references for the word under your cursor.
-  map("gr", ':lua require("telescope.builtin").lsp_references({ show_line = false })<CR>', "[G]oto [R]eferences")
+  -- map("gr", ':lua require("telescope.builtin").lsp_references({ show_line = false })<CR>', "[G]oto [R]eferences")
+  map("gr", "<cmd>FzfLua lsp_references jump_to_single_result=true ignore_current_line=true<cr>", "[G]oto [R]eferences")
 
   -- Jump to the implementation of the word under your cursor.
   --  Useful when your language has ways of declaring types without an actual implementation.
-  map("gI", require("telescope.builtin").lsp_implementations, "[G]oto [I]mplementation")
+  -- map("gI", require("telescope.builtin").lsp_implementations, "[G]oto [I]mplementation")
+  map("gI", "<cmd>FzfLua lsp_implementations jump_to_single_result=true ignore_current_line=true<cr>", "[G]oto [I]mplementation")
 
   -- Jump to the type of the word under your cursor.
   --  Useful when you're not sure what type a variable is and you want to see
   --  the definition of its *type*, not where it was *defined*.
-  map("gt", require("telescope.builtin").lsp_type_definitions, "[G]oto [t]ype definition")
+  -- map("gt", require("telescope.builtin").lsp_type_definitions, "[G]oto [t]ype definition")
+  map("gt", "<cmd>FzfLua lsp_typedefs jump_to_single_result=true ignore_current_line=true<cr>", "[G]oto [t]ype definition")
 
   -- Fuzzy find all the symbols in your current document.
   --  Symbols are things like variables, functions, types, etc.
-  map("<leader>cS", require("telescope.builtin").lsp_document_symbols, "Do[c]ument [S]ymbols (telescope)")
+  -- map("<leader>cS", require("telescope.builtin").lsp_document_symbols, "Do[c]ument [S]ymbols (telescope)")
+  map("<leader>cS", "<cmd>FzfLua lsp_document_symbols", "Do[c]ument [S]ymbols (telescope)")
 
   -- Fuzzy find all the symbols in your current workspace
   --  Similar to document symbols, except searches over your whole project.
-  map("<leader>cw", require("telescope.builtin").lsp_dynamic_workspace_symbols, "[w]orkspace [s]ymbols (telescope)")
+  -- map("<leader>cw", require("telescope.builtin").lsp_dynamic_workspace_symbols, "[w]orkspace [s]ymbols (telescope)")
+  map("<leader>cw", "<cmd>FzfLua lsp_workspace_symbols", "[w]orkspace [s]ymbols (telescope)")
 
   -- Rename the variable under your cursor
   --  Most Language Servers support renaming across files, etc.
   map("<leader>cr", vim.lsp.buf.rename, "[C]ode [R]ename")
+
+  map("<leader>cR", Snacks.rename.rename_file, "[C]ode [R]ename")
 
   -- Execute a code action, usually your cursor needs to be on top of an error
   -- or a suggestion from your LSP for this to activate.
@@ -379,6 +383,13 @@ function M.setup_telescope_keymaps()
       end,
       desc = "Switch project",
     },
+    {
+      "<leader>sf",
+      function()
+        open_file_in_other_project(false)
+      end,
+      desc = "Switch to file", -- NOTE: without changing cwd
+    },
     -- yank
     -- NOTE: reminder;
     -- Use `vep` to replace current a word with a yank.
@@ -390,20 +401,6 @@ function M.setup_telescope_keymaps()
       end,
       desc = "Yanky history",
     },
-    {
-      "<leader>sf",
-      function()
-        open_file_in_other_project(false)
-      end,
-      desc = "Switch to file", -- NOTE: without changing cwd
-    },
-    { "<leader>sF", "<cmd>Telescope oldfiles<CR>", desc = "[s]earch recent [F]iles" },
-
-    -- git
-    { "<leader>sgc", "<cmd>Telescope git_commits<CR>", desc = "[s]earch [g]it [c]ommits" },
-    { "<leader>sgC", "<cmd>Telescope git_bcommits<CR>", desc = "[s]earch [g]it branch [C]ommits" },
-    { "<leader>sgs", "<cmd>Telescope git_status<CR>", desc = "[s]earch [g]it [s]tatus changes" },
-    { "<leader>sgb", "<cmd>Telescope git_branches<CR>", desc = "[s]earch [g]it [b]ranches" },
 
     -- search
     -- {
@@ -413,17 +410,17 @@ function M.setup_telescope_keymaps()
     --   end,
     --   desc = "[s]earch [g]rep",
     -- },
-    { '<leader>s"', "<cmd>Telescope registers<cr>", desc = '[s]earch ["]registers' },
-    { "<leader>sa", "<cmd>Telescope autocommands<cr>", desc = "[s]earch [a]utocommands" },
-    { "<leader>sb", "<cmd>Telescope buffers<CR>", desc = "[s]earch opened [b]uffers" },
-    { "<leader>sc", "<cmd>Telescope commands<cr>", desc = "[s]earch [c]ommands" },
+    -- { '<leader>s"', "<cmd>Telescope registers<cr>", desc = '[s]earch ["]registers' },
+    -- { "<leader>sa", "<cmd>Telescope autocommands<cr>", desc = "[s]earch [a]utocommands" },
+    -- { "<leader>sb", "<cmd>Telescope buffers<CR>", desc = "[s]earch opened [b]uffers" },
+    -- { "<leader>sc", "<cmd>Telescope commands<cr>", desc = "[s]earch [c]ommands" },
     { "<leader>sd", "<cmd>Telescope diagnostics bufnr=0<cr>", desc = "[s]earch [d]ocument diagnostics" },
     { "<leader>sD", "<cmd>Telescope diagnostics<cr>", desc = "[s]earch [D]iagnostics" },
-    { "<leader>sh", "<cmd>Telescope help_tags<cr>", desc = "[s]earch [h]elp pages" },
-    { "<leader>sH", "<cmd>Telescope highlights<cr>", desc = "[s]earch [H]ighlight groups" },
-    { "<leader>sk", "<cmd>Telescope keymaps<cr>", desc = "[s]earch [k]ey maps" },
-    { "<leader>sM", "<cmd>Telescope man_pages<cr>", desc = "[s]earch [M]an pages" },
-    { "<leader>sm", "<cmd>Telescope marks<cr>", desc = "[s]earch [m]arks" },
+    -- { "<leader>sh", "<cmd>Telescope help_tags<cr>", desc = "[s]earch [h]elp pages" },
+    -- { "<leader>sH", "<cmd>Telescope highlights<cr>", desc = "[s]earch [H]ighlight groups" },
+    -- { "<leader>sk", "<cmd>Telescope keymaps<cr>", desc = "[s]earch [k]ey maps" },
+    -- { "<leader>sM", "<cmd>Telescope man_pages<cr>", desc = "[s]earch [M]an pages" },
+    -- { "<leader>sm", "<cmd>Telescope marks<cr>", desc = "[s]earch [m]arks" },
     { "<leader>so", "<cmd>Telescope vim_options<cr>", desc = "[s]earch [o]ptions" },
   }
 end
@@ -446,24 +443,67 @@ function M.setup_fzf_keymaps()
       end,
       desc = "Grep",
     },
+    { 'leader>s"', "<cmd>FzfLua registers<cr>", desc = '[s]earch ["]registers' },
+    { "<leader>sh", "<cmd>FzfLua helptags<cr>", desc = "[s]earch [h]elp pages" },
+    { "<leader>sa", "<cmd>FzfLua autocmds<cr>", desc = "[s]earch [a]utocommands" },
+    { "<leader>sb", "<cmd>FzfLua buffers sort_mru=true sort_lastused=true<CR>", desc = "[s]earch opened [b]uffers" },
+    { "<leader>sc", "<cmd>FzfLua commands<cr>", desc = "[s]earch [c]ommands" },
+    { "<leader>sH", "<cmd>FzfLua highlights<cr>", desc = "[s]earch [H]ighlight groups" },
+    { "<leader>sk", "<cmd>FzfLua keymaps<cr>", desc = "[s]earch [k]ey maps" },
+    { "<leader>sM", "<cmd>FzfLua manpages<cr>", desc = "[s]earch [M]an pages" },
+    { "<leader>sm", "<cmd>FzfLua marks<cr>", desc = "[s]earch [m]arks" },
+    { "<leader>sj", "<cmd>FzfLua jumps<cr>", desc = "[s]earch [j]umplist" },
+    { "<leader>sq", "<cmd>FzfLua quickfix<cr>", desc = "[s]earch [q]uickfix List" },
+
+    { "<leader>sF", "<cmd>FzfLua oldfiles<CR>", desc = "[s]earch recent [F]iles" },
+
+    -- git
+    { "<leader>sgc", "<cmd>FzfLua git_commits<CR>", desc = "[s]earch [g]it [c]ommits" },
+    { "<leader>sgC", "<cmd>FzfLua git_bcommits<CR>", desc = "[s]earch [g]it branch [C]ommits" },
+    { "<leader>sgs", "<cmd>FzfLua git_status<CR>", desc = "[s]earch [g]it [s]tatus changes" },
+    { "<leader>sgb", "<cmd>FzfLua git_branches<CR>", desc = "[s]earch [g]it [b]ranches" },
+  }
+end
+
+function M.setup_todo_keymaps()
+  return {
+    {
+      "<leader>st",
+      function()
+        require("todo-comments.fzf").todo()
+      end,
+      desc = "Todo",
+    },
+    {
+      "<leader>sT",
+      function()
+        require("todo-comments.fzf").todo({ keywords = { "TODO", "FIX", "FIXME" } })
+      end,
+      desc = "Todo/Fix/Fixme",
+    },
   }
 end
 
 function M.setup_auto_session_keymaps()
   return {
-    -- Will use Telescope if installed or a vim.ui.select picker otherwise
-    { "<leader>ss", "<cmd>SessionSearch<CR>", desc = "[s]earch [s]ession" },
-    -- { "<leader>uS", "<cmd>SessionSave<CR>", desc = "Save session" },
-    -- { "<leader>ua", "<cmd>SessionToggleAutoSave<CR>", desc = "Toggle session autosave" },
-    -- { "<leader>uD", "<cmd>SessionDelete<CR>", desc = "Delete session" },
+    {
+      "<leader>ss",
+      function()
+        require("persistence").select()
+      end,
+      desc = "[s]earch [s]ession",
+    },
   }
 end
 
 function M.setup_coderunner_keymaps()
-  map_normal_mode("<leader>rf", ":RunFile term<CR>", "[r]unner [f]ile")
+  return {
+    { "<leader>rf", ":RunFile term<CR>", desc = "Run file" },
+  }
 end
 
 function M.setup_snacks_keymaps()
+  -- NOTE: Snacks is a global; _G.Snacks = M
   return {
     {
       "<leader>gg",
@@ -480,7 +520,7 @@ function M.setup_snacks_keymaps()
           or vim.fn.confirm("There are unsaved buffers:\n\n" .. table.concat(unsaved_table, "\n") .. "\n\nDo you still want to run lazygit?", "&Yes\n&No", 2)
             == 1
         then
-          require("snacks").lazygit.open()
+          Snacks.lazygit.open()
         end
       end,
       desc = "LazyGit",
@@ -488,38 +528,30 @@ function M.setup_snacks_keymaps()
     {
       "<leader>uz",
       function()
-        require("snacks").zen()
+        Snacks.zen.zen()
       end,
-      desc = "Zen mode",
+      desc = "Toggle Zen mode",
     },
-  }
-end
-
-function M.setup_lazygit_keymaps()
-  --   "LazyGit",
-  --   "LazyGitConfig",
-  --   "LazyGitCurrentFile",
-  --   "LazyGitFilter",
-  --   "LazyGitFilterCurrentFile",
-
-  local function cmd()
-    -- if keymap <Esc><Esc> is set in terminal mode, remove it.
-    -- this is to enable <Esc> to navigate in LazyGit which otherwise
-    -- is overridden for terminal usage.
-    local terminal_keymaps = vim.api.nvim_get_keymap("t")
-    for _, keymap in pairs(terminal_keymaps) do
-      if keymap.lhs == "<Esc><Esc>" then
-        vim.api.nvim_del_keymap("t", "<Esc><Esc>")
-      end
-    end
-    vim.cmd("LazyGit")
-  end
-
-  return {
     {
-      "<leader>gg",
-      cmd,
-      desc = "LazyGit",
+      "<leader>uZ",
+      function()
+        Snacks.zen.zen()
+      end,
+      desc = "Toggle Zen mode",
+    },
+    {
+      "<leader>sn",
+      function()
+        Snacks.notifier.show_history()
+      end,
+      desc = "Toggle notification history",
+    },
+    {
+      "<leader>D",
+      function()
+        Snacks.dashboard.open()
+      end,
+      desc = "Dashboard",
     },
   }
 end
@@ -728,7 +760,7 @@ function M.setup_dap_ui_keymaps()
       function()
         require("dapui").eval()
       end,
-      desc = "DAP Eval",
+      desc = "[d]ebug [e]valuate expression",
     },
   }
 end
@@ -857,6 +889,26 @@ function M.setup_dap_keymaps()
   }
 end
 
+function M.setup_osv_keymaps()
+  return {
+    {
+      "<leader>dLl",
+      function()
+        require("osv").launch({ port = 8086 })
+        require("osv").stop()
+      end,
+      desc = "[d]ebug [L]ua: [l]aunch server",
+    },
+    {
+      "<leader>dLr",
+      function()
+        require("osv").run_this() -- current buffer
+      end,
+      desc = "[d]ebug [L]ua: [r]un this",
+    },
+  }
+end
+
 function M.setup_grug_far_keymaps()
   return {
     { "<leader>sr", ":GrugFar<cr>", desc = "[s]earch and [r]eplace (grug-far)" },
@@ -876,13 +928,6 @@ function M.setup_rip_substitute_keymaps()
   }
 end
 
-function M.setup_noice_keymaps()
-  map_normal_mode("<leader>sna", ":Noice<CR>", "[s]earch [n]oice [a]ll")
-  map_normal_mode("<leader>snl", ":NoiceLast<CR>", "[s]earch [n]oice [l]ast")
-  map_normal_mode("<leader>snd", ":NoiceDismiss<CR>", "[s]earch [n]oice [d]ismiss")
-  map_normal_mode("<leader>snL", ":NoiceLog<CR>", "[s]earch [n]oice [L]og")
-end
-
 function M.setup_terminal_keymaps()
   -- Both <C-/> and <C-_> are mapped due to the way control characters are interpreted by terminal emulators.
   -- ASCII value of '/' is 47, and of '_' is 95. When <C-/> is pressed, the terminal sends (47 - 64) which wraps around to 111 ('o').
@@ -891,15 +936,23 @@ function M.setup_terminal_keymaps()
   -- <C-/> toggles the floating terminal
   local ctrl_slash = "<C-/>"
   local ctrl_underscore = "<C-_>"
+
+  -- <C-A-/> toggles the split terminal
   local ctrl_alt_slash = "<C-A-/>"
   local ctrl_alt_underscore = "<C-A-_>"
-  local floating_term_cmd = function()
-    vim.api.nvim_set_keymap("t", "<Esc><Esc>", "<C-\\><C-n>", { noremap = true })
-    require("utils.terminal").toggle_fterm()
-  end
+
   local split_term_cmd = function()
     vim.api.nvim_set_keymap("t", "<Esc><Esc>", "<C-\\><C-n>", { noremap = true })
-    require("utils.terminal").toggle_terminal_native()
+
+    Snacks.terminal.toggle()
+  end
+
+  local floating_term_cmd = function()
+    vim.api.nvim_set_keymap("t", "<Esc><Esc>", "<C-\\><C-n>", { noremap = true })
+
+    local cmd = { "zsh" }
+    local opts = { cwd = vim.fn.getcwd() }
+    Snacks.terminal.toggle(cmd, opts)
   end
 
   return {
@@ -907,7 +960,6 @@ function M.setup_terminal_keymaps()
     { ctrl_alt_slash, split_term_cmd, mode = { "n", "i", "t", "v" }, desc = "Toggle terminal" },
     { ctrl_alt_underscore, split_term_cmd, mode = { "n", "i", "t", "v" }, desc = "Toggle terminal" },
 
-    -- C-A-/ toggles split terminal on/off
     { ctrl_slash, floating_term_cmd, mode = { "n", "i", "t", "v" }, desc = "Toggle native terminal" },
     { ctrl_underscore, floating_term_cmd, mode = { "n", "i", "t", "v" }, desc = "Toggle native terminal" },
   }
@@ -919,6 +971,12 @@ end
 
 function M.setup_lsp_keymaps()
   map_normal_mode("<leader>uh", require("utils.toggle").toggle_inlay_hints, "Toggle inlay hints")
+end
+
+function M.setup_showkeys_keymaps()
+  return {
+    { "<leader>uk", ":ShowkeysToggle<CR>", desc = "Show keys (toogle)" },
+  }
 end
 
 function M.setup_minimap_keymaps()
@@ -1015,6 +1073,7 @@ function M.setup_whichkey(wk)
     { "<leader>a", group = "ai" },
     { "<leader>c", group = "code" },
     { "<leader>d", group = "debug" },
+    { "<leader>dL", group = "debug lua" },
     { "<leader>b", group = "buffer" },
     { "<leader>g", group = "git" },
     { "<leader>gb", group = "blame" },
@@ -1088,6 +1147,7 @@ function M.setup_codecompanion_keymaps()
   return {
     { "<leader>ac", ":CodeCompanionChat anthropic<CR>", desc = "Codecompanion: Claude" },
     { "<leader>ao", ":CodeCompanionChat openai<CR>", desc = "Codecompanion: OpenAI" },
+    { "<leader>ag", ":CodeCompanionChat gemini<CR>", desc = "Codecompanion: Gemini" },
     { "<leader>al", ":CodeCompanionChat ollama<CR>", desc = "Codecompanion: Ollama" },
   }
 end
@@ -1095,12 +1155,6 @@ end
 function M.setup_avante_keymaps()
   return {
     { "<leader>aa", ":AvanteAsk<CR>", desc = "Avante" },
-  }
-end
-
-function M.setup_showkeys_keymaps()
-  return {
-    { "<leader>uk", ":ShowkeysToggle<CR>", desc = "Show keys (toogle)" },
   }
 end
 

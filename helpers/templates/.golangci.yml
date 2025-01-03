@@ -13,6 +13,8 @@ run:
   # Timeout for analysis, e.g. 30s, 5m.
   # Default: 1m
   timeout: 3m
+
+
 # This file contains only configs which differ from defaults.
 # All possible options can be found here https://github.com/golangci/golangci-lint/blob/master/.golangci.reference.yml
 linters-settings:
@@ -24,17 +26,20 @@ linters-settings:
     # If it's higher than 0.0 (float) the check is enabled
     # Default: 0.0
     package-average: 10.0
+
   errcheck:
     # Report about not checking of errors in type assertions: `a := b.(MyStruct)`.
     # Such cases aren't reported by default.
     # Default: false
     check-type-assertions: true
+
   exhaustive:
     # Program elements to check for exhaustiveness.
     # Default: [ switch ]
     check:
       - switch
       - map
+
   exhaustruct:
     # List of regular expressions to exclude struct packages and their names from checks.
     # Regular expressions must match complete canonical struct package/name/structname.
@@ -63,6 +68,7 @@ linters-settings:
       - "^golang.org/x/tools/go/analysis.Analyzer$"
       - "^google.golang.org/protobuf/.+Options$"
       - "^gopkg.in/yaml.v3.Node$"
+
   funlen:
     # Checks the number of lines in a function.
     # If lower than 0, disable the check.
@@ -75,14 +81,17 @@ linters-settings:
     # Ignore comments when counting lines.
     # Default false
     ignore-comments: true
+
   gochecksumtype:
     # Presence of `default` case in switch statements satisfies exhaustiveness, if all members are not listed.
     # Default: true
     default-signifies-exhaustive: false
+
   gocognit:
     # Minimal code complexity to report.
     # Default: 30 (but we recommend 10-20)
     min-complexity: 20
+
   gocritic:
     # Settings passed to gocritic.
     # The settings key is the name of a supported gocritic checker.
@@ -96,6 +105,7 @@ linters-settings:
         # Whether to skip (*x).method() calls where x is a pointer receiver.
         # Default: true
         skipRecvDeref: false
+
   gomodguard:
     blocked:
       # List of blocked modules.
@@ -113,6 +123,7 @@ linters-settings:
             recommendations:
               - github.com/gofrs/uuid/v5
             reason: "gofrs' package was not go module before v5"
+
   govet:
     # Enable all analyzers.
     # Default: false
@@ -128,10 +139,12 @@ linters-settings:
         # Whether to be strict about shadowing; can be noisy.
         # Default: false
         strict: true
+
   inamedparam:
     # Skips check for interface methods with only a single parameter.
     # Default: false
     skip-single-param: true
+
   mnd:
     # List of function patterns to exclude from analysis.
     # Values always ignored: `time.Date`,
@@ -151,35 +164,41 @@ linters-settings:
       - os.WriteFile
       - prometheus.ExponentialBuckets.*
       - prometheus.LinearBuckets
+
   nakedret:
     # Make an issue if func has more lines of code than this setting, and it has naked returns.
     # Default: 30
     max-func-lines: 0
+
   nolintlint:
     # Exclude following linters from requiring an explanation.
     # Default: []
-    allow-no-explanation: [funlen, gocognit, lll]
+    allow-no-explanation: [ funlen, gocognit, lll ]
     # Enable to require an explanation of nonzero length after each nolint directive.
     # Default: false
     require-explanation: true
     # Enable to require nolint directives to mention the specific linter being suppressed.
     # Default: false
     require-specific: true
+
   perfsprint:
     # Optimizes into strings concatenation.
     # Default: true
     strconcat: false
+
   reassign:
     # Patterns for global variable names that are checked for reassignment.
     # See https://github.com/curioswitch/go-reassign#usage
     # Default: ["EOF", "Err.*"]
     patterns:
       - ".*"
+
   rowserrcheck:
     # database/sql is always checked
     # Default: []
     packages:
       - github.com/jmoiron/sqlx
+
   sloglint:
     # Enforce not using global loggers.
     # Values:
@@ -197,11 +216,14 @@ linters-settings:
     # https://github.com/go-simpler/sloglint?tab=readme-ov-file#context-only
     # Default: ""
     context: "scope"
+
   tenv:
     # The option `all` will run against whole test files (`_test.go`) regardless of method/function signatures.
     # Otherwise, only methods that take `*testing.T`, `*testing.B`, and `testing.TB` as arguments are checked.
     # Default: false
     all: true
+
+
 linters:
   disable-all: true
   enable:
@@ -281,6 +303,7 @@ linters:
     - usestdlibvars # detects the possibility to use variables/constants from the Go standard library
     - wastedassign # finds wasted assignment statements
     - whitespace # detects leading and trailing whitespace
+
     ## you may want to enable
     #- decorder # checks declaration order and count of types, constants, variables and functions
     #- exhaustruct # [highly recommend to enable] checks if all structure fields are initialized
@@ -319,16 +342,19 @@ linters:
     #- tagliatelle # checks the struct tags
     #- thelper # detects golang test helpers without t.Helper() call and checks the consistency of test helpers
     #- wsl # [too strict and mostly code is not more readable] whitespace linter forces you to use empty lines
+
+
 issues:
   # Maximum count of issues with the same text.
   # Set to 0 to disable.
   # Default: 3
   max-same-issues: 50
+
   exclude-rules:
     - source: "(noinspection|TODO)"
-      linters: [godot]
+      linters: [ godot ]
     - source: "//noinspection"
-      linters: [gocritic]
+      linters: [ gocritic ]
     - path: "_test\\.go"
       linters:
         - bodyclose
