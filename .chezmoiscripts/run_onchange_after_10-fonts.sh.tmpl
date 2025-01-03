@@ -1,0 +1,56 @@
+{{- if (not .ephemeral) -}}
+{{ $sudo := "sudo " -}}
+{{ if eq .chezmoi.username "root" -}}
+{{   $sudo = "" -}}
+{{ end -}}
+
+#!/bin/bash
+
+
+# Check if fonts are enabled
+if [ "{{ .fonts.enabled }}" != "true" ]; then
+  echo "Fonts installation is disabled."
+  exit 0
+fi
+
+# Check if the font directory exists
+if [ ! -d {{ .fonts.path }} ]; then
+  echo "Font directory {{ .fonts.path }} does not exist."
+  exit 1
+fi
+
+# Function to install fonts on Debian
+install_fonts_debian() {
+  echo "Installing fonts on Debian..."
+  {{ $sudo }}mkdir -p /usr/share/fonts/
+
+  # Copy font files to the user's font directory
+  {{ $sudo }}cp -r {{ .fonts.path }}/* /usr/share/fonts/
+
+  # Update the font cache
+  fc-cache -f -v
+  echo "Fonts installed on Debian."
+}
+
+# Function to install fonts on macOS
+install_fonts_macos() {
+  echo "Installing fonts on macOS..."
+  # Copy font files to the user's font directory
+  cp -r {{ .fonts.path }}/* ~/Library/Fonts/
+  echo "Fonts installed on macOS."
+}
+
+# Per-platform installation
+case $(uname) in
+Darwin)
+  install_fonts_macos
+  ;;
+Linux)
+  install_fonts_debian
+  ;;
+*)
+  echo "Unsupported operating system: $(uname)"
+  exit 1
+  ;;
+esac
+{{ end -}}

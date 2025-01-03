@@ -1,0 +1,195 @@
+# Detect the OS
+UNAME_S := $(shell uname -s)
+UNAME_M := $(shell uname -m)
+
+########################################
+
+CHEZMOI := chezmoi --source={{ .chezmoi.sourceDir }}
+
+dotfiles_init:
+	$(CHEZMOI) init
+dotfiles_status:
+	$(CHEZMOI) status
+dotfiles_diff:
+	$(CHEZMOI) diff
+dotfiles_add:
+	@if [ -z "$(file)" ]; then \
+	  echo "Error: Please provide a FILE to add."; \
+	  exit 1; \
+	fi
+	$(CHEZMOI) add $(file)
+dotfiles_apply:
+	$(CHEZMOI) apply
+dotfiles_update:
+	$(CHEZMOI) update
+
+########################################
+
+# Determine the container engine (docker or podman)
+CONTAINER_ENGINE := {{ .container.engine }}
+
+# Print OS-specific information
+info:
+ifeq ($(UNAME_S), Darwin)
+	@echo "Running on macOS"
+	@neofetch
+else ifeq ($(UNAME_S), Linux)
+	@echo "Running on Linux"
+	@neofetch
+endif
+
+
+# Environment setup
+env:
+	tmuxinator start -p `pwd`/.tmuxinator.yml app_workspace=`pwd`;
+
+# Kill tmux session
+tkill:
+	@tmux kill-session -t dotfiles || echo "Session 'dotfiles' does not exist."
+
+tkill_all:
+	pkill -f tmux
+
+
+quitapps:
+ifeq ($(UNAME_S), Darwin)
+	osascript -e 'tell application "System Events" to set quitapps to (name of every process whose visible is true and name is not "Finder")' \
+  -e 'repeat with closeall in quitapps' \
+  -e 'tell application closeall to quit' \
+  -e 'end repeat'
+else
+	@echo "This target is for macOS only."
+endif
+
+# macOS-specific commands
+get_login_items:
+ifeq ($(UNAME_S), Darwin)
+	@launchctl list | grep -v "apple" | awk '{print $$3}'
+else
+	@echo "Login items command is specific to macOS."
+endif
+
+# macOS-specific updates
+update_macos:
+ifeq ($(UNAME_S), Darwin)
+	@echo "Updating macOS software..."
+	softwareupdate -i -a
+else
+	@echo "This target is for macOS only."
+endif
+
+update_apps:
+ifeq ($(UNAME_S), Darwin)
+	@echo "Updating Homebrew packages..."
+	brew outdated && brew update && brew upgrade --force && brew upgrade --cask
+	brew cleanup
+
+	@echo "Updating App Store applications..."
+	mas outdated && mas upgrade
+else
+	@echo "This target is for macOS only."
+endif
+
+# Clear caches
+clear_caches:
+ifeq ($(UNAME_S), Darwin)
+	@echo "Clearing macOS caches..."
+	rm -rf ~/Library/Caches/*
+	rm -rf /Library/Caches/*
+	rm -rf ~/Library/Logs/*
+else
+	@echo "This target is for macOS only."
+endif
+
+# Test Shared Volumes
+test_shared_volumes:
+ifeq ($(UNAME_S), Darwin)
+	$(CONTAINER_ENGINE) run -ti --rm \
+		-v "/Volumes:/media/share/Volumes" \
+		-v "/Users:/media/share/Users" \
+		busybox sh -c "cd /_shared && ls && sh"
+else
+	@echo "This target is for macOS only."
+endif
+
+# Clean up containers
+rm_a:
+	@$(CONTAINER_ENGINE) ps -aq | xargs $(CONTAINER_ENGINE) stop | xargs $(CONTAINER_ENGINE) rm
+
+# Launch k9s for Kubernetes
+k9s:
+	@k9s
+
+# Ollama
+
+# Function to kill process using the defined port
+ollama_kill_port:
+	@PORT_PID=$$(lsof -ti tcp:{{- .ollama.port -}}; \
+	if [ -n "$$PORT_PID" ]; then \
+		echo "Killing process on port {{ .ollama.port }}..."; \
+		kill -9 $$PORT_PID; \
+	fi
+
+# Start ollama server in the background and save the PID
+ollama_start: ollama_kill_port
+	@echo "Starting ollama server..."
+	@ollama serve & echo $$! > {{ .ollama.pidFile }}
+	@sleep 2 # Give the server some time to start
+	@echo "Ollama server started with PID $$(cat {{ .ollama.pidFile }})"
+
+# Stop all ollama server processes, regardless of PID file
+ollama_stop:
+	@if pgrep -f "ollama" > /dev/null; then \
+		echo "Stopping all ollama server processes..."; \
+		pkill -f "ollama"; \
+		echo "All ollama server processes stopped."; \
+	else \
+		echo "No ollama server processes running."; \
+	fi
+	@rm -f {{ .ollama.pidFile }}
+
+# Pull the Ollama model and update it
+ollama_pull:
+	@echo "Pulling and updating Ollama model {{ .ollama.model }}..."
+	@ollama pull {{ .ollama.model }}
+
+# Chat with Ollama (ensure the server is running first)
+ollama_chat:
+	@if [ -f {{ .ollama.pidFile }} ]; then \
+		echo "Running model {{ .ollama.model }}..."; \
+		ollama run {{ .ollama.model }}; \
+	else \
+		echo "Ollama server is not running. Start it first."; \
+	fi
+
+# Tor
+proxy_start:
+	$(CONTAINER_ENGINE) run -d --restart=always --name torproxy -p 127.0.0.1:{{- .torproxy.portSocks5 -}}:9150/tcp -p 127.0.0.1:{{- .torproxy.portDns -}}:8853/udp peterdavehello/tor-socks-proxy:latest
+
+torproxy_start_without_dns:
+	$(CONTAINER_ENGINE) run -d --restart=always --name torproxy -p 127.0.0.1:{{- .torproxy.portSocks5 -}}:9150/tcp peterdavehello/tor-socks-proxy:latest
+
+torproxy_stop:
+	$(CONTAINER_ENGINE) stop torproxy
+	$(CONTAINER_ENGINE) rm torproxy
+
+torproxy_logs:
+	$(CONTAINER_ENGINE) logs torproxy
+
+torproxy_ip_change:
+	docker restart torproxy
+
+torproxy_ports:
+	lsof -i :{{- .torproxy.portSocks5 -}}
+	lsof -i :{{- .torproxy.portDns -}}
+
+torproxy_check:
+	@echo "ALL_PROXY: ${ALL_PROXY}"
+	@echo "HTTP_PROXY: ${HTTP_PROXY}"
+	@echo "HTTPS_PROXY: ${HTTPS_PROXY}"
+	@echo "NO_PROXY: ${NO_PROXY}"
+	@echo "DNS_PROXY: ${DNS_PROXY}"
+
+	curl https://ipinfo.tw/ip
+	curl --socks5-hostname {{ .torproxy.host }}:{{- .torproxy.portSocks5 -}} https://check.torproject.org/api/ip
+

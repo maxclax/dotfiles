@@ -1,0 +1,25 @@
+#!/bin/bash -ex
+
+# Check if podman are enabled
+if [ "{{ .podman.enabled }}" != "true" ]; then
+  echo "Podman installation is disabled."
+  exit 0
+fi
+
+# Per-platform settings
+case $(uname) in
+Darwin)
+  brew install podman
+  brew install podman-compose
+  ;;
+Linux)
+  # commands for Linux go here
+  ;;
+FreeBSD)
+  # commands for FreeBSD go here
+  ;;
+MINGW64_NT-*)
+  # commands for Git bash in Windows go here
+  ;;
+*) ;;
+esac

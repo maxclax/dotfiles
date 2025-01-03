@@ -1,0 +1,27 @@
+name: terraform
+parent: default
+
+matches:
+  # Terraform - init
+  - trigger: ":tfinit"
+    replace: "terraform init"
+
+  # Terraform - plan
+  - trigger: ":tfplan"
+    replace: "terraform plan"
+
+  # Terraform - apply
+  - trigger: ":tfapply"
+    replace: "terraform apply"
+
+  # Terraform - destroy
+  - trigger: ":tfdestroy"
+    replace: "terraform destroy"
+
+  # Terraform - validate
+  - trigger: ":tfvalidate"
+    replace: "terraform validate"
+
+  # Terraform - fmt
+  - trigger: ":tffmt"
+    replace: "terraform fmt"

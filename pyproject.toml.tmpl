@@ -1,0 +1,15 @@
+[tool.poetry]
+name = {{ .git.name | quote }}
+version = "0.1.0"
+description = ""
+authors = [{{ .git.name | quote }}]
+
+[tool.poetry.dependencies]
+python = "{{ .python.version }}"
+{{- range .python.dependencies }}
+{{ . }}
+{{- end }}
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,4 @@
+-- This is the local .nvim.lua for your per-project settings.
+-- For more information, run :help exrc
+--
+-- Also see .lazy.lua for plugin config overriding.

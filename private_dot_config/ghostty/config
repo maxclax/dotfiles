@@ -1,0 +1,25 @@
+# NOTE:
+# docs:
+# ghostty +show-config --default --docs | nvim
+# examples:
+# https://github.com/search?q=path%3Aghostty%2Fconfig&type=code
+
+ ghostty +list-fonts
+font-family = Symbols Nerd Font Mono
+font-family = Berkeley Mono
+font-family-italic = "Maple Mono"
+font-family-bold-italic = "Maple Mono"
+font-size = 14
+window-title-font-family = "Maple Mono"
+
+macos-titlebar-proxy-icon = hidden
+macos-option-as-alt = true
+
+# ghostty +list-themes
+# theme =
+
+# keymaps
+keybind = global:cmd+`=toggle_quick_terminal
+keybind = shift+ctrl+left_bracket=previous_tab
+keybind = shift+ctrl+right_bracket=next_tab
+

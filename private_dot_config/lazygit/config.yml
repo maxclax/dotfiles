@@ -1,0 +1,4 @@
+git:
+  overrideGpg: true # prevents lazygit from spawning a separate process when using GPG
+os:
+  editPreset: "nvim" # nvim-remote works so-so

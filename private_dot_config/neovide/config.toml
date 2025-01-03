@@ -1,0 +1,22 @@
+[font]
+normal = ["Berkeley Mono"]
+size = 18.0
+
+fork = false
+# https://neovide.dev/command-line-reference.html#frame
+# full: The default, all decorations.
+# none: No decorations at all. Window cannot be moved nor resized after this.
+# (macOS only) transparent: Transparent decorations including a transparent bar.
+# (macOS only) buttonless: All decorations, but without quit, minimize or fullscreen buttons.
+# frame = "full"
+frame = "transparent"
+idle = true
+maximized = false
+# neovim-bin = "/usr/bin/nvim" # in reality found dynamically on $PATH if unset
+no-multigrid = false
+srgb = false
+tabs = true
+theme = "auto"
+title-hidden = true
+vsync = true
+wsl = false

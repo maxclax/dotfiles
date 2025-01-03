@@ -1,0 +1,11 @@
+[[ssh-keys]]
+vault = "Private"
+item = "id_rsa"
+
+[[ssh-keys]]
+vault = "Private"
+item = "id_ed25519"
+
+[[ssh-keys]]
+vault = "Private"
+item = "github"

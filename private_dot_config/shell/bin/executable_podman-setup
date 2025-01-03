@@ -1,0 +1,95 @@
+#!/bin/bash
+set -e
+
+# Help function
+show_help() {
+    cat << EOF
+Usage: podman-setup [OPTIONS]
+
+Setup podman environment with custom resources.
+
+Options:
+    -c, --cpu NUM        Number of CPUs (default: 4)
+    -m, --memory NUM     Memory in MB (default: 6144)
+    -d, --disk NUM       Disk size in GB (default: 50)
+    -h, --help          Show this help message
+
+Example:
+    podman-setup -c 6 -m 8192 -d 100
+EOF
+}
+
+# Default values
+CPU=4
+MEM=6144
+DISK_SIZE=50
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -c|--cpu)
+            CPU="$2"
+            shift 2
+            ;;
+        -m|--memory)
+            MEM="$2"
+            shift 2
+            ;;
+        -d|--disk)
+            DISK_SIZE="$2"
+            shift 2
+            ;;
+        -h|--help)
+            show_help
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            show_help
+            exit 1
+            ;;
+    esac
+done
+
+# Check if brew is installed
+if ! command -v brew >/dev/null 2>&1; then
+    echo "Error: Homebrew is required but not installed."
+    exit 1
+fi
+
+echo "Setting up Podman with CPU=$CPU, Memory=${MEM}MB, Disk=${DISK_SIZE}GB"
+
+# Install podman if not already installed
+if ! command -v podman >/dev/null 2>&1; then
+    echo "Installing podman..."
+    brew install podman
+else
+    echo "Podman is already installed, skipping installation..."
+fi
+
+# Initialize podman machine with specified or default CPU, memory and disk size
+echo "Initializing podman machine..."
+podman machine init --cpus "$CPU" -m "$MEM" --disk-size "$DISK_SIZE" -v /Users -v /Volumes
+podman machine start
+
+# install podman-mac-helper
+echo "Installing podman-mac-helper..."
+sudo $HOMEBREW_PREFIX/bin/podman-mac-helper install
+podman machine stop
+podman machine start
+
+# install podman-compose if not already installed
+if ! command -v podman-compose >/dev/null 2>&1; then
+    echo "Installing podman-compose..."
+    brew install podman-compose
+else
+    echo "Podman-compose is already installed, skipping installation..."
+fi
+
+# set up for ryuk testcontainers
+echo "Setting up testcontainers configuration..."
+touch ~/.testcontainers.properties
+echo "ryuk.container.privileged = true" >~/.testcontainers.properties
+
+echo "Podman setup completed successfully!"
+

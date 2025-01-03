@@ -1,0 +1,30 @@
+#!/bin/sh -e
+
+
+echo "About to remove default neovim dirs, continue? (y/n)"
+read -r response
+if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
+	rm -rf ~/.config/nvim
+
+	rm -rf ~/.local/share/nvim
+  rm -rf ~/.local/state/nvim
+  rm -rf ~/.local/cache/nvim
+
+	rm -rf ~/.share/nvim
+	rm -rf ~/.state/nvim
+	rm -rf ~/.cache/nvim
+fi
+
+echo "Do you want to remove the nvim's distros in ~/.config/? (y/n)"
+read -r response
+if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
+	rm -rf ~/.config/LunarVim
+	rm -rf ~/.config/LazyVim
+	rm -rf ~/.config/NvChad
+	rm -rf ~/.config/AstroNvim
+	rm -rf ~/.config/kickstart.nvim
+	rm -rf ~/.config/kickstart-modular.nvim
+	rm -rf ~/.config/NormalNvim
+	rm -rf ~/.config/neovim-for-newbs
+fi
+

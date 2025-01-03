@@ -1,0 +1,145 @@
+#!/bin/bash
+
+
+# Define the list of brew packages
+{{ $brews := list
+  "age"
+  "atop"
+  "bat"
+  "borders"
+  "chafa"
+  "cmake"
+  "ctop"
+  "direnv"
+  "dockutil"
+  "duf"
+  "eza"
+  "fd"
+  "fzf"
+  "gcc"
+  "gh"
+  "git"
+  "glances"
+  "go"
+  "hcloud"
+  "helm"
+  "hetzner_k3s"
+  "htop"
+  "iftop"
+  "joshmedeski/sesh/sesh"
+  "k9s"
+  "kind"
+  "kubectl"
+  "kubectx"
+  "lazygit"
+  "linkerd"
+  "lsof"
+  "make"
+  "mas"
+  "ncdu"
+  "neofetch"
+  "neovim"
+  "nmap"
+  "pngpaste"
+  "pnpm"
+  "ptpython"
+  "ranger"
+  "ripgrep"
+  "rust"
+  "rustup-init"
+  "slides"
+  "starship"
+  "stern"
+  "thefuck"
+  "tlrc"
+  "tmux"
+  "tmuxinator"
+  "trash"
+  "tree"
+  "vim"
+  "watch"
+  "wget"
+  "zoxide"
+  "zsh-autosuggestions"
+  "zsh-syntax-highlighting"
+  "zsh-vi-mode" -}}
+
+# Define the list of cask applications
+{{ $casks := list
+  "1password"
+  "1password-cli"
+  "BetterTouchTool"
+  "alacritty"
+  "alfred"
+  "anki"
+  "appcleaner"
+  "balenaetcher"
+  "bartender"
+  "cardhop"
+  "choosy"
+  "coconutbattery"
+  "colorsnapper"
+  "daisydisk"
+  "devonthink"
+  "espanso"
+  "fantastical"
+  "firefox"
+  "flux"
+  "google-chrome"
+  "karabiner-elements"
+  "keepassxc"
+  "keycastr"
+  "kitty"
+  "libreoffice"
+  "omnifocus"
+  "pdf-expert"
+  "qutebrowser"
+  "rescuetime"
+  "send-to-kindle"
+  "tor-browser"
+  "tradingview"
+  "transmission"
+  "utm"
+  "viber"
+  "vlc"
+  "whatsapp"
+  "zoom" -}}
+
+# Define the list of Mac App Store applications
+{{ $masApps := dict
+  "1Password for Safari" 1569813296
+  "Airmail" 918858936
+  "Amphetamine" 937984704
+  "Brother Transfer Express" 1627217996
+  "Cyberduck" 409222199
+  "Disk Speed Test" 425264550
+  "Drafts" 1435957248
+  "Folx GO" 736584830
+  "IP Scanner Ultra" 404167677
+  "Irvue" 1039633667
+  "Kindle" 302584613
+  "Medis" 1579200037
+  "MeetingBar" 1532419400
+  "Numbers" 409203825
+  "OmniFocus" 1542143627
+  "Pages" 409201541
+  "Parcel" 639968404
+  "Pixelmator Pro" 1289583905
+  "RAR Extractor and Expander" 1071663619
+  "SiteSucker" 442168834
+  "Speedtest" 1153157709
+  "Telegram" 747648890
+-}}
+
+# Generate the Brewfile format output
+brew bundle --no-lock --file=/dev/stdin <<EOF
+{{ range ($brews | sortAlpha | uniq) -}}
+brew "{{ . }}"
+{{ end -}}
+{{ range ($casks | sortAlpha | uniq) -}}
+cask "{{ . }}"
+{{ end -}}
+{{ range (keys $masApps | sortAlpha) -}}
+mas "{{ . }}", id: {{ index $masApps . }}
+{{ end -}}
+EOF

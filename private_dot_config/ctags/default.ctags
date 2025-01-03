@@ -1,0 +1,26 @@
+--recurse
+--exclude=.git
+--exclude=node_modules/
+--tag-relative=yes
+
+# Exclude certain directories
+--exclude=.data
+--exclude=.git
+--exclude=.idea
+--exclude=.logs
+--exclude=.vim
+--exclude=_dist
+--exclude=_app
+--exclude=backup
+--exclude=node_modules
+--exclude=*.min.js
+
+# Include specific file extensions
+--languages=Python,JavaScript,HTML,TypeScript
+
+# Map file extensions to languages
+--langmap=Python:.py
+--langmap=JavaScript:.js
+--langmap=HTML:.html
+--langmap=TypeScript:.ts
+

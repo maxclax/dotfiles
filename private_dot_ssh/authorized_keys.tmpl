@@ -1,0 +1,7 @@
+{{- $keys := gitHubKeys .git.github.name -}}
+{{- if $keys -}}
+  {{- range $keys -}}
+    {{ .Key }}
+  {{- end -}}
+{{- end -}}
+

@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+
+import os
+import ffmpeg
+import uuid
+from PIL import Image
+
+def generate_short_guid():
+    """Generate a short GUID (8 characters)."""
+    return str(uuid.uuid4())[:8]
+
+def compress_video(input_file, output_file, crf=28):
+    """Compress video file using ffmpeg."""
+    ffmpeg.input(input_file).output(output_file, vcodec='libx264', crf=crf, preset='medium').run(overwrite_output=True)
+    print(f"Compressed video saved as: {output_file}")
+
+def compress_audio(input_file, output_file, bitrate='128k'):
+    """Compress audio file using ffmpeg."""
+    ffmpeg.input(input_file).output(output_file, audio_bitrate=bitrate).run(overwrite_output=True)
+    print(f"Compressed audio saved as: {output_file}")
+
+def compress_image(input_file, output_file, quality=80):
+    """Compress image file using Pillow."""
+    with Image.open(input_file) as img:
+        img.save(output_file, optimize=True, quality=quality)
+    print(f"Compressed image saved as: {output_file}")
+
+def process_files_in_directory(directory, video_crf=28, audio_bitrate='128k', image_quality=85):
+    """Compress videos, audios, and images in the specified directory."""
+    for filename in os.listdir(directory):
+        input_file = os.path.join(directory, filename)
+
+        if not os.path.isfile(input_file):
+            continue
+
+        # Generate short GUID and keep the original file extension
+        short_guid = generate_short_guid()
+        file_ext = os.path.splitext(filename)[-1].lower()
+        output_file = os.path.join(directory, f"{short_guid}{file_ext}")
+
+        try:
+            # Process video files
+            if file_ext in ['.mp4', '.mov']:
+                compress_video(input_file, output_file, crf=video_crf)
+
+            # Process audio files
+            elif file_ext == '.m4a':
+                compress_audio(input_file, output_file, bitrate=audio_bitrate)
+
+            # Process image files
+            elif file_ext in ['.jpg', '.jpeg', '.png']:
+                compress_image(input_file, output_file, quality=image_quality)
+
+            # Replace the original file with the compressed one
+            os.replace(output_file, input_file)
+
+        except Exception as e:
+            print(f"Error processing {filename}: {e}")
+
+if __name__ == "__main__":
+    directory = input("Enter the path to the directory containing files: ")
+    video_crf = int(input("Enter desired CRF for video (default 28): ") or 28)
+    audio_bitrate = input("Enter desired audio bitrate (default 128k): ") or '128k'
+    image_quality = int(input("Enter desired image quality (default 80): ") or 80)
+
+    process_files_in_directory(directory, video_crf=video_crf, audio_bitrate=audio_bitrate, image_quality=image_quality)
+    print("All files have been processed and saved with compression.")

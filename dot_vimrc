@@ -1,0 +1,408 @@
+source $HOME/.config/vim/settings/plugins.vim
+source $HOME/.config/vim/settings/configs.vim
+source $HOME/.config/vim/settings/functions.vim
+source $HOME/.config/vim/settings/mappings.vim
+
+set guifont=Berkeley\ Mono:h14
+
+" All the plugins are managed via vim-plug, run :PlugInstall to install all
+" the plugins from Github, :PlugUpdate to update. Leader key is the spacebar.
+"
+" What function keys do (also see: Custom commands, Leader shortcuts):
+"   F5: toggle Mundo window.
+
+" => Pre-load ------------------------------------------------------------- {{{1
+
+" Enable syntax highlighting.
+syntax on
+
+" Enable file type based options.
+filetype plugin indent on
+
+" Download and install vim-plug (cross platform).
+if empty(glob(
+    \ '$HOME/' . (has('win32') ? 'vimfiles' : '.vim') . '/autoload/plug.vim'))
+  execute '!curl -fLo ' .
+    \ (has('win32') ? '\%USERPROFILE\%/vimfiles' : '$HOME/.vim') .
+    \ '/autoload/plug.vim --create-dirs ' .
+    \ 'https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+endif
+
+" => Sane defaults (from Neovim) ------------------------------------------ {{{1
+
+set autoindent
+set autoread
+set backspace=indent,eol,start
+set belloff=all
+set complete-=i
+set display=lastline
+set formatoptions=tcqj
+set history=10000
+set incsearch
+set laststatus=2
+set nocompatible
+set ruler
+set sessionoptions-=options
+set showcmd
+set sidescroll=1
+set smarttab
+set ttimeoutlen=50
+set ttyfast
+set viminfo+=!
+set wildmenu
+
+" => vim-plug plugins ----------------------------------------------------- {{{1
+
+let g:plug_timeout = 300 " Increase vim-plug timeout
+
+call plug#begin()
+
+  Plug 'junegunn/vim-plug'                         " Need it for helpers download
+  Plug 'tpope/vim-fugitive'                        " Git integration
+  Plug 'tpope/vim-vinegar'                         " - to open netrw
+  Plug 'vim-airline/vim-airline'                   " powerline
+  Plug 'EinfachToll/DidYouMean'                    " filename suggestions
+  Plug 'Lokaltog/vim-easymotion'                   " better move commands
+  Plug 'christoomey/vim-tmux-navigator'            " better tmux integration
+  Plug 'ervandew/supertab'                         " more powerful <tab>
+  Plug 'junegunn/goyo.vim', {'on': 'Goyo'}         " distraction-free writing
+  Plug 'justinmk/vim-dirvish'                      " less buggy netrw alternative
+  Plug 'preservim/nerdtree', {'on': 'NERDTreeToggle'}
+  Plug 'leafgarland/typescript-vim'                " typescript syntax
+  Plug 'mileszs/ack.vim', {'on': 'Ack'}            " ack integration
+  Plug 'simnalamburt/vim-mundo'                    " visualize the undo tree
+  Plug 'tomtom/tcomment_vim'                       " commenting helpers
+  Plug 'tpope/vim-abolish'                         " change case on the fly
+  Plug 'tpope/vim-repeat'                          " repeat everything
+  Plug 'tpope/vim-surround'                        " better surround commands
+  Plug 'tpope/vim-unimpaired'                      " pairs of helpful commands
+  Plug 'vimwiki/vimwiki'                           " personal wiki
+  Plug 'dense-analysis/ale', {'for': ['python']}   " async syntax checke
+  Plug 'ctrlpvim/ctrlp.vim'                        " Ctrl+p to fuzzy search
+  Plug 'junegunn/fzf', {'do': {->fzf#install()}}
+  Plug 'junegunn/fzf.vim'
+  Plug 'janko-m/vim-test'
+  Plug 'ycm-core/YouCompleteMe', { 'do': './install.py' }
+
+  Plug 'prabirshrestha/async.vim'                  " async LSP support
+  Plug 'prabirshrestha/vim-lsp'                    " LSP support
+  Plug 'prabirshrestha/asyncomplete.vim'           " async autocomplete
+  Plug 'prabirshrestha/asyncomplete-lsp.vim'       " async LSP autocomplete
+
+  Plug 'vim-scripts/ScrollColors'                  " colorscheme scroller
+  Plug 'Zabanaa/neuromancer.vim'                   " colorscheme
+  Plug 'NLKNguyen/papercolor-theme'                " colorscheme
+  Plug 'vim-scripts/Spacegray.vim'                 " colorscheme
+  Plug 'altercation/vim-colors-solarized'          " colorscheme
+  Plug 'squarefrog/tomorrow-night.vim'             " colorscheme
+
+call plug#end()
+
+" => Editing -------------------------------------------------------------- {{{1
+
+" Global indentation settings.
+set expandtab
+set shiftwidth=2
+set softtabstop=2
+set tabstop=2
+
+autocmd filetype python set expandtab              " Expand tabs to spaces. Essential in Python.
+autocmd filetype python set tabstop=4              " Number of spaces tab is counted for.
+autocmd filetype python set shiftwidth=4           " Number of spaces to use for autoindent.
+
+" Disable backups and .swp files.
+set nobackup
+set noswapfile
+set nowritebackup
+
+" Semicolon is too long to type.
+nnoremap ; :
+vnoremap ; :
+
+" Map leader key.
+let mapleader = "\<Space>"
+
+" Use system clipboard.
+set clipboard=unnamed,unnamedplus
+
+" Enable wild menu (tab command autocompletion).
+set wildmode=list:longest,full
+
+" Don't complain about unsaved files when switching buffers.
+set hidden
+
+" Enable persistent undo.
+" set undofile
+" set undodir=$HOME/.vim/undodir
+
+" Automatically change the working directory for the current file.
+" set autochdir
+
+" => Looks ---------------------------------------------------------------- {{{1
+
+set background=dark
+colorscheme PaperColor
+" hi StatusLineTerm ctermbg=24 ctermfg=254 guibg=#004f87 guifg=#e4e4e4
+" hi StatusLineTermNC ctermbg=252 ctermfg=238 guibg=#d0d0d0 guifg=#444444
+
+" Shorten press ENTER to continue messages.
+set shortmess=atI
+
+" Highlight cursor line.
+set cursorline
+set cursorcolumn
+
+" Display line numbers if terminal is wide enough.
+if &co > 80
+  set number
+endif
+
+" Soft word wrap.
+set linebreak
+
+" Make soft line breaks much better looking.
+set breakindent
+
+" Pretty soft break character.
+let &showbreak = '> '
+
+" => Custom commands ------------------------------------------------------ {{{1
+
+" Command to close current buffer without closing the window.
+command! Bd :bp | :sp | :bn | :bd
+
+" => Leader shortcuts ----------------------------------------------------- {{{1
+
+nnoremap <Leader>] <C-]>
+nnoremap <Leader>i <C-i>
+nnoremap <Leader>o <C-o>
+nnoremap <Leader>r :redraw!<cr>
+nnoremap <Leader>w :w<cr>
+nnoremap <Leader>dd "_dd
+nnoremap <Leader>x q:
+nnoremap <Leader>h q/
+nnoremap <Leader>a :Ack! <C-r><C-w><cr>
+nnoremap <leader>p :CtrlP<cr>
+nnoremap <leader>b :CtrlPBuffer<cr>
+nnoremap <leader>m :CtrlPMRU<cr>
+nnoremap <leader>t :CtrlPTag<cr>
+nnoremap <leader>n :NERDTreeToggle<cr>
+
+nnoremap <leader>ev :vsplit $MYVIMRC<CR>        " Map <leader>ev to edit the .vimrc file
+nnoremap <leader>sv :source $MYVIMRC<cr>        " Map <leader>sr to source the .vimrc
+
+" => Movement and search -------------------------------------------------- {{{1
+
+" Ignore case when searching.
+set ignorecase
+set smartcase
+
+" Searching highlights
+set hlsearch
+
+" Fast split navigation.
+nnoremap <c-j> <c-w><c-j>
+nnoremap <c-k> <c-w><c-k>
+nnoremap <c-l> <c-w><c-l>
+nnoremap <c-h> <c-w><c-h>
+tnoremap <c-j> <c-w><c-j>
+tnoremap <c-k> <c-w><c-k>
+tnoremap <c-l> <c-w><c-l>
+tnoremap <c-h> <c-w><c-h>
+
+" Absolute movement for word-wrapped lines.
+nnoremap j gj
+nnoremap k gk
+
+" Accidentally hitting capital K doesn't open manpages.
+nnoremap <s-k> k
+
+" Unable to use stantard cursore only hjkl enjoy
+noremap <Up> <Nop>
+noremap <Down> <Nop>
+noremap <Left> <Nop>
+noremap <Right> <Nop>
+
+" Faster way return to NORMAL mode
+inoremap jj <Esc>
+inoremap jk <Esc>
+inoremap <esc> <nop>
+
+" make . to work with visually selected lines
+vnoremap . :normal.<CR>
+
+" Move visual selection
+vnoremap J :m '>+1<CR>gv=gv
+vnoremap K :m '<-2<CR>gv=gv
+
+" Map Ctrl+Q to ":q"
+nnoremap <C-q> :q<CR>
+
+" Buffers
+nnoremap <S-Left> :bprevious<CR>
+nnoremap <S-Right> :bnext<CR>
+nnoremap <S-Down> :buffers<CR>
+nnoremap <S-Up> :buffer
+nnoremap <S-Delete> :bdelete<CR>
+
+" Tabs
+" nnoremap <C-t> :tabnew<CR>
+nnoremap <C-w> :tabclose<CR>
+" nnoremap <C-p> :tabprevious<CR>
+" nnoremap <C-n> :tabnew<CR>
+
+" => Misc ----------------------------------------------------------------- {{{1
+
+" Hide terminal windows in active buffer lists (for ]b and [b navigation).
+autocmd TerminalOpen * if bufwinnr('') > 0 | setlocal nobuflisted | endif
+
+" Use Unix as the standart file type.
+set ffs=unix,dos,mac
+
+" Fold using {{{n, where n is fold level
+set foldmethod=marker
+" set foldlevel=3
+autocmd filetype python set foldmethod=indent
+
+" highlight trailing whitespace
+match ErrorMsg '\s\+$'
+" remove trailing whitespaces automatically
+autocmd BufWritePre * :%s/\s\+$//e
+
+" => Fixes and hacks ------------------------------------------------------ {{{1
+
+" Increase lower status bar height in diff mode.
+if &diff
+  set cmdheight=2
+endif
+
+" Fix easymotion target colors in a PaperColor theme.
+if g:colors_name ==# 'PaperColor'
+  hi EasyMotionTarget2First ctermbg=none ctermfg=red
+  hi EasyMotionTarget2Second ctermbg=none ctermfg=red
+endif
+
+
+" Disable line numbers in terminal.
+au CursorMoved * if &buftype == 'terminal' | set nonumber | endif
+
+" Open all folds when entering Vim.
+set nofoldenable
+
+" Don't wrap lines  (to fix the way shortened URLs are displayed).
+autocmd FileType vimwiki set nowrap
+autocmd FileType python setlocal nowrap
+autocmd FileType html setlocal nowrap
+
+
+" => Abbreviations ------------------------------------------------------ {{{1
+
+function! InsertIPD()
+    return "import ipdb; ipdb.set_trace()"
+endfunction
+
+function! InsertIPT()
+    return "{% load djcore_tags %}{{ __placeholder__|ipdb }}"
+endfunction
+
+" Insert mapping
+inoremap ipd <C-R>=InsertIPD()<CR>
+inoremap ipt <C-R>=InsertIPT()<CR>
+
+" => Plugins configuration ------------------------------------------------ {{{1
+
+" Load all plugins.
+packloadall
+" Load help files for all plugins.
+silent! helptags ALL
+
+" nerdtree
+let NERDTreeIgnore=['\.pyc$', '\~$'] "ignore files in NERDTree
+let NERDTreeShowBookmarks=1 " Display bookmarks on startup.
+let NERDTreeHijackNetrw=0
+let g:NERDTreeFileLines = 1
+
+" CtrlP
+let g:ctrlp_working_path_mode = 'ra' " Set CtrlP working directory to a repository root
+
+" fzf
+let $FZF_DEFAULT_COMMAND = 'list_all_files'
+nnoremap <c-p> :FZF<cr>
+set grepprg=rg\ --vimgrep\ --smart-case\ --follow
+
+" vim-test
+let test#strategy = "dispatch"
+
+" ack -> ag
+if executable('ag')
+  let g:ackprg = 'ag --vimgrep'
+endi
+
+" :Far -> ag
+let g:far#source = 'ag'
+
+" Mundo
+let g:gundo_preview_bottom = 1
+nnoremap <F5> :MundoToggle<cr>
+
+
+
+" => Source the .vimrc.local file if it exists ------------------------------------------------ {{{1
+
+if filereadable(expand("/Volumes/develop/.vimrc.local"))
+    source /Volumes/develop/.vimrc.local
+endif
+if filereadable(expand("~/.vimrc.local"))
+    source ~/.vimrc.local
+endif
+
+
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" CTAGS
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+set tags=tags; " Look for a tags file recursively in parent directories.
+" Automatically regenerate the tags file on file save
+augroup MyTags
+  autocmd!
+  autocmd BufWritePost *.js,*.py,*.html,*.ts call RegenerateTags()
+augroup END
+
+" Function to run ctags and show notifications
+function! RegenerateTags()
+
+  " Find the root directory with a .ctags file
+  let l:root_dir = expand('%:p:h')
+  while l:root_dir !=# '/'
+    if filereadable(l:root_dir . '/.ctags')
+      break
+    endif
+    let l:root_dir = fnamemodify(l:root_dir, ':h')
+  endwhile
+
+  " If no .ctags file is found, use default options
+  if filereadable(l:root_dir . '/.ctags')
+    let l:ctags_cmd = 'ctags -R --options=' . shellescape(l:root_dir . '/.ctags') . ' -f .vim/tags .'
+
+    " Show a message indicating that ctags is running
+    echohl InfoMsg
+    echo "Regenerating tags..."
+    echohl None
+
+    " Run ctags command and capture the output
+    let l:output = system(l:ctags_cmd)
+
+    " Show a message indicating that ctags is running
+    echohl InfoMsg
+    echo "Tags regenerated successfully!"
+    echohl None
+  endif
+
+  " Check if ctags command was successful
+  if v:shell_error != 0
+    echohl ErrorMsg
+    echo "Error running ctags: " . l:output
+    echohl None
+  endif
+endfunction

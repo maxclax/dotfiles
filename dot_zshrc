@@ -1,0 +1,40 @@
+# Set the path to the Oh My Zsh installation directory
+export ZSH="$HOME/.oh-my-zsh"
+
+# Specify the theme for the Zsh prompt
+ZSH_THEME="robbyrussell"
+
+# List of plugins to load with Oh My Zsh
+# - zsh-autosuggestions: Provides interactive suggestions as you type
+# - git: Provides Git integration and useful Git commands
+# - docker: Adds Docker command completions and aliases
+# - docker-compose: Adds Docker Compose command completions and aliases
+# - poetry: Manages Python dependencies and packaging
+# - kubectl: Provides Kubernetes command completions
+plugins=(git podman poetry kubectl)
+
+# Source the main Oh My Zsh script to apply settings
+source $ZSH/oh-my-zsh.sh
+
+# Config alias
+alias reload-zsh="source ~/.zshrc"
+alias edit-zsh="nvim ~/.zshrc"
+
+# Source additional configurations from .zshrc.local
+if [ -f ~/.zshrc.local ]; then
+  source ~/.zshrc.local
+fi
+
+# Don't eddit above !!!
+#--------------------------------------------------
+
+# completion using arrow keys (based on history)
+bindkey '^[[A' history-search-backward
+bindkey '^[[B' history-search-forward
+
+# Source file if it exists and have a size greater than zero
+[[ -s ~/.config/shell/exports.sh ]] && source ~/.config/shell/exports.sh
+[[ -s ~/.config/shell/aliases.sh ]] && source ~/.config/shell/aliases.sh
+[[ -s ~/.config/shell/sources.sh ]] && source ~/.config/shell/sources.sh
+
+# neofetch

@@ -1,0 +1,73 @@
+# Global settings
+alias cz=chezmoi
+alias dotfiles='cd {{ .chezmoi.sourceDir }}'
+alias notesehub='cd {{ .noteshub.vault }}'
+alias jupyter='cd {{ .jupyter }}'
+alias tree='tree -C'
+
+# Git
+alias gs='git status'
+alias lg='lazygit'
+alias git-purge='git branch --merged | egrep -v "(^\*|master|main|dev)" | xargs git branch -d'
+alias git-grep='git rev-list --all | xargs git --no-pager grep --extended-regexp --ignore-case' # usage: gg <regexp>
+alias glog='git log --graph --decorate --pretty=oneline --abbrev-commit --all'
+alias submodule-reset='git submodule deinit -f . && git submodule update --init --recursive'
+
+# Containers
+alias ubuntu='docker run --interactive --tty --rm --volume $(pwd):/host:ro ubuntu:22.04 bash'
+{{- /*
+alias docker-ip="docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'" # append container id
+*/ -}}
+alias tf="terraform"
+alias mk="minikube"
+alias k="kubectl"
+alias h="helm"
+
+# Python
+alias pyclean='find . | grep -E "(__pycache__|\.pyc|\.pyo$)" | xargs rm -rvf'
+alias pip-purge='pip list --format freeze | xargs pip uninstall -y'
+alias pip-install-reqs='ls requirements*.txt | xargs -n 1 pip install -r'
+alias poetry-install-master='pipx install --suffix=@master --force git+https://github.com/python-poetry/poetry.git'
+alias activate='source .venv/bin/activate'
+# assuming pyenv
+alias venv='PIP_REQUIRE_VIRTUALENV=false python3 -m pip install --upgrade --user pip virtualenv && python3 -m virtualenv .venv && source .venv/bin/activate && python3 -m pip install --upgrade pip && which pip && pip list && pip --version && python3 --version'
+
+# Colorize terminal
+# ---- Eza (better ls) -----
+alias ls="eza --icons=always --grid"
+alias ll='eza --long --header --group-directories-first --group --all'
+
+alias ls='ls -G'
+alias la='ls -all'
+alias ll='ls -lG'
+alias lst='ls -T'
+
+# Stop wget from creating ~/.wget-hsts file. I don't care about HSTS (HTTP
+# Strict Transport Security) for wget; it's not as if I'm logging into my bank
+# with it.
+alias wget='wget --no-hsts'
+
+# Set NeoVim as vim by default
+alias vim='nvim'
+
+# ---- Podman -----
+#alias docker=podman
+#alias docker-compose=podman-compose
+
+# ---- TheFuck -----
+if command -v thefuck &>/dev/null; then
+  eval "$(thefuck --alias)"
+  eval "$(thefuck --alias fk)"
+fi
+
+# Per-platform settings, will override the above commands
+case $(uname) in
+Darwin)
+  # commands for macOS go here
+
+  ;;
+Linux)
+  # commands for Linux go here
+
+  ;;
+esac

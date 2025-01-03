@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Apply crontab if the file exists
+if [ -f "{{ .chezmoi.homeDir }}/.crontab" ]; then
+  crontab "{{ .chezmoi.homeDir }}/.crontab"
+  echo "Crontab applied successfully."
+else
+  echo "No .crontab file found."
+fi

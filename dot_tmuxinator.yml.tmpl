@@ -1,0 +1,25 @@
+# ./.tmuxinator.yml
+# convert to bash = `tmuxinator debug development`
+
+name: dotfiles
+root: <%= @settings["app_workspace"] %>
+
+# You can set tmuxinator to skip auto-attaching to the session by using the attach option.
+attach: true
+
+windows:
+  - main:
+      # even-horizontal, even-vertical, main-horizontal, main-vertical, or tiled.
+      layout: even-vertical
+      panes:
+        - clear
+        - ranger ~ ~
+        - ctop
+  - dotfiles:
+      layout: tiled
+      panes:
+        - cd {{ .chezmoi.sourceDir }} ; vim .
+  - playground:
+    layout: tiled
+    panes:
+      - echo "cd {{ .jupyter }} or make k9s|ollama_start|ollama_chat"

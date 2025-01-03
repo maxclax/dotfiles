@@ -1,0 +1,68 @@
+# macOS-specific files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# macOS system files
+Thumbs.db
+Desktop.ini
+
+# macOS Finder tags and attributes
+.Spotlight-V100
+.Trashes
+._*
+
+# macOS Quick Look metadata
+**/Icon?
+
+# macOS temporary files
+.TemporaryItems
+.fseventsd
+.VolumeIcon.icns
+
+# macOS lock files
+.DS_Store?
+.Spotlight-V100?
+.Trashes?
+.metadata_never_index
+.fseventsd?
+
+# macOS hidden files created by file transfer apps
+.SymAVEngineLog
+.SymAVQueue
+.SymAVRunning
+
+# Application-specific ignores
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+
+# Node.js
+node_modules/
+npm-debug.log
+
+# Ruby
+.bundle
+log/
+tmp/
+
+# macOS Git saved conflict backup
+*~HEAD
+*~BASE
+*~LOCAL
+*~REMOTE
+
+# macOS Keynote files
+*.key~
+
+# macOS system resource forks
+*.swp
+*.swo
+*.plist
+
+# ignore IDE specific files
+.idea/
+.vscode/
+*.sw*

@@ -1,0 +1,120 @@
+{{ if eq .osid "linux-debian" "linux-raspbian" "linux-ubuntu" -}}
+
+
+{{ $packages := list
+     "age"
+     "asciinema"
+     "atop"
+     "bash"
+     "bat"
+     "build-essential"
+     "ca-certificates"
+     "chafa"
+     "cmake"
+     "curl"
+     "direnv"
+     "fd-find"
+     "fzf"
+     "gcc"
+     "git"
+     "git-absorb"
+     "git-lfs"
+     "gnupg"
+     "gpg"
+     "htop"
+     "iftop"
+     "jq"
+     "libfuse2"
+     "lsb-release"
+     "lsof"
+     "make"
+     "ncdu"
+     "neofetch"
+     "neovim"
+     "openssh-server"
+     "openvpn"
+     "ranger"
+     "ripgrep"
+     "shellcheck"
+     "tmux"
+     "tmuxinator"
+     "trash-cli"
+     "tree"
+     "units"
+     "vim"
+     "wget"
+     "zsh"
+     "zsh-autosuggestions"
+     "zsh-syntax-highlighting"
+     "zsh" -}}
+
+{{ $pkgx := list
+     "bat"
+     "ctop"
+     "eza"
+     "fd"
+     "helm"
+     "k9s"
+     "kubectl"
+     "kubectx"
+     "lazygit"
+     "slides"
+     "thefuck" -}}
+
+{{ $gui := list -}}
+{{ $snaps := list -}}
+{{ $classicSnaps := list -}}
+
+{{ $fonts := list
+     "fonts-firacode"
+     "fonts-jetbrains-mono" -}}
+
+{{ if eq .osid "linux-alpine" -}}
+{{   $packages = concat $packages (list "build-base" "py3-pip") -}}
+{{ end -}}
+
+{{ if eq .osid "linux-debian" -}}
+{{   $packages = concat $packages (list "python3-pip" "inetutils-telnet") -}}
+{{ end -}}
+
+
+{{ if not .ephemeral -}}
+{{   $packages = concat $packages (list "i3" "keepassxc" "alacritty") -}}
+{{ end -}}
+
+{{ $sudo := "sudo " -}}
+{{ if eq .chezmoi.username "root" -}}
+{{   $sudo = "" -}}
+{{ end -}}
+
+#!/bin/bash
+
+set -eufo pipefail
+
+{{ $sudo }}apt-get update
+{{ $sudo }}apt-get install -y {{ $packages | join " " }} {{ $fonts | join " " }}
+
+{{ if not .ephemeral -}}
+curl -fsSL https://apt.fury.io/wez/gpg.key | {{ $sudo }}gpg --yes --dearmor -o /etc/apt/keyrings/wezterm-fury.gpg
+{{ $sudo }}echo 'deb [signed-by=/etc/apt/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | {{ $sudo }}tee /etc/apt/sources.list.d/wezterm.list
+{{ $sudo }}apt-get update
+{{ $sudo }}apt-get install -y wezterm
+{{ end -}}
+
+{{ if lookPath "pkgx" }}
+{{   range $pkgx }}
+( pkgx info {{ . }} | grep -q ^installed: ) || {{ $sudo }}pkgx install -y {{ . }}
+{{   end }}
+thefuck
+{{ end }}
+
+{{ if lookPath "snap" }}
+{{   range $snaps }}
+( snap info {{ . }} | grep -q ^installed: ) || {{ $sudo }}snap install {{ . }}
+{{   end }}
+{{   range $classicSnaps }}
+( snap info {{ . }} | grep -q ^installed: ) || {{ $sudo }}snap install --classic {{ . }}
+{{   end }}
+{{ end }}
+
+{{ end -}}
