@@ -39,7 +39,7 @@ sh -c "$(curl -fsLS get.chezmoi.io)"
 chezmoi init --branch main https://github.com/maxclax/dotfiles.git
 ```
 
-## Security Setup
+## Security Setup (in your own branch)
 
 ### 1. Generate age Key (First Time Setup)
 
