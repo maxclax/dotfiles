@@ -43,13 +43,9 @@
 {{- end -}}
 
 {{- if not $ephemeral -}}
-{{-   if eq $hostname "space" -}}
+{{-   if or (eq $hostname "space") (hasPrefix $hostname "space-") -}}
 {{-     $personal = true -}}
-{{-   else if eq $hostname "devs-laptop" -}}
-{{-     $personal = true -}}
-{{-   else if eq $hostname "devs-mba" -}}
-{{-     $personal = true -}}
-{{-   else if eq $hostname "ubuntu" -}}
+{{-   else if or (eq $hostname "debian") (eq $hostname "ubuntu") (eq $hostname "centos") -}}
 {{-     $headless = true -}}
 {{-     $personal = true -}}
 {{-   else if stdinIsATTY -}}
