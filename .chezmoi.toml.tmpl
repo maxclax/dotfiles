@@ -1,0 +1,163 @@
+{{- $workspace := promptStringOnce . "workspace" "workspace directory" "~/workspace" -}}
+
+{{- $nvimType := "default" -}}
+{{- if stdinIsATTY -}}
+  {{- $choices := list "default" "nvim-custom" "kickstart.nvim" "kickstart-modular.nvim" "LunarVim" "LazyVim" "NvChad" "AstroNvim" "NormalNvim" "neovim-for-newbs" -}}
+  {{- $nvimType = promptChoiceOnce . "nvimType" "What type of NeoVim are you on" $choices -}}
+{{- end -}}
+
+{{/* boolean feature tags */}}
+{{- $ephemeral := false -}}{{/* true if this machine is ephemeral, e.g. a cloud, VM instance or for short time */}}
+{{- $headless := false -}}{{/* true if this machine does not have a screen and keyboard */}}
+{{- $personal :=  false -}}{{/* true if this machine should have personal secrets */}}
+{{- "" -}}
+
+{{- $osID := .chezmoi.os -}}
+{{- if (and (eq .chezmoi.os "linux") (hasKey .chezmoi.osRelease "id")) -}}
+{{-   $osID = printf "%s-%s" .chezmoi.os .chezmoi.osRelease.id -}}
+{{- end -}}
+
+{{/* detect GitHub codespaces, VSCode remote containers, Docker containers, Multipass VMs, and Vagrant boxes */}}
+{{- if or (env "CODESPACES") (env "REMOTE_CONTAINERS_IPC") (eq .chezmoi.username "root" "ubuntu" "vagrant" "vscode") -}}
+{{-   $ephemeral = true -}}
+{{-   $headless = true -}}
+{{- end -}}
+
+{{/* work around unreliable hostname on darwin */}}
+{{- $hostname := .chezmoi.hostname -}}
+{{- if eq .chezmoi.os "darwin" -}}
+{{-   $computerName := output "scutil" "--get" "ComputerName" | trim -}}
+{{-   if eq $computerName "space" -}}
+{{-     $hostname = "space" -}}
+{{-   else if eq $computerName "Dev's Laptop" -}}
+{{-     $hostname = "devs-mba" -}}
+{{-   else if eq $computerName "Dev’s MacBook Air" -}}
+{{-     $hostname = "devs-mba" -}}
+{{-   else -}}
+{{-     $hostname = $computerName -}}
+{{-   end -}}
+{{- end -}}
+
+{{- if eq .chezmoi.os "windows" -}}
+{{-   $ephemeral = true -}}
+{{- end -}}
+
+{{- if not $ephemeral -}}
+{{-   if eq $hostname "space" -}}
+{{-     $personal = true -}}
+{{-   else if eq $hostname "devs-laptop" -}}
+{{-     $personal = true -}}
+{{-   else if eq $hostname "devs-mba" -}}
+{{-     $personal = true -}}
+{{-   else if eq $hostname "ubuntu" -}}
+{{-     $headless = true -}}
+{{-     $personal = true -}}
+{{-   else if stdinIsATTY -}}
+{{-     $headless = promptBoolOnce . "headless" "Is this machine headless? Has a screen and keyboard?" false -}}
+{{-     $ephemeral = promptBoolOnce . "ephemeral" "Is this machine ephemeral? Cloud, VM instance or for short time?" false -}}
+{{-   else -}}
+{{-     $ephemeral = true -}}
+{{-     $headless = true -}}
+{{-   end -}}
+{{- end -}}
+
+{{- $name := "dev" -}}
+{{- $email := "dev" -}}
+{{- $github_name := "dev" -}} 
+{{- $github_email := "dev" -}}
+{{- $github_gpgsign_enabled := false -}}
+{{- $github_gpgsign_signingKey := "" -}}
+{{- $github_gpgsign_format := "ssh" -}}
+{{- $github_gpgsign_program := "" -}}
+
+{{- $useOp := promptBoolOnce . "useOp" "Do you want to use 1Password CLI (op) for configuration?" true -}}
+{{- if $useOp -}}
+{{-   $name = onepasswordRead "op://Private/chezmoi-data/git-config-name" | quote  -}}
+{{-   $email = onepasswordRead "op://Private/chezmoi-data/git-config-email" | quote  -}}
+{{-   $github_name = onepasswordRead "op://Private/chezmoi-data/github-username" | quote  -}}
+{{-   $github_email = onepasswordRead "op://Private/chezmoi-data/github-email" | quote  -}}
+{{-   $github_gpgsign_enabled = promptBoolOnce . "gitGpgSign" "Enable GPG signing for Git commits?" false  -}}
+{{-   $github_gpgsign_signingKey = onepasswordRead "op://Private/chezmoi-data/github-signing-key" | quote  -}}
+{{-   $github_gpgsign_format = promptStringOnce . "gitGpgSignFormat" "GPG signing format (ssh or openpgp)" "ssh" | quote -}}
+{{-   $github_gpgsign_program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign" -}}
+{{- end -}}
+
+encryption = "age"
+[age]
+    identity = {{ promptStringOnce . "identity" "Age identity file location" "~/.config/chezmoi/key.txt" | quote }}
+    recipient = {{ promptStringOnce . "recipient" "Age recipient public key" "" | quote }}
+
+[onepassword]
+    command = "op"
+    prompt = false
+
+[data]
+    nvimType = {{ $nvimType | quote }}
+    ephemeral = {{ $ephemeral }}
+    headless = {{ $headless }}
+    hostname = {{ $hostname | quote }}
+    personal = {{ $personal }}
+    osid = {{ $osID | quote }}
+    unameArch = {{ output "uname" "-m" | trim | quote }}
+    workspace = {{ $workspace | quote }}
+    playground = {{ printf "%s/playground" $workspace | quote }}
+    jupyter = {{ printf "%s/jupyter" $workspace | quote }}
+
+[data.fonts]
+    enabled = {{ promptBoolOnce . "fontsEnabled" "Enable FONTS installation?" false }}
+    path = {{ printf "%s/fonts" $workspace | quote }}
+
+[data.nvim]
+    loadAllDistros = {{ promptBoolOnce . "nvimLoadAllDistros" "Load all NeoVim distributions?" true }}
+
+[data.podman]
+    enabled = {{ promptBoolOnce . "podmanEnabled" "Enable Podman container engine?" true }}
+
+[data.docker]
+    enabled = {{ promptBoolOnce . "dockerEnabled" "Enable Docker container engine?" false }}
+
+[data.container]
+    engine = {{ promptStringOnce . "containerEngine" "Container engine to use (podman or docker)" "podman" | quote }}
+
+[data.obsidian]
+    vault = {{ promptStringOnce . "obsidianVault" "Obsidian vault location" "~/Library/Mobile Documents/iCloud~md~obsidian/Documents/" | quote }}
+
+[data.go]
+    enabled = {{ promptBoolOnce . "goEnabled" "Enable Go development environment?" false }}
+    
+[data.rust]
+    enabled = {{ promptBoolOnce . "rustEnabled" "Enable Rust development environment?" false }}
+
+[data.python]
+    enabled = {{ promptBoolOnce . "pythonEnabled" "Enable Python development environment?" false }}
+    version = {{ promptStringOnce . "pythonVersion" "Python version" "3.13"| quote}}
+    dependencies = [
+        "pikepdf = \"*\"",
+        "ffmpeg-python = \"*\"",
+        "pillow = \"*\""
+    ]
+
+[data.git]
+    name = {{ $name | quote }} 
+    email = {{ $email | quote }} 
+    localRepositories = {{ printf "%s/repositories" $workspace | quote }}
+    github.name = {{ $github_name | quote }}
+    github.email = {{ $github_email | quote }}
+    github.gpgsign.enabled = {{ $github_gpgsign_enabled }}
+    github.gpgsign.signingKey = {{ $github_gpgsign_signingKey | quote }}
+    github.gpgsign.format = {{ $github_gpgsign_format | quote }}
+    github.gpgsign.program = {{ $github_gpgsign_program | quote }}
+
+[data.ollama]
+    pidFile = {{ promptStringOnce . "ollamaPidFile" "Ollama PID file location" "/tmp/ollama.pid" | quote }}
+    port = {{ promptIntOnce . "ollamaPort" "Ollama API port" 11434 }}
+    model = {{ promptStringOnce . "ollamaModel" "Ollama model to use" "llama3.2:latest" | quote }}
+
+[data.torproxy]
+    host = {{ promptStringOnce . "torproxyHost" "Tor proxy host" "localhost" | quote }}
+    portSocks5 = {{ promptIntOnce . "torproxyPortSocks5" "Tor proxy SOCKS5 port" 9150 }}
+    portDns = {{ promptIntOnce . "torproxyPortDns" "Tor proxy DNS port" 8893 }}
+
+[git]
+  autoCommit = {{ promptBoolOnce . "gitAutoCommit" "Enable automatic commits?" false }}
+  autoPush = {{ promptBoolOnce . "gitAutoPush" "Enable automatic push?" false }}

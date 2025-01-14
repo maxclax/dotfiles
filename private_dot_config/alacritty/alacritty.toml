@@ -1,0 +1,26 @@
+
+[env]
+TERM = "xterm-256color"
+
+[window]
+decorations = "buttonless"
+dynamic_padding = false
+opacity = 0.9
+
+[window.padding]
+x = 10
+y = 10
+
+[font]
+# normal.family = "FiraCode Nerd Font Mono"
+normal.family = "Berkeley Mono"
+
+#regular
+size = 18
+
+[general]
+
+# Fast reload
+live_config_reload = true
+# Thema
+import = ["~/.config/alacritty/themes/themes/tokyo-night.toml"]

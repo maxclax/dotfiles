@@ -1,0 +1,30 @@
+# NOTE:
+# docs:
+# ghostty +show-config --default --docs | nvim
+# examples:
+# https://github.com/search?q=path%3Aghostty%2Fconfig&type=code
+
+# ghostty +list-fonts
+font-family = Berkeley Mono
+font-family-italic = "Maple Mono"
+font-family-bold-italic = "Maple Mono"
+font-size = 18
+window-title-font-family = "Maple Mono"
+font-family = Symbols Nerd Font Mono
+
+macos-titlebar-style = tabs
+macos-titlebar-proxy-icon = hidden
+macos-option-as-alt = true
+
+background-opacity = 0.96
+background-blur-radius = 40
+
+# ghostty +list-themes
+theme = dark:/Users/dev/.local/share/nvim-custom/lazy/tokyonight.nvim/extras/ghostty/tokyonight_moon,light:/Users/dev/.local/share/nvim-custom/lazy/tokyonight.nvim/extras/ghostty/tokyonight_day 
+
+# keymaps
+keybind = global:cmd+`=toggle_quick_terminal
+keybind = shift+ctrl+left_bracket=previous_tab
+keybind = shift+ctrl+right_bracket=next_tab
+keybind = shift+ctrl+,=move_tab:-1
+keybind = shift+ctrl+.=move_tab:+1

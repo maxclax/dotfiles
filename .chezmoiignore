@@ -1,0 +1,33 @@
+README.md
+LICENSE
+install.sh
+.dist
+!.oh-my-zsh/plugins
+.oh-my-zsh/cache/**
+.oh-my-zsh/plugins/**
+.oh-my-zsh/templates/**
+.config/karabiner/automatic_backup/**
+
+{{ if ne .chezmoi.os "darwin" }}
+.chezmoiscripts/darwin/**
+.config/homebrew
+.config/karabiner
+.config/espanso
+Library/Application\ Support/espanso
+Library/Application\ Support/lazygit/config.yml
+{{ end }}
+
+{{ if ne .chezmoi.os "linux" }}
+.chezmoiscripts/linux/**
+.config/i3
+{{ end }}
+
+{{ if ne .chezmoi.os "windows" }}
+.chezmoiscripts/windows/**
+{{ end }}
+
+{{ if or (not .personal) .ephemeral .headless }}
+.config/nvim
+{{ end }}
+
+key.txt.age

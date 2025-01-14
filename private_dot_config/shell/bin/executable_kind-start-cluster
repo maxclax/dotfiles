@@ -1,0 +1,21 @@
+#!/bin/bash -e
+
+# Check if the Podman machine is running
+machine_status=$(podman machine ls --format '{{.Name}} {{.Running}}' 2>/dev/null | grep 'podman-machine-default')
+
+if [[ $machine_status == *"false"* ]]; then
+  podman machine start >/dev/null
+  echo "Starting the Podman machine..."
+elif [[ $machine_status == *"true"* ]]; then
+  echo "Podman machine is already running."
+else
+  echo "Podman machine podman-machine-default not found."
+fi
+
+# Start the kind-control-plane container if it’s in exited state
+if podman ps --all --filter "name=kind-control-plane" --filter "status=exited" 2>/dev/null | grep -q kind-control-plane; then
+  podman start kind-control-plane >/dev/null
+  echo "Starting the kind-control-plane container..."
+else
+  echo "Kind-control-plane container is already running or does not exist."
+fi

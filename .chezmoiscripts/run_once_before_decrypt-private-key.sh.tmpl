@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# Find the chezmoi binary
+CHEZMOI_BIN=$(command -v chezmoi || echo "bin/chezmoi")
+
+if [ ! -f "${HOME}/.config/chezmoi/key.txt" ]; then
+    if [ -f "{{ .chezmoi.sourceDir }}/key.txt.age" ]; then
+        mkdir -p "${HOME}/.config/chezmoi"
+        "$CHEZMOI_BIN" age decrypt --output "${HOME}/.config/chezmoi/key.txt" --passphrase "{{ .chezmoi.sourceDir }}/key.txt.age"
+        chmod 600 "${HOME}/.config/chezmoi/key.txt"
+    else
+        echo "The file {{ .chezmoi.sourceDir }}/key.txt.age does not exist."
+    fi
+fi

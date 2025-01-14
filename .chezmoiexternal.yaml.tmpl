@@ -1,0 +1,120 @@
+
+".oh-my-zsh":
+  type: "git-repo"
+  url: "https://github.com/ohmyzsh/ohmyzsh.git"
+  exact: true
+  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
+
+".oh-my-zsh/plugins/zsh-syntax-highlighting":
+  type: "git-repo"
+  url: "https://github.com/zsh-users/zsh-syntax-highlighting.git"
+  exact: true
+  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
+
+".oh-my-zsh/plugins/zsh-completions":
+  type: "git-repo"
+  url: "https://github.com/zsh-users/zsh-completions.git"
+  exact: true
+  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
+
+".oh-my-zsh/plugins/my-completions/_tmuxinator.zsh":
+  type: file
+  url: "https://raw.githubusercontent.com/tmuxinator/tmuxinator/master/completion/tmuxinator.zsh"
+  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
+
+".tmux":
+  type: "git-repo"
+  url: "https://github.com/gpakosz/.tmux.git"
+  exact: true
+  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
+
+
+{{ if  or (eq .nvimType "kickstart.nvim") .nvim.loadAllDistros }}
+".config/kickstart.nvim":
+  type: "git-repo"
+  url: "https://github.com/nvim-lua/kickstart.nvim.git"
+  args:
+    - "--depth=1"  
+  exact: true
+  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
+{{ end }}
+
+{{ if or (eq .nvimType "NvChad") .nvim.loadAllDistros }}
+".config/NvChad":
+  type: "git-repo"
+  url: "https://github.com/NvChad/NvChad"
+  args:
+    - "--depth=1"  
+  exact: true
+  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
+{{ end }}
+
+{{ if or (eq .nvimType "LunarVim") .nvim.loadAllDistros }}
+".config/LunarVim":
+  type: "git-repo"
+  url: "https://github.com/LunarVim/LunarVim.git"
+  args:
+    - "--depth=1"  
+  exact: true
+  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
+{{ end }}
+
+{{ if or (eq .nvimType "AstroNvim") .nvim.loadAllDistros }}
+".config/AstroNvim":
+  type: "git-repo"
+  url: "https://github.com/AstroNvim/AstroNvim.git"
+  args:
+    - "--depth=1"  
+  exact: true
+  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
+{{ end }}
+
+{{ if or (eq .nvimType "kickstart-modular.nvim") .nvim.loadAllDistros }}
+".config/kickstart-modular.nvim":
+  type: "git-repo"
+  url: "https://github.com/dam9000/kickstart-modular.nvim"
+  args:
+    - "--depth=1"  
+  exact: true
+  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
+{{ end }}
+
+{{ if or (eq .nvimType "neovim-for-newbs") .nvim.loadAllDistros }}
+".config/neovim-for-newbs":
+  type: "git-repo"
+  url: "https://github.com/cpow/neovim-for-newbs.git"
+  args:
+    - "--depth=1"  
+  exact: true
+  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
+{{ end }}
+
+{{ if or (eq .nvimType "NormalNvim") .nvim.loadAllDistros }}
+".config/NormalNvim":
+  type: "git-repo"
+  url: "https://github.com/NormalNvim/NormalNvim.git"
+  args:
+    - "--depth=1"  
+  exact: true
+  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
+{{ end }}
+
+{{ if or (eq .nvimType "LazyVim") .nvim.loadAllDistros }}
+".config/LazyVim":
+  type: "git-repo"
+  url: "https://github.com/LazyVim/starter.git"
+  args:
+    - "--depth=1"  
+  exact: true
+  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
+{{ end }}
+
+
+{{ if eq .chezmoi.os "darwin" }}
+".config/alacritty/themes":
+  type: "git-repo"
+  url: "https://github.com/alacritty/alacritty-theme"
+  exact: true
+  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
+{{ end }}
+

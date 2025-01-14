@@ -1,0 +1,170 @@
+#!/bin/bash
+
+# Initialize Homebrew environment
+eval "$(/opt/homebrew/bin/brew shellenv)"
+
+{{ $brew_taps := list
+  "FelixKratz/formulae" -}}
+  
+# Define the list of brew packages
+{{ $brews := list
+  "age"
+  "bat"
+  "borders"
+  "chafa"
+  "chezmoi"
+  "cmake"
+  "ctop"
+  "direnv"
+  "dockutil"
+  "duf"
+  "eza"
+  "fd"
+  "fzf"
+  "gcc"
+  "gh"
+  "git"
+  "glances"
+  "hcloud"
+  "helm"
+  "hey"
+  "htop"
+  "iftop"
+  "imagemagick"
+  "k9s"
+  "kind"
+  "kubectl"
+  "kubectx"
+  "lazygit"
+  "linkerd"
+  "lsof"
+  "luarocks"
+  "make"
+  "mas"
+  "ncdu"
+  "neofetch"
+  "neovim"
+  "nmap"
+  "pngpaste"
+  "pnpm"
+  "ptpython"
+  "ranger"
+  "ripgrep"
+  "sesh"
+  "slides"
+  "speedtest-cli"
+  "starship"
+  "stern"
+  "thefuck"
+  "tlrc"
+  "tmux"
+  "tmuxinator"
+  "trash"
+  "tree"
+  "uv"
+  "vim"
+  "watch"
+  "wget"
+  "zoxide"
+  "zsh-autosuggestions"
+  "zsh-syntax-highlighting"
+  "zsh-vi-mode" -}}
+
+# Define the list of cask applications
+{{ $casks := list
+  "1password"
+  "1password-cli"
+  "BetterTouchTool"
+  "alacritty"
+  "alfred"
+  "anki"
+  "appcleaner"
+  "balenaetcher"
+  "bartender"
+  "choosy"
+  "chatgpt"
+  "coconutbattery"
+  "colorsnapper"
+  "daisydisk"
+  "devonthink"
+  "espanso"
+  "fantastical"
+  "firefox"
+  "flux"
+  "ghostty"
+  "google-chrome"
+  "karabiner-elements"
+  "keepassxc"
+  "keycastr"
+  "kitty"
+  "libreoffice"
+  "loqseq"
+  "nikitabobko/tap/aerospace"
+  "omnifocus"
+  "pdf-expert"
+  "qutebrowser"
+  "rescuetime"
+  "send-to-kindle"
+  "tor-browser"
+  "transmission"
+  "unite"
+  "utm"
+  "viber"
+  "vlc"
+  "whatsapp"
+  "wezterm"
+  "zoom" -}}
+
+# Define the list of Mac App Store applications
+{{ $masApps := dict
+  "1Password for Safari" 1569813296
+  "Airmail" 918858936
+  "Amphetamine" 937984704
+  "Brother Transfer Express" 1627217996
+  "Cyberduck" 409222199
+  "Disk Speed Test" 425264550
+  "Drafts" 1435957248
+  "Folx GO" 736584830
+  "IP Scanner Ultra" 404167677
+  "Irvue" 1039633667
+  "Kindle" 302584613
+  "Medis" 1579200037
+  "MeetingBar" 1532419400
+  "Numbers" 409203825
+  "OmniFocus" 1542143627
+  "Pages" 409201541
+  "Parcel" 639968404
+  "Pixelmator Pro" 1289583905
+  "RAR Extractor and Expander" 1071663619
+  "SiteSucker" 442168834
+  "Telegram" 747648890
+-}}
+
+# Generate the Brewfile format output
+brew bundle --no-lock --file=/dev/stdin <<EOF
+{{ range ($brew_taps | sortAlpha | uniq) -}}
+tap "{{ . }}"
+{{ end -}}
+{{ range ($brews | sortAlpha | uniq) -}}
+brew "{{ . }}"
+{{ end -}}
+{{ range ($casks | sortAlpha | uniq) -}}
+cask "{{ . }}"
+{{ end -}}
+{{ range (keys $masApps | sortAlpha) -}}
+mas "{{ . }}", id: {{ index $masApps . }}
+{{ end -}}
+EOF
+
+
+# Check if Go are enabled
+if [ "{{ .go.enabled }}" = "true" ]; then
+  echo "Go installation..."
+  brew install go 
+fi
+
+# Check if Rust are enabled
+if [ "{{ .rust.enabled }}" = "true" ]; then
+  echo "Rust installation..."
+  brew install rust rustup-init
+fi

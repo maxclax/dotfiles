@@ -1,0 +1,130 @@
+# shellcheck shell=bash
+
+# ----------------------------
+# functions and shell-agnostic
+# ----------------------------
+
+function add_to_path() {
+  # NOTE: zsh only
+
+  # usage:
+  # add_to_path prepend /path/to/prepend
+  # add_to_path append /path/to/append
+
+  if [ -d "$2" ]; then
+    # If the given path exist, proceed...
+    if [[ ":$PATH:" == *":$2:"* ]]; then
+      remove_from_path "$2"
+    fi
+
+    if [ "$1" = "prepend" ]; then
+      PATH="$2:$PATH"
+      export PATH
+    elif [ "$1" = "append" ]; then
+      PATH="$PATH:$2"
+      export PATH
+    else
+      echo "Unknown option. Use 'prepend' or 'append'."
+    fi
+  fi
+}
+
+function remove_from_path() {
+  # NOTE: zsh only
+
+  # usage:
+  # remove_from_path /path/to/remove
+
+  local path_to_remove="$1"
+  if [[ -n "$path_to_remove" && ":$PATH:" == *":$path_to_remove:"* ]]; then
+    while [[ ":$PATH:" == *":$path_to_remove:"* ]]; do
+      # Remove
+      PATH="${PATH/#$path_to_remove:/}"   # If it's at the beginning
+      PATH="${PATH/%:$path_to_remove/}"   # If it's at the end
+      PATH="${PATH//:$path_to_remove:/:}" # If it's in the middle
+    done
+    PATH="${PATH#:}" # Remove leading colon
+    PATH="${PATH%:}" # Remove trailing colon
+    export PATH
+  fi
+}
+
+# ----------------------------
+# globals
+# ----------------------------
+
+if [ -n "${ZSH_VERSION}" ]; then
+  shell="zsh"
+  export DOTFILES_DEBUG_SHELL_ZSH="true"
+elif [ -n "${BASH_VERSION}" ]; then
+  shell="bash"
+  export DOTFILES_DEBUG_SHELL_BASH="true"
+else
+  shell=""
+fi
+
+# ----------------------------
+# exports
+# ----------------------------
+
+# NOTE: brew shellenv exports several environment variables and extends $PATH
+if [ -f /opt/homebrew/bin/brew ]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+  brew_prefix="$(brew --prefix)"
+elif [ -f /home/linuxbrew/.linuxbrew/bin/brew ]; then
+  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+  brew_prefix="$(brew --prefix)"
+else
+  if ! grep -q "alpine" /etc/os-release && ! grep -q "debian" /etc/os-release; then
+    echo "Please install Homebrew and the Brewfile."
+  fi
+  brew_prefix=""
+fi
+
+{{ if ne .nvimType "default" }}
+export NVIM_APPNAME={{ .nvimType }}
+{{ end }}
+export DOTFILES={{ .chezmoi.sourceDir }}
+export DOTFILES_SHELL=$shell
+export DOTFILES_BREW_PREFIX=$brew_prefix
+export HOMEBREW_NO_ANALYTICS=1
+export PIP_REQUIRE_VIRTUALENV=true # use pip --isolated to bypass
+export PYENV_ROOT="$HOME/.pyenv"   # pyenv
+export GIT_EDITOR="nvim"
+export EDITOR="nvim"
+export PATH="$HOME/.local/bin:$PATH"
+
+add_to_path append "$HOME/.docker/bin"
+add_to_path append "$HOME/.cargo/bin"
+add_to_path append "$HOME/go/bin"
+add_to_path append "$DOTFILES_BREW_PREFIX/opt/mysql-client/bin"
+add_to_path prepend "$DOTFILES_BREW_PREFIX/opt/gnu-sed/libexec/gnubin"
+
+# NOTE: the last prepend appears first in $PATH, so make sure the order is correct below
+add_to_path prepend "$PYENV_ROOT/bin"         # pyenv
+add_to_path prepend "$HOME/.local/bin"        # user-installed binaries
+add_to_path prepend "$HOME/.config/shell/bin" # personal and custom scripts
+
+# Nicer history
+export HISTSIZE=1000
+export HISTFILE="$HOME/.zsh_history"
+export SAVEHIST=$HISTSIZE
+
+# By default, zsh considers many characters part of a word (e.g., _ and -).
+# Narrow that down to allow easier skipping through words via M-f and M-b.
+export WORDCHARS='*?[]~&;!$%^<>'
+
+# Per-platform settings
+case $(uname) in
+Darwin)
+  # commands for macOS go here
+
+  ;;
+
+Linux)
+  # commands for Linux go here
+  add_to_path append "$PATH:/snap/bin"
+  ;;
+
+*) ;;
+esac

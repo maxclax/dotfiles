@@ -1,0 +1,62 @@
+name: developing
+parent: default
+
+matches:
+# Docker: docker rmi -f $(docker images -a -q)
+- trigger: "-dri"
+  replace: "docker rmi -f $(docker images -a -q)"
+
+# Docker: docker-compose up -d
+- trigger: "-dcu"
+  replace: "docker-compose up -d"
+
+# Docker: docker-compose up bgscripts
+- trigger: "-bgs"
+  replace: "docker-compose up bgscripts"
+
+# Docker: make dcr
+- trigger: "-dcr"
+  replace: "make dcr"
+
+# Docker: make rm
+- trigger: "-drm"
+  replace: "make rm"
+
+# Docker: make rm_a
+- trigger: "!drm"
+  replace: "make rm_a"
+
+# Docker: stop rm all
+- trigger: "-dsra"
+  replace: "docker stop $(docker ps -aq); docker rm $(docker ps -a -q);"
+
+# Python -> ipdb -> pp locals()
+- trigger: "-ppl"
+  replace: "pp locals()"
+
+# Python: import ipdb; ipdb.set_trace()
+- trigger: "-шзв"
+  replace: "import ipdb; ipdb.set_trace()"
+
+# Python: import ipdb; ipdb.set_trace()
+- trigger: "-ipd"
+  replace: "import ipdb; ipdb.set_trace()"
+
+# Python: {% load djcore_tags %}{{ __placeholder__|ipdb }}
+- trigger: "-ipt"
+  replace: "{% load djcore_tags %}{{ __placeholder__|ipdb }}"
+
+- trigger: "-brewi"
+  replace: "brew install "
+
+- trigger: "-brew_u"
+  replace: "brew upgrade "
+
+- trigger: "-brewup"
+  replace: "brew update "
+
+- trigger: "-brewun"
+  replace: "brew uninstall "
+
+- trigger: "-brewrm"
+  replace: "brew remove "

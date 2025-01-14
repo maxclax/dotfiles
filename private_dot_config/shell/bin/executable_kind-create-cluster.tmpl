@@ -1,0 +1,19 @@
+#!/bin/bash -ex
+
+# Cleanup
+kind delete clusters --all
+
+# Create a kind cluster with a shared directory
+cat <<EOF | kind create cluster --config=-
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    extraMounts:
+      - hostPath: {{ .git.localRepositories }}
+        containerPath: /mnt/repositories
+        readOnly: true
+      - hostPath: {{ .playground }}
+        containerPath: /mnt/playground
+        readOnly: true
+EOF

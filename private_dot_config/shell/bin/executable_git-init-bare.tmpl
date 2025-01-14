@@ -1,0 +1,28 @@
+#!/bin/bash -ex
+
+# Define the new repository name
+DEFAULT_REPO_PATH={{ .git.localRepositories }}
+DEFAULT_REPO_NAME="new_repo"
+
+# Use provided values or default if arguments are not given
+REPO_PATH=${1:-$DEFAULT_REPO_PATH}
+REPO_NAME=${2:-$DEFAULT_REPO_NAME}
+
+# Initialize new repository
+git init --bare "$REPO_PATH/$REPO_NAME"
+
+# Clone the repository
+git clone "$REPO_PATH/$REPO_NAME"
+
+# Move into the cloned repository
+cd "$REPO_PATH/$REPO_NAME" || exit
+
+# Create a README.md file
+touch README.md
+# Add all files to staging area
+git add .
+# Commit the changes
+git commit -m "Initial commit"
+# Push the changes to origin
+git push origin master
+echo "Initialization completed successfully."

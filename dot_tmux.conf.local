@@ -1,0 +1,89 @@
+# Import gpakosz config first
+source-file ~/.tmux/.tmux.conf.local
+
+# /!\ do not add set -g @plugin 'tmux-plugins/tpm'
+# /!\ do not add run '~/.tmux/plugins/tpm/tpm'
+
+# to enable a plugin, use the 'set -g @plugin' syntax:
+# visit https://github.com/tmux-plugins for available plugins
+
+# List of plugins
+#set -g @plugin 'christoomey/vim-tmux-navigator'
+#set -g @plugin 'tmux-plugins/tmux-resurrect' # persist tmux sessions after computer restart
+#set -g @plugin 'tmux-plugins/tmux-continuum' # automatically saves sessions for you every 15 minutes
+
+# => Key bindings --------------------------------------------------------- {{{1
+
+# Use C-\ as a control sequence.
+unbind-key C-b
+set -g prefix 'C-a'
+bind-key 'C-a' send-prefix
+
+# Bindings for switching to specific layouts
+bind r select-layout tiled
+
+# Easy-to-remember split pane commands.
+bind | split-window -h
+bind - split-window -v
+unbind '"'
+unbind %
+
+# => Vim keyboard navigation ---------------------------------------------- {{{1
+
+# Moving between windows with vim movement keys.
+bind -r h select-window -t :-
+bind -r l select-window -t :+
+
+# Resize panes with vim movement keys.
+bind -r H resize-pane -L 5
+bind -r J resize-pane -D 5
+bind -r K resize-pane -U 5
+bind -r L resize-pane -R 5
+
+# Smart pane switching with awareness of vim splits
+# # See: https://github.com/christoomey/vim-tmux-navigator
+is_vim='echo "#{pane_current_command}" | grep -iqE "(^|\/)g?(view|n?vim?x?)(diff)?$"'
+bind -n C-h if-shell "$is_vim" "send-keys C-h" "select-pane -L"
+bind -n C-j if-shell "$is_vim" "send-keys C-j" "select-pane -D"
+bind -n C-k if-shell "$is_vim" "send-keys C-k" "select-pane -U"
+bind -n C-l if-shell "$is_vim" "send-keys C-l" "select-pane -R"
+
+# => Misc settings --------------------------------------------------------
+
+# Set a higher scrollback value
+set -g history-limit 100000
+
+# Make C-l work.
+bind C-l send-keys 'C-l'
+
+# Don't swallow Escape key in Vim.
+set -sg escape-time 0
+
+# Enable passthrough for image.nvim
+set -g allow-passthrough on
+
+# Disable window auto-rename.
+set-option -g allow-rename off
+
+# Sane scrolling
+set -g terminal-overrides 'xterm*:smcup@:rmcup@'
+
+# When more than one clients are attached to a session, only resize bigger
+# clients if the smaller client is actively looking at it.
+set -g aggressive-resize on
+
+# https://github.com/joshmedeski/sesh
+bind-key "T" run-shell "sesh connect \"$(
+	sesh list | fzf-tmux -p 55%,60% \
+		--no-sort --border-label ' sesh ' --prompt '⚡  ' \
+		--header '  ^a all ^t tmux ^g configs ^x zoxide ^d tmux kill ^f find' \
+		--bind 'tab:down,btab:up' \
+		--bind 'ctrl-a:change-prompt(⚡  )+reload(sesh list)' \
+		--bind 'ctrl-t:change-prompt(🪟  )+reload(sesh list -t)' \
+		--bind 'ctrl-g:change-prompt(⚙️  )+reload(sesh list -c)' \
+		--bind 'ctrl-x:change-prompt(📁  )+reload(sesh list -z)' \
+		--bind 'ctrl-f:change-prompt(🔎  )+reload(fd -H -d 2 -t d -E .Trash . ~)' \
+		--bind 'ctrl-d:execute(tmux kill-session -t {})+change-prompt(⚡  )+reload(sesh list)'
+)\""
+bind-key x kill-pane # skip "kill-pane 1? (y/n)" prompt, use <leader>x to kill pane
+set -g detach-on-destroy off # don't exit from tmux when closing a session
