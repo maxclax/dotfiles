@@ -90,6 +90,12 @@ chezmoi edit
 
 # See pending changes
 chezmoi diff
+
+# Add new files
+chezmoi add FILE
+
+# Add new files with encryption
+chezmoi add --encrypt FILE
 ```
 
 ## Features
