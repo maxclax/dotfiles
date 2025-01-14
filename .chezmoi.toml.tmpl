@@ -79,7 +79,7 @@
 {{-   $github_gpgsign_enabled = promptBoolOnce . "gitGpgSign" "Enable GPG signing for Git commits?" false  -}}
 {{-   $github_gpgsign_signingKey = onepasswordRead "op://Private/chezmoi-data/github-signing-key" | quote  -}}
 {{-   $github_gpgsign_format = promptStringOnce . "gitGpgSignFormat" "GPG signing format (ssh or openpgp)" "ssh" | quote -}}
-{{-   $github_gpgsign_program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign" -}}
+{{-   $github_gpgsign_program = promptStringOnce . "gitGpgSignProgram" "GPG signing program" "/Applications/1Password.app/Contents/MacOS/op-ssh-sign" | quote -}}
 {{- end -}}
 
 encryption = "age"
@@ -138,15 +138,15 @@ encryption = "age"
     ]
 
 [data.git]
-    name = {{ $name | quote }} 
-    email = {{ $email | quote }} 
+    name = {{ $name }} 
+    email = {{ $email }} 
     localRepositories = {{ printf "%s/repositories" $workspace | quote }}
-    github.name = {{ $github_name | quote }}
-    github.email = {{ $github_email | quote }}
+    github.name = {{ $github_name }}
+    github.email = {{ $github_email }}
     github.gpgsign.enabled = {{ $github_gpgsign_enabled }}
-    github.gpgsign.signingKey = {{ $github_gpgsign_signingKey | quote }}
-    github.gpgsign.format = {{ $github_gpgsign_format | quote }}
-    github.gpgsign.program = {{ $github_gpgsign_program | quote }}
+    github.gpgsign.signingKey = {{ $github_gpgsign_signingKey }}
+    github.gpgsign.format = {{ $github_gpgsign_format }}
+    github.gpgsign.program = {{ $github_gpgsign_program }}
 
 [data.ollama]
     pidFile = {{ promptStringOnce . "ollamaPidFile" "Ollama PID file location" "/tmp/ollama.pid" | quote }}
