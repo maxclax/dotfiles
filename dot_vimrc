@@ -62,7 +62,6 @@ call plug#begin()
   Plug 'tpope/vim-fugitive'                        " Git integration
   Plug 'tpope/vim-vinegar'                         " - to open netrw
   Plug 'vim-airline/vim-airline'                   " powerline
-  Plug 'EinfachToll/DidYouMean'                    " filename suggestions
   Plug 'Lokaltog/vim-easymotion'                   " better move commands
   Plug 'christoomey/vim-tmux-navigator'            " better tmux integration
   Plug 'ervandew/supertab'                         " more powerful <tab>
@@ -82,13 +81,6 @@ call plug#begin()
   Plug 'ctrlpvim/ctrlp.vim'                        " Ctrl+p to fuzzy search
   Plug 'junegunn/fzf', {'do': {->fzf#install()}}
   Plug 'junegunn/fzf.vim'
-  Plug 'janko-m/vim-test'
-  Plug 'ycm-core/YouCompleteMe', { 'do': './install.py' }
-
-  Plug 'prabirshrestha/async.vim'                  " async LSP support
-  Plug 'prabirshrestha/vim-lsp'                    " LSP support
-  Plug 'prabirshrestha/asyncomplete.vim'           " async autocomplete
-  Plug 'prabirshrestha/asyncomplete-lsp.vim'       " async LSP autocomplete
 
   Plug 'vim-scripts/ScrollColors'                  " colorscheme scroller
   Plug 'Zabanaa/neuromancer.vim'                   " colorscheme
@@ -345,64 +337,3 @@ let g:far#source = 'ag'
 " Mundo
 let g:gundo_preview_bottom = 1
 nnoremap <F5> :MundoToggle<cr>
-
-
-
-" => Source the .vimrc.local file if it exists ------------------------------------------------ {{{1
-
-if filereadable(expand("/Volumes/develop/.vimrc.local"))
-    source /Volumes/develop/.vimrc.local
-endif
-if filereadable(expand("~/.vimrc.local"))
-    source ~/.vimrc.local
-endif
-
-
-
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" CTAGS
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-set tags=tags; " Look for a tags file recursively in parent directories.
-" Automatically regenerate the tags file on file save
-augroup MyTags
-  autocmd!
-  autocmd BufWritePost *.js,*.py,*.html,*.ts call RegenerateTags()
-augroup END
-
-" Function to run ctags and show notifications
-function! RegenerateTags()
-
-  " Find the root directory with a .ctags file
-  let l:root_dir = expand('%:p:h')
-  while l:root_dir !=# '/'
-    if filereadable(l:root_dir . '/.ctags')
-      break
-    endif
-    let l:root_dir = fnamemodify(l:root_dir, ':h')
-  endwhile
-
-  " If no .ctags file is found, use default options
-  if filereadable(l:root_dir . '/.ctags')
-    let l:ctags_cmd = 'ctags -R --options=' . shellescape(l:root_dir . '/.ctags') . ' -f .vim/tags .'
-
-    " Show a message indicating that ctags is running
-    echohl InfoMsg
-    echo "Regenerating tags..."
-    echohl None
-
-    " Run ctags command and capture the output
-    let l:output = system(l:ctags_cmd)
-
-    " Show a message indicating that ctags is running
-    echohl InfoMsg
-    echo "Tags regenerated successfully!"
-    echohl None
-  endif
-
-  " Check if ctags command was successful
-  if v:shell_error != 0
-    echohl ErrorMsg
-    echo "Error running ctags: " . l:output
-    echohl None
-  endif
-endfunction
