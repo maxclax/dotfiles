@@ -74,14 +74,14 @@ defaults write com.apple.dock orientation -string left
 # Disable showing recent applications in the Dock
 defaults write com.apple.dock show-recents -int 0
 
-# Disable the gesture for showing the desktop (usually a spread with three or four fingers)
-# defaults write com.apple.dock showDesktopGestureEnabled -int 0
+# Enable the gesture for showing the desktop (usually a spread with three or four fingers)
+defaults write com.apple.dock showDesktopGestureEnabled -int 1
 
 # Disable the gesture for showing Launchpad (usually a pinch with four fingers)
 defaults write com.apple.dock showLaunchpadGestureEnabled -int 0
 
-# Disable the gesture for showing Mission Control (usually a swipe up with three or four fingers)
-defaults write com.apple.dock showMissionControlGestureEnabled -int 0
+# Enable the gesture for showing Mission Control (usually a swipe up with three or four fingers)
+defaults write com.apple.dock showMissionControlGestureEnabled -int 1
 
 # Show the full POSIX path in the Finder window title (e.g., /Users/username/Documents)
 defaults write com.apple.finder _FXShowPosixPathInTitle -int 1
