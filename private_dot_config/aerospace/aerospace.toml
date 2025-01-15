@@ -58,18 +58,18 @@ on-focus-changed = "move-mouse window-lazy-center"
 #                 Monitor pattern is the same as for 'workspace-to-monitor-force-assignment'.
 #                 See: https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
 [gaps]
-inner.horizontal = 5
-inner.vertical = 5
-outer.left = 5
-outer.bottom = 5
-outer.top = [{ monitor.main = 5 }, 5]
-outer.right = 5
+inner.horizontal = [{ monitor."Retina" = 2 }, 5]
+inner.vertical = [{ monitor."Retina" = 2 }, 5]
+outer.left = [{ monitor."Retina" = 2 }, 5]
+outer.bottom = [{ monitor."Retina" = 2 }, 5]
+outer.top = [{ monitor."Retina" = 2 }, 5]
+outer.right = [{ monitor."Retina" = 2 }, 5]
 
 # 'main' binding mode declaration
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
 # 'main' binding mode must be always presented
 [mode.main.binding]
-alt-enter = 'exec-and-forget open -n /Applications/WezTerm.app'
+alt-enter = 'exec-and-forget open -n /Applications/Ghostty.app'
 cmd-h = []                                                      # Disable "hide application"
 cmd-alt-h = []                                                  # Disable "hide others"
 
@@ -125,6 +125,7 @@ alt-4 = 'workspace 4'
 alt-5 = 'workspace 5'
 alt-b = 'workspace B'
 alt-c = 'workspace C'
+alt-d = 'workspace D'
 alt-e = 'workspace E'
 alt-t = 'workspace T'
 alt-x = 'workspace X'
@@ -137,6 +138,7 @@ alt-shift-4 = 'move-node-to-workspace 4'
 alt-shift-5 = 'move-node-to-workspace 5'
 alt-shift-b = 'move-node-to-workspace B'
 alt-shift-c = 'move-node-to-workspace C'
+alt-shift-d = 'move-node-to-workspace D'
 alt-shift-e = 'move-node-to-workspace E'
 alt-shift-t = 'move-node-to-workspace T'
 alt-shift-x = 'move-node-to-workspace X'
@@ -218,6 +220,9 @@ run = "move-node-to-workspace B"
 if.app-id = 'org.qutebrowser.qutebrowser'
 run = "move-node-to-workspace B"
 
+[[on-window-detected]]
+if.app-id = 'com.mitchellh.ghostty'
+run = "move-node-to-workspace T"
 [[on-window-detected]]
 if.app-id = 'com.github.wez.wezterm'
 run = "move-node-to-workspace T"
