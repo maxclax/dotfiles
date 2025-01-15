@@ -65,6 +65,7 @@
 {{- $github_gpgsign_signingKey := "" -}}
 {{- $github_gpgsign_format := "ssh" -}}
 {{- $github_gpgsign_program := "" -}}
+{{- $agePubKey := "" -}}
 
 {{- $useOp := promptBoolOnce . "useOp" "Do you want to use 1Password CLI (op) for configuration?" true -}}
 {{- if $useOp -}}
@@ -76,12 +77,13 @@
 {{-   $github_gpgsign_signingKey = onepasswordRead "op://Private/chezmoi-data/github-signing-key" | quote  -}}
 {{-   $github_gpgsign_format = promptStringOnce . "gitGpgSignFormat" "GPG signing format (ssh or openpgp)" "ssh" | quote -}}
 {{-   $github_gpgsign_program = promptStringOnce . "gitGpgSignProgram" "GPG signing program" "/Applications/1Password.app/Contents/MacOS/op-ssh-sign" | quote -}}
+{{-   $agePubKey = onepasswordRead "op://Private/chezmoi-data/age-pub-key" | quote  -}}
 {{- end -}}
 
 encryption = "age"
 [age]
     identity = {{ promptStringOnce . "identity" "Age identity file location" "~/.config/chezmoi/key.txt" | quote }}
-    recipient = {{ promptStringOnce . "recipient" "Age recipient public key" "" | quote }}
+    recipient = {{ $agePubKey | quote }} 
 
 [onepassword]
     command = "op"
