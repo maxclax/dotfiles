@@ -62,7 +62,8 @@ op item create --category="Secure Note" --title="chezmoi-data" \
   git-config-email="YOUR_EMAIL" \
   github-username="YOUR_GITHUB_USERNAME" \
   github-email="YOUR_GITHUB_EMAIL" \
-  github-signing-key="YOUR_SSH_SIGNING_KEY"
+  github-signing-key="YOUR_SSH_SIGNING_KEY" \
+  key-pub-key="YOUR_AGE_PUB_KEY"
 ```
 
 ### 3. Sign in to 1Password CLI
