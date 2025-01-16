@@ -5,12 +5,12 @@
 # https://github.com/search?q=path%3Aghostty%2Fconfig&type=code
 
 # ghostty +list-fonts
-font-family = Berkeley Mono
+font-family = "Berkeley Mono"
 font-family-italic = "Maple Mono"
 font-family-bold-italic = "Maple Mono"
 font-size = 18
 window-title-font-family = "Maple Mono"
-font-family = Symbols Nerd Font Mono
+font-family = "Symbols Nerd Font Mono"
 
 macos-titlebar-style = tabs
 macos-titlebar-proxy-icon = hidden
@@ -28,3 +28,7 @@ keybind = shift+ctrl+left_bracket=previous_tab
 keybind = shift+ctrl+right_bracket=next_tab
 keybind = shift+ctrl+,=move_tab:-1
 keybind = shift+ctrl+.=move_tab:+1
+
+window-decoration = false
+window-padding-x = 5
+window-padding-y = 5

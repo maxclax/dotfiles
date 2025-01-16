@@ -124,7 +124,7 @@ k9s:
 
 # Function to kill process using the defined port
 ollama_kill_port:
-	@PORT_PID=$$(lsof -ti tcp:{{- .ollama.port -}}; \
+	@PORT_PID=$$(lsof -ti tcp:{{ .ollama.port }}); \
 	if [ -n "$$PORT_PID" ]; then \
 		echo "Killing process on port {{ .ollama.port }}..."; \
 		kill -9 $$PORT_PID; \
