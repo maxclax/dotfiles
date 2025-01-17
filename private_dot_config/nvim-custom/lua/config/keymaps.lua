@@ -1,5 +1,12 @@
 M = {}
 
+-- custom commands
+vim.keymap.set("n", "<leader>oy", ":%y<CR>", { desc = "Yank entire buffer", silent = true })
+vim.keymap.set("n", "<leader>od", ":%d_<CR>", { desc = "Delete entire buffer without yank", silent = true })
+vim.keymap.set("n", "<leader>ow", ":w<CR>", { desc = "Save buffer", silent = true })
+vim.keymap.set("n", "<leader>oq", ":q<CR>", { desc = "Quit buffer", silent = true })
+vim.keymap.set("n", "<leader>oQ", ":q!<CR>", { desc = "Quit buffer without saving", silent = true })
+
 -- windows
 vim.keymap.set("n", "<C-h>", "<C-w>h", { desc = "Go to left window", silent = true, noremap = true })
 vim.keymap.set("n", "<C-j>", "<C-w>j", { desc = "Go to lower window", silent = true, noremap = true })

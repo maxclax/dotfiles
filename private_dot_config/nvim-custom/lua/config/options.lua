@@ -1,8 +1,8 @@
 M = {}
 
 -- leader key
-vim.g.mapleader = " "
-vim.g.maplocalleader = ","
+vim.g.mapleader = ","
+vim.g.maplocalleader = " "
 
 -- undo
 vim.opt.undofile = true
@@ -62,8 +62,8 @@ vim.opt.termguicolors = true
 vim.opt.signcolumn = "yes"
 
 -- cursor line highlight
-vim.opt.cursorline = true
-vim.opt.cursorcolumn = true
+vim.opt.cursorline = false
+vim.opt.cursorcolumn = false
 
 -- Enable cursor blinking in all modes
 --

@@ -3,6 +3,7 @@ name = {{ .git.name | quote }}
 version = "0.1.0"
 description = ""
 authors = [{{ .git.name | quote }}]
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "{{ .python.version }}"
