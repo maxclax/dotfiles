@@ -128,7 +128,7 @@ encryption = "age"
 
 [data.python]
     enabled = {{ promptBoolOnce . "pythonEnabled" "Enable Python development environment?" false }}
-    version = {{ promptStringOnce . "pythonVersion" "Python version" "3.13"| quote}}
+    version = {{ promptStringOnce . "pythonVersion" "Python version" "3.13.1"| quote}}
     dependencies = [
         "pikepdf = \"*\"",
         "ffmpeg-python = \"*\"",
