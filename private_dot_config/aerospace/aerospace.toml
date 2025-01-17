@@ -117,6 +117,9 @@ alt-shift-cmd-l = ['join-with right']
 alt-shift-minus = 'resize smart -50'
 alt-shift-equal = 'resize smart +50'
 
+# Reload the configuration
+alt-shift-cmd-r = 'reload-config'
+
 # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
 alt-1 = 'workspace 1'
 alt-2 = 'workspace 2'
@@ -150,19 +153,6 @@ alt-shift-f = 'fullscreen'
 alt-tab = 'workspace-back-and-forth'
 # See: https://nikitabobko.github.io/AeroSpace/commands#move-workspace-to-monitor
 alt-shift-tab = 'move-workspace-to-monitor --wrap-around next'
-
-# ---------------------------------------------------------
-# See: https://nikitabobko.github.io/AeroSpace/commands#mode
-alt-shift-comma = 'mode service'
-
-# 'service' binding mode declaration.
-# See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
-[mode.service.binding]
-r = ['flatten-workspace-tree']                # reset layout
-f = ['layout floating tiling']                # Toggle between floating and tiling layout
-backspace = ['close-all-windows-but-current']
-
-esc = ['reload-config', 'mode main']
 
 
 # ---------------------------------------------------------
