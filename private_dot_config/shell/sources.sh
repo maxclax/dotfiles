@@ -103,7 +103,7 @@ if [ -n "$brew_prefix" ]; then
   eval "$(atuin init $shell --disable-up-arrow)"
   eval "$(direnv hook $shell)"
   eval "$(zoxide init $shell)"
-  # eval "$(starship init $shell)"
+  eval "$(starship init $shell)"
 
 fi
 
@@ -115,14 +115,14 @@ if [[ $shell == "zsh" ]]; then
   zsh_completion
   if [ -n "$brew_prefix" ]; then
     source <(fzf --zsh)
-    source <(pkgx --shellcode)
+    source <(pkgx dev --shellcode)
   fi
 
 elif [[ $shell == "bash" ]]; then
   bash_completion
   if [ -n "$brew_prefix" ]; then
     eval "$(fzf --bash)"
-    eval "$(pkgx --shellcode)"
+    eval "$(pkgx dev --shellcode)"
   fi
 
 fi
@@ -134,6 +134,7 @@ fi
 function cd() {
   builtin cd "$@" || return
   virtual_env_activate
+  # node_version_manager  # TODO: with pkgx, maybe nvm is no longer needed?
 }
 cd . # trigger cd overrides when shell starts
 

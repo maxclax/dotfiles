@@ -105,11 +105,6 @@ add_to_path prepend "$PYENV_ROOT/bin"         # pyenv
 add_to_path prepend "$HOME/.local/bin"        # user-installed binaries
 add_to_path prepend "$HOME/.config/shell/bin" # personal and custom scripts
 
-# Nicer history
-export HISTSIZE=1000
-export HISTFILE="$HOME/.zsh_history"
-export SAVEHIST=$HISTSIZE
-
 # By default, zsh considers many characters part of a word (e.g., _ and -).
 # Narrow that down to allow easier skipping through words via M-f and M-b.
 export WORDCHARS='*?[]~&;!$%^<>'

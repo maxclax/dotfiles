@@ -33,17 +33,9 @@ return {
 			update_interval = 3000, -- milliseconds
 			set_dark_mode = function()
 				set_dark()
-				local dark_theme = vim.fs.normalize("~/.config/lazygit/config_dark.yml")
-				if tmux_is_running() and vim.fn.filereadable(tmux_theme) == 1 then
-					os.execute("tmux source-file " .. tmux_theme)
-				end
 			end,
 			set_light_mode = function()
 				set_light()
-				local light_theme = vim.fs.normalize("~/.config/lazygit/config_light.yml")
-				if tmux_is_running() and vim.fn.filereadable(tmux_theme) == 1 then
-					os.execute("tmux source-file " .. tmux_theme)
-				end
 			end,
 		},
 	},

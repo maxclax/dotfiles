@@ -43,7 +43,6 @@ return {
 
       "nvim-neotest/neotest-plenary",
       "nvim-neotest/neotest-vim-test",
-      "nvim-neotest/neotest-go",
     },
     opts = {
       -- See all config options with :h neotest.Config

@@ -29,15 +29,17 @@ return {
     "folke/persistence.nvim",
     event = "VimEnter",
     init = function()
-      vim.opt.sessionoptions = "buffers,curdir,help,tabpages,winsize,winpos,terminal,localoptions"
+      -- https://neovim.io/doc/user/options.html#'sessionoptions'
+      vim.opt.sessionoptions = "curdir,folds,help,winsize,winpos,localoptions"
     end,
     keys = require("config.keymaps").setup_auto_session_keymaps(),
     config = function(_, opts)
       require("persistence").setup(opts)
 
-      vim.schedule(function()
-        require("persistence").load()
-      end)
+      -- Auto-load the last session when starting Neovim
+      -- vim.schedule(function()
+      --   require("persistence").load()
+      -- end)
     end,
   },
 }
