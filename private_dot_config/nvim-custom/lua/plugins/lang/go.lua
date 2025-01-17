@@ -245,16 +245,6 @@ return {
 	},
 
 	{
-		"nvim-neotest/neotest",
-		lazy = true,
-		ft = { "go" },
-
-		opts = function(_, opts)
-			opts.adapters = opts.adapters or {}
-		end,
-	},
-
-	{
 		"andythigpen/nvim-coverage",
 		lazy = true,
 		ft = { "go" },

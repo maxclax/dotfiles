@@ -6,11 +6,27 @@
 
 # ghostty +list-fonts
 font-family = "Berkeley Mono"
+
+
+# monospace
+# https://usgraphics.com/products/berkeley-mono
+font-family = "Berkeley Mono Variable"
+font-variation = wght=300
+font-variation = wdth=100
+font-family-bold = "Berkeley Mono Variable"
+font-variation-bold = wght=800
+
+# italics
+# https://github.com/subframe7536/maple-font
 font-family-italic = "Maple Mono"
+font-variation-italic = wght=200
 font-family-bold-italic = "Maple Mono"
 font-size = 18
-window-title-font-family = "Maple Mono"
-font-family = "Symbols Nerd Font Mono"
+font-variation-bold-italic = wght=800
+
+window-title-font-family = "Berkeley Mono Variable"
+
+# text-blending = linear-corrected
 
 macos-titlebar-style = tabs
 macos-titlebar-proxy-icon = hidden
@@ -21,6 +37,11 @@ background-blur-radius = 40
 
 # ghostty +list-themes
 theme = dark:/Users/dev/.local/share/nvim-custom/lazy/tokyonight.nvim/extras/ghostty/tokyonight_moon,light:/Users/dev/.local/share/nvim-custom/lazy/tokyonight.nvim/extras/ghostty/tokyonight_day 
+
+mouse-hide-while-typing = true
+
+window-inherit-working-directory = false
+working-directory = home
 
 # keymaps
 keybind = global:cmd+`=toggle_quick_terminal

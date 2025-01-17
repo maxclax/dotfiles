@@ -67,7 +67,7 @@ return {
           project = {
 						base_dirs = {
 							{ path = "{{ .chezmoi.sourceDir }}", max_depth = 1 },
-							{ path = "{{ .workspace }}", max_depth = 1 },
+							{ path = "{{ .workspace }}", max_depth = 3 },
 						},
             cd_scope = { "global", "tab", "window" },
             on_project_selected = function(prompt_bufnr)
