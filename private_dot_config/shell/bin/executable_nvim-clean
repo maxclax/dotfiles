@@ -4,6 +4,16 @@
 echo "About to remove default neovim dirs, continue? (y/n)"
 read -r response
 if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
+	rm -rf ~/.config/nvim-custom
+
+	rm -rf ~/.local/share/nvim-custom
+  rm -rf ~/.local/state/nvim-custom
+  rm -rf ~/.local/cache/nvim-custom
+
+	rm -rf ~/.share/nvim-custom
+	rm -rf ~/.state/nvim-custom
+	rm -rf ~/.cache/nvim-custom
+
 	rm -rf ~/.config/nvim
 
 	rm -rf ~/.local/share/nvim

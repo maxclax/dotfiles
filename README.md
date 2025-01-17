@@ -63,7 +63,10 @@ op item create --category="Secure Note" --title="chezmoi-data" \
   github-username="YOUR_GITHUB_USERNAME" \
   github-email="YOUR_GITHUB_EMAIL" \
   github-signing-key="YOUR_SSH_SIGNING_KEY" \
-  key-pub-key="YOUR_AGE_PUB_KEY"
+  key-pub-key="YOUR_AGE_PUB_KEY" \
+  atuin-username="YOUR_ATUIN_USERNAME" \
+  atuin-password="YOUR_ATUIN_PASSWORD" \
+
 ```
 
 ### 3. Sign in to 1Password CLI
@@ -108,3 +111,14 @@ chezmoi add --encrypt FILE
 - 🚀 Development environment configurations
 - 📦 Package management
 - 🔧 Various tool configurations
+
+## Extra
+
+### Atuin Login
+
+To manually log in to Atuin using credentials stored in 1Password, run the
+following command:
+
+```bash
+atuin login --username "$(op read op://Private/chezmoi-data/atuin-username)" --password "$(op read op://Private/chezmoi-data/atuin-password)"
+```
