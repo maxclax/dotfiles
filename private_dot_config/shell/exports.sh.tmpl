@@ -93,6 +93,7 @@ export PYENV_ROOT="$HOME/.pyenv"   # pyenv
 export GIT_EDITOR="nvim"
 export EDITOR="nvim"
 export PATH="$HOME/.local/bin:$PATH"
+export LOCAL_GIT_REPOS_PATH={{ .git.localRepositories | quote  }}
 
 add_to_path append "$HOME/.docker/bin"
 add_to_path append "$HOME/.cargo/bin"
