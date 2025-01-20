@@ -118,10 +118,18 @@ chezmoi add --encrypt FILE
 
 ### Backup
 
-To manually run a backup with Borgmatic, use the following command:
+#### Initialize repository
 
 ```bash
-borgmatic
+borgmatic init --encryption=repokey ssh://user@your-storagebox.de:23/./backups/DIR
+```
+
+#### To manually run a backup with Borgmatic, use the following command:
+
+```bash
+borgmatic --verbosity 1 --progress
+# or with a specific configuration file
+borgmatic --config ~/.config/borgmatic.d/git.yaml --dry-run --verbosity 1 --progress
 ```
 
 #### Check Backup Integrity
