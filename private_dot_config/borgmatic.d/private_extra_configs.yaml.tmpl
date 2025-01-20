@@ -4,8 +4,7 @@ source_directories:
 repositories:
   - path: {{ .borgRepository | quote }}
 
-encryption_passphrase: {{ .borgEncryptionPassphrase }}
-
+encryption_passphrase: "{{ .borgEncryptionPassphrase }}"
 compression: "lz4"
 archive_name_format: "extra-configs-{now:%Y-%m-%d-%H%M%S}"
 
