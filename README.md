@@ -64,6 +64,7 @@ op item create --category="Secure Note" --title="chezmoi-data" \
   github-email="YOUR_GITHUB_EMAIL" \
   github-signing-key="YOUR_SSH_SIGNING_KEY" \
   key-pub-key="YOUR_AGE_PUB_KEY" \
+  borg-encryption-passphrase="YOUR_BORG_ENCRYPTION_PASSPHRASE" \
   atuin-username="YOUR_ATUIN_USERNAME" \
   atuin-password="YOUR_ATUIN_PASSWORD" \
 
@@ -111,8 +112,41 @@ chezmoi add --encrypt FILE
 - 🚀 Development environment configurations
 - 📦 Package management
 - 🔧 Various tool configurations
+- 🗄️ Automated backups with Borgmatic
 
 ## Extra
+
+### Backup
+
+To manually run a backup with Borgmatic, use the following command:
+
+```bash
+borgmatic
+```
+
+#### Check Backup Integrity
+
+```bash
+borgmatic check
+```
+
+#### Restore from a Backup
+
+```bash
+borgmatic extract --archive latest --destination /path/to/restore
+```
+
+#### List Backups
+
+```bash
+borgmatic list
+```
+
+#### Prune Old Backups
+
+```bash
+borgmatic prune
+```
 
 ### Atuin Login
 

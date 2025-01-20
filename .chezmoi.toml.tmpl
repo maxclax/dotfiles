@@ -1,4 +1,4 @@
-{{- $workspace := promptStringOnce . "workspace" "workspace directory" "~/workspace" -}}
+{{- $workspace := promptStringOnce . "workspace" "workspace directory" (printf "%s/workspace" .chezmoi.homeDir) -}}
 
 {{- $nvimType := "default" -}}
 {{- if stdinIsATTY -}}
@@ -59,31 +59,35 @@
 
 {{- $name := "dev" -}}
 {{- $email := "dev" -}}
-{{- $github_name := "dev" -}} 
-{{- $github_email := "dev" -}}
-{{- $github_gpgsign_enabled := false -}}
-{{- $github_gpgsign_signingKey := "" -}}
-{{- $github_gpgsign_format := "ssh" -}}
-{{- $github_gpgsign_program := "" -}}
+{{- $githubName := "dev" -}} 
+{{- $githubEmail := "dev" -}}
+{{- $githubGpgsignEnabled := false -}}
+{{- $githubGpgsignSigningKey := "" -}}
+{{- $githubGpgsignProgram := "" -}}
 {{- $agePubKey := "" -}}
+{{- $borgEncryptionPassphrase := "" -}}
 
 {{- $useOp := promptBoolOnce . "useOp" "Do you want to use 1Password CLI (op) for configuration?" true -}}
+
 {{- if $useOp -}}
-{{-   $name = onepasswordRead "op://Private/chezmoi-data/git-config-name" | quote  -}}
-{{-   $email = onepasswordRead "op://Private/chezmoi-data/git-config-email" | quote  -}}
-{{-   $github_name = onepasswordRead "op://Private/chezmoi-data/github-username" | quote  -}}
-{{-   $github_email = onepasswordRead "op://Private/chezmoi-data/github-email" | quote  -}}
-{{-   $github_gpgsign_enabled = promptBoolOnce . "gitGpgSign" "Enable GPG signing for Git commits?" false  -}}
-{{-   $github_gpgsign_signingKey = onepasswordRead "op://Private/chezmoi-data/github-signing-key" | quote  -}}
-{{-   $github_gpgsign_format = promptStringOnce . "gitGpgSignFormat" "GPG signing format (ssh or openpgp)" "ssh" | quote -}}
-{{-   $github_gpgsign_program = promptStringOnce . "gitGpgSignProgram" "GPG signing program" "/Applications/1Password.app/Contents/MacOS/op-ssh-sign" | quote -}}
-{{-   $agePubKey = onepasswordRead "op://Private/chezmoi-data/age-pub-key" | quote  -}}
+{{-   $githubGpgsignEnabled = promptBoolOnce . "gitGpgSign" "Enable GPG signing for Git commits?" false  -}}
+{{-   $agePubKey = onepasswordRead "op://Private/chezmoi-data/age-pub-key" | quote -}}
+{{-   $borgEncryptionPassphrase = onepasswordRead "op://Private/chezmoi-data/borg-encryption-passphrase" | quote -}}
+{{-   $name = onepasswordRead "op://Private/chezmoi-data/git-config-name" | quote -}}
+{{-   $email = onepasswordRead "op://Private/chezmoi-data/git-config-email" | quote -}}
+{{-   $githubName = onepasswordRead "op://Private/chezmoi-data/github-username" | quote -}}
+{{-   $githubEmail = onepasswordRead "op://Private/chezmoi-data/github-email"  | quote -}}
+{{- if $githubGpgsignEnabled -}}
+{{-   $githubGpgsignSigningKey = onepasswordRead "op://Private/chezmoi-data/github-signing-key" | quote -}}
+{{-   $githubGpgsignProgram = promptStringOnce . "gitGpgSignProgram" "GPG signing program" "/Applications/1Password.app/Contents/MacOS/op-ssh-sign" | quote -}}
 {{- end -}}
+{{- end -}}
+
 
 encryption = "age"
 [age]
-    identity = {{ promptStringOnce . "identity" "Age identity file location" "~/.config/chezmoi/key.txt" | quote }}
-    recipient = {{ $agePubKey | quote }} 
+    identity = {{ promptStringOnce . "identity" "Age identity file location" (printf "%s/.config/chezmoi/key.txt" .chezmoi.homeDir) | quote }}
+    recipient = {{ $agePubKey }}
 
 [onepassword]
     command = "op"
@@ -100,6 +104,8 @@ encryption = "age"
     workspace = {{ $workspace | quote }}
     playground = {{ printf "%s/playground" $workspace | quote }}
     jupyter = {{ printf "%s/jupyter" $workspace | quote }}
+    borgEncryptionPassphrase = {{ $borgEncryptionPassphrase }}
+    borgRepository = {{ promptStringOnce . "borgRepository" "Borg repository location" (printf "%s/.backup_repo.borg" .chezmoi.homeDir) | quote }}
 
 [data.fonts]
     enabled = {{ promptBoolOnce . "fontsEnabled" "Enable FONTS installation?" false }}
@@ -128,7 +134,7 @@ encryption = "age"
 
 [data.python]
     enabled = {{ promptBoolOnce . "pythonEnabled" "Enable Python development environment?" false }}
-    version = {{ promptStringOnce . "pythonVersion" "Python version" "3.13.1"| quote}}
+    version = {{ promptStringOnce . "pythonVersion" "Python version" "3.13.1" | quote}}
     dependencies = [
         "pikepdf = \"*\"",
         "ffmpeg-python = \"*\"",
@@ -138,13 +144,12 @@ encryption = "age"
 [data.git]
     name = {{ $name }} 
     email = {{ $email }} 
-    localRepositories = {{ printf "%s/repositories" $workspace | quote }}
-    github.name = {{ $github_name }}
-    github.email = {{ $github_email }}
-    github.gpgsign.enabled = {{ $github_gpgsign_enabled }}
-    github.gpgsign.signingKey = {{ $github_gpgsign_signingKey }}
-    github.gpgsign.format = {{ $github_gpgsign_format }}
-    github.gpgsign.program = {{ $github_gpgsign_program }}
+    localRepositories = {{ printf "%s/.local/git" .chezmoi.destDir | quote }}
+    github.name = {{ $githubName }}
+    github.email = {{ $githubEmail }}
+    github.gpgsign.enabled = {{ $githubGpgsignEnabled }}
+    github.gpgsign.signingKey = {{ $githubGpgsignSigningKey }}
+    github.gpgsign.program = {{ $githubGpgsignProgram  }}
 
 [data.ollama]
     pidFile = {{ promptStringOnce . "ollamaPidFile" "Ollama PID file location" "/tmp/ollama.pid" | quote }}

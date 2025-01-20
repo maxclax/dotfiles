@@ -4,6 +4,7 @@
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
 {{ $brew_taps := list
+  "borgbackup/tap"
   "FelixKratz/formulae" -}}
   
 # Define the list of brew packages
@@ -13,6 +14,8 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
   "bat"
   "btop"
   "borders"
+  "borgbackup-fuse"
+  "borgmatic"
   "chafa"
   "chezmoi"
   "cmake"
@@ -90,6 +93,7 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
   "chatgpt"
   "cleanmymac"
   "colorsnapper"
+  "macfuse"
   "daisydisk"
   "devonthink"
   "oversight"

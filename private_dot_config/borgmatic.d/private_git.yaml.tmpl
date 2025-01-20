@@ -1,0 +1,32 @@
+source_directories:
+  - {{ .git.localRepositories | quote  }}
+
+repositories:
+  - path: {{ .borgRepository | quote }}
+    
+encryption_passphrase: "{{ .borgEncryptionPassphrase }}"
+compression: 'lz4'
+archive_name_format: "git-{now:%Y-%m-%d-%H%M%S}"
+
+# Retention settings
+keep_daily: 7
+keep_weekly: 2   
+keep_monthly: 3
+
+# Healthchecks
+checks:
+  - name: repository
+    frequency: 2 weeks  # Regular repository checks
+  - name: archives
+    frequency: 3 days   # More frequent archive checks
+
+# Performance and resource settings
+lock_wait: 300  
+files_cache: "size,mtime,inode"
+read_special: true
+one_file_system: false
+
+# Error handling
+retries: 3
+retry_wait: 60
+

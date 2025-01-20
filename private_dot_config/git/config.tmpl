@@ -71,7 +71,7 @@
 [user]
   signingkey = {{ .git.github.gpgsign.signingKey }}
 [gpg]
-  format = {{ .git.github.gpgsign.format }}
+  format = ssh
 [gpg "ssh"]
   program = {{ .git.github.gpgsign.program | quote }}
 [commit]
