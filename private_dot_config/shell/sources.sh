@@ -26,7 +26,11 @@ function virtual_env_activate() {
   if [[ -z "$VIRTUAL_ENV" ]]; then
     # Try poetry first if pyproject.toml exists with poetry config
     if [ -f pyproject.toml ] && grep -q "tool.poetry" pyproject.toml; then
-      poetry shell
+      if command -v poetry &>/dev/null; then
+        source $(poetry env info --path)/bin/activate
+      else
+        echo "Poetry is not installed or not in PATH"
+      fi
     # Fall back to regular venv activation
     elif [ -d ./.venv ] && [ -f ./.venv/bin/activate ]; then
       source ./.venv/bin/activate

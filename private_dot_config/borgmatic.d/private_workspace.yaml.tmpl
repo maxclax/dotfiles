@@ -5,13 +5,18 @@ repositories:
   - path: {{ .borgRepository | quote }}
     
 exclude_patterns:
+  - '*/.data/*'
   - '*/backup/*'
   - '*/node_modules/*'
   - '*/.venv/*'
-  - '.pnpm-store'
-  - '.pytest_cache'
-  - '.terraform'
+  - '*/.pnpm-store/*'
+  - '*/.pytest_cache/*'
+  - '*/.terraform/*'
   - '__pycache__'
+  - '*/.cache/*'
+  - '*/.mypy_cache/*'
+  - '*/.tox/*'
+  - '*/.DS_Store'
 
 encryption_passphrase: "{{ .borgEncryptionPassphrase }}"
 compression: 'lz4'

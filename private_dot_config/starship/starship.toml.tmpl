@@ -7,7 +7,7 @@ right_format = """$all"""
 command_timeout = 1000
 
 [directory.substitutions]
-'~/devhub' = 'devhub'
+'{{ .workspace }}' = 'workspace'
 
 [username]
 style_user = "bg:color_orange fg:color_fg0"
@@ -56,9 +56,6 @@ disabled = false
 # detect_files = ['Dockerfile']
 # style = "fg:color_fg0 bg:color_blue"
 format = '[$symbol$context( \($namespace\))]($style) '
-# contexts = [
-#   { context_pattern = "arn:aws:eks:us-west-2:577926974532:cluster/zd-pvc-omer", style = "green", context_alias = "omerxx", symbol = " " },
-# ]
 
 [docker_context]
 disabled = true
