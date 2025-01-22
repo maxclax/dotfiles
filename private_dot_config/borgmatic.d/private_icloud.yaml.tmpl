@@ -2,7 +2,7 @@ source_directories:
   - {{ printf "%s/Documents" .chezmoi.homeDir | quote }}
   - {{ printf "%s/Downloads" .chezmoi.homeDir | quote }}
   - {{ printf "%s/Desktop" .chezmoi.homeDir | quote }}
-  - {{ printf "%s/Library/Mobile\ Documents/iCloud~md~obsidians" .chezmoi.homeDir | quote }}
+  - {{ printf "%s/Library/Mobile Documents/iCloud~md~obsidian" .chezmoi.homeDir | quote }}
 
 repositories:
   - path: {{ .borgRepository | quote }}

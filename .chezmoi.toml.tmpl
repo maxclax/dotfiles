@@ -23,27 +23,13 @@
 {{-   $headless = true -}}
 {{- end -}}
 
-{{/* work around unreliable hostname on darwin */}}
-{{- $hostname := .chezmoi.hostname -}}
-{{- if eq .chezmoi.os "darwin" -}}
-{{-   $computerName := output "scutil" "--get" "ComputerName" | trim -}}
-{{-   if eq $computerName "space" -}}
-{{-     $hostname = "space" -}}
-{{-   else if eq $computerName "Dev's Laptop" -}}
-{{-     $hostname = "devs-mba" -}}
-{{-   else if eq $computerName "Dev’s MacBook Air" -}}
-{{-     $hostname = "devs-mba" -}}
-{{-   else -}}
-{{-     $hostname = $computerName -}}
-{{-   end -}}
-{{- end -}}
-
 {{- if eq .chezmoi.os "windows" -}}
 {{-   $ephemeral = true -}}
 {{- end -}}
 
+{{- $hostname := .chezmoi.hostname -}}
 {{- if not $ephemeral -}}
-{{-   if or (eq $hostname "space") (hasPrefix $hostname "space-") -}}
+{{-   if or (eq $hostname "space") (contains "space-" $hostname) -}}
 {{-     $personal = true -}}
 {{-   else if or (eq $hostname "debian") (eq $hostname "ubuntu") (eq $hostname "centos") -}}
 {{-     $headless = true -}}
@@ -77,10 +63,8 @@
 {{-   $email = onepasswordRead "op://Private/chezmoi-data/git-config-email" | quote -}}
 {{-   $githubName = onepasswordRead "op://Private/chezmoi-data/github-username" | quote -}}
 {{-   $githubEmail = onepasswordRead "op://Private/chezmoi-data/github-email"  | quote -}}
-{{- if $githubGpgsignEnabled -}}
 {{-   $githubGpgsignSigningKey = onepasswordRead "op://Private/chezmoi-data/github-signing-key" | quote -}}
 {{-   $githubGpgsignProgram = promptStringOnce . "gitGpgSignProgram" "GPG signing program" "/Applications/1Password.app/Contents/MacOS/op-ssh-sign" | quote -}}
-{{- end -}}
 {{- end -}}
 
 
