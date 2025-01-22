@@ -1,9 +1,7 @@
+{{ if or (not .personal) .ephemeral .headless }}
 # Running borgmatic backups
-0 12 * * * /opt/homebrew/bin/borgmatic --config {{ printf "%s/.config/borgmatic.d/workspace.yaml" .chezmoi.homeDir }}
-5 12 * * * /opt/homebrew/bin/borgmatic --config {{ printf "%s/.config/borgmatic.d/git.yaml" .chezmoi.homeDir }}
-10 12 * * * /opt/homebrew/bin/borgmatic --config {{ printf "%s/.config/borgmatic.d/extra_configs.yaml" .chezmoi.homeDir }}
-15 12 */10 * * /opt/homebrew/bin/borgmatic --config {{ printf "%s/.config/borgmatic.d/managed_configs.yaml" .chezmoi.homeDir }}
+0 10 * * * /opt/homebrew/bin/borgmatic /opt/homebrew/bin/borgmatic --verbosity 1 --progress
 
 # Pruning old backups
-30 12 * * * /opt/homebrew/bin/borgmatic prune
-
+30 10 * * * /opt/homebrew/bin/borgmatic prune
+{{ end }}

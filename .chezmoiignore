@@ -28,6 +28,7 @@ Library/Application\ Support/lazygit/config.yml
 
 {{ if or (not .personal) .ephemeral .headless }}
 .config/nvim
+.config/borgmatic.d
 {{ end }}
 
 key.txt.age
