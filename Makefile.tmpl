@@ -177,7 +177,7 @@ torproxy_logs:
 	$(CONTAINER_ENGINE) logs torproxy
 
 torproxy_ip_change:
-	docker restart torproxy
+	$(CONTAINER_ENGINE) restart torproxy
 
 torproxy_ports:
 	lsof -i :{{- .torproxy.portSocks5 -}}
