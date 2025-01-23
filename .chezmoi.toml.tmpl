@@ -6,6 +6,12 @@
   {{- $nvimType = promptChoiceOnce . "nvimType" "What type of NeoVim are you on" $choices -}}
 {{- end -}}
 
+{{- $emacsType := "default" -}}
+{{- if stdinIsATTY -}}
+  {{- $choices := list "default" "Doom" "Spacemacs" -}}
+  {{- $emacsType = promptChoiceOnce . "emacsType" "What type of Emacs are you on" $choices -}}
+{{- end -}}
+
 {{/* boolean feature tags */}}
 {{- $ephemeral := false -}}{{/* true if this machine is ephemeral, e.g. a cloud, VM instance or for short time */}}
 {{- $headless := false -}}{{/* true if this machine does not have a screen and keyboard */}}
@@ -79,6 +85,7 @@ encryption = "age"
 
 [data]
     nvimType = {{ $nvimType | quote }}
+    emacsType = {{ $emacsType | quote }}
     ephemeral = {{ $ephemeral }}
     headless = {{ $headless }}
     hostname = {{ $hostname | quote }}
