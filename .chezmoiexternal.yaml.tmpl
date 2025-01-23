@@ -109,6 +109,25 @@
   refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
 {{ end }}
 
+{{ if eq .emacsType "Doom" }}
+"~/.config/emacs":
+  type: "git-repo"
+  url: "https://github.com/doomemacs/doomemacs.git"
+  args:
+    - "--depth=1"  
+  exact: true
+  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
+{{ end }}
+
+{{ if eq .emacsType "Spacemacs" }}
+".emacs.d":
+  type: "git-repo"
+  url: "https://github.com/syl20bnr/spacemacs.git"
+  args:
+    - "--depth=1"  
+  exact: true
+  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
+{{ end }}
 
 {{ if eq .chezmoi.os "darwin" }}
 ".config/alacritty/themes":
