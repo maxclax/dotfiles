@@ -65,9 +65,11 @@ alias wget='wget --no-hsts'
 # Set NeoVim as vim by default
 alias vim='nvim'
 
+{{ if eq .container.engine "podman" }} 
 # ---- Podman -----
-#alias docker=podman
-#alias docker-compose=podman-compose
+alias docker=podman
+alias docker-compose=podman-compose
+{{ end }}
 
 # ---- TheFuck -----
 if command -v thefuck &>/dev/null; then
