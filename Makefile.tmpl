@@ -193,3 +193,10 @@ torproxy_check:
 	curl https://ipinfo.tw/ip
 	curl --socks5-hostname {{ .torproxy.host }}:{{- .torproxy.portSocks5 -}} https://check.torproject.org/api/ip
 
+backup_create:
+	/opt/homebrew/bin/borgmatic --config {{ printf "%s/.config/borgmatic.d/workspace.yaml" .chezmoi.homeDir }} --verbosity 1 --progress
+	/opt/homebrew/bin/borgmatic --config {{ printf "%s/.config/borgmatic.d/git.yaml" .chezmoi.homeDir }} --verbosity 1 --progress
+	/opt/homebrew/bin/borgmatic --config {{ printf "%s/.config/borgmatic.d/extra_configs.yaml" .chezmoi.homeDir }} --verbosity 1 --progress
+	/opt/homebrew/bin/borgmatic --config {{ printf "%s/.config/borgmatic.d/managed_configs.yaml" .chezmoi.homeDir }} --verbosity 1 --progress
+	# Pruning old backups
+	/opt/homebrew/bin/borgmatic prune --verbosity 1 

@@ -1,7 +1,4 @@
-{{ if or (not .personal) .ephemeral .headless }}
-# Running borgmatic backups
-0 10 * * * /opt/homebrew/bin/borgmatic /opt/homebrew/bin/borgmatic --verbosity 1 --progress
-
-# Pruning old backups
-30 10 * * * /opt/homebrew/bin/borgmatic prune
+{{ if .personal }}
+# Running backups
+0 12 * * * cd {{ .chezmoi.homeDir }} && /usr/bin/make backup_create 
 {{ end }}
