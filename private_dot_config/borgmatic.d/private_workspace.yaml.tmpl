@@ -18,7 +18,7 @@ exclude_patterns:
   - '*/.tox/*'
   - '*/.DS_Store'
 
-encryption_passphrase: "{{ .borgEncryptionPassphrase }}"
+encryption_passcommand: op read "op://Private/chezmoi-data/borg-encryption-passphrase"
 compression: 'lz4'
 archive_name_format: "workspace-{now:%Y-%m-%d-%H%M%S}"
 

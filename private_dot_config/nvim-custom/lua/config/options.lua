@@ -62,7 +62,8 @@ vim.opt.termguicolors = true
 vim.opt.signcolumn = "yes"
 
 -- cursor line highlight
-vim.opt.cursorline = false
+vim.opt.cursorline = true
+vim.opt.cursorcolumn = true
 
 -- Enable cursor blinking in all modes
 --

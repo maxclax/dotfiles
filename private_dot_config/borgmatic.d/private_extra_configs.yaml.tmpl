@@ -4,7 +4,7 @@ source_directories:
 repositories:
   - path: {{ .borgRepository | quote }}
 
-encryption_passphrase: "{{ .borgEncryptionPassphrase }}"
+encryption_passcommand: op read "op://Private/chezmoi-data/borg-encryption-passphrase"
 compression: "lz4"
 archive_name_format: "extra-configs-{now:%Y-%m-%d-%H%M%S}"
 
