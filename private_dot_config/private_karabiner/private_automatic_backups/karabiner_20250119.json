@@ -19,27 +19,7 @@
                     }
                 ]
             },
-            "devices": [
-                {
-                    "identifiers": {
-                        "is_keyboard": true,
-                        "product_id": 24926,
-                        "vendor_id": 7504
-                    },
-                    "ignore": true
-                },
-                {
-                    "identifiers": {
-                        "is_keyboard": true,
-                        "is_pointing_device": true,
-                        "product_id": 4096,
-                        "vendor_id": 10730
-                    },
-                    "ignore": false
-                }
-            ],
             "name": "Off",
-            "selected": true,
             "virtual_hid_keyboard": { "keyboard_type_v2": "ansi" }
         },
         {
@@ -4118,16 +4098,16 @@
             },
             "devices": [
                 {
+                    "disable_built_in_keyboard_if_exists": true,
                     "identifiers": {
                         "is_keyboard": true,
-                        "is_pointing_device": true,
-                        "product_id": 4096,
-                        "vendor_id": 10730
-                    },
-                    "ignore": false
+                        "product_id": 24926,
+                        "vendor_id": 7504
+                    }
                 }
             ],
             "name": "Vimex",
+            "selected": true,
             "virtual_hid_keyboard": {
                 "keyboard_type_v2": "ansi",
                 "mouse_key_xy_scale": 1000
@@ -6119,21 +6099,12 @@
             },
             "devices": [
                 {
-                    "identifiers": {
-                        "is_keyboard": true,
-                        "is_pointing_device": true,
-                        "product_id": 4096,
-                        "vendor_id": 10730
-                    },
-                    "ignore": false
-                },
-                {
+                    "disable_built_in_keyboard_if_exists": true,
                     "identifiers": {
                         "is_keyboard": true,
                         "product_id": 24926,
                         "vendor_id": 7504
-                    },
-                    "ignore": true
+                    }
                 }
             ],
             "name": "Dvorak",
@@ -6949,25 +6920,6 @@
                     }
                 ]
             },
-            "devices": [
-                {
-                    "identifiers": {
-                        "is_keyboard": true,
-                        "product_id": 24926,
-                        "vendor_id": 7504
-                    },
-                    "ignore": true
-                },
-                {
-                    "identifiers": {
-                        "is_keyboard": true,
-                        "is_pointing_device": true,
-                        "product_id": 4096,
-                        "vendor_id": 10730
-                    },
-                    "ignore": false
-                }
-            ],
             "name": "Real DVP",
             "virtual_hid_keyboard": { "keyboard_type_v2": "ansi" }
         }

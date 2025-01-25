@@ -27,15 +27,6 @@
                         "vendor_id": 7504
                     },
                     "ignore": true
-                },
-                {
-                    "identifiers": {
-                        "is_keyboard": true,
-                        "is_pointing_device": true,
-                        "product_id": 4096,
-                        "vendor_id": 10730
-                    },
-                    "ignore": false
                 }
             ],
             "name": "Off",
@@ -4116,17 +4107,6 @@
                     }
                 ]
             },
-            "devices": [
-                {
-                    "identifiers": {
-                        "is_keyboard": true,
-                        "is_pointing_device": true,
-                        "product_id": 4096,
-                        "vendor_id": 10730
-                    },
-                    "ignore": false
-                }
-            ],
             "name": "Vimex",
             "virtual_hid_keyboard": {
                 "keyboard_type_v2": "ansi",
@@ -6126,14 +6106,6 @@
                         "vendor_id": 10730
                     },
                     "ignore": false
-                },
-                {
-                    "identifiers": {
-                        "is_keyboard": true,
-                        "product_id": 24926,
-                        "vendor_id": 7504
-                    },
-                    "ignore": true
                 }
             ],
             "name": "Dvorak",
@@ -6949,25 +6921,6 @@
                     }
                 ]
             },
-            "devices": [
-                {
-                    "identifiers": {
-                        "is_keyboard": true,
-                        "product_id": 24926,
-                        "vendor_id": 7504
-                    },
-                    "ignore": true
-                },
-                {
-                    "identifiers": {
-                        "is_keyboard": true,
-                        "is_pointing_device": true,
-                        "product_id": 4096,
-                        "vendor_id": 10730
-                    },
-                    "ignore": false
-                }
-            ],
             "name": "Real DVP",
             "virtual_hid_keyboard": { "keyboard_type_v2": "ansi" }
         }
