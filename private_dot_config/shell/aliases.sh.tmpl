@@ -12,6 +12,11 @@ alias jupyter='cd {{ .jupyter }}'
 alias ll='eza --long --header --group-directories-first --git --group --all'
 alias tree='tree -C'
 
+# emacsclient
+alias e='emacsclient -t'      # Terminal Emacs
+alias ec='emacsclient -c'     # GUI Emacs
+alias killemacs='emacsclient -e "(kill-emacs)"'
+
 # pkgx/dev
 alias dev-dirs='fd dev.pkgx.activated "$HOME/Library/Application Support/pkgx/dev" --exec dirname {}'
 

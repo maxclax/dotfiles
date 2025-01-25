@@ -90,8 +90,16 @@ export DOTFILES_BREW_PREFIX=$brew_prefix
 export HOMEBREW_NO_ANALYTICS=1
 export PIP_REQUIRE_VIRTUALENV=true # use pip --isolated to bypass
 export PYENV_ROOT="$HOME/.pyenv"   # pyenv
+
 export GIT_EDITOR="nvim"
 export EDITOR="nvim"
+
+{{ if eq .editor "emacsclient" }}
+export GIT_EDITOR="emacsclient -t"
+export EDITOR="emacsclient -t"
+export VISUAL="emacsclient -c"
+{{ end }}
+
 export PATH="$HOME/.local/bin:$PATH"
 export LOCAL_GIT_REPOS_PATH={{ .git.localRepositories | quote  }}
 

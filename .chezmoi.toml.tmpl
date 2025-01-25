@@ -12,6 +12,12 @@
   {{- $emacsType = promptChoiceOnce . "emacsType" "What type of Emacs are you on" $choices -}}
 {{- end -}}
 
+{{- $editor := "vim" -}}
+{{- if stdinIsATTY -}}
+  {{- $choices := list "vim" "emacsclient" -}}
+  {{- $editor = promptChoiceOnce . "editor" "Which editor do you want to use as default" $choices -}}
+{{- end -}}
+
 {{/* boolean feature tags */}}
 {{- $ephemeral := false -}}{{/* true if this machine is ephemeral, e.g. a cloud, VM instance or for short time */}}
 {{- $headless := false -}}{{/* true if this machine does not have a screen and keyboard */}}
@@ -97,6 +103,7 @@ encryption = "age"
     jupyter = {{ printf "%s/jupyter" $workspace | quote }}
     borgEncryptionPassphrase = {{ $borgEncryptionPassphrase }}
     borgRepository = {{ promptStringOnce . "borgRepository" "Borg repository location" (printf "%s/.backup_repo.borg" .chezmoi.homeDir) | quote }}
+    editor = {{ $editor | quote }}
 
 [data.fonts]
     enabled = {{ promptBoolOnce . "fontsEnabled" "Enable FONTS installation?" false }}
@@ -126,11 +133,6 @@ encryption = "age"
 [data.python]
     enabled = {{ promptBoolOnce . "pythonEnabled" "Enable Python development environment?" false }}
     version = {{ promptStringOnce . "pythonVersion" "Python version" "3.13.1" | quote}}
-    dependencies = [
-        "pikepdf = \"*\"",
-        "ffmpeg-python = \"*\"",
-        "pillow = \"*\""
-    ]
 
 [data.git]
     name = {{ $name }} 

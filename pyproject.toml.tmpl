@@ -7,9 +7,11 @@ package-mode = false
 
 [tool.poetry.dependencies]
 python = "{{ .python.version }}"
-{{- range .python.dependencies }}
-{{ . }}
-{{- end }}
+dependencies = [
+    pikepdf = "*",
+    ffmpeg-python = "*",
+    pillow = "*"
+]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
