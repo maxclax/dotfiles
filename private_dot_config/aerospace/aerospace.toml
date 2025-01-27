@@ -195,7 +195,7 @@ alt-shift-tab = 'move-workspace-to-monitor --wrap-around next'
 # ---------------------------------------------------------
 
 [[on-window-detected]]
-if.app-id = 'com.kevinhermawan.Ollamac'
+if.app-id = 'xyz.chatboxapp.app'
 run = "move-node-to-workspace A"
 [[on-window-detected]]
 if.app-id = 'com.openai.chat'
