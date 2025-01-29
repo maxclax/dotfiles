@@ -1,4 +1,4 @@
-{{ if eq .editor "emacsclient" }}
+{{ if or  (eq .editor "emacsclient") (.emacs.enabledClient) }}
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"\>
 <plist version="1.0">
@@ -9,6 +9,15 @@
     <array>
         <string>/usr/local/bin/emacs</string>
         <string>--daemon</string>
+    {{- if eq .emacsType "Doom" }}
+    <string>--init-directory={{ .chezmoi.homeDir }}/.config/doomemacs.d</string>
+    {{- else if eq .emacsType "Spacemacs" }}
+    <string>--init-directory={{ .chezmoi.homeDir }}/.config/spacemacs.d</string>
+    {{- else if eq .emacsType "prelude" }}
+    <string>--init-directory={{ .chezmoi.homeDir }}/.config/preludeemacs.d</string>
+    {{- else if eq .emacsType "purcell" }}
+    <string>--init-directory={{ .chezmoi.homeDir }}/.config/purcellemacs.d</string>
+    {{- end }}
     </array>
     <key>RunAtLoad</key>
     <true/>

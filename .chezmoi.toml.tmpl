@@ -8,7 +8,7 @@
 
 {{- $emacsType := "default" -}}
 {{- if stdinIsATTY -}}
-  {{- $choices := list "default" "Doom" "Spacemacs" -}}
+  {{- $choices := list "default" "Doom" "Spacemacs" "prelude" "purcell" -}}
   {{- $emacsType = promptChoiceOnce . "emacsType" "What type of Emacs are you on" $choices -}}
 {{- end -}}
 
@@ -111,6 +111,10 @@ encryption = "age"
 
 [data.nvim]
     loadAllDistros = {{ promptBoolOnce . "nvimLoadAllDistros" "Load all NeoVim distributions?" true }}
+
+[data.emacs]
+    enabledClient = {{ promptBoolOnce . "emacsEnabledClient" "Enable Emacs client?" true }}
+    loadAllDistros = {{ promptBoolOnce . "emacsLoadAllDistros" "Load all Emacs distributions?" true }}
 
 [data.podman]
     enabled = {{ promptBoolOnce . "podmanEnabled" "Enable Podman container engine?" true }}

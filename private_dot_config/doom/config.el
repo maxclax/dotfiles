@@ -21,8 +21,21 @@
 ;; See 'C-h v doom-font' for documentation and more examples of what they
 ;; accept. For example:
 ;;
-;;(setq doom-font (font-spec :family "Fira Code" :size 12 :weight 'semi-light)
-;;      doom-variable-pitch-font (font-spec :family "Fira Sans" :size 13))
+(setq doom-font (font-spec :family "Berkeley Mono Variable"
+                          :size 20
+                          :weight 'normal
+                          :width 'normal))
+
+;; Set the big font variant
+(setq doom-big-bold (font-spec :family "Berkeley Mono Variable"
+                               :size 36
+                               :width 'bold))
+
+;; Set the bold font variant
+(setq doom-font-bold (font-spec :family "Berkeley Mono Variable"
+                               :size 20
+                               :weight 'bold
+                               :width 'normal))
 ;;
 ;; If you or Emacs can't find your font, use 'M-x describe-font' to look them
 ;; up, `M-x eval-region' to execute elisp code, and 'M-x doom/reload-font' to
@@ -41,6 +54,12 @@
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
 (setq org-directory "~/org/")
+
+;; Set Projectile project search path
+(setq projectile-project-search-path '("~/workspace/playground/" "~/workspace/workbench/" "~/workspace/www/" "/Volumes/develop/workspace/"))
+
+;; Enable caching to improve performance
+(setq projectile-enable-caching t)
 
 
 ;; Whenever you reconfigure a package, make sure to wrap your config in an
