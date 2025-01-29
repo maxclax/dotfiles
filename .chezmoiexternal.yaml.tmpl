@@ -5,19 +5,31 @@
   exact: true
   refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
 
-".oh-my-zsh/plugins/zsh-syntax-highlighting":
+".oh-my-zsh/plugins/custom/zsh-syntax-highlighting":
   type: "git-repo"
   url: "https://github.com/zsh-users/zsh-syntax-highlighting.git"
   exact: true
   refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
 
-".oh-my-zsh/plugins/zsh-completions":
+".oh-my-zsh/plugins/custom/zsh-autosuggestions":
+  type: "git-repo"
+  url: "https://github.com/zsh-users/zsh-autosuggestions.git"
+  exact: true
+  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
+
+".oh-my-zsh/plugins/custom/zsh-completions":
   type: "git-repo"
   url: "https://github.com/zsh-users/zsh-completions.git"
   exact: true
   refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
 
-".oh-my-zsh/plugins/my-completions/_tmuxinator.zsh":
+".oh-my-zsh/plugins/custom/zsh-vi-mode":
+  type: "git-repo"
+  url: "https://github.com/jeffreytse/zsh-vi-mode.git"
+  exact: true
+  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
+
+".oh-my-zsh/plugins/custom/_tmuxinator.zsh":
   type: file
   url: "https://raw.githubusercontent.com/tmuxinator/tmuxinator/master/completion/tmuxinator.zsh"
   refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
@@ -109,8 +121,8 @@
   refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
 {{ end }}
 
-{{ if eq .emacsType "Doom" }}
-".config/emacs":
+{{ if or (eq .emacsType "Doom") .emacs.loadAllDistros }}
+".config/doomemacs.d":
   type: "git-repo"
   url: "https://github.com/doomemacs/doomemacs.git"
   args:
@@ -119,10 +131,30 @@
   refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
 {{ end }}
 
-{{ if eq .emacsType "Spacemacs" }}
-".emacs.d":
+{{ if or (eq .emacsType "Spacemacs") .emacs.loadAllDistros }}
+".config/spacemacs.d":
   type: "git-repo"
   url: "https://github.com/syl20bnr/spacemacs.git"
+  args:
+    - "--depth=1"  
+  exact: true
+  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
+{{ end }}
+
+{{ if or (eq .emacsType "purcell") .emacs.loadAllDistros }}
+".config/purcellemacs.d":
+  type: "git-repo"
+  url: "https://github.com/purcell/emacs.d.git"
+  args:
+    - "--depth=1"  
+  exact: true
+  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
+{{ end }}
+
+{{ if or (eq .emacsType "prelude") .emacs.loadAllDistros }}
+".config/preludeemacs.d":
+  type: "git-repo"
+  url: "https://github.com/bbatsov/prelude.git"
   args:
     - "--depth=1"  
   exact: true
