@@ -23,17 +23,6 @@
   exact: true
   refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
 
-".oh-my-zsh/plugins/custom/zsh-vi-mode":
-  type: "git-repo"
-  url: "https://github.com/jeffreytse/zsh-vi-mode.git"
-  exact: true
-  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
-
-".oh-my-zsh/plugins/custom/_tmuxinator.zsh":
-  type: file
-  url: "https://raw.githubusercontent.com/tmuxinator/tmuxinator/master/completion/tmuxinator.zsh"
-  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
-
 ".tmux":
   type: "git-repo"
   url: "https://github.com/gpakosz/.tmux.git"

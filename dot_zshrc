@@ -11,7 +11,7 @@ ZSH_THEME="robbyrussell"
 # - docker-compose: Adds Docker Compose command completions and aliases
 # - poetry: Manages Python dependencies and packaging
 # - kubectl: Provides Kubernetes command completions
-plugins=(brew git podman poetry kubectl kubectx zsh-vi-mode thefuck zsh-syntax-highlighting zsh-completions zsh-autosuggestions tmuxinator chezmoi)
+plugins=(brew git podman poetry kubectl kubectx thefuck chezmoi zsh-syntax-highlighting zsh-completions zsh-autosuggestions )
 
 # Source the main Oh My Zsh script to apply settings
 source $ZSH/oh-my-zsh.sh

@@ -132,7 +132,7 @@ set iterm2_font_height 11
 # Dithering mode for SIXEL previews.  One of:
 # None, Riemersma, FloydSteinberg
 # (see: preview_images_method: sixel)
-set sixel_dithering FloydSteinberg
+# set sixel_dithering FloydSteinberg
 
 # Use a unicode "..." character to mark cut-off filenames?
 set unicode_ellipsis false
@@ -300,7 +300,7 @@ set one_indexed false
 set save_tabs_on_exit false
 
 # Remove tabs with unavailable paths on startup
-set filter_dead_tabs_on_startup false
+# set filter_dead_tabs_on_startup false
 
 # Enable scroll wrapping - moving down while on the last item will wrap around to
 # the top and vice versa.
@@ -323,7 +323,7 @@ set size_in_bytes false
 # 1024 KiB in 1 MiB) as opposed to decimal unit prefixes which signify a
 # 1000 of the preceding unit prefix (there are 1000 kB in 1 MB)
 # https://en.wikipedia.org/wiki/Binary_prefix
-set binary_size_prefix false
+# set binary_size_prefix false
 
 # Warn at startup if RANGER_LEVEL env var is greater than 0, in other words
 # give a warning when you nest ranger in a subshell started by ranger.
@@ -398,9 +398,9 @@ map cd console cd%space
 map <C-p> chain console; eval fm.ui.console.history_move(-1)
 
 # Extra bookmarks
-bookmark w {{ .workspace }}
-bookmark p {{ .playground }}
-bookmark d {{ .chezmoi.sourceDir }}
+# bookmark w {{ .workspace }}
+# bookmark p {{ .playground }}
+# bookmark d {{ .chezmoi.sourceDir }}
 
 # Change the line mode
 map Mf linemode filename
