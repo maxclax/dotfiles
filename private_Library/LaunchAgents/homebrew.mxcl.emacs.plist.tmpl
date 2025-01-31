@@ -7,7 +7,7 @@
     <string>homebrew.mxcl.emacs</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/usr/local/bin/emacs</string>
+        <string>/opt/homebrew/bin/emacs</string>
         <string>--daemon</string>
     {{- if eq .emacsType "Doom" }}
     <string>--init-directory={{ .chezmoi.homeDir }}/.config/doomemacs.d</string>
