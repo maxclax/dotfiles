@@ -63,13 +63,6 @@ function node_version_manager() {
 }
 
 function zsh_completion() {
-  if [ -n "$brew_prefix" ]; then
-    export FPATH=$brew_prefix/share/zsh/site-functions:$FPATH
-
-    source "$brew_prefix/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
-    source "$brew_prefix/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
-  fi
-
   # Makefile completion
   zstyle ':completion:*:*:make:*' tag-order 'targets'
   zstyle ':completion:*:make:*:targets' call-command true
@@ -137,7 +130,7 @@ fi
 
 function cd() {
   builtin cd "$@" || return
-  virtual_env_activate
+  # virtual_env_activate
   # node_version_manager  # TODO: with pkgx, maybe nvm is no longer needed?
 }
 cd . # trigger cd overrides when shell starts
