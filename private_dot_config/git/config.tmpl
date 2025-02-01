@@ -1,9 +1,9 @@
 [user]
-	name = {{ .git.name }}
-	email = {{ .git.email }}
+	name = {{ .gitName }}
+	email = {{ .gitEmail }}
 [includeIf "gitdir:{{ .workspace }}/**/.git"]
-	name = {{ .git.github.name }}
-	email = {{ .git.github.email }}
+	name = {{ .gitGithub.name }}
+	email = {{ .gitGithub.email }}
 [color]
 	ui = true
 [diff]
@@ -67,13 +67,13 @@
 [credential "https://gist.github.com"]
   helper = !/opt/homebrew/bin/gh auth git-credential
 
-{{ if .git.github.gpgsign.enabled }}
+{{ if .gitGithub.gpgsign.enabled }}
 [user]
-  signingkey = {{ .git.github.gpgsign.signingKey }}
+  signingkey = {{ .gitGithub.gpgsign.signingKey }}
 [gpg]
   format = ssh
 [gpg "ssh"]
-  program = {{ .git.github.gpgsign.program | quote }}
+  program = {{ .gitGithub.gpgsign.program | quote }}
 [commit]
   gpgsign = true
 {{ end }}

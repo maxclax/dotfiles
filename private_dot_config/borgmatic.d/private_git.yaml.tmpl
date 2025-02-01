@@ -1,5 +1,6 @@
+{{ if .borgThisMachine }}
 source_directories:
-  - {{ .git.localRepositories | quote  }}
+  - {{ .gitLocalRepositories | quote  }}
 
 repositories:
   - path: {{ .borgRepository | quote }}
@@ -29,4 +30,5 @@ one_file_system: false
 # Error handling
 retries: 3
 retry_wait: 60
+{{ end }}
 

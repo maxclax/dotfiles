@@ -45,18 +45,3 @@ matches:
 # Python: {% load djcore_tags %}{{ __placeholder__|ipdb }}
 - trigger: "-ipt"
   replace: "{% load djcore_tags %}{{ __placeholder__|ipdb }}"
-
-- trigger: "-brewi"
-  replace: "brew install "
-
-- trigger: "-brew_u"
-  replace: "brew upgrade "
-
-- trigger: "-brewup"
-  replace: "brew update "
-
-- trigger: "-brewun"
-  replace: "brew uninstall "
-
-- trigger: "-brewrm"
-  replace: "brew remove "

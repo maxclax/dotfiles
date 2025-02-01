@@ -14,14 +14,14 @@ function virtual_env_activate() {
     fi
   fi
 
-  # Create venv if needed
-  if [ -f .python-version ] && [ ! -d ./.venv ]; then
-    if [ -f pyproject.toml ] && grep -q "tool.poetry" pyproject.toml; then
-      poetry env use $(cat .python-version)
-    else
-      uv venv
-    fi
-  fi
+  # # Create venv if needed
+  # if [ -f .python-version ] && [ ! -d ./.venv ]; then
+  #   if [ -f pyproject.toml ] && grep -q "tool.poetry" pyproject.toml; then
+  #     poetry env use $(cat .python-version)
+  #   else
+  #     uv venv
+  #   fi
+  # fi
 
   if [[ -z "$VIRTUAL_ENV" ]]; then
     # Try poetry first if pyproject.toml exists with poetry config
