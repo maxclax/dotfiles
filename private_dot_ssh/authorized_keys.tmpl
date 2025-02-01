@@ -1,4 +1,4 @@
-{{- $keys := gitHubKeys .git.github.name -}}
+{{- $keys := gitHubKeys .gitGithub.name -}}
 {{- if $keys -}}
   {{- range $keys -}}
     {{ .Key }}

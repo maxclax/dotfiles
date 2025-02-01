@@ -3,7 +3,7 @@
 # https://docs.docker.com/engine/install
 
 # Check if docker are enabled
-if [ "{{ .docker.enabled }}" != "true" ]; then
+if [ "{{ .dockerEnabled }}" != "true" ]; then
   echo "Docker installation is disabled."
   exit 0
 fi

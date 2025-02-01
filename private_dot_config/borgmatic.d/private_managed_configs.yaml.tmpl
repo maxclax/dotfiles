@@ -1,3 +1,4 @@
+{{ if .borgThisMachine }}
 source_directories:
   - {{ printf "%s/.local/managed-configs" .chezmoi.homeDir | quote  }}
 
@@ -29,3 +30,4 @@ one_file_system: false
 # Error handling
 retries: 3
 retry_wait: 60
+{{ end }}

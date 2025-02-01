@@ -15,11 +15,11 @@ issuesSections:
   - title: Mine
     filters: sort:updated-desc is:issue is:open archived:false user:@me
   - title: Created
-    filters: sort:updated-desc is:open is:issue archived:false author:{{ .git.name }}
+    filters: sort:updated-desc is:open is:issue archived:false author:{{ .gitName }}
   - title: Assigned
-    filters: sort:updated-desc is:open is:issue archived:false assignee:{{ .git.name }}
+    filters: sort:updated-desc is:open is:issue archived:false assignee:{{ .gitName }}
   - title: Mentioned
-    filters: sort:updated-desc is:open is:issue archived:false mentions:{{ .git.name }}
+    filters: sort:updated-desc is:open is:issue archived:false mentions:{{ .gitName }}
   - title: Involved
     filters: sort:updated-desc is:issue is:open archived:false involves:@me
 defaults:

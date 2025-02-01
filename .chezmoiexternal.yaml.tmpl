@@ -30,7 +30,7 @@
   refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
 
 
-{{ if  or (eq .nvimType "kickstart.nvim") .nvim.loadAllDistros }}
+{{ if  or (eq .nvimType "kickstart.nvim") .nvimLoadAllDistros }}
 ".config/kickstart.nvim":
   type: "git-repo"
   url: "https://github.com/nvim-lua/kickstart.nvim.git"
@@ -40,7 +40,7 @@
   refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
 {{ end }}
 
-{{ if or (eq .nvimType "NvChad") .nvim.loadAllDistros }}
+{{ if or (eq .nvimType "NvChad") .nvimLoadAllDistros }}
 ".config/NvChad":
   type: "git-repo"
   url: "https://github.com/NvChad/NvChad"
@@ -50,7 +50,7 @@
   refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
 {{ end }}
 
-{{ if or (eq .nvimType "LunarVim") .nvim.loadAllDistros }}
+{{ if or (eq .nvimType "LunarVim") .nvimLoadAllDistros }}
 ".config/LunarVim":
   type: "git-repo"
   url: "https://github.com/LunarVim/LunarVim.git"
@@ -60,7 +60,7 @@
   refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
 {{ end }}
 
-{{ if or (eq .nvimType "AstroNvim") .nvim.loadAllDistros }}
+{{ if or (eq .nvimType "AstroNvim") .nvimLoadAllDistros }}
 ".config/AstroNvim":
   type: "git-repo"
   url: "https://github.com/AstroNvim/AstroNvim.git"
@@ -70,7 +70,7 @@
   refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
 {{ end }}
 
-{{ if or (eq .nvimType "kickstart-modular.nvim") .nvim.loadAllDistros }}
+{{ if or (eq .nvimType "kickstart-modular.nvim") .nvimLoadAllDistros }}
 ".config/kickstart-modular.nvim":
   type: "git-repo"
   url: "https://github.com/dam9000/kickstart-modular.nvim"
@@ -80,7 +80,7 @@
   refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
 {{ end }}
 
-{{ if or (eq .nvimType "neovim-for-newbs") .nvim.loadAllDistros }}
+{{ if or (eq .nvimType "neovim-for-newbs") .nvimLoadAllDistros }}
 ".config/neovim-for-newbs":
   type: "git-repo"
   url: "https://github.com/cpow/neovim-for-newbs.git"
@@ -90,7 +90,7 @@
   refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
 {{ end }}
 
-{{ if or (eq .nvimType "NormalNvim") .nvim.loadAllDistros }}
+{{ if or (eq .nvimType "NormalNvim") .nvimLoadAllDistros }}
 ".config/NormalNvim":
   type: "git-repo"
   url: "https://github.com/NormalNvim/NormalNvim.git"
@@ -100,7 +100,7 @@
   refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
 {{ end }}
 
-{{ if or (eq .nvimType "LazyVim") .nvim.loadAllDistros }}
+{{ if or (eq .nvimType "LazyVim") .nvimLoadAllDistros }}
 ".config/LazyVim":
   type: "git-repo"
   url: "https://github.com/LazyVim/starter.git"
@@ -110,7 +110,7 @@
   refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
 {{ end }}
 
-{{ if or (eq .emacsType "Doom") .emacs.loadAllDistros }}
+{{ if or (eq .emacsType "Doom") .emacsLoadAllDistros }}
 ".config/doomemacs.d":
   type: "git-repo"
   url: "https://github.com/doomemacs/doomemacs.git"
@@ -120,7 +120,7 @@
   refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
 {{ end }}
 
-{{ if or (eq .emacsType "Spacemacs") .emacs.loadAllDistros }}
+{{ if or (eq .emacsType "Spacemacs") .emacsLoadAllDistros }}
 ".config/spacemacs.d":
   type: "git-repo"
   url: "https://github.com/syl20bnr/spacemacs.git"
@@ -130,7 +130,7 @@
   refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
 {{ end }}
 
-{{ if or (eq .emacsType "purcell") .emacs.loadAllDistros }}
+{{ if or (eq .emacsType "purcell") .emacsLoadAllDistros }}
 ".config/purcellemacs.d":
   type: "git-repo"
   url: "https://github.com/purcell/emacs.d.git"
@@ -140,7 +140,7 @@
   refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
 {{ end }}
 
-{{ if or (eq .emacsType "prelude") .emacs.loadAllDistros }}
+{{ if or (eq .emacsType "prelude") .emacsLoadAllDistros }}
 ".config/preludeemacs.d":
   type: "git-repo"
   url: "https://github.com/bbatsov/prelude.git"

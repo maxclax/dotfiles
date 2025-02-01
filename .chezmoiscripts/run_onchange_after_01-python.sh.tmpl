@@ -2,7 +2,7 @@
 
 
 # Check if python are enabled
-if [ "{{ .python.enabled }}" != "true" ]; then
+if [ "{{ .pythonEnabled }}" != "true" ]; then
   echo "Python installation is disabled."
   exit 0
 fi
@@ -11,7 +11,7 @@ fi
 # https://github.com/pyenv/pyenv-installer
 # https://github.com/pypa/pipx
 
-base_python_version={{ .python.version }}
+base_python_version={{ .pythonVersion }}
 
 # Per-platform settings
 case $(uname) in

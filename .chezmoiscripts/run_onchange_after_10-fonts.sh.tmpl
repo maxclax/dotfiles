@@ -8,14 +8,14 @@
 
 
 # Check if fonts are enabled
-if [ "{{ .fonts.enabled }}" != "true" ]; then
+if [ "{{ .fontsEnabled }}" != "true" ]; then
   echo "Fonts installation is disabled."
   exit 0
 fi
 
 # Check if the font directory exists
-if [ ! -d {{ .fonts.path }} ]; then
-  echo "Font directory {{ .fonts.path }} does not exist."
+if [ ! -d {{ .fontsPath }} ]; then
+  echo "Font directory {{ .fontsPath }} does not exist."
   exit 1
 fi
 
@@ -25,7 +25,7 @@ install_fonts_debian() {
   {{ $sudo }}mkdir -p /usr/share/fonts/
 
   # Copy font files to the user's font directory
-  {{ $sudo }}cp -r {{ .fonts.path }}/* /usr/share/fonts/
+  {{ $sudo }}cp -r {{ .fontsPath }}/* /usr/share/fonts/
 
   # Update the font cache
   fc-cache -f -v
@@ -36,7 +36,7 @@ install_fonts_debian() {
 install_fonts_macos() {
   echo "Installing fonts on macOS..."
   # Copy font files to the user's font directory
-  cp -r {{ .fonts.path }}/* ~/Library/Fonts/
+  cp -r {{ .fontsPath }}/* ~/Library/Fonts/
   echo "Fonts installed on macOS."
 }
 

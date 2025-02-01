@@ -183,13 +183,13 @@ EOF
 
 
 # Check if Go are enabled
-if [ "{{ .go.enabled }}" = "true" ]; then
+if [ "{{ .goEnabled }}" = "true" ]; then
   echo "Go installation..."
   brew install go 
 fi
 
 # Check if Rust are enabled
-if [ "{{ .rust.enabled }}" = "true" ]; then
+if [ "{{ .rustEnabled }}" = "true" ]; then
   echo "Rust installation..."
   brew install rust rustup-init
 fi

@@ -1,5 +1,5 @@
 local M = {}
-M.vault_path = {{ .obsidian.vault | quote }}
+M.vault_path = {{ .obsidianVault | quote }}
 M.notes_path = vim.fn.expand(M.vault_path .. "/Meeting_notes")
 M.scratchpad_path = vim.fn.expand(M.vault_path .. "/scratchpad.md")
 

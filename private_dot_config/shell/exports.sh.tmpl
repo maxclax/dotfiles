@@ -101,9 +101,9 @@ export VISUAL="emacsclient -c"
 {{ end }}
 
 export PATH="$HOME/.local/bin:$PATH"
-export LOCAL_GIT_REPOS_PATH={{ .git.localRepositories | quote  }}
+export LOCAL_GIT_REPOS_PATH={{ .gitLocalRepositories | quote  }}
 
-{{ if .docker.enabled }}
+{{ if .dockerEnabled }}
 add_to_path append "$HOME/.docker/bin"
 {{ end }}
 

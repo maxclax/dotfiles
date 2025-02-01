@@ -26,7 +26,7 @@ dotfiles_update:
 ########################################
 
 # Determine the container engine (docker or podman)
-CONTAINER_ENGINE := {{ .container.engine }}
+CONTAINER_ENGINE := {{ .containerEngine }}
 
 # Print OS-specific information
 info:
@@ -124,18 +124,18 @@ k9s:
 
 # Function to kill process using the defined port
 ollama_kill_port:
-	@PORT_PID=$$(lsof -ti tcp:{{ .ollama.port }}); \
+	@PORT_PID=$$(lsof -ti tcp:{{ .ollamaPort }}); \
 	if [ -n "$$PORT_PID" ]; then \
-		echo "Killing process on port {{ .ollama.port }}..."; \
+		echo "Killing process on port {{ .ollamaPort }}..."; \
 		kill -9 $$PORT_PID; \
 	fi
 
 # Start ollama server in the background and save the PID
 ollama_start: ollama_kill_port
 	@echo "Starting ollama server..."
-	@ollama serve & echo $$! > {{ .ollama.pidFile }}
+	@ollama serve & echo $$! > {{ .ollamaPidFile }}
 	@sleep 2 # Give the server some time to start
-	@echo "Ollama server started with PID $$(cat {{ .ollama.pidFile }})"
+	@echo "Ollama server started with PID $$(cat {{ .ollamaPidFile }})"
 
 # Stop all ollama server processes, regardless of PID file
 ollama_stop:
@@ -146,28 +146,28 @@ ollama_stop:
 	else \
 		echo "No ollama server processes running."; \
 	fi
-	@rm -f {{ .ollama.pidFile }}
+	@rm -f {{ .ollamaPidFile }}
 
 # Pull the Ollama model and update it
 ollama_pull:
-	@echo "Pulling and updating Ollama model {{ .ollama.model }}..."
-	@ollama pull {{ .ollama.model }}
+	@echo "Pulling and updating Ollama model {{ .ollamaModel }}..."
+	@ollama pull {{ .ollamaModel }}
 
 # Chat with Ollama (ensure the server is running first)
 ollama_chat:
-	@if [ -f {{ .ollama.pidFile }} ]; then \
-		echo "Running model {{ .ollama.model }}..."; \
-		ollama run {{ .ollama.model }}; \
+	@if [ -f {{ .ollamaPidFile }} ]; then \
+		echo "Running model {{ .ollamaModel }}..."; \
+		ollama run {{ .ollamaModel }}; \
 	else \
 		echo "Ollama server is not running. Start it first."; \
 	fi
 
 # Tor
 proxy_start:
-	$(CONTAINER_ENGINE) run -d --restart=always --name torproxy -p 127.0.0.1:{{- .torproxy.portSocks5 -}}:9150/tcp -p 127.0.0.1:{{- .torproxy.portDns -}}:8853/udp peterdavehello/tor-socks-proxy:latest
+	$(CONTAINER_ENGINE) run -d --restart=always --name torproxy -p 127.0.0.1:{{- .torproxyPortSocks5 -}}:9150/tcp -p 127.0.0.1:{{- .torproxyPortDns -}}:8853/udp peterdavehello/tor-socks-proxy:latest
 
 torproxy_start_without_dns:
-	$(CONTAINER_ENGINE) run -d --restart=always --name torproxy -p 127.0.0.1:{{- .torproxy.portSocks5 -}}:9150/tcp peterdavehello/tor-socks-proxy:latest
+	$(CONTAINER_ENGINE) run -d --restart=always --name torproxy -p 127.0.0.1:{{- .torproxyPortSocks5 -}}:9150/tcp peterdavehello/tor-socks-proxy:latest
 
 torproxy_stop:
 	$(CONTAINER_ENGINE) stop torproxy
@@ -180,8 +180,8 @@ torproxy_ip_change:
 	$(CONTAINER_ENGINE) restart torproxy
 
 torproxy_ports:
-	lsof -i :{{- .torproxy.portSocks5 -}}
-	lsof -i :{{- .torproxy.portDns -}}
+	lsof -i :{{- .torproxyPortSocks5 -}}
+	lsof -i :{{- .torproxyPortDns -}}
 
 torproxy_check:
 	@echo "ALL_PROXY: ${ALL_PROXY}"
@@ -191,12 +191,8 @@ torproxy_check:
 	@echo "DNS_PROXY: ${DNS_PROXY}"
 
 	curl https://ipinfo.tw/ip
-	curl --socks5-hostname {{ .torproxy.host }}:{{- .torproxy.portSocks5 -}} https://check.torproject.org/api/ip
+	curl --socks5-hostname {{ .torproxyHost }}:{{- .torproxyPortSocks5 -}} https://check.torproject.org/api/ip
 
 backup_create:
-	/opt/homebrew/bin/borgmatic --config {{ printf "%s/.config/borgmatic.d/workspace.yaml" .chezmoi.homeDir }} --verbosity 1 --progress
-	/opt/homebrew/bin/borgmatic --config {{ printf "%s/.config/borgmatic.d/git.yaml" .chezmoi.homeDir }} --verbosity 1 --progress
-	/opt/homebrew/bin/borgmatic --config {{ printf "%s/.config/borgmatic.d/extra_configs.yaml" .chezmoi.homeDir }} --verbosity 1 --progress
-	/opt/homebrew/bin/borgmatic --config {{ printf "%s/.config/borgmatic.d/managed_configs.yaml" .chezmoi.homeDir }} --verbosity 1 --progress
-	# Pruning old backups
+	/opt/homebrew/bin/borgmatic --verbosity 1 --progress
 	/opt/homebrew/bin/borgmatic prune --verbosity 1 
