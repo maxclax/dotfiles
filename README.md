@@ -67,7 +67,8 @@ op item create --category="Secure Note" --title="chezmoi-data" \
   borg-encryption-passphrase="YOUR_BORG_ENCRYPTION_PASSPHRASE" \
   atuin-username="YOUR_ATUIN_USERNAME" \
   atuin-password="YOUR_ATUIN_PASSWORD" \
-
+  pushover-token="YOUR_PUSHOVER_TOKEN" \
+  pushover-user-key="YOUR_PUSHOVER_USER_KEY"
 ```
 
 ### 3. Sign in to 1Password CLI

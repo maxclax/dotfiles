@@ -105,6 +105,7 @@ encryption = "age"
     borgThisMachine = {{ promptBoolOnce . "borgThisMachine" "Use Borgbackups on this machine?" true }}
     borgEncryptionPassphrase = {{ $borgEncryptionPassphrase }}
     borgRepository = {{ promptStringOnce . "borgRepository" "Borg repository location" (printf "%s/.backup_repo.borg" .chezmoi.homeDir) | quote }}
+    borgWithPushover = {{ promptBoolOnce . "borgWithPushover" "Use Pushover in Borgbackups?" true }}
 
     fontsEnabled = {{ promptBoolOnce . "fontsEnabled" "Enable FONTS installation?" false }}
     fontsPath = {{ printf "%s/fonts" $workspace | quote }}
