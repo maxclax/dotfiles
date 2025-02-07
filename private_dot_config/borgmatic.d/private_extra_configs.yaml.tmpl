@@ -30,4 +30,34 @@ one_file_system: false
 # Error handling
 retries: 3
 retry_wait: 60
+
+{{ if .borgWithPushover }}
+pushover:
+    token: {{ onepasswordRead "op://Private/chezmoi-data/pushover-token" }}
+    user: {{ onepasswordRead "op://Private/chezmoi-data/pushover-user-key" }}
+    start: 
+        title: "🔄 Borg Backup Started: extra-configs"
+        message: "Starting backup on {{ .hostname }}"
+        priority: -1
+        html: True
+        ttl: 30
+    fail: 
+        title: "❌ Borg Backup Failed: extra-configs"
+        message: "Backup failed on {{ .hostname }}. Check logs for details."
+        priority: 2
+        html: True
+        sound: "siren"
+        expire: 3600
+        retry: 60
+    finish: 
+        title: "✅ Borg Backup Complete: extra-configs"
+        message: "Successfully backed up on {{ .hostname }}"
+        priority: 0
+        html: True
+        ttl: 3600
+    states: 
+        - start 
+        - finish 
+        - fail
+{{ end }}
 {{ end }}
