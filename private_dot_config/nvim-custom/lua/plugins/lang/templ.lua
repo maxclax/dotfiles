@@ -3,9 +3,11 @@ local filetypes = { "templ" }
 vim.api.nvim_create_autocmd("FileType", {
   pattern = filetypes,
   callback = function()
-    -- set go specific options
     vim.opt_local.tabstop = 2
+    vim.opt_local.softtabstop = 2
     vim.opt_local.shiftwidth = 2
+    vim.opt_local.expandtab = false
+
     vim.opt_local.colorcolumn = "120"
   end,
 })
@@ -14,7 +16,12 @@ return {
 
   {
     "nvim-treesitter/nvim-treesitter",
-    opts = { ensure_installed = { "templ", "html" } },
+    opts = {
+      ensure_installed = {
+        "templ",
+        -- "html"
+      },
+    },
   },
 
   {
@@ -27,7 +34,7 @@ return {
           opts.ensure_installed = opts.ensure_installed or {}
           vim.list_extend(opts.ensure_installed, {
             "templ",
-            "html-lsp",
+            "superhtml",
             -- htmx-lsp,
           })
         end,
@@ -55,14 +62,18 @@ return {
             },
           },
         },
+
         ---@type vim.lsp.Config
-        html = { filetypes = filetypes, settings = { html = {} } },
+        superhtml = { filetypes = filetypes, settings = { superhtml = {} } },
+
+        -- FIXME: causes issues if enabled
         -- htmx = { filetypes = filetypes, settings = { htmx = {} } },
       },
     },
     opts_extend = {
       "servers.gopls.filetypes",
       "servers.gopls.settings.gopls.templateExtensions",
+      "servers.superhtml.filetypes",
     },
   },
 }

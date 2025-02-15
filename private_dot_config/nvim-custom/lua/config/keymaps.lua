@@ -1,10 +1,9 @@
 M = {}
 
 -- custom commands
-vim.keymap.set("n", "<leader>oy", ":%y<CR>", { desc = "Yank entire buffer", silent = true })
-vim.keymap.set("n", "<leader>od", ":%d_<CR>", { desc = "Delete entire buffer without yank", silent = true })
-vim.keymap.set("n", "<leader>oq", ":q<CR>", { desc = "Quit buffer", silent = true })
-vim.keymap.set("n", "<leader>oQ", ":q!<CR>", { desc = "Quit buffer without saving", silent = true })
+vim.keymap.set("n", "<leader>by", ":%y<CR>", { desc = "Yank entire buffer", silent = true })
+vim.keymap.set("n", "<leader>bd", ":%d_<CR>", { desc = "Delete entire buffer without yank", silent = true })
+vim.keymap.set("n", "<leader>bQ", ":q!<CR>", { desc = "Quit buffer without saving", silent = true })
 
 vim.keymap.set("n", "<leader>fs", ":w<CR>", { desc = "Save file", silent = true })
 -- Copy filename and path
@@ -18,6 +17,12 @@ vim.keymap.set("n", "<leader>fyp", function()
 	vim.fn.setreg("+", filepath)
 	vim.notify("Copied filepath: " .. filepath)
 end, { desc = "Copy filepath", silent = true })
+
+function M.setup_avante_keymaps()
+	return {
+		{ "<leader>aa", ":AvanteAsk<CR>", desc = "Avante" },
+	}
+end
 
 -- windows
 vim.keymap.set("n", "<C-h>", "<C-w>h", { desc = "Go to left window", silent = true, noremap = true })
@@ -177,48 +182,32 @@ function M.setup_lsp_autocmd_keymaps(event)
 	--  To jump back, press <C-t>.
 
 	-- map("gd", require("telescope.builtin").lsp_definitions, "[G]oto [D]efinition")
-	map(
-		"gd",
-		"<cmd>FzfLua lsp_definitions jump_to_single_result=true ignore_current_line=true<cr>",
-		"[G]oto [D]efinition"
-	)
+	-- map("gd", "<cmd>FzfLua lsp_definitions jump_to_single_result=true ignore_current_line=true<cr>", "[G]oto [D]efinition")
 
 	-- Find references for the word under your cursor.
 	-- map("gr", ':lua require("telescope.builtin").lsp_references({ show_line = false })<CR>', "[G]oto [R]eferences")
-	map(
-		"gr",
-		"<cmd>FzfLua lsp_references jump_to_single_result=true ignore_current_line=true<cr>",
-		"[G]oto [R]eferences"
-	)
+	-- map("gr", "<cmd>FzfLua lsp_references jump_to_single_result=true ignore_current_line=true<cr>", "[G]oto [R]eferences")
 
 	-- Jump to the implementation of the word under your cursor.
 	--  Useful when your language has ways of declaring types without an actual implementation.
 	-- map("gI", require("telescope.builtin").lsp_implementations, "[G]oto [I]mplementation")
-	map(
-		"gI",
-		"<cmd>FzfLua lsp_implementations jump_to_single_result=true ignore_current_line=true<cr>",
-		"[G]oto [I]mplementation"
-	)
+	-- map("gI", "<cmd>FzfLua lsp_implementations jump_to_single_result=true ignore_current_line=true<cr>", "[G]oto [I]mplementation")
 
 	-- Jump to the type of the word under your cursor.
 	--  Useful when you're not sure what type a variable is and you want to see
 	--  the definition of its *type*, not where it was *defined*.
 	-- map("gt", require("telescope.builtin").lsp_type_definitions, "[G]oto [t]ype definition")
-	map(
-		"gt",
-		"<cmd>FzfLua lsp_typedefs jump_to_single_result=true ignore_current_line=true<cr>",
-		"[G]oto [t]ype definition"
-	)
+	-- map("gt", "<cmd>FzfLua lsp_typedefs jump_to_single_result=true ignore_current_line=true<cr>", "[G]oto [t]ype definition")
 
 	-- Fuzzy find all the symbols in your current document.
 	--  Symbols are things like variables, functions, types, etc.
 	-- map("<leader>cS", require("telescope.builtin").lsp_document_symbols, "Do[c]ument [S]ymbols (telescope)")
-	map("<leader>cS", "<cmd>FzfLua lsp_document_symbols", "Do[c]ument [S]ymbols (telescope)")
+	-- map("<leader>cS", "<cmd>FzfLua lsp_document_symbols", "Do[c]ument [S]ymbols (telescope)")
 
 	-- Fuzzy find all the symbols in your current workspace
 	--  Similar to document symbols, except searches over your whole project.
 	-- map("<leader>cw", require("telescope.builtin").lsp_dynamic_workspace_symbols, "[w]orkspace [s]ymbols (telescope)")
-	map("<leader>cw", "<cmd>FzfLua lsp_workspace_symbols", "[w]orkspace [s]ymbols (telescope)")
+	-- map("<leader>cw", "<cmd>FzfLua lsp_workspace_symbols", "[w]orkspace [s]ymbols (telescope)")
 
 	-- Rename the variable under your cursor
 	--  Most Language Servers support renaming across files, etc.
@@ -246,7 +235,7 @@ end
 function M.setup_typescript_lsp_keymaps()
 	return {
 		{
-			"gD",
+			"gS",
 			function()
 				require("vtsls").commands.goto_source_definition(0)
 			end,
@@ -405,8 +394,8 @@ function M.setup_telescope_keymaps()
 		-- { "<leader>sa", "<cmd>Telescope autocommands<cr>", desc = "[s]earch [a]utocommands" },
 		-- { "<leader>sb", "<cmd>Telescope buffers<CR>", desc = "[s]earch opened [b]uffers" },
 		-- { "<leader>sc", "<cmd>Telescope commands<cr>", desc = "[s]earch [c]ommands" },
-		{ "<leader>sd", "<cmd>Telescope diagnostics bufnr=0<cr>", desc = "[s]earch [d]ocument diagnostics" },
-		{ "<leader>sD", "<cmd>Telescope diagnostics<cr>", desc = "[s]earch [D]iagnostics" },
+		-- { "<leader>sd", "<cmd>Telescope diagnostics bufnr=0<cr>", desc = "[s]earch [d]ocument diagnostics" },
+		-- { "<leader>sD", "<cmd>Telescope diagnostics<cr>", desc = "[s]earch [D]iagnostics" },
 		-- { "<leader>sh", "<cmd>Telescope help_tags<cr>", desc = "[s]earch [h]elp pages" },
 		-- { "<leader>sH", "<cmd>Telescope highlights<cr>", desc = "[s]earch [H]ighlight groups" },
 		-- { "<leader>sk", "<cmd>Telescope keymaps<cr>", desc = "[s]earch [k]ey maps" },
@@ -418,68 +407,65 @@ end
 
 function M.setup_fzf_keymaps()
 	return {
-		{
-			"<leader><leader>",
-			function()
-				require("fzf-lua").files()
-			end,
-			desc = "Files",
-		},
-		{
-			"<leader>/",
-			function()
-				-- local git_grep = "git grep --line-number --column --color=always"
-				-- opts = {cmd = git_grep}
-				require("fzf-lua").live_grep({ multiprocess = true })
-			end,
-			desc = "Grep",
-		},
-		{ 'leader>s"', "<cmd>FzfLua registers<cr>", desc = '[s]earch ["]registers' },
-		{ "<leader>sh", "<cmd>FzfLua helptags<cr>", desc = "[s]earch [h]elp pages" },
-		{ "<leader>sa", "<cmd>FzfLua autocmds<cr>", desc = "[s]earch [a]utocommands" },
-		{
-			"<leader>sb",
-			"<cmd>FzfLua buffers sort_mru=true sort_lastused=true<CR>",
-			desc = "[s]earch opened [b]uffers",
-		},
-		{ "<leader>sc", "<cmd>FzfLua commands<cr>", desc = "[s]earch [c]ommands" },
-		{ "<leader>sH", "<cmd>FzfLua highlights<cr>", desc = "[s]earch [H]ighlight groups" },
-		{ "<leader>sk", "<cmd>FzfLua keymaps<cr>", desc = "[s]earch [k]ey maps" },
-		{ "<leader>sM", "<cmd>FzfLua manpages<cr>", desc = "[s]earch [M]an pages" },
-		{ "<leader>sm", "<cmd>FzfLua marks<cr>", desc = "[s]earch [m]arks" },
-		{ "<leader>sj", "<cmd>FzfLua jumps<cr>", desc = "[s]earch [j]umplist" },
-		{ "<leader>sq", "<cmd>FzfLua quickfix<cr>", desc = "[s]earch [q]uickfix List" },
+		-- {
+		--   "<leader><leader>",
+		--   function()
+		--     require("fzf-lua").files()
+		--   end,
+		--   desc = "Files",
+		-- },
+		-- {
+		--   "<leader>/",
+		--   function()
+		--     -- local git_grep = "git grep --line-number --column --color=always"
+		--     -- opts = { cmd = git_grep }
+		--
+		--     require("fzf-lua").live_grep({ multiprocess = true })
+		--   end,
+		--   desc = "Grep",
+		-- },
+		-- { '<leader>s"', "<cmd>FzfLua registers<cr>", desc = '[s]earch ["]registers' },
+		-- { "<leader>sh", "<cmd>FzfLua helptags<cr>", desc = "[s]earch [h]elp pages" },
+		-- { "<leader>sa", "<cmd>FzfLua autocmds<cr>", desc = "[s]earch [a]utocommands" },
+		-- { "<leader>sb", "<cmd>FzfLua buffers sort_mru=true sort_lastused=true<CR>", desc = "[s]earch opened [b]uffers" },
+		-- { "<leader>sc", "<cmd>FzfLua commands<cr>", desc = "[s]earch [c]ommands" },
+		-- { "<leader>sH", "<cmd>FzfLua highlights<cr>", desc = "[s]earch [H]ighlight groups" },
+		-- { "<leader>sk", "<cmd>FzfLua keymaps<cr>", desc = "[s]earch [k]ey maps" },
+		-- { "<leader>sM", "<cmd>FzfLua manpages<cr>", desc = "[s]earch [M]an pages" },
+		-- { "<leader>sm", "<cmd>FzfLua marks<cr>", desc = "[s]earch [m]arks" },
+		-- { "<leader>sj", "<cmd>FzfLua jumps<cr>", desc = "[s]earch [j]umplist" },
+		-- { "<leader>sq", "<cmd>FzfLua quickfix<cr>", desc = "[s]earch [q]uickfix List" },
 
-		{ "<leader>sF", "<cmd>FzfLua oldfiles<CR>", desc = "[s]earch recent [F]iles" },
+		-- { "<leader>sF", "<cmd>FzfLua oldfiles<CR>", desc = "[s]earch recent [F]iles" },
 
 		-- git
-		{ "<leader>sgc", "<cmd>FzfLua git_commits<CR>", desc = "[s]earch [g]it [c]ommits" },
-		{ "<leader>sgC", "<cmd>FzfLua git_bcommits<CR>", desc = "[s]earch [g]it branch [C]ommits" },
-		{ "<leader>sgs", "<cmd>FzfLua git_status<CR>", desc = "[s]earch [g]it [s]tatus changes" },
-		{ "<leader>sgb", "<cmd>FzfLua git_branches<CR>", desc = "[s]earch [g]it [b]ranches" },
+		-- { "<leader>sgc", "<cmd>FzfLua git_commits<CR>", desc = "[s]earch [g]it [c]ommits" },
+		-- { "<leader>sgC", "<cmd>FzfLua git_bcommits<CR>", desc = "[s]earch [g]it branch [C]ommits" },
+		-- { "<leader>sgs", "<cmd>FzfLua git_status<CR>", desc = "[s]earch [g]it [s]tatus changes" },
+		-- { "<leader>sgb", "<cmd>FzfLua git_branches<CR>", desc = "[s]earch [g]it [b]ranches" },
 	}
 end
 
-function M.setup_todo_keymaps()
-	return {
-		{
-			"<leader>st",
-			function()
-				require("todo-comments.fzf").todo()
-			end,
-			desc = "Todo",
-		},
-		{
-			"<leader>sT",
-			function()
-				require("todo-comments.fzf").todo({ keywords = { "TODO", "FIX", "FIXME" } })
-			end,
-			desc = "Todo/Fix/Fixme",
-		},
-	}
-end
+-- function M.setup_todo_keymaps()
+--   return {
+--     {
+--       "<leader>st",
+--       function()
+--         require("todo-comments.fzf").todo()
+--       end,
+--       desc = "Todo",
+--     },
+--     {
+--       "<leader>sT",
+--       function()
+--         require("todo-comments.fzf").todo({ keywords = { "TODO", "FIX", "FIXME" } })
+--       end,
+--       desc = "Todo/Fix/Fixme",
+--     },
+--   }
+-- end
 
-function M.setup_auto_session_keymaps()
+function M.setup_persistence_keymaps()
 	return {
 		{
 			"<leader>ss",
@@ -500,6 +486,26 @@ end
 function M.setup_snacks_keymaps()
 	-- NOTE: Snacks is a global; _G.Snacks = M
 	return {
+		-- misc
+		{
+			"<leader><leader>",
+			function()
+				local opts =
+					{ hidden = true, ignored = true, exclude = { "*.pb.go", ".venv/*", ".mypy_cache/*", ".repro/*" } }
+				Snacks.picker.smart(opts)
+			end,
+			desc = "Files",
+		},
+		{
+			"<leader>/",
+			function()
+				---@class snacks.picker.grep.Config: snacks.picker.proc.Config
+				local opts =
+					{ hidden = true, ignored = true, exclude = { "*.pb.go", ".venv/*", ".mypy_cache/*", ".repro/*" } }
+				Snacks.picker.grep(opts)
+			end,
+			desc = "Grep",
+		},
 		{
 			"<leader>gg",
 			function()
@@ -534,6 +540,210 @@ function M.setup_snacks_keymaps()
 				Snacks.dashboard.open()
 			end,
 			desc = "Dashboard",
+		},
+
+		-- lsp
+		{
+			"gd",
+			function()
+				Snacks.picker.lsp_definitions()
+			end,
+			desc = "Goto Definition",
+		},
+		{
+			"gD",
+			function()
+				Snacks.picker.lsp_declarations()
+			end,
+			desc = "Goto Declaration",
+		},
+		{
+			"gr",
+			function()
+				Snacks.picker.lsp_references()
+			end,
+			nowait = true,
+			desc = "References",
+		},
+		{
+			"gI",
+			function()
+				Snacks.picker.lsp_implementations()
+			end,
+			desc = "Goto Implementation",
+		},
+		{
+			"gt",
+			function()
+				Snacks.picker.lsp_type_definitions()
+			end,
+			desc = "Goto T[y]pe Definition",
+		},
+		{
+			"<leader>cS", -- TODO: change keymap to <leader>ss
+			function()
+				Snacks.picker.lsp_symbols()
+			end,
+			desc = "LSP Symbols",
+		},
+		{
+			"<leader>sw", -- TODO: change keymap to <leader>sS
+			function()
+				Snacks.picker.lsp_workspace_symbols()
+			end,
+			desc = "LSP Workspace Symbols",
+		},
+
+		-- search
+		{
+			'<leader>s"',
+			function()
+				Snacks.picker.registers()
+			end,
+			desc = '[s]earch ["]registers',
+		},
+		{
+			"<leader>sh",
+			function()
+				Snacks.picker.help()
+			end,
+			desc = "[s]earch [h]elp pages",
+		},
+
+		{
+			"<leader>sa",
+			function()
+				Snacks.picker.autocmds()
+			end,
+			desc = "[s]earch [a]utocommands",
+		},
+		{
+			"<leader>sb",
+			function()
+				Snacks.picker.buffers()
+			end,
+			desc = "[s]earch opened [b]uffers",
+		},
+		{
+			"<leader>sc",
+			function()
+				Snacks.picker.commands()
+			end,
+			desc = "[s]earch [c]ommands",
+		},
+		{
+			"<leader>sH",
+			function()
+				Snacks.picker.highlights()
+			end,
+			desc = "[s]earch [H]ighlight groups",
+		},
+		{
+			"<leader>sk",
+			function()
+				Snacks.picker.keymaps()
+			end,
+			desc = "[s]earch [k]ey maps",
+		},
+		{
+			"<leader>sM",
+			function()
+				Snacks.picker.man()
+			end,
+			desc = "[s]earch [M]an pages",
+		},
+		{
+			"<leader>sm",
+			function()
+				Snacks.picker.marks()
+			end,
+			desc = "[s]earch [m]arks",
+		},
+		{
+			"<leader>sj",
+			function()
+				Snacks.picker.jumps()
+			end,
+			desc = "[s]earch [j]umplist",
+		},
+		{
+			"<leader>sq",
+			function()
+				Snacks.picker.qflist()
+			end,
+			desc = "[s]earch [q]uickfix List",
+		},
+		{
+			"<leader>sF",
+			function()
+				Snacks.picker.recent()
+			end,
+			desc = "[s]earch recent [F]iles",
+		},
+		{
+			"<leader>sd",
+			function()
+				Snacks.picker.diagnostics_buffer()
+			end,
+			desc = "[s]earch [d]ocument diagnostics",
+		},
+		{
+			"<leader>sD",
+			function()
+				Snacks.picker.diagnostics()
+			end,
+			desc = "[s]earch [D]iagnostics",
+		},
+		{
+			"<leader>sl",
+			function()
+				Snacks.picker.lazy()
+			end,
+			desc = "[s]earch [l]azy plugins",
+		},
+		{
+			"<leader>st",
+			function()
+				Snacks.picker.todo_comments()
+			end,
+			desc = "[s]earch [t]odo",
+		},
+		{
+			"<leader>sT",
+			function()
+				Snacks.picker.todo_comments({ keywords = { "TODO", "FIX", "FIXME" } })
+			end,
+			desc = "[s]earch [T]odo/Fix/Fixme",
+		},
+
+		-- git
+		{
+			"<leader>sgl",
+			function()
+				Snacks.picker.git_log()
+			end,
+			desc = "[s]earch [g]it commit [l]og",
+		},
+		{
+			"<leader>sgf",
+			function()
+				Snacks.picker.git_log_file()
+			end,
+			desc = "[s]earch [g]it commit log [f]ile",
+		},
+		{
+			"<leader>sgs",
+			function()
+				Snacks.picker.git_status()
+			end,
+			desc = "[s]earch [g]it [s]tatus changes",
+		},
+		{
+			"<leader>sgb",
+			function()
+				Snacks.picker.git_branches()
+			end,
+			desc = "[s]earch [g]it [b]ranches",
 		},
 	}
 end
@@ -885,6 +1095,13 @@ function M.setup_dap_keymaps()
 			desc = "[d]ebug [s]ession",
 		},
 		{
+			"<leader>dS",
+			function()
+				require("dap").restart()
+			end,
+			desc = "[d]ebug re[S]tart",
+		},
+		{
 			"<leader>dt",
 			function()
 				require("dap").terminate()
@@ -1160,17 +1377,12 @@ function M.setup_copilot_keymaps()
 	}
 end
 
-function M.setup_avante_keymaps()
-	return {
-		{ "<leader>aa", ":AvanteAsk<CR>", desc = "Avante" },
-	}
-end
-
 function M.setup_codecompanion_keymaps()
 	return {
 		{ "<leader>ac", ":CodeCompanionChat anthropic<CR>", desc = "Codecompanion: Claude" },
 		{ "<leader>ao", ":CodeCompanionChat openai<CR>", desc = "Codecompanion: OpenAI" },
 		{ "<leader>ag", ":CodeCompanionChat gemini<CR>", desc = "Codecompanion: Gemini" },
+		{ "<leader>ad", ":CodeCompanionChat deepseek<CR>", desc = "Codecompanion: DeepSeek" },
 		{ "<leader>al", ":CodeCompanionChat ollama<CR>", desc = "Codecompanion: Ollama" },
 
 		{ "<leader>at", ":CodeCompanionChat Toggle<CR>", desc = "Codecompanion toggle" },

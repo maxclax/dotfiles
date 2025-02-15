@@ -1,22 +1,11 @@
 local function set_dark()
-	vim.cmd.colorscheme("tokyonight-moon") -- NOTE: this is the default for dark mode.
+	vim.o.background = "light" -- NOTE: tokyonight-moon uses light background
+	vim.cmd.colorscheme("tokyonight-moon")
 end
 
 local function set_light()
-	vim.cmd.colorscheme("dayfox") -- NOTE: this is the default for light mode.
-end
-
-local function tmux_is_running()
-	local processes = vim.fn.systemlist("ps -e | grep tmux")
-	local found = false
-	for _, process in ipairs(processes) do
-		if string.find(process, "grep") then
-		-- do nothing, just skip
-		elseif string.find(process, "tmux") then
-			found = true
-		end
-	end
-	return found
+	vim.o.background = "light"
+	vim.cmd.colorscheme("dayfox")
 end
 
 return {
@@ -40,17 +29,32 @@ return {
 		},
 	},
 	{
+		"uga-rosa/ccc.nvim",
+		enabled = false, -- NOTE: enable when needed
+		opts = {
+			highlighter = {
+				auto_enable = true,
+				lsp = true,
+			},
+		},
+		config = function(_, opts)
+			local ccc = require("ccc")
+			ccc.setup(opts)
+		end,
+	},
+	{
 		"folke/tokyonight.nvim",
 		enabled = true,
 		lazy = true,
+		---@class tokyonight.Config
 		opts = {
-			-- transparent = true, -- Enable transparency
-			-- styles = {
-			--   -- Background styles. Can be "dark", "transparent" or "normal"
-			--   sidebars = "dark",
-			--   floats = "transparent",
-			-- },
-			dim_inactive = true, -- dims inactive windows
+			transparent = false, -- Enable transparency
+			styles = {
+				-- Background styles. Can be "dark", "transparent" or "normal"
+				sidebars = "dark",
+				floats = "dark",
+			},
+			dim_inactive = false, -- dims inactive windows
 		},
 	},
 	{
@@ -63,21 +67,8 @@ return {
 		},
 	},
 	{
-		"rose-pine/neovim",
-		enabled = true,
-		lazy = true,
-		name = "rose-pine", -- or Lazy will show the plugin as "neovim"
-	},
-	{
 		"EdenEast/nightfox.nvim",
-		lazy = true,
-	},
-	{
-		"zenbones-theme/zenbones.nvim",
 		enabled = true,
 		lazy = true,
-		dependencies = {
-			"rktjmp/lush.nvim",
-		},
 	},
 }

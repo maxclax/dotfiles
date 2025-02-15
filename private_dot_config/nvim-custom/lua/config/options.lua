@@ -14,16 +14,16 @@ vim.opt.shortmess:append("I")
 
 -- fillchars
 vim.opt.fillchars = {
-	foldopen = "",
-	foldclose = "",
-	-- fold = "⸱",
-	fold = " ",
-	foldsep = " ",
-	-- diff = "╱",
-	-- diff = "╱",
-	diff = "░",
-	-- diff = "·",
-	eob = " ",
+  foldopen = "",
+  foldclose = "",
+  -- fold = "⸱",
+  fold = " ",
+  foldsep = " ",
+  -- diff = "╱",
+  -- diff = "╱",
+  diff = "░",
+  -- diff = "·",
+  eob = " ",
 }
 
 -- line numbers
@@ -31,10 +31,10 @@ vim.opt.number = true
 vim.opt.relativenumber = false
 
 -- set tab and indents defaults (can be overridden by per-language configs)
-vim.opt.tabstop = 2
-vim.opt.softtabstop = 2
-vim.opt.shiftwidth = 2
-vim.opt.expandtab = true
+vim.opt.tabstop = 4 -- display tabs as 4 spaces
+vim.opt.softtabstop = 4 -- insert 4 spaces when tab is pressed
+vim.opt.shiftwidth = 4 -- indent << or >> by 4 spaces
+vim.opt.expandtab = false -- expand tab into spaces
 
 -- NOTE: do not set a global ruler here, as it will show in undesirable places.
 -- Instead, set this in the per-language config files.
@@ -62,8 +62,7 @@ vim.opt.termguicolors = true
 vim.opt.signcolumn = "yes"
 
 -- cursor line highlight
-vim.opt.cursorline = true
-vim.opt.cursorcolumn = true
+vim.opt.cursorline = false
 
 -- Enable cursor blinking in all modes
 --
@@ -86,27 +85,27 @@ vim.opt.foldenable = true
 vim.opt.foldlevel = 99
 vim.opt.foldlevelstart = 99
 function _G.custom_foldtext()
-	local line = vim.fn.getline(vim.v.foldstart)
-	local line_count = vim.v.foldend - vim.v.foldstart + 1
-	local line_text = vim.fn.substitute(line, "\t", " ", "g")
-	return string.format("%s (%d lines)", line_text, line_count)
+  local line = vim.fn.getline(vim.v.foldstart)
+  local line_count = vim.v.foldend - vim.v.foldstart + 1
+  local line_text = vim.fn.substitute(line, "\t", " ", "g")
+  return string.format("%s (%d lines)", line_text, line_count)
 end
 vim.opt.foldtext = "v:lua.custom_foldtext()"
 function M.treesitter_foldexpr()
-	vim.opt.foldmethod = "expr"
-	vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+  vim.opt.foldmethod = "expr"
+  vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
 end
 function M.lsp_foldexpr()
-	-- vim.api.nvim_set_option_value("foldmethod", "expr", { scope = "local" })
-	-- vim.api.nvim_set_option_value("foldexpr", "v:lua.vim.lsp.foldexpr()", { scope = "local" })
-	-- vim.api.nvim_set_option_value("foldtext", "v:lua.vim.lsp.foldtext()", { scope = "local" })
-	vim.opt.foldmethod = "expr"
-	vim.opt.foldexpr = "v:lua.vim.lsp.foldexpr()"
-	vim.opt.foldtext = "v:lua.custom_foldtext()"
+  -- vim.api.nvim_set_option_value("foldmethod", "expr", { scope = "local" })
+  -- vim.api.nvim_set_option_value("foldexpr", "v:lua.vim.lsp.foldexpr()", { scope = "local" })
+  -- vim.api.nvim_set_option_value("foldtext", "v:lua.vim.lsp.foldtext()", { scope = "local" })
+  vim.opt.foldmethod = "expr"
+  vim.opt.foldexpr = "v:lua.vim.lsp.foldexpr()"
+  vim.opt.foldtext = "v:lua.custom_foldtext()"
 end
 
 -- scroll off
-vim.opt.scrolloff = 8
+vim.opt.scrolloff = 4
 
 -- mouse support in all modes
 vim.opt.mouse = "a"
@@ -115,7 +114,8 @@ vim.opt.mouse = "a"
 vim.opt.exrc = true -- allow local .nvim.lua .vimrc .exrc files
 vim.opt.secure = true -- disable shell and write commands in local .nvim.lua .vimrc .exrc files
 
--- sync with system clipboard (also see autocmds for text yank config)
+-- sync with system clipboard
+-- NOTE: https://github.com/neovim/neovim/issues/11804
 vim.opt.clipboard = "unnamedplus"
 
 -- TODO: pick from https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/options.lua
@@ -126,13 +126,13 @@ vim.opt.listchars = "tab:▸ ,trail:·,nbsp:␣,extends:❯,precedes:❮" -- sho
 vim.opt.smoothscroll = true
 
 if not vim.g.vscode then
-	vim.opt.timeoutlen = 300 -- Lower than default (1000) to quickly trigger which-key
+  vim.opt.timeoutlen = 300 -- Lower than default (1000) to quickly trigger which-key
 end
 
 -- set titlestring to $cwd if TERM_PROGRAM=ghostty
 if vim.fn.getenv("TERM_PROGRAM") == "ghostty" then
-	vim.opt.title = true
-	vim.opt.titlestring = "%{fnamemodify(getcwd(), ':t')}"
+  vim.opt.title = true
+  vim.opt.titlestring = "%{fnamemodify(getcwd(), ':t')}"
 end
 
 return M

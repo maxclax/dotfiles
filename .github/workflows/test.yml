@@ -1,0 +1,76 @@
+name: Test Dotfiles
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  schedule:
+    - cron: '0 8 * * 6'
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        include:
+          - name: macOS
+            os: macos-latest
+          - name: Ubuntu
+            os: ubuntu-latest
+      fail-fast: false
+
+    name: Test on ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+
+      - name: Set up chezmoi
+        uses: actions/cache@v4
+        with:
+          path: ~/bin/chezmoi
+          key: ${{ runner.os }}-chezmoi-${{ hashFiles('**/chezmoi') }}
+          restore-keys: |
+            ${{ runner.os }}-chezmoi-
+
+      - name: Install chezmoi
+        run: |
+          if [ ! -f ~/bin/chezmoi ]; then
+            mkdir -p ~/bin
+            sh -c "$(curl -fsLS get.chezmoi.io)" -- -b ~/bin
+          fi
+          echo "$HOME/bin" >> $GITHUB_PATH
+
+      - name: Create test home directory
+        run: |
+          mkdir -p ~/test-home
+
+      - name: Initialize chezmoi
+        env:
+          HOME: ~/test-home
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: |
+          chezmoi init --source=$GITHUB_WORKSPACE
+
+      - name: Apply dotfiles
+        env:
+          HOME: ~/test-home
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: |
+          chezmoi apply -v
+
+      - name: Verify installation
+        env:
+          HOME: ~/test-home
+        run: |
+          ls -la ~/test-home
+          chezmoi verify
+
+      - name: Test shell configuration
+        env:
+          HOME: ~/test-home
+        run: |
+          test -f ~/test-home/.zshrc && echo "ZSH config exists"
+          test -d ~/test-home/Makefile && echo "Makefile exists"

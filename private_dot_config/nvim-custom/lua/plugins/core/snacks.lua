@@ -14,6 +14,8 @@ return {
           "options.disabled_filetypes",
         },
       },
+      { "folke/trouble.nvim" },
+      { "folke/todo-comments.nvim" },
     },
     priority = 1000,
     lazy = false,
@@ -33,7 +35,7 @@ return {
         enabled = true,
         priority = 1,
         animate = {
-          enabled = true,
+          enabled = false,
           style = "out",
           easing = "linear",
           duration = {
@@ -72,6 +74,11 @@ return {
           diagnostics = true,
           -- inlay_hints = false,
         },
+        win = {
+          backdrop = {
+            transparent = false,
+          },
+        },
       },
 
       -- convenience
@@ -92,6 +99,21 @@ return {
           },
           git = {
             overrideGpg = true,
+          },
+        },
+      },
+
+      -- pickers
+      picker = {
+        actions = require("trouble.sources.snacks").actions,
+        win = {
+          input = {
+            keys = {
+              ["<c-t>"] = {
+                "trouble_open",
+                mode = { "n", "i" },
+              },
+            },
           },
         },
       },
