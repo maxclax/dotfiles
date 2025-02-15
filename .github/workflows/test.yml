@@ -28,30 +28,43 @@ jobs:
         uses: 1password/install-cli-action@v1
 
       - name: Set up chezmoi
+        id: cache-chezmoi
         uses: actions/cache@v4
         with:
           path: ~/bin/chezmoi
-          key: ${{ runner.os }}-chezmoi-${{ hashFiles('**/chezmoi') }}
+          key: ${{ runner.os }}-chezmoi-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-chezmoi-
-
       - name: Install chezmoi
         run: |
-          if [ ! -f ~/bin/chezmoi ]; then
-            mkdir -p ~/bin
+          mkdir -p ~/bin
+          if [ ! -f ~/bin/chezmoi ] || [ "${{ steps.cache-chezmoi.outputs.cache-hit }}" != 'true' ]; then
+            echo "Installing chezmoi..."
             sh -c "$(curl -fsLS get.chezmoi.io)" -- -b ~/bin
+          else
+            echo "Using cached chezmoi"
           fi
+          ~/bin/chezmoi --version
           echo "$HOME/bin" >> $GITHUB_PATH
 
-      - name: Create test home directory
+      - name: Create test directories
         run: |
           mkdir -p ~/test-home
+          mkdir -p ~/test-home/workspace
 
       - name: Initialize chezmoi
         env:
           HOME: ~/test-home
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
+          # Create a temporary config file with test values
+          mkdir -p ~/.config/chezmoi
+          cat > ~/.config/chezmoi/chezmoi.toml << EOF
+          [data]
+            workspace = "$HOME/workspace"
+            email = "test@example.com"
+            name = "Test User"
+          EOF
           chezmoi init --source=$GITHUB_WORKSPACE
 
       - name: Apply dotfiles
