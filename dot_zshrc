@@ -35,6 +35,6 @@ bindkey '^[[B' history-search-forward
 # Source file if it exists and have a size greater than zero
 [[ -s ~/.config/shell/exports.sh ]] && source ~/.config/shell/exports.sh
 [[ -s ~/.config/shell/aliases.sh ]] && source ~/.config/shell/aliases.sh
-[[ -s ~/.config/shell/sources.sh ]] && source ~/.config/shell/sources.sh
+[[ -s ~/.config/shell/sourcing.sh ]] && source ~/.config/shell/sourcing.sh
 
 # neofetch
