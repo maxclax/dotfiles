@@ -1,9 +1,11 @@
 vim.api.nvim_create_autocmd("FileType", {
 	pattern = { "go", "gomod", "gowork" },
 	callback = function()
-		-- set go specific options
 		vim.opt_local.tabstop = 2
+		vim.opt_local.softtabstop = 2
 		vim.opt_local.shiftwidth = 2
+		vim.opt_local.expandtab = false
+
 		vim.opt_local.colorcolumn = "120"
 	end,
 })
@@ -17,6 +19,10 @@ local function golangcilint_args()
 		"run",
 		"--out-format",
 		"json",
+		"--issues-exit-code=0",
+		"--show-stats=false",
+		"--print-issued-lines=false",
+		"--print-linter-name=false",
 
 		-- config file
 		function()
@@ -121,7 +127,10 @@ return {
 			opts.linters = opts.linters or {}
 
 			opts.linters_by_ft["go"] = { "golangcilint" }
-			opts.linters["golangcilint"] = { args = golangcilint_args() }
+			opts.linters["golangcilint"] = {
+				args = golangcilint_args(),
+				ignore_exitcode = true, -- NOTE: https://github.com/mfussenegger/nvim-lint/commit/3d5190d318e802de3a503b74844aa87c2cd97ef0
+			}
 		end,
 	},
 
@@ -212,6 +221,10 @@ return {
 				},
 			},
 		},
+		opts_extend = {
+			"servers.gopls.filetypes",
+			"servers.gopls.settings.gopls.templateExtensions",
+		},
 	},
 
 	{
@@ -242,6 +255,36 @@ return {
 			})
 		end,
 		event = { "CmdlineEnter" },
+	},
+
+	{
+		"nvim-neotest/neotest",
+		lazy = true,
+		ft = { "go" },
+
+		opts = function(_, opts)
+			opts.adapters = opts.adapters or {}
+			opts.adapters["neotest-golang"] = {
+				go_list_args = { tags },
+				go_test_args = {
+					"-v",
+					"-count=1",
+					"-race",
+					"-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
+					-- "-p=1",
+					"-parallel=1",
+					tags,
+				},
+				runner = "gotestsum",
+				gotestsum_args = { "--format=standard-verbose" },
+				testify_enabled = true,
+				-- sanitize_output = true,
+				-- log_level = vim.log.levels.TRACE,
+
+				-- experimental
+				dev_notifications = true,
+			}
+		end,
 	},
 
 	{
@@ -283,11 +326,22 @@ return {
 					dap_configurations = {
 						{
 							type = "go",
-							name = "Debug opened file's cmd/cli",
+							name = "Delve: debug opened file's cmd/cli",
 							request = "launch",
-							cwd = "${fileDirname}", -- FIXME:  should work from  repo root
+							cwd = "${fileDirname}", -- FIXME: should work from repo root
 							program = "./${relativeFileDirname}",
 							args = {},
+						},
+						{
+							type = "go",
+							name = "Delve: debug test (manually enter test name)",
+							request = "launch",
+							mode = "test",
+							program = "./${relativeFileDirname}",
+							args = function()
+								local testname = vim.fn.input("Test name (^regexp$ ok): ")
+								return { "-test.run", testname }
+							end,
 						},
 					},
 				},
@@ -297,22 +351,9 @@ return {
 			},
 		},
 		opts = {
-			configurations = {
-				go = {
-					-- See require("dap-go") source for full dlv setup.
-					{
-						type = "go",
-						name = "Debug test (manually enter test name)",
-						request = "launch",
-						mode = "test",
-						program = "./${relativeFileDirname}",
-						args = function()
-							local testname = vim.fn.input("Test name (^regexp$ ok): ")
-							return { "-test.run", testname }
-						end,
-					},
-				},
-			},
+			-- configurations = {
+			--   go = {},
+			-- },
 		},
 	},
 
