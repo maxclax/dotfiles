@@ -196,3 +196,16 @@ torproxy_check:
 backup_create:
 	/opt/homebrew/bin/borgmatic --verbosity 1 --progress
 	/opt/homebrew/bin/borgmatic prune --verbosity 1 
+
+backup_list:
+	/opt/homebrew/bin/borgmatic list --verbosity 1
+
+backup_restore:
+	# Usage: make backup_restore repo=/path/to/repo archive=/path/to/archive dest=/path/to/destination
+	@if [ -z "$(repo)" ] || [ -z "$(archive)" ] || [ -z "$(dest)" ]; then \
+		echo "Error: Please provide repo, archive, and dest parameters."; \
+		echo "Usage: make backup_restore repo=<repository_path> archive=<archive_name> dest=<destination_path>"; \
+		echo "Use 'make backup_list' to see available archives."; \
+		exit 1; \
+	fi
+	/opt/homebrew/bin/borgmatic extract --verbosity 1 --progress --repository $(repo) --archive $(archive) --destination $(dest)
