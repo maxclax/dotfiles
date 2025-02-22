@@ -81,11 +81,11 @@ endif
 update_apps:
 ifeq ($(UNAME_S), Darwin)
 	@echo "Updating Homebrew packages..."
-	brew outdated && brew update && brew upgrade --force && brew upgrade --cask
+	brew outdated ; brew update ; brew upgrade --force ; brew upgrade --cask
 	brew cleanup
 
 	@echo "Updating App Store applications..."
-	mas outdated && mas upgrade
+	mas outdated ; mas upgrade
 else
 	@echo "This target is for macOS only."
 endif
