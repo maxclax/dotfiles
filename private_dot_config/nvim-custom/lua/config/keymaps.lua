@@ -6,6 +6,7 @@ vim.keymap.set("n", "<leader>bd", ":%d_<CR>", { desc = "Delete entire buffer wit
 vim.keymap.set("n", "<leader>bQ", ":q!<CR>", { desc = "Quit buffer without saving", silent = true })
 
 vim.keymap.set("n", "<leader>fs", ":w<CR>", { desc = "Save file", silent = true })
+vim.keymap.set("n", "<leader>fS", ":wq<CR>", { desc = "Save file and Quit", silent = true })
 -- Copy filename and path
 vim.keymap.set("n", "<leader>fyn", function()
 	local filename = vim.fn.expand("%:t")
