@@ -1,28 +1,67 @@
-#!/bin/bash -ex
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Define the new repository name
-DEFAULT_REPO_PATH={{ .gitLocalRepositories }}
+# Default repository name if not provided
 DEFAULT_REPO_NAME="new_repo"
 
-# Use provided values or default if arguments are not given
-REPO_PATH=${1:-$DEFAULT_REPO_PATH}
-REPO_NAME=${2:-$DEFAULT_REPO_NAME}
+# Help function
+show_help() {
+    echo "Usage: $(basename "$0") [repository_name]"
+    echo "Creates a bare git repository in the current directory with an initial setup"
+    echo
+    echo "Arguments:"
+    echo "  repository_name    Name of the repository (default: $DEFAULT_REPO_NAME)"
+    exit 1
+}
 
-# Initialize new repository
-git init --bare "$REPO_PATH/$REPO_NAME"
+# Parse arguments
+if [[ "$#" -gt 1 ]] || [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
+    show_help
+fi
+
+# Use provided name or default
+REPO_NAME=${1:-$DEFAULT_REPO_NAME}
+CURRENT_DIR=$(pwd)
+BARE_REPO="$CURRENT_DIR/$REPO_NAME.git"
+WORK_REPO="$CURRENT_DIR/$REPO_NAME"
+
+# Check if repository already exists
+if [[ -d "$BARE_REPO" ]] || [[ -d "$WORK_REPO" ]]; then
+    echo "Error: Repository '$REPO_NAME' already exists"
+    exit 1
+fi
+
+echo "Creating bare repository: $REPO_NAME"
+
+# Initialize bare repository
+git init --bare "$BARE_REPO"
 
 # Clone the repository
-git clone "$REPO_PATH/$REPO_NAME"
+git clone "$BARE_REPO" "$WORK_REPO"
 
-# Move into the cloned repository
-cd "$REPO_PATH/$REPO_NAME" || exit
+# Setup working repository
+cd "$WORK_REPO" || exit 1
 
-# Create a README.md file
-touch README.md
-# Add all files to staging area
-git add .
-# Commit the changes
-git commit -m "Initial commit"
-# Push the changes to origin
-git push origin master
-echo "Initialization completed successfully."
+# Create initial README.md
+cat > README.md << EOF
+# $REPO_NAME
+
+Repository created on $(date '+%Y-%m-%d')
+
+## Description
+
+Add your project description here.
+EOF
+
+# Initial commit
+git add README.md
+git commit -m "chore: Initial commit"
+
+# Set default branch to main
+git branch -M main
+git push -u origin main
+
+echo
+echo "✅ Repository initialized successfully!"
+echo "Bare repository: $BARE_REPO"
+echo "Working copy:    $WORK_REPO"
