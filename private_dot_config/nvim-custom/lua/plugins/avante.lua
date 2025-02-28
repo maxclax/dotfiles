@@ -8,16 +8,19 @@ return {
 			claude = {
 				api_key_name = "cmd:op read op://Personal/Anthropic/tokens/neovim --no-newline",
 				model = "claude-3-7-sonnet-20250219",
+				disable_tools = true,
 			},
 			openai = {
 				api_key_name = "cmd:op read op://Personal/OpenAI/tokens/neovim --no-newline",
 				model = "o3-mini",
+				disable_tools = true,
 			},
 			copilot = {
 				-- Copilot doesn't need an API key configuration here since it uses
 				-- GitHub authentication handled by copilot.vim plugin
 				enabled = true,
 				model = "claude-3.7-sonnet",
+				disable_tools = true,
 			},
 		},
 		dependencies = {
