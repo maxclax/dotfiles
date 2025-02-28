@@ -107,3 +107,7 @@ defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
 
 # Enable move windows at any part of the window
 defaults write -g NSWindowShouldDragOnGesture -bool true
+
+# Enable keyboard navigation (Tab key navigation through controls)
+# This is equivalent to: System Settings > Keyboard > Keyboard Navigation = ON
+defaults write NSGlobalDomain AppleKeyboardUIMode -int 2

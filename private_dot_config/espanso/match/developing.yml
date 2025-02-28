@@ -2,46 +2,95 @@ name: developing
 parent: default
 
 matches:
-# Docker: docker rmi -f $(docker images -a -q)
-- trigger: "-dri"
-  replace: "docker rmi -f $(docker images -a -q)"
+  # Docker: docker rmi -f $(docker images -a -q)
+  - trigger: "-dri"
+    replace: "docker rmi -f $(docker images -a -q)"
 
-# Docker: docker-compose up -d
-- trigger: "-dcu"
-  replace: "docker-compose up -d"
+  # Docker: docker-compose up -d
+  - trigger: "-dcu"
+    replace: "docker-compose up -d"
 
-# Docker: docker-compose up bgscripts
-- trigger: "-bgs"
-  replace: "docker-compose up bgscripts"
+  # Docker: docker-compose up bgscripts
+  - trigger: "-bgs"
+    replace: "docker-compose up bgscripts"
 
-# Docker: make dcr
-- trigger: "-dcr"
-  replace: "make dcr"
+  # Docker: make dcr
+  - trigger: "-dcr"
+    replace: "make dcr"
 
-# Docker: make rm
-- trigger: "-drm"
-  replace: "make rm"
+  # Docker: make rm
+  - trigger: "-drm"
+    replace: "make rm"
 
-# Docker: make rm_a
-- trigger: "!drm"
-  replace: "make rm_a"
+  # Docker: make rm_a
+  - trigger: "!drm"
+    replace: "make rm_a"
 
-# Docker: stop rm all
-- trigger: "-dsra"
-  replace: "docker stop $(docker ps -aq); docker rm $(docker ps -a -q);"
+  # Docker: stop rm all
+  - trigger: "-dsra"
+    replace: "docker stop $(docker ps -aq); docker rm $(docker ps -a -q);"
 
-# Python -> ipdb -> pp locals()
-- trigger: "-ppl"
-  replace: "pp locals()"
+  # Python -> ipdb -> pp locals()
+  - trigger: "-ppl"
+    replace: "pp locals()"
 
-# Python: import ipdb; ipdb.set_trace()
-- trigger: "-шзв"
-  replace: "import ipdb; ipdb.set_trace()"
+  # Python: import ipdb; ipdb.set_trace()
+  - trigger: "-шзв"
+    replace: "import ipdb; ipdb.set_trace()"
 
-# Python: import ipdb; ipdb.set_trace()
-- trigger: "-ipd"
-  replace: "import ipdb; ipdb.set_trace()"
+  # Python: import ipdb; ipdb.set_trace()
+  - trigger: "-ipd"
+    replace: "import ipdb; ipdb.set_trace()"
 
-# Python: {% load djcore_tags %}{{ __placeholder__|ipdb }}
-- trigger: "-ipt"
-  replace: "{% load djcore_tags %}{{ __placeholder__|ipdb }}"
+  # Python: {% load djcore_tags %}{{ __placeholder__|ipdb }}
+  - trigger: "-ipt"
+    replace: "{% load djcore_tags %}{{ __placeholder__|ipdb }}"
+
+  - trigger: "-ipc"
+    replace: "netstat -ntu |awk '{print $5}'| cut -d: -f1 | sort | uniq -c | sort -n"
+
+  # Conventional Commit Messages with form selection
+  - trigger: "-cmm"
+    form: |
+      [[type]]: [[message]]
+    form_fields:
+      type:
+        type: list
+        values:
+          - feat
+          - fix
+          - docs
+          - style
+          - refactor
+          - test
+          - chore
+      message:
+        type: text
+        multiline: false
+        hint: "commit message"
+        required: true
+
+  - trigger: "-cmm"
+    form: |
+      [[type]]([[scope]]): [[message]]
+    form_fields:
+      type:
+        type: list
+        values:
+          - feat
+          - fix
+          - docs
+          - style
+          - refactor
+          - test
+          - chore
+      scope:
+        type: text
+        multiline: false
+        hint: "required scope"
+        required: true
+      message:
+        type: text
+        multiline: false
+        hint: "commit message"
+        required: true
