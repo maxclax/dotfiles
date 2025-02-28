@@ -5,6 +5,7 @@ source_directories:
   - {{ printf "%s/Desktop" .chezmoi.homeDir | quote }}
   - {{ printf "%s/Library/Mobile Documents/iCloud~md~obsidian" .chezmoi.homeDir | quote }}
 
+local_path: /opt/homebrew/bin/borg
 repositories:
   - path: {{ .borgRepository | quote }}
 

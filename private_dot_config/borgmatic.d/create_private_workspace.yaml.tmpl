@@ -19,6 +19,7 @@ exclude_patterns:
   - '*/.tox/*'
   - '*/.DS_Store'
 
+local_path: /opt/homebrew/bin/borg
 encryption_passcommand: /opt/homebrew/bin/op read "op://Private/chezmoi-data/borg-encryption-passphrase"
 compression: 'lz4'
 archive_name_format: "{hostname}-workspace-{now:%Y-%m-%d-%H%M%S}"
