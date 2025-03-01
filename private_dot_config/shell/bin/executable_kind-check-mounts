@@ -1,0 +1,87 @@
+#!/bin/bash -e
+
+# Colors for better output
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Define test namespace
+TEST_NAMESPACE="mount-test"
+
+# Create test namespace
+echo -e "${YELLOW}Creating test namespace '${TEST_NAMESPACE}'...${NC}"
+kubectl create namespace ${TEST_NAMESPACE} 2>/dev/null || echo -e "${BLUE}Namespace ${TEST_NAMESPACE} already exists${NC}"
+
+echo -e "${YELLOW}Checking mounted paths in kind cluster...${NC}"
+
+# Create a temporary pod to check mount accessibility in the test namespace
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mount-checker
+  namespace: ${TEST_NAMESPACE}
+spec:
+  containers:
+  - name: mount-checker
+    image: busybox
+    command: ["sleep", "3600"]
+    volumeMounts:
+    - name: git-volume
+      mountPath: /mnt/host/git
+    - name: users-volume
+      mountPath: /mnt/host/Users
+    - name: volumes-volume
+      mountPath: /mnt/host/Volumes
+  volumes:
+  - name: git-volume
+    hostPath:
+      path: /mnt/host/git
+      type: Directory
+  - name: users-volume
+    hostPath:
+      path: /mnt/host/Users
+      type: Directory
+  - name: volumes-volume
+    hostPath:
+      path: /mnt/host/Volumes
+      type: Directory
+EOF
+
+echo -e "${YELLOW}Waiting for pod to be ready...${NC}"
+kubectl wait --for=condition=Ready pod/mount-checker -n ${TEST_NAMESPACE} --timeout=60s
+
+echo -e "\n${YELLOW}Checking mounted paths in ${TEST_NAMESPACE} namespace:${NC}"
+
+# Function to check if a path exists and is accessible
+check_path() {
+	local path=$1
+
+	if kubectl exec -n ${TEST_NAMESPACE} mount-checker -- ls -la $path >/dev/null 2>&1; then
+		echo -e "${GREEN}✓ $path is accessible${NC}"
+		echo "Contents:"
+		kubectl exec -n ${TEST_NAMESPACE} mount-checker -- ls -la $path | head -n 10
+		echo ""
+	else
+		echo -e "${RED}✗ $path is not accessible${NC}"
+	fi
+}
+
+# Check each mounted path in test namespace
+check_path "/mnt/host/git"
+check_path "/mnt/host/Users"
+check_path "/mnt/host/Volumes"
+
+# Check if cleanup is requested
+if [ "$1" == "--cleanup" ] || [ "$1" == "-c" ]; then
+	echo -e "\n${YELLOW}Cleaning up...${NC}"
+	kubectl delete pod mount-checker -n ${TEST_NAMESPACE}
+	kubectl delete namespace ${TEST_NAMESPACE}
+	echo -e "\n${GREEN}Mount check completed and resources deleted.${NC}"
+else
+	echo -e "\n${YELLOW}Skipping cleanup. The resources remain available for inspection.${NC}"
+	echo -e "To delete them manually later, run: ${GREEN}kubectl delete pod mount-checker -n ${TEST_NAMESPACE}; kubectl delete namespace ${TEST_NAMESPACE}${NC}"
+	echo -e "\n${GREEN}Mount check completed.${NC}"
+fi

@@ -11,9 +11,9 @@ nodes:
   - role: control-plane
     extraMounts:
       - hostPath: {{ .gitLocalRepositories }}
-        containerPath: /mnt/repositories
-        readOnly: true
-      - hostPath: {{ .playground }}
-        containerPath: /mnt/playground
-        readOnly: true
+        containerPath: /mnt/host/git
+      - hostPath: /Users
+        containerPath: /mnt/host/Users
+      - hostPath: /Volumes
+        containerPath: /mnt/host/Volumes
 EOF
