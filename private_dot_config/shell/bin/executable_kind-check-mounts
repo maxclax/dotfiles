@@ -12,11 +12,103 @@ TEST_NAMESPACE="mount-test"
 
 # Create test namespace
 echo -e "${YELLOW}Creating test namespace '${TEST_NAMESPACE}'...${NC}"
-kubectl create namespace ${TEST_NAMESPACE} 2>/dev/null || echo -e "${BLUE}Namespace ${TEST_NAMESPACE} already exists${NC}"
+kubectl create namespace "${TEST_NAMESPACE}" 2>/dev/null || echo -e "${BLUE}Namespace ${TEST_NAMESPACE} already exists${NC}"
 
-echo -e "${YELLOW}Checking mounted paths in kind cluster...${NC}"
+echo -e "${YELLOW}Creating PersistentVolumes and PersistentVolumeClaims...${NC}"
 
-# Create a temporary pod to check mount accessibility in the test namespace
+# Create PVs and PVCs for each path we want to test
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: git-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: manual
+  hostPath:
+    path: /mnt/host/git
+    type: Directory
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: git-pvc
+  namespace: ${TEST_NAMESPACE}
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  volumeName: git-pv
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: users-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: manual
+  hostPath:
+    path: /mnt/host/Users
+    type: Directory
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: users-pvc
+  namespace: ${TEST_NAMESPACE}
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  volumeName: users-pv
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: volumes-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: manual
+  hostPath:
+    path: /mnt/host/Volumes
+    type: Directory
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: volumes-pvc
+  namespace: ${TEST_NAMESPACE}
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  volumeName: volumes-pv
+EOF
+
+echo -e "${YELLOW}Creating test pod with PVC mounts...${NC}"
+
+# Create a temporary pod with PVC mounts
 cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: Pod
@@ -30,58 +122,57 @@ spec:
     command: ["sleep", "3600"]
     volumeMounts:
     - name: git-volume
-      mountPath: /mnt/host/git
+      mountPath: /mnt/git
     - name: users-volume
-      mountPath: /mnt/host/Users
+      mountPath: /mnt/Users
     - name: volumes-volume
-      mountPath: /mnt/host/Volumes
+      mountPath: /mnt/Volumes
   volumes:
   - name: git-volume
-    hostPath:
-      path: /mnt/host/git
-      type: Directory
+    persistentVolumeClaim:
+      claimName: git-pvc
   - name: users-volume
-    hostPath:
-      path: /mnt/host/Users
-      type: Directory
+    persistentVolumeClaim:
+      claimName: users-pvc
   - name: volumes-volume
-    hostPath:
-      path: /mnt/host/Volumes
-      type: Directory
+    persistentVolumeClaim:
+      claimName: volumes-pvc
 EOF
 
 echo -e "${YELLOW}Waiting for pod to be ready...${NC}"
-kubectl wait --for=condition=Ready pod/mount-checker -n ${TEST_NAMESPACE} --timeout=60s
+kubectl wait --for=condition=Ready pod/mount-checker -n "${TEST_NAMESPACE}" --timeout=60s
 
 echo -e "\n${YELLOW}Checking mounted paths in ${TEST_NAMESPACE} namespace:${NC}"
 
 # Function to check if a path exists and is accessible
 check_path() {
-	local path=$1
+	local path="$1"
 
-	if kubectl exec -n ${TEST_NAMESPACE} mount-checker -- ls -la $path >/dev/null 2>&1; then
-		echo -e "${GREEN}✓ $path is accessible${NC}"
+	if kubectl exec -n "${TEST_NAMESPACE}" mount-checker -- ls -la "${path}" >/dev/null 2>&1; then
+		echo -e "${GREEN}✓ ${path} is accessible${NC}"
 		echo "Contents:"
-		kubectl exec -n ${TEST_NAMESPACE} mount-checker -- ls -la $path | head -n 10
+		kubectl exec -n "${TEST_NAMESPACE}" mount-checker -- ls -la "${path}" | head -n 10
 		echo ""
 	else
-		echo -e "${RED}✗ $path is not accessible${NC}"
+		echo -e "${RED}✗ ${path} is not accessible${NC}"
 	fi
 }
 
 # Check each mounted path in test namespace
-check_path "/mnt/host/git"
-check_path "/mnt/host/Users"
-check_path "/mnt/host/Volumes"
+check_path "/mnt/git"
+check_path "/mnt/Users"
+check_path "/mnt/Volumes"
 
 # Check if cleanup is requested
 if [ "$1" == "--cleanup" ] || [ "$1" == "-c" ]; then
 	echo -e "\n${YELLOW}Cleaning up...${NC}"
-	kubectl delete pod mount-checker -n ${TEST_NAMESPACE}
-	kubectl delete namespace ${TEST_NAMESPACE}
+	kubectl delete pod mount-checker -n "${TEST_NAMESPACE}"
+	kubectl delete pvc --all -n "${TEST_NAMESPACE}"
+	kubectl delete pv git-pv users-pv volumes-pv
+	kubectl delete namespace "${TEST_NAMESPACE}"
 	echo -e "\n${GREEN}Mount check completed and resources deleted.${NC}"
 else
 	echo -e "\n${YELLOW}Skipping cleanup. The resources remain available for inspection.${NC}"
-	echo -e "To delete them manually later, run: ${GREEN}kubectl delete pod mount-checker -n ${TEST_NAMESPACE}; kubectl delete namespace ${TEST_NAMESPACE}${NC}"
+	echo -e "To delete them manually later, run: ${GREEN}kubectl delete pod mount-checker -n ${TEST_NAMESPACE}; kubectl delete pvc --all -n ${TEST_NAMESPACE}; kubectl delete pv git-pv users-pv volumes-pv; kubectl delete namespace ${TEST_NAMESPACE}${NC}"
 	echo -e "\n${GREEN}Mount check completed.${NC}"
 fi

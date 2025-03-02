@@ -2,6 +2,7 @@ M = {}
 
 -- custom commands
 vim.keymap.set("n", "<leader>by", ":%y<CR>", { desc = "Yank entire buffer", silent = true })
+vim.keymap.set("n", "<leader>ba", "ggVG", { desc = "Select all in buffer", silent = true })
 vim.keymap.set("n", "<leader>bd", ":%d_<CR>", { desc = "Delete entire buffer without yank", silent = true })
 vim.keymap.set("n", "<leader>bQ", ":q!<CR>", { desc = "Quit buffer without saving", silent = true })
 
