@@ -3,7 +3,7 @@ set -e
 
 # Help function
 show_help() {
-    cat << EOF
+	cat <<EOF
 Usage: podman-setup [OPTIONS]
 
 Setup podman environment with custom resources.
@@ -20,51 +20,51 @@ EOF
 }
 
 # Default values
-CPU=4
-MEM=6144
-DISK_SIZE=50
+CPU=6
+MEM=8192
+DISK_SIZE=100
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
-    case $1 in
-        -c|--cpu)
-            CPU="$2"
-            shift 2
-            ;;
-        -m|--memory)
-            MEM="$2"
-            shift 2
-            ;;
-        -d|--disk)
-            DISK_SIZE="$2"
-            shift 2
-            ;;
-        -h|--help)
-            show_help
-            exit 0
-            ;;
-        *)
-            echo "Unknown option: $1"
-            show_help
-            exit 1
-            ;;
-    esac
+	case $1 in
+	-c | --cpu)
+		CPU="$2"
+		shift 2
+		;;
+	-m | --memory)
+		MEM="$2"
+		shift 2
+		;;
+	-d | --disk)
+		DISK_SIZE="$2"
+		shift 2
+		;;
+	-h | --help)
+		show_help
+		exit 0
+		;;
+	*)
+		echo "Unknown option: $1"
+		show_help
+		exit 1
+		;;
+	esac
 done
 
 # Check if brew is installed
 if ! command -v brew >/dev/null 2>&1; then
-    echo "Error: Homebrew is required but not installed."
-    exit 1
+	echo "Error: Homebrew is required but not installed."
+	exit 1
 fi
 
 echo "Setting up Podman with CPU=$CPU, Memory=${MEM}MB, Disk=${DISK_SIZE}GB"
 
 # Install podman if not already installed
 if ! command -v podman >/dev/null 2>&1; then
-    echo "Installing podman..."
-    brew install podman
+	echo "Installing podman..."
+	brew install podman
 else
-    echo "Podman is already installed, skipping installation..."
+	echo "Podman is already installed, skipping installation..."
 fi
 
 # Initialize podman machine with specified or default CPU, memory and disk size
@@ -80,10 +80,10 @@ podman machine start
 
 # install podman-compose if not already installed
 if ! command -v podman-compose >/dev/null 2>&1; then
-    echo "Installing podman-compose..."
-    brew install podman-compose
+	echo "Installing podman-compose..."
+	brew install podman-compose
 else
-    echo "Podman-compose is already installed, skipping installation..."
+	echo "Podman-compose is already installed, skipping installation..."
 fi
 
 # set up for ryuk testcontainers
@@ -92,4 +92,3 @@ touch ~/.testcontainers.properties
 echo "ryuk.container.privileged = true" >~/.testcontainers.properties
 
 echo "Podman setup completed successfully!"
-
