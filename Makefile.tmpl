@@ -200,7 +200,6 @@ backup_create:
 backup_list:
 	/opt/homebrew/bin/borgmatic list --verbosity 1
 
-backup_restore:
 	# Usage: make backup_restore repo=/path/to/repo archive=/path/to/archive dest=/path/to/destination
 	@if [ -z "$(repo)" ] || [ -z "$(archive)" ] || [ -z "$(dest)" ]; then \
 		echo "Error: Please provide repo, archive, and dest parameters."; \
@@ -209,3 +208,50 @@ backup_restore:
 		exit 1; \
 	fi
 	/opt/homebrew/bin/borgmatic extract --verbosity 1 --progress --repository $(repo) --archive $(archive) --destination $(dest)
+
+# Secure file/directory removal commands
+secure_remove:
+	@if [ -z "$(path)" ]; then \
+		echo "Error: Please provide a path parameter."; \
+		echo "Usage: make secure_remove path=<file_or_dir_path> [passes=7]"; \
+		echo "Example: make secure_remove path=secret.txt"; \
+		echo "Example: make secure_remove path=sensitive_directory/"; \
+		exit 1; \
+	fi
+	@passes=$${passes:-7}; \
+	echo "Securely removing: $(path) with $$passes passes..."; \
+	if [ ! -e "$(path)" ]; then \
+		echo "Error: '$(path)' does not exist."; \
+		exit 1; \
+	fi; \
+	if [ -f "$(path)" ]; then \
+		if [ "$(UNAME_S)" = "Darwin" ]; then \
+			if command -v gshred >/dev/null 2>&1; then \
+				gshred -z -u -n $$passes "$(path)"; \
+				echo "File securely removed using gshred with $$passes passes."; \
+			else \
+				echo "Installing GNU coreutils for gshred..."; \
+				brew install coreutils; \
+				gshred -z -u -n $$passes "$(path)"; \
+				echo "File securely removed using gshred with $$passes passes."; \
+			fi; \
+		else \
+			shred -z -u -n $$passes "$(path)"; \
+			echo "File securely removed using shred with $$passes passes."; \
+		fi; \
+	elif [ -d "$(path)" ]; then \
+		echo "Securely removing directory contents..."; \
+		if [ "$(UNAME_S)" = "Darwin" ]; then \
+			if command -v gfind >/dev/null 2>&1; then \
+				gfind "$(path)" -type f -exec gshred -z -u -n $$passes {} \;; \
+			else \
+				echo "Installing GNU coreutils and findutils..."; \
+				brew install coreutils findutils; \
+				gfind "$(path)" -type f -exec gshred -z -u -n $$passes {} \;; \
+			fi; \
+		else \
+			find "$(path)" -type f -exec shred -z -u -n $$passes {} \;; \
+		fi; \
+		rm -rf "$(path)"; \
+		echo "Directory and its contents securely removed."; \
+	fi
