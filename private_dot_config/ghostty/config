@@ -11,9 +11,9 @@ font-family = "Berkeley Mono"
 # monospace
 # https://usgraphics.com/products/berkeley-mono
 font-family = "Berkeley Mono Variable"
-font-variation = wght=400
+font-variation = wght=500
 font-family-bold = "Berkeley Mono Variable"
-font-variation-bold = wght=900
+font-variation-bold = wght=1000
 
 # italics
 # https://github.com/subframe7536/maple-font
