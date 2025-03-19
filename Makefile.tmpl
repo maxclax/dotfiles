@@ -194,4 +194,48 @@ torproxy_check:
 	curl --socks5-hostname {{ .torproxyHost }}:{{- .torproxyPortSocks5 -}} https://check.torproject.org/api/ip
 
 ##############################
+
+backup_create:
+	/opt/homebrew/bin/borgmatic --verbosity 2 --progress
+	/opt/homebrew/bin/borgmatic prune --verbosity 1 
+
+backup_list:
+	/opt/homebrew/bin/borgmatic list --verbosity 1
+
+backup_list_files:
+	# Usage: make backup_list_files repo=/path/to/repo archive=/path/to/archive [path=optional/path/in/archive]
+	@if [ -z "$(repo)" ] || [ -z "$(archive)" ]; then \
+		echo "Error: Please provide repo and archive parameters."; \
+		echo "Usage: make backup_list_files repo=<repository_path> archive=<archive_name> [path=<optional/path/in/archive>]"; \
+		echo "Example: make backup_list_files repo=/Volumes/Backup/borg archive=daily-2023-03-12"; \
+		echo "Example: make backup_list_files repo=/Volumes/Backup/borg archive=daily-2023-03-12 path=Documents"; \
+		echo "Use 'make backup_list' to see available archives."; \
+		exit 1; \
+	fi
+	@if [ -z "$(path)" ]; then \
+		/opt/homebrew/bin/borg list --verbose "$(repo)::$(archive)"; \
+	else \
+		/opt/homebrew/bin/borg list --verbose "$(repo)::$(archive)" "$(path)"; \
+	fi
+
+backup_restore:
+	# Usage: make backup_restore repo=/path/to/repo archive=/path/to/archive dest=/path/to/destination [path=optional/path/in/archive]
+	@if [ -z "$(repo)" ] || [ -z "$(archive)" ] || [ -z "$(dest)" ]; then \
+		echo "Error: Please provide repo, archive, and dest parameters."; \
+		echo "Usage: make backup_restore repo=<repository_path> archive=<archive_name> dest=<destination_path> [path=<optional/path/in/archive>]"; \
+		echo "Example: make backup_restore repo=/backups/main archive=daily-2023-01-01 dest=/recovery"; \
+		echo "Example: make backup_restore repo=/backups/main archive=daily-2023-01-01 dest=/recovery path=Documents/important"; \
+		echo "Use 'make backup_list' to see available archives."; \
+		exit 1; \
+	fi
+	@if [ -z "$(path)" ]; then \
+		echo "Restoring entire archive $(archive) to $(dest)..."; \
+		/opt/homebrew/bin/borgmatic extract --verbosity 1 --progress --repository $(repo) --archive $(archive) --destination $(dest); \
+	else \
+		echo "Restoring path $(path) from archive $(archive) to $(dest)..."; \
+		/opt/homebrew/bin/borgmatic extract --verbosity 1 --progress --repository $(repo) --archive $(archive) --destination $(dest) --path "$(path)"; \
+	fi
+
+##############################
+
 	
