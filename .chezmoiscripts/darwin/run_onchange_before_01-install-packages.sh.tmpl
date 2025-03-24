@@ -146,6 +146,7 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
   "wireshark"
   "wezterm"
   "zed"
+  "zenmap"
   "zoom" -}}
 
 # Define the list of Mac App Store applications
@@ -174,7 +175,7 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 -}}
 
 # Generate the Brewfile format output
-brew bundle --no-lock --file=/dev/stdin <<EOF
+brew bundle --file=/dev/stdin <<EOF
 {{ range ($brew_taps | sortAlpha | uniq) -}}
 tap "{{ . }}"
 {{ end -}}
