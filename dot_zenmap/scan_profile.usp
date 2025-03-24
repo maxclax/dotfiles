@@ -1,0 +1,119 @@
+[Intense scan]
+command = nmap -T4 -A -v
+description = An intense, comprehensive scan. The -A option enables OS detection (-O), version detection (-sV), script scanning (-sC), and traceroute (--traceroute). Without root privileges only version detection and script scanning are run. This is considered an intrusive scan.
+
+[Intense scan plus UDP]
+command = nmap -sS -sU -T4 -A -v
+description = Does OS detection (-O), version detection (-sV), script scanning (-sC), and traceroute (--traceroute) in addition to scanning TCP and UDP ports.
+
+[Intense scan, all TCP ports]
+command = nmap -p 1-65535 -T4 -A -v
+description = Scans all TCP ports, then does OS detection (-O), version detection (-sV), script scanning (-sC), and traceroute (--traceroute).
+
+[Intense scan, no ping]
+command = nmap -T4 -A -v -Pn
+description = Does an intense scan without checking to see if targets are up first. This can be useful when a target seems to ignore the usual host discovery probes.
+
+[Ping scan]
+command = nmap -sn
+description = This scan only finds which targets are up and does not port scan them.
+
+[Quick scan]
+command = nmap -T4 -F
+description = This scan is faster than a normal scan because it uses the aggressive timing template and scans fewer ports.
+
+[Quick scan plus]
+command = nmap -sV -T4 -O -F --version-light
+description = A quick scan plus OS and version detection.
+
+[Quick traceroute]
+command = nmap -sn --traceroute
+description = Traces the paths to targets without doing a full port scan on them.
+
+[Regular scan]
+command = nmap
+description = A basic port scan with no extra options.
+
+[Slow comprehensive scan]
+command = nmap -sS -sU -T4 -A -v -PE -PS80,443 -PA3389 -PP -PU40125 -PY --source-port 53 --script "default or (discovery and safe)"
+description = This is a comprehensive, slow scan. Every TCP and UDP port is scanned. OS detection (-O), version detection (-sV), script scanning (-sC), and traceroute (--traceroute) are all enabled. Many probes are sent for host discovery. This is a highly intrusive scan.
+
+[Home Network Vulnerability Scan]
+command = nmap -T4 -A -p- -v --script=http-vuln*,ftp-vuln*,smb-vuln*,vulners
+description = A comprehensive vulnerability scan for home networks. Scans all ports (-p-) with OS detection (-O), version detection (-sV), and script scanning focused on HTTP, FTP, SMB vulnerabilities and using the vulners script to identify CVEs. Uses aggressive timing (-T4) and verbose output.
+
+[Local Network Security Audit]
+command = nmap -T4 -A -p- -v --script=vuln,auth,default,discovery,safe
+description = A thorough security audit for local networks. Scans all ports with OS detection, version detection, and runs vulnerability assessment scripts along with authentication, default, discovery, and safe scripts. This scan provides a comprehensive security overview of local systems.
+
+[Quick Network Device Discovery]
+command = nmap -sn -T4 --min-hostgroup 256 --min-parallelism 100 -PE -PP -PS21,22,23,25,80,113,443,31337 -PA80,113,443,10042
+description = Fast scan to discover all active devices on a network. Uses multiple host discovery techniques including ICMP echo, timestamp, and various TCP/UDP probes. Optimized for speed with aggressive timing and increased parallelism. Perfect for quickly mapping all devices on a home or local network.
+
+[Kubernetes API Server Scan]
+command = nmap -T4 -A -p 443,6443,8443,10250,10255,10256 -v --script=ssl-enum-ciphers,http-headers,http-auth,http-title,ssl-cert
+description = Targeted scan for Kubernetes API servers and kubelet endpoints. Checks common Kubernetes ports (443, 6443, 8443 for API server, 10250/10255/10256 for kubelet) and runs scripts to identify SSL/TLS configurations, HTTP headers, authentication methods, and certificate information.
+
+[Kubernetes Cluster Comprehensive Scan]
+command = nmap -T4 -A -p 443,2379-2380,6443,8443,8080,10250-10256,30000-32767 -v --script=http-*,ssl-*,vuln
+description = Comprehensive scan for Kubernetes clusters. Targets API server ports, etcd (2379-2380), kubelet endpoints, and NodePort range (30000-32767). Runs HTTP, SSL/TLS, and vulnerability scripts to identify potential security issues in the Kubernetes infrastructure.
+
+[Kubernetes Node Security Scan]
+command = nmap -T4 -A -p 22,80,443,2375,2376,4243,10250-10256 -v --script=docker-*,ssl-*,http-*,vuln
+description = Security scan for Kubernetes worker nodes. Checks SSH, HTTP/HTTPS, Docker API ports, and kubelet endpoints. Runs Docker-specific scripts along with SSL/TLS, HTTP, and vulnerability scripts to identify security issues on Kubernetes nodes.
+
+[Web Application Vulnerability Scan]
+command = nmap -T4 -p 80,443,8080,8443 -sV --script=http-enum,http-headers,http-methods,http-vuln*,http-csrf,http-dombased-xss,http-phpself-xss,http-sql-injection,http-stored-xss,ssl-heartbleed,ssl-poodle,ssl-ccs-injection
+description = Comprehensive web application vulnerability scan. Targets common web ports and runs specialized scripts to detect common web vulnerabilities including XSS, CSRF, SQL injection, and SSL/TLS vulnerabilities.
+
+[Web Server Security Audit]
+command = nmap -T4 -p 80,443,8080,8443 -sV --script=http-*,ssl-*
+description = Complete security audit for web servers. Runs all HTTP and SSL/TLS related scripts to identify misconfigurations, information disclosure, and security vulnerabilities in web server implementations.
+
+[WordPress Site Scan]
+command = nmap -T4 -p 80,443,8080,8443 -sV --script=http-wordpress-*,http-enum,http-headers,http-methods,http-vuln*
+description = Specialized scan for WordPress websites. Detects WordPress installations and runs WordPress-specific scripts to identify vulnerable plugins, themes, and other security issues.
+
+[E-commerce Site Scan]
+command = nmap -T4 -p 80,443,8080,8443 -sV --script=http-enum,http-headers,http-methods,http-vuln*,http-csrf,http-dombased-xss,http-phpself-xss,http-sql-injection,http-stored-xss,ssl-heartbleed,ssl-poodle,ssl-ccs-injection,http-cookie-flags
+description = Security scan optimized for e-commerce websites. Focuses on vulnerabilities that could lead to data breaches or payment information compromise, including XSS, CSRF, SQL injection, and insecure cookie settings.
+
+[IoT Device Scan]
+command = nmap -T4 -p 23,80,443,1883,5683,8080,8443,8883,9001 -sV --script=banner,http-*,mqtt-*,coap-*,ssl-*,telnet-*
+description = Specialized scan for Internet of Things (IoT) devices. Targets common IoT ports including Telnet (23), HTTP/HTTPS, MQTT (1883/8883), CoAP (5683), and web interfaces. Identifies weak authentication, outdated firmware, and insecure protocols.
+
+[Database Server Scan]
+command = nmap -T4 -p 1433,1521,3306,5432,6379,9042,27017,27018,27019 -sV --script=ms-sql-*,mysql-*,oracle-*,postgresql-*,redis-*,mongodb-*,cassandra-*,banner
+description = Comprehensive scan for database servers. Targets common database ports (MSSQL, Oracle, MySQL, PostgreSQL, Redis, MongoDB, Cassandra) and runs database-specific scripts to identify misconfigurations, weak credentials, and known vulnerabilities.
+
+[Network Device Scan]
+command = nmap -T4 -p 22,23,80,443,161,162,514,830,3389 -sV --script=snmp-*,ssh-*,telnet-*,http-*,ssl-*,netconf-*,syslog-*,rdp-*
+description = Security scan for network devices like routers, switches, and firewalls. Checks management interfaces (SSH, Telnet, HTTP/HTTPS, SNMP, Syslog, NETCONF, RDP) and identifies default credentials, outdated firmware, and known vulnerabilities.
+
+[SCADA/ICS Scan]
+command = nmap -T4 -p 20000,44818,47808,1911,4000,9600,502,102,20000 -sV --script=bacnet-*,modbus-*,s7-*,iec-*,dnp3-*,ethernet-ip-*,banner
+description = Specialized scan for industrial control systems and SCADA environments. Targets common industrial protocols (BACnet, Modbus, S7, IEC, DNP3, EtherNet/IP) and identifies insecure configurations and vulnerabilities in industrial systems.
+
+[VoIP/SIP Infrastructure Scan]
+command = nmap -T4 -p 5060,5061,5080,5090,10000-10100 -sU -sV --script=sip-*,rtsp-*,rtp-*,banner
+description = Security assessment for Voice over IP (VoIP) and Session Initiation Protocol (SIP) infrastructure. Scans SIP ports (5060/5061/5080/5090) and RTP port range, identifying insecure configurations, weak authentication, and known vulnerabilities.
+
+[Mail Server Security Scan]
+command = nmap -T4 -p 25,110,143,465,587,993,995 -sV --script=smtp-*,pop3-*,imap-*,ssl-*,banner
+description = Comprehensive security scan for mail servers. Targets mail protocol ports (SMTP, POP3, IMAP) including secure variants, and identifies misconfigurations, open relays, weak authentication, and SSL/TLS vulnerabilities.
+
+[Active Directory/Windows Domain Scan]
+command = nmap -T4 -p 53,88,135,139,389,445,464,636,3268,3269,5985,5986 -sV --script=ldap-*,smb-*,msrpc-*,kerberos-*,dns-*,ssl-*,winrm-*
+description = Security assessment for Active Directory and Windows domain environments. Targets domain service ports (DNS, Kerberos, LDAP, SMB, MSRPC, WinRM) and identifies misconfigurations, weak policies, and known vulnerabilities.
+
+[Stealth Network Reconnaissance]
+command = nmap -T2 -sS -f -D RND:5 --data-length 24 --randomize-hosts -v -Pn
+description = Low-profile network reconnaissance with stealth techniques. Uses slower timing, fragmented packets, decoys, randomized scanning order, and custom packet lengths to reduce detection likelihood. Useful for evading intrusion detection systems during authorized penetration tests.
+
+[Shodan Basic Scan]
+command = nmap -sV --script=shodan-api --script-args shodan-api.apikey=$SHODAN_API_KEY
+description = Basic scan using Shodan API to retrieve information about targets. Requires a Shodan API key set in the SHODAN_API_KEY environment variable. This scan performs service version detection and enriches the results with Shodan's data.
+
+[Shodan Enhanced Scan]
+command = nmap -T4 -A -p- -v --script=shodan-api --script-args shodan-api.apikey=$SHODAN_API_KEY
+description = Comprehensive scan enhanced with Shodan API data. Scans all ports with OS detection, version detection, and script scanning, while enriching results with Shodan intelligence. Requires a Shodan API key set in the SHODAN_API_KEY environment variable.
