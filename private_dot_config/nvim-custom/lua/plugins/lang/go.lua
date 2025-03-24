@@ -10,7 +10,15 @@ vim.api.nvim_create_autocmd("FileType", {
 	end,
 })
 
-local golangci_config_file = nil
+--- Return local path, if it exists, or nil
+local function local_path(path)
+	if vim.fn.isdirectory(vim.fn.expand(path)) == 0 then
+		return nil
+	end
+	return path
+end
+
+local golangci_config_filepath_cache = nil
 local tags = "-tags=wireinject,integration"
 
 local function golangcilint_args()
@@ -26,8 +34,9 @@ local function golangcilint_args()
 
 		-- config file
 		function()
-			if golangci_config_file ~= nil then
-				return golangci_config_file
+			if golangci_config_filepath_cache ~= nil then
+				vim.notify_once("golangci-lint: " .. golangci_config_filepath_cache, vim.log.levels.INFO)
+				return "--config=" .. golangci_config_filepath_cache
 			end
 			local found
 			found = vim.fs.find(
@@ -36,18 +45,22 @@ local function golangcilint_args()
 			)
 			if #found == 1 then
 				local filepath = found[1]
-				golangci_config_file = filepath
-				return "--config", golangci_config_file
+				golangci_config_filepath_cache = filepath
+				local arg = "--config=" .. golangci_config_filepath_cache
+				return arg
 			else
 				local filepath = require("utils.environ").getenv("DOTFILES") .. "/templates/.golangci.yml"
-				golangci_config_file = filepath
-				return "--config", golangci_config_file
+				golangci_config_filepath_cache = filepath
+				local arg = "--config=" .. golangci_config_filepath_cache
+				return arg
 			end
 		end,
 
 		-- filename
 		function()
-			return vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":h")
+			local filepath = vim.api.nvim_buf_get_name(0)
+			local parent = vim.fn.fnamemodify(filepath, ":h")
+			return parent
 		end,
 	}
 
@@ -130,6 +143,12 @@ return {
 			opts.linters["golangcilint"] = {
 				args = golangcilint_args(),
 				ignore_exitcode = true, -- NOTE: https://github.com/mfussenegger/nvim-lint/commit/3d5190d318e802de3a503b74844aa87c2cd97ef0
+
+				-- For debugging; to see the same output as the parser sees
+				-- Important: make sure you don't have another golangci-lint biniary on $PATH
+				-- parser = function(output, bufnr, cwd)
+				--   vim.notify(vim.inspect(output))
+				-- end,
 			}
 		end,
 	},
@@ -246,12 +265,13 @@ return {
 		},
 		config = function()
 			require("go").setup({
+				remap_commands = { GoDoc = false }, -- NOTE: clashes with godoc.nvim
 				lsp_cfg = false, -- handled with nvim-lspconfig instead
 				lsp_inlay_hints = {
 					enable = false, -- handled with LSP keymap toggle instead
 				},
 				dap_debug = false, -- handled by nvim-dap instead
-				luasnip = true,
+				luasnip = false,
 			})
 		end,
 		event = { "CmdlineEnter" },
@@ -261,29 +281,10 @@ return {
 		"nvim-neotest/neotest",
 		lazy = true,
 		ft = { "go" },
+		dependencies = {},
 
 		opts = function(_, opts)
 			opts.adapters = opts.adapters or {}
-			opts.adapters["neotest-golang"] = {
-				go_list_args = { tags },
-				go_test_args = {
-					"-v",
-					"-count=1",
-					"-race",
-					"-coverprofile=" .. vim.fn.getcwd() .. "/coverage.out",
-					-- "-p=1",
-					"-parallel=1",
-					tags,
-				},
-				runner = "gotestsum",
-				gotestsum_args = { "--format=standard-verbose" },
-				testify_enabled = true,
-				-- sanitize_output = true,
-				-- log_level = vim.log.levels.TRACE,
-
-				-- experimental
-				dev_notifications = true,
-			}
 		end,
 	},
 
@@ -354,6 +355,33 @@ return {
 			-- configurations = {
 			--   go = {},
 			-- },
+		},
+	},
+
+	{
+		"saghen/blink.cmp",
+		dependencies = {
+			"edte/blink-go-import.nvim",
+			ft = "go",
+			config = function()
+				require("blink-go-import").setup()
+			end,
+		},
+		opts = {
+			sources = {
+				default = {
+					"go_pkgs",
+				},
+				providers = {
+					go_pkgs = {
+						module = "blink-go-import",
+						name = "Import",
+					},
+				},
+			},
+		},
+		opts_extend = {
+			"sources.default",
 		},
 	},
 
