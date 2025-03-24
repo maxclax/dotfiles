@@ -29,8 +29,21 @@ return {
           height = 0.9,
         },
       },
-      notifier = { enabled = true, timeout = 2000 },
-      statuscolumn = { enabled = true },
+
+      dashboard = {
+        enabled = true,
+        preset = {
+          keys = {
+            { icon = " ", key = "n", desc = "New File", action = ":ene | startinsert" },
+            { icon = " ", key = "r", desc = "Recent Files", action = ":lua Snacks.dashboard.pick('oldfiles')" },
+            { icon = " ", key = "s", desc = "Restore Session", section = "session" },
+            { icon = " ", key = "q", desc = "Quit", action = ":qa" },
+          },
+        },
+      },
+
+      image = { enabled = true },
+
       indent = {
         enabled = true,
         priority = 1,
@@ -45,46 +58,6 @@ return {
         },
       },
 
-      terminal = {},
-
-      ---@class snacks.dashboard.Config
-      dashboard = {
-        enabled = true,
-        preset = {
-          keys = {
-            { icon = " ", key = "n", desc = "New File", action = ":ene | startinsert" },
-            { icon = " ", key = "r", desc = "Recent Files", action = ":lua Snacks.dashboard.pick('oldfiles')" },
-            { icon = " ", key = "s", desc = "Restore Session", section = "session" },
-            { icon = " ", key = "q", desc = "Quit", action = ":qa" },
-          },
-        },
-      },
-
-      -- special mode
-      zen = {
-        enabled = true,
-        -- You can add any `Snacks.toggle` id here.
-        -- Toggle state is restored when the window is closed.
-        -- Toggle config options are NOT merged.
-        ---@type table<string, boolean>
-        toggles = {
-          dim = false,
-          git_signs = false,
-          mini_diff_signs = false,
-          diagnostics = true,
-          -- inlay_hints = false,
-        },
-        win = {
-          backdrop = {
-            transparent = false,
-          },
-        },
-      },
-
-      -- convenience
-      quickfile = { enabled = true },
-
-      -- integrations
       lazygit = {
         enabled = true,
         -- automatically configure lazygit to use the current colorscheme
@@ -103,9 +76,17 @@ return {
         },
       },
 
-      -- pickers
+      notifier = { enabled = true, timeout = 2000 },
+
       picker = {
+        enabled = true,
         actions = require("trouble.sources.snacks").actions,
+        sources = {
+          files = {
+            hidden = true, -- NOTE: toggle with alt+h
+            ignored = false, -- NOTE: toggle with alt+h
+          },
+        },
         win = {
           input = {
             keys = {
@@ -114,6 +95,32 @@ return {
                 mode = { "n", "i" },
               },
             },
+          },
+        },
+      },
+
+      quickfile = { enabled = true },
+
+      statuscolumn = { enabled = true },
+
+      terminal = { enabled = true },
+
+      zen = {
+        enabled = true,
+        -- You can add any `Snacks.toggle` id here.
+        -- Toggle state is restored when the window is closed.
+        -- Toggle config options are NOT merged.
+        ---@type table<string, boolean>
+        toggles = {
+          dim = false,
+          git_signs = false,
+          mini_diff_signs = false,
+          diagnostics = true,
+          -- inlay_hints = false,
+        },
+        win = {
+          backdrop = {
+            transparent = false,
           },
         },
       },

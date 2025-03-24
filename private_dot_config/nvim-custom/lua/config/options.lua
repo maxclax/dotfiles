@@ -80,30 +80,28 @@ vim.opt.splitright = true
 -- set up diagnostics
 require("utils.diagnostics").setup_diagnostics()
 
--- fold settings (treesitter or LSP)
-vim.opt.foldcolumn = "0"
-vim.opt.foldenable = true
-vim.opt.foldlevel = 99
-vim.opt.foldlevelstart = 99
+-- set up folding
 function _G.custom_foldtext()
 	local line = vim.fn.getline(vim.v.foldstart)
 	local line_count = vim.v.foldend - vim.v.foldstart + 1
 	local line_text = vim.fn.substitute(line, "\t", " ", "g")
 	return string.format("%s (%d lines)", line_text, line_count)
 end
-vim.opt.foldtext = "v:lua.custom_foldtext()"
 function M.treesitter_foldexpr()
 	vim.opt.foldmethod = "expr"
 	vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
-end
-function M.lsp_foldexpr()
-	-- vim.api.nvim_set_option_value("foldmethod", "expr", { scope = "local" })
-	-- vim.api.nvim_set_option_value("foldexpr", "v:lua.vim.lsp.foldexpr()", { scope = "local" })
-	-- vim.api.nvim_set_option_value("foldtext", "v:lua.vim.lsp.foldtext()", { scope = "local" })
-	vim.opt.foldmethod = "expr"
-	vim.opt.foldexpr = "v:lua.vim.lsp.foldexpr()"
 	vim.opt.foldtext = "v:lua.custom_foldtext()"
 end
+function M.lsp_foldexpr(server)
+	vim.opt_local.foldmethod = "expr"
+	vim.opt_local.foldexpr = "v:lua.vim.lsp.foldexpr()"
+	-- vim.opt_local.foldtext = "v:lua.vim.lsp.foldtext()"
+	vim.opt_local.foldtext = "v:lua.custom_foldtext()"
+end
+vim.opt.foldcolumn = "0"
+vim.opt.foldenable = true
+vim.opt.foldlevel = 99
+vim.opt.foldlevelstart = 99
 
 -- scroll off
 vim.opt.scrolloff = 4
