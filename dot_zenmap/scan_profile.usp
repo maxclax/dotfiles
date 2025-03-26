@@ -1,3 +1,7 @@
+[_Test profile]
+command = nmap
+description = This is a test profile.
+
 [Intense scan]
 command = nmap -T4 -A -v
 description = An intense, comprehensive scan. The -A option enables OS detection (-O), version detection (-sV), script scanning (-sC), and traceroute (--traceroute). Without root privileges only version detection and script scanning are run. This is considered an intrusive scan.
@@ -110,6 +114,10 @@ description = Security assessment for Active Directory and Windows domain enviro
 command = nmap -T2 -sS -f -D RND:5 --data-length 24 --randomize-hosts -v -Pn
 description = Low-profile network reconnaissance with stealth techniques. Uses slower timing, fragmented packets, decoys, randomized scanning order, and custom packet lengths to reduce detection likelihood. Useful for evading intrusion detection systems during authorized penetration tests.
 
+[Simple ARP Network Scan]
+command = nmap -sn -PR --script nbstat
+description = Fast and simple ARP scan to discover devices on the local network. Shows MAC addresses, IP addresses, and attempts to resolve NetBIOS names. This is a non-intrusive scan that works well for home/office networks to quickly map connected devices.
+
 [Shodan Basic Scan]
 command = nmap -sV --script=shodan-api --script-args shodan-api.apikey=$SHODAN_API_KEY
 description = Basic scan using Shodan API to retrieve information about targets. Requires a Shodan API key set in the SHODAN_API_KEY environment variable. This scan performs service version detection and enriches the results with Shodan's data.
@@ -117,3 +125,15 @@ description = Basic scan using Shodan API to retrieve information about targets.
 [Shodan Enhanced Scan]
 command = nmap -T4 -A -p- -v --script=shodan-api --script-args shodan-api.apikey=$SHODAN_API_KEY
 description = Comprehensive scan enhanced with Shodan API data. Scans all ports with OS detection, version detection, and script scanning, while enriching results with Shodan intelligence. Requires a Shodan API key set in the SHODAN_API_KEY environment variable.
+
+[Open Ports with Reason]
+command = nmap -T4 -sV --reason --open
+description = Fast scan that shows only open ports with detailed reasons why ports were determined to be open. Includes service version detection to identify what's running on each port. Perfect for quickly identifying active services on a host or network.
+
+[Decoy Scan]
+command = nmap -sS -D RND:10 --randomize-hosts -T2 --spoof-mac 0 -f --data-length 56 -v
+description = Stealthy scan using multiple decoy IP addresses to help mask the true source of the scan. Uses 10 random decoys, randomizes target order, slows timing, spoofs MAC address, fragments packets, and adds random data to packets. Useful for authorized penetration testing when you need to reduce the chance of detection.
+
+[Vulners CVE Scan]
+command = nmap -sV --script vulners --script-args mincvss=5.0 -v
+description = Comprehensive vulnerability scan using the vulners.nse script to detect CVEs based on service versions. Filters results to show only vulnerabilities with CVSS score of 5.0 or higher. Provides detailed information about potential security issues including CVE IDs, CVSS scores, and vulnerability descriptions.
