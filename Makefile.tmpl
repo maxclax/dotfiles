@@ -124,6 +124,11 @@ endif
 rm_a:
 	@$(CONTAINER_ENGINE) ps -aq | xargs $(CONTAINER_ENGINE) stop | xargs $(CONTAINER_ENGINE) rm
 
+# Clean up dangling (none) images
+rm_none_images:
+	@echo "Removing all dangling (none) images..."
+	@$(CONTAINER_ENGINE) images -a | grep "<none>" | awk '{print $$3}' | xargs -r $(CONTAINER_ENGINE) rmi
+
 # Launch k9s for Kubernetes
 k9s:
 	@k9s
