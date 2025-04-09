@@ -20,12 +20,6 @@ vim.keymap.set("n", "<leader>fyp", function()
 	vim.notify("Copied filepath: " .. filepath)
 end, { desc = "Copy filepath", silent = true })
 
-function M.setup_avante_keymaps()
-	return {
-		{ "<leader>aa", ":AvanteAsk<CR>", desc = "Avante" },
-	}
-end
-
 -- windows
 vim.keymap.set("n", "<C-h>", "<C-w>h", { desc = "Go to left window", silent = true, noremap = true })
 vim.keymap.set("n", "<C-j>", "<C-w>j", { desc = "Go to lower window", silent = true, noremap = true })
@@ -174,9 +168,9 @@ function M.setup_trouble_keymaps()
   }
 end
 
-function M.setup_lsp_autocmd_keymaps(event)
+function M.setup_lsp_autocmd_keymaps(buf)
   local map = function(keys, func, desc)
-    vim.keymap.set("n", keys, func, { buffer = event.buf, desc = "LSP: " .. desc, nowait = true })
+    vim.keymap.set("n", keys, func, { buffer = buf, desc = "LSP: " .. desc, nowait = true })
   end
 
   -- Rename the variable under your cursor
@@ -272,6 +266,13 @@ function M.setup_blink_cmp_keymaps()
   }
 end
 
+function M.setup_blink_cmdline_keymaps()
+  return {
+    ["<Up>"] = { "select_prev", "fallback" },
+    ["<Down>"] = { "select_next", "fallback" },
+  }
+end
+
 function M.setup_luasnip_keymaps()
   return {
     {
@@ -296,19 +297,6 @@ function M.setup_luasnip_keymaps()
         require("luasnip").jump(-1)
       end,
       mode = { "i", "s" },
-    },
-  }
-end
-
-function M.setup_neotree_keymaps()
-  return {
-    { "<leader>e", ":Neotree source=filesystem reveal=true position=left toggle=true<CR>", desc = "Neo-tree" },
-    {
-      "<leader>ge",
-      function()
-        require("neo-tree.command").execute({ source = "git_status", toggle = true })
-      end,
-      desc = "Git Explorer",
     },
   }
 end
@@ -377,6 +365,20 @@ function M.setup_snacks_keymaps()
         Snacks.picker.grep(opts)
       end,
       desc = "Grep",
+    },
+    {
+      "<leader>e",
+      function()
+        Snacks.explorer.open({ hidden = true, ignored = true })
+      end,
+      desc = "Explorer",
+    },
+    {
+      "<leader>E",
+      function()
+        Snacks.explorer.reveal({ hidden = true, ignored = true })
+      end,
+      desc = "Explorer (reveal buffer)",
     },
     {
       "<leader>gg",
@@ -824,7 +826,7 @@ function M.setup_neotest_keymaps()
     {
       "<leader>td",
       function()
-        vim.cmd("Neotree close")
+        -- vim.cmd("Neotree close")
         require("neotest").summary.close()
         require("neotest").output_panel.close()
         require("neotest").run.run({ suite = false, strategy = "dap" })
@@ -834,7 +836,7 @@ function M.setup_neotest_keymaps()
     {
       "<leader>tD",
       function()
-        vim.cmd("Neotree close")
+        -- vim.cmd("Neotree close")
         require("neotest").summary.close()
         require("neotest").output_panel.close()
         require("neotest").run.run({ vim.fn.expand("%"), strategy = "dap" })

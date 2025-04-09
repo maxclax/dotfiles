@@ -14,16 +14,16 @@ vim.opt.shortmess:append("I")
 
 -- fillchars
 vim.opt.fillchars = {
-	foldopen = "",
-	foldclose = "",
-	-- fold = "⸱",
-	fold = " ",
-	foldsep = " ",
-	-- diff = "╱",
-	-- diff = "╱",
-	diff = "░",
-	-- diff = "·",
-	eob = " ",
+  foldopen = "",
+  foldclose = "",
+  -- fold = "⸱",
+  fold = " ",
+  foldsep = " ",
+  -- diff = "╱",
+  -- diff = "╱",
+  diff = "░",
+  -- diff = "·",
+  eob = " ",
 }
 
 -- line numbers
@@ -82,21 +82,21 @@ require("utils.diagnostics").setup_diagnostics()
 
 -- set up folding
 function _G.custom_foldtext()
-	local line = vim.fn.getline(vim.v.foldstart)
-	local line_count = vim.v.foldend - vim.v.foldstart + 1
-	local line_text = vim.fn.substitute(line, "\t", " ", "g")
-	return string.format("%s (%d lines)", line_text, line_count)
+  local line = vim.fn.getline(vim.v.foldstart)
+  local line_count = vim.v.foldend - vim.v.foldstart + 1
+  local line_text = vim.fn.substitute(line, "\t", " ", "g")
+  return string.format("%s (%d lines)", line_text, line_count)
 end
 function M.treesitter_foldexpr()
-	vim.opt.foldmethod = "expr"
-	vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
-	vim.opt.foldtext = "v:lua.custom_foldtext()"
+  vim.opt.foldmethod = "expr"
+  vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+  vim.opt.foldtext = "v:lua.custom_foldtext()"
 end
 function M.lsp_foldexpr(server)
-	vim.opt_local.foldmethod = "expr"
-	vim.opt_local.foldexpr = "v:lua.vim.lsp.foldexpr()"
-	-- vim.opt_local.foldtext = "v:lua.vim.lsp.foldtext()"
-	vim.opt_local.foldtext = "v:lua.custom_foldtext()"
+  vim.opt_local.foldmethod = "expr"
+  vim.opt_local.foldexpr = "v:lua.vim.lsp.foldexpr()"
+  -- vim.opt_local.foldtext = "v:lua.vim.lsp.foldtext()"
+  vim.opt_local.foldtext = "v:lua.custom_foldtext()"
 end
 vim.opt.foldcolumn = "0"
 vim.opt.foldenable = true
@@ -125,13 +125,13 @@ vim.opt.listchars = "tab:▸ ,trail:·,nbsp:␣,extends:❯,precedes:❮" -- sho
 vim.opt.smoothscroll = true
 
 if not vim.g.vscode then
-	vim.opt.timeoutlen = 300 -- Lower than default (1000) to quickly trigger which-key
+  vim.opt.timeoutlen = 300 -- Lower than default (1000) to quickly trigger which-key
 end
 
 -- set titlestring to $cwd if TERM_PROGRAM=ghostty
 if vim.fn.getenv("TERM_PROGRAM") == "ghostty" then
-	vim.opt.title = true
-	vim.opt.titlestring = "%{fnamemodify(getcwd(), ':t')}"
+  vim.opt.title = true
+  vim.opt.titlestring = "%{fnamemodify(getcwd(), ':t')}"
 end
 
 return M

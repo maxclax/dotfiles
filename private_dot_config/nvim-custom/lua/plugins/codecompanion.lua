@@ -17,7 +17,8 @@ local gemini_fn = function()
     env = { api_key = "cmd:op read op://Personal/Google/tokens/gemini --no-newline" },
     schema = {
       model = {
-        default = "gemini-2.0-flash-thinking-exp",
+        default = "gemini-2.5-pro-exp-03-25",
+        -- default = "gemini-2.0-flash-thinking-exp",
       },
     },
   }
@@ -41,7 +42,7 @@ local ollama_fn = function()
   return require("codecompanion.adapters").extend("ollama", {
     schema = {
       model = {
-        default = "gemma3:4b",
+        default = "gemma3:1b",
         -- default = "deepseek-r1:7b",
         -- default = "llama3.1:7b",
         -- default = "codellama:7b",
@@ -157,7 +158,8 @@ return {
     dependencies = {
       "nvim-lua/plenary.nvim",
       "nvim-treesitter/nvim-treesitter",
-      "nvim-telescope/telescope.nvim",
+      -- "nvim-telescope/telescope.nvim", -- NOTE: snacks?
+      "ravitemer/mcphub.nvim",
       {
         "saghen/blink.cmp",
         ---@module 'blink.cmp'
@@ -183,6 +185,11 @@ return {
 
       opts = {
         send_code = function()
+          if vim.fn.filereadable(".llm_ok") == 1 then
+            -- override by adding a .llm_ok file in the project root
+            return true
+          end
+
           return require("utils.private").is_ai_enabled()
         end,
       },
@@ -193,27 +200,19 @@ return {
         chat = {
           adapter = "anthropic",
           slash_commands = {
-            ["buffer"] = {
+            buffer = { opts = { provider = "snacks" } },
+            file = { opts = { provider = "snacks" } },
+            help = { opts = { provider = "snacks" } },
+            symbols = { opts = { provider = "snacks" } },
+          },
+          tools = {
+            mcp = {
+              callback = function()
+                return require("mcphub.extensions.codecompanion")
+              end,
+              description = "Call tools and resources from the MCP Servers",
               opts = {
-                provider = "snacks",
-              },
-            },
-
-            ["file"] = {
-              opts = {
-                provider = "snacks",
-              },
-            },
-
-            ["help"] = {
-              opts = {
-                provider = "snacks",
-              },
-            },
-
-            ["symbols"] = {
-              opts = {
-                provider = "snacks",
+                requires_approval = true,
               },
             },
           },

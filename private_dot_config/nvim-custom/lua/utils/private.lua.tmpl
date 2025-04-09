@@ -4,6 +4,7 @@ local function is_code_public()
 	local public_paths = {
 		"{{ .chezmoi.sourceDir }}",
 		"{{ .workspace }}",
+		"{{ .workspace_extra }}",
 	}
 
   for _, public_path in ipairs(public_paths) do
