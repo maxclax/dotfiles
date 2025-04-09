@@ -1,4 +1,5 @@
 {{- $workspace := promptStringOnce . "workspace" "workspace directory" (printf "%s/workspace" .chezmoi.homeDir) -}}
+{{- $workspace_extra := promptStringOnce . "workspace_extra" "extra workspace directory" (printf "%s/workspace_extra" .chezmoi.homeDir) -}}
 
 {{- $nvimType := "default" -}}
 {{- if stdinIsATTY -}}
@@ -98,6 +99,7 @@ encryption = "age"
     unameArch = {{ output "uname" "-m" | trim | quote }}
 
     workspace = {{ $workspace | quote }}
+    workspace_extra = {{ $workspace_extra | quote }}
     playground = {{ printf "%s/playground" $workspace | quote }}
     jupyter = {{ printf "%s/jupyter" $workspace | quote }}
     editor = {{ $editor | quote }}

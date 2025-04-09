@@ -2,6 +2,7 @@ return {
 	{
 		"zbirenbaum/copilot.lua",
 		lazy = true,
+		commit = "5a8fdd34bb67eadc3f69e46870db0bed0cc9841c",
 		event = "InsertEnter",
 		enabled = true,
 		dependencies = {
@@ -14,18 +15,14 @@ return {
 						return icon
 					end
 
-					-- local function fgcolor(name)
-					--   local hl = vim.api.nvim_get_hl and vim.api.nvim_get_hl(0, { name = name, link = false })
-					--   local fg = hl and (hl.fg or hl.foreground)
-					--   return fg and { fg = string.format("#%06x", fg) } or nil
-					-- end
-
 					local colors = {
-						["Normal"] = require("utils.colors").fgcolor("Special"),
-						["Warning"] = require("utils.colors").fgcolor("DiagnosticError"),
-						["InProgress"] = require("utils.colors").fgcolor("DiagnosticWarn"),
+						-- statuses NOT supported by copilot.lua (see `require("copilot").api.status`)
 						["Offline"] = require("utils.colors").fgcolor("Comment"),
-						["Error"] = require("utils.colors").fgcolor("Error"),
+						-- statuses supported by copilot.lua
+						[""] = require("utils.colors").fgcolor("Special"),
+						["InProgress"] = require("utils.colors").fgcolor("DiagnosticWarning"),
+						["Normal"] = require("utils.colors").fgcolor("DiagnosticOk"),
+						["Warning"] = require("utils.colors").fgcolor("DiagnosticError"),
 					}
 
 					opts.copilot = {
@@ -38,11 +35,11 @@ return {
 								else
 									-- online
 									local status = require("copilot.api").status
-									if status.data.status ~= "" or status.data.message ~= "" then
-										return colors[status.data.status] or colors["Error"]
-									else
-										return colors["InProgress"]
+									if status.data.message ~= "" then
+										-- NOTE: could potentially do something based on status.data.message too.
+										vim.notify("Copilot message: " .. vim.inspect(status.data.message))
 									end
+									return colors[status.data.status]
 								end
 							end,
 						},
@@ -80,7 +77,6 @@ return {
 		},
 		config = function(_, opts)
 			require("copilot").setup(opts)
-
 			-- Make sure not to enable copilot in private projects
 			require("utils.private").toggle_copilot()
 		end,

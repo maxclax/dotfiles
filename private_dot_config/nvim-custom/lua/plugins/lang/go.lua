@@ -38,6 +38,12 @@ local function golangcilint_args()
 				vim.notify_once("golangci-lint: " .. golangci_config_filepath_cache, vim.log.levels.INFO)
 				return "--config=" .. golangci_config_filepath_cache
 			end
+
+			local found = vim.fn.system("which golangci-lint")
+			if not string.find(found, "mason/bin") then
+				vim.notify("golangci-lint binary not provided by mason: " .. found, vim.log.levels.WARN)
+			end
+
 			local found
 			found = vim.fs.find(
 				{ ".golangci.yml", ".golangci.yaml", ".golangci.toml", ".golangci.json" },
@@ -49,7 +55,7 @@ local function golangcilint_args()
 				local arg = "--config=" .. golangci_config_filepath_cache
 				return arg
 			else
-				local filepath = require("utils.environ").getenv("DOTFILES") .. "/templates/.golangci.yml"
+				local filepath = require("fredrik.utils.environ").getenv("DOTFILES") .. "/templates/.golangci.yml"
 				golangci_config_filepath_cache = filepath
 				local arg = "--config=" .. golangci_config_filepath_cache
 				return arg
@@ -154,7 +160,7 @@ return {
 	},
 
 	{
-		"neovim/nvim-lspconfig",
+		"virtual-lsp-config",
 		dependencies = {
 			{
 				"williamboman/mason-lspconfig.nvim",
@@ -260,7 +266,7 @@ return {
 		enabled = false,
 		dependencies = { -- optional packages
 			"ray-x/guihua.lua",
-			"neovim/nvim-lspconfig",
+			"virtual-lsp-config",
 			"nvim-treesitter/nvim-treesitter",
 		},
 		config = function()
