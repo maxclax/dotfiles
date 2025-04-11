@@ -1,5 +1,6 @@
 {{- $workspace := promptStringOnce . "workspace" "workspace directory" (printf "%s/workspace" .chezmoi.homeDir) -}}
 {{- $workspace_extra := promptStringOnce . "workspace_extra" "extra workspace directory" (printf "%s/workspace_extra" .chezmoi.homeDir) -}}
+{{- $resources := promptStringOnce . "resources" "resources directory" (printf "%s/workspace/resources" .chezmoi.homeDir) -}}
 
 {{- $nvimType := "default" -}}
 {{- if stdinIsATTY -}}
@@ -62,8 +63,10 @@
 {{- $githubEmail := "dev" -}}
 {{- $githubGpgsignEnabled := false -}}
 {{- $githubGpgsignSigningKey := "" -}}
+{{- $githubAccessToken := "" -}}
 {{- $githubGpgsignProgram := "" -}}
 {{- $agePubKey := "" -}}
+{{- $borgRepo := "" -}}
 {{- $borgEncryptionPassphrase := "" -}}
 
 {{- $useOp := promptBoolOnce . "useOp" "Do you want to use 1Password CLI (op) for configuration?" true -}}
@@ -71,12 +74,14 @@
 {{- if $useOp -}}
 {{-   $githubGpgsignEnabled = promptBoolOnce . "gitGithub.gpgsign.enabled" "Enable GPG signing for Git commits?" false  -}}
 {{-   $agePubKey = onepasswordRead "op://Private/chezmoi-data/age-pub-key" | quote -}}
+{{-   $borgRepo = onepasswordRead "op://Private/chezmoi-data/borg-repo" | quote -}}
 {{-   $borgEncryptionPassphrase = onepasswordRead "op://Private/chezmoi-data/borg-encryption-passphrase" | quote -}}
 {{-   $name = onepasswordRead "op://Private/chezmoi-data/git-config-name" | quote -}}
 {{-   $email = onepasswordRead "op://Private/chezmoi-data/git-config-email" | quote -}}
 {{-   $githubName = onepasswordRead "op://Private/chezmoi-data/github-username" | quote -}}
 {{-   $githubEmail = onepasswordRead "op://Private/chezmoi-data/github-email"  | quote -}}
 {{-   $githubGpgsignSigningKey = onepasswordRead "op://Private/chezmoi-data/github-signing-key" | quote -}}
+{{-   $githubAccessToken = onepasswordRead "op://Private/chezmoi-data/github-access-token" | quote -}}
 {{-   $githubGpgsignProgram = promptStringOnce . "gitGithub.gpgsign.program" "GPG signing program" "/Applications/1Password.app/Contents/MacOS/op-ssh-sign" | quote -}}
 {{- end -}}
 
@@ -100,17 +105,18 @@ encryption = "age"
 
     workspace = {{ $workspace | quote }}
     workspace_extra = {{ $workspace_extra | quote }}
+    resources = {{ $resources | quote }}
     playground = {{ printf "%s/playground" $workspace | quote }}
     jupyter = {{ printf "%s/jupyter" $workspace | quote }}
     editor = {{ $editor | quote }}
 
     borgThisMachine = {{ promptBoolOnce . "borgThisMachine" "Use Borgbackups on this machine?" true }}
+	borgRepo = {{ $borgRepo }}
     borgEncryptionPassphrase = {{ $borgEncryptionPassphrase }}
-    borgRepository = {{ promptStringOnce . "borgRepository" "Borg repository location" (printf "%s/.backup_repo.borg" .chezmoi.homeDir) | quote }}
     borgWithPushover = {{ promptBoolOnce . "borgWithPushover" "Use Pushover in Borgbackups?" true }}
 
     fontsEnabled = {{ promptBoolOnce . "fontsEnabled" "Enable FONTS installation?" false }}
-    fontsPath = {{ printf "%s/fonts" $workspace | quote }}
+    fontsPath = {{ printf "%s/fonts" $resources | quote }}
 
     nvimType = {{ $nvimType | quote }}
     nvimLoadAllDistros = {{ promptBoolOnce . "nvimLoadAllDistros" "Load all NeoVim distributions?" true }}
@@ -145,6 +151,7 @@ encryption = "age"
     gitLocalRepositories = {{ printf "%s/.local/git" .chezmoi.destDir | quote }}
     gitGithub.name = {{ $githubName }}
     gitGithub.email = {{ $githubEmail }}
+	gitGithub.accessToken = {{ $githubAccessToken }}
     gitGithub.gpgsign.enabled = {{ $githubGpgsignEnabled }}
     gitGithub.gpgsign.signingKey = {{ $githubGpgsignSigningKey }}
     gitGithub.gpgsign.program = {{ $githubGpgsignProgram  }}
@@ -153,3 +160,6 @@ encryption = "age"
 [git]
   autoCommit = {{ promptBoolOnce . "gitAutoCommit" "Enable automatic commits?" false }}
   autoPush = {{ promptBoolOnce . "gitAutoPush" "Enable automatic push?" false }}
+
+[hooks.read-source-state.pre]
+  command = ".local/share/chezmoi/.install-prerequisites.sh"

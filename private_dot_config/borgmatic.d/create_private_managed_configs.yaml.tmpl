@@ -3,7 +3,7 @@ source_directories:
   - {{ printf "%s/.local/managed-configs" .chezmoi.homeDir | quote  }}
 
 repositories:
-  - path: {{ .borgRepository | quote }}
+  - path: {{ .borgRepo | quote }}
     
 
 local_path: /opt/homebrew/bin/borg

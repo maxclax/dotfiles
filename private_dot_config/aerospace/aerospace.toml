@@ -235,6 +235,10 @@ if.app-id = 'com.mitchellh.ghostty'
 run = "move-node-to-workspace T"
 
 [[on-window-detected]]
+if.app-id = 'com.p5sys.jump.mac.viewer'
+run = "move-node-to-workspace V"
+
+[[on-window-detected]]
 if.app-id = 'com.electron.logseq'
 run = "move-node-to-workspace P"
 [[on-window-detected]]
@@ -246,6 +250,7 @@ run = "move-node-to-workspace P"
 [[on-window-detected]]
 if.app-id = 'com.BZG.Rescuetime'
 run = "move-node-to-workspace P"
+
 
 [[on-window-detected]]
 if.app-id = 'md.obsidian'

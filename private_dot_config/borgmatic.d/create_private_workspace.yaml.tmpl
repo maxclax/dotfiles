@@ -3,7 +3,7 @@ source_directories:
   - {{ .workspace | quote }}
 
 repositories:
-  - path: {{ .borgRepository | quote }}
+  - path: {{ .borgRepo | quote }}
     
 exclude_patterns:
   - '*/.data/*'

@@ -5,7 +5,6 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 
 {{ $brew_taps := list
   "borgbackup/tap"
-  "d12frosted/emacs-plus"
   "derailed/popeye"
   "FelixKratz/formulae" -}}
   
@@ -17,7 +16,8 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
   "btop"
   "bandwhich"
   "borders"
-  "borgbackup-fuse"
+  "borgbackup"
+  "borgbackup/tap/borgbackup-fuse"
   "borgmatic"
   "coreutils"
   "chafa"
@@ -26,6 +26,7 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
   "cmatrix"
   "ctop"
   "universal-ctags"
+  "d12frosted/emacs-plus/emacs-plus"
   "direnv"
   "dockutil"
   "duf"
@@ -89,8 +90,6 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 
 # Define the list of cask applications
 {{ $casks := list
-  "1password"
-  "1password-cli"
   "BetterTouchTool"
   "alacritty"
   "alfred"
@@ -104,9 +103,7 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
   "macfuse"
   "daisydisk"
   "devonthink"
-  "emacs-plus"
   "oversight"
-  "teamviewer"
   "banktivity"
   "podman-desktop"
   "obsidian"
@@ -132,10 +129,9 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
   "logseq"
   "nikitabobko/tap/aerospace"
   "neovide"
-  "omnifocus"
-  "pdf-expert"
   "qutebrowser"
   "rescuetime"
+  "raspberry-pi-imager"
   "send-to-kindle"
   "tor-browser"
   "transmission"
@@ -152,7 +148,6 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 
 # Define the list of Mac App Store applications
 {{ $masApps := dict
-  "1Password for Safari" 1569813296
   "Airmail" 918858936
   "Amphetamine" 937984704
   "Brother Transfer Express" 1627217996
@@ -173,6 +168,11 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
   "RAR Extractor and Expander" 1071663619
   "SiteSucker" 442168834
   "Telegram" 747648890
+  "Vimlike" 1584519802 
+  "Mate Translate" 1005088137
+  "Jump Desktop" 524141863
+  "KeyboardMetrics" 6737981817
+  ""
 -}}
 
 # Generate the Brewfile format output
