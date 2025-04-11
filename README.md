@@ -63,7 +63,9 @@ op item create --category="Secure Note" --title="chezmoi-data" \
   github-username="YOUR_GITHUB_USERNAME" \
   github-email="YOUR_GITHUB_EMAIL" \
   github-signing-key="YOUR_SSH_SIGNING_KEY" \
+  github-access-token="YOUR_GITHUB_ACCESS_TOKEN" \
   key-pub-key="YOUR_AGE_PUB_KEY" \
+  borg-repo="YOUR_BORG_REPO" \
   borg-encryption-passphrase="YOUR_BORG_ENCRYPTION_PASSPHRASE" \
   atuin-username="YOUR_ATUIN_USERNAME" \
   atuin-password="YOUR_ATUIN_PASSWORD" \

@@ -78,7 +78,7 @@ return {
 				yamllint = {
 					args = {
 						"--config-file",
-						vim.fn.expand("~/templates/.yamllint.yml"), -- Absolute path required
+						vim.fn.expand("~/helpers/templates/.yamllint.yml"), -- Absolute path required
 						"--format",
 						"parsable",
 						"-",
