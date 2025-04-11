@@ -49,11 +49,11 @@ endif
 
 # Environment setup
 env:
-	tmuxinator start -p `pwd`/.tmuxinator.yml app_workspace=`pwd`;
+	tmuxinator main;
 
 # Kill tmux session
 tkill:
-	@tmux kill-session -t dotfiles || echo "Session 'dotfiles' does not exist."
+	@tmux kill-session -t main || echo "Session 'main' does not exist."
 
 tkill_all:
 	pkill -f tmux
