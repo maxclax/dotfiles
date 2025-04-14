@@ -1,0 +1,14 @@
+{
+  "buttons": [
+    "Check Status",
+    "Show Log",
+    "Commit",
+    "Push"
+  ],
+  "checkWhenDBChanged": false,
+  "autoCheckSynced": false,
+  "autoPush": false,
+  "typeCommitMessage": "Default Message With Date",
+  "customCommitMessage": "",
+  "disabled": false
+}
