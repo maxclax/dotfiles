@@ -1,0 +1,56 @@
+{
+  "customEmojiSettings": [
+    {
+      "emoji": "doge",
+      "label": "Doge",
+      "url": "https://i.imgur.com/HeGEEbu.jpeg",
+      "tags": [
+        "dog",
+        "doge",
+        "meme"
+      ],
+      "data": {
+        "id": 1
+      }
+    },
+    {
+      "emoji": "logseq",
+      "label": "Logseq",
+      "url": "https://raw.githubusercontent.com/logseq/logseq/master/resources/icons/logseq.png",
+      "tags": [
+        "logo",
+        "logseq"
+      ],
+      "data": {
+        "id": 2
+      }
+    },
+    {
+      "emoji": "nyancat",
+      "label": "Nyan cat",
+      "url": "https://i.imgur.com/MjeqeUP.gif",
+      "tags": [
+        "cat",
+        "rainbow",
+        "meme"
+      ],
+      "data": {
+        "id": 3
+      }
+    },
+    {
+      "emoji": "partyparrot",
+      "label": "party parrot",
+      "url": "https://i.imgur.com/IJsMwM4.gif",
+      "tags": [
+        "party",
+        "parrot",
+        "meme"
+      ],
+      "data": {
+        "id": 4
+      }
+    }
+  ],
+  "disabled": false
+}

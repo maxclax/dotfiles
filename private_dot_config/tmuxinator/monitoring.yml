@@ -1,0 +1,16 @@
+# ./.tmuxinator.yml
+# convert to bash = `tmuxinator debug development`
+
+name: monitoring
+root: ~
+
+# You can set tmuxinator to skip auto-attaching to the session by using the attach option.
+attach: true
+
+windows:
+  - main:
+      # even-horizontal, even-vertical, main-horizontal, main-vertical, or tiled.
+      layout: tiled
+      panes:
+        - clear
+

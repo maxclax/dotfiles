@@ -1,0 +1,20 @@
+{
+  "keyboard": "f f",
+  "zoom_factor": 150,
+  "disabled": false,
+  "init": true,
+  "on_startup": [
+    "Enter Focus Mode"
+  ],
+  "on_toggle": [
+    "Toggle Fullscreen Mode"
+  ],
+  "on_focus": [
+    "Hide Left Sidebar",
+    "Hide help"
+  ],
+  "on_unfocus": [
+    "Show Left Sidebar",
+    "Show help"
+  ]
+}
