@@ -4,6 +4,11 @@
 # -u: exit on unset variables
 set -eu
 
+# Run prerequisites script first
+echo "Installing prerequisites..."
+script_dir="$(cd -P -- "$(dirname -- "$(command -v -- "$0")")" && pwd -P)"
+sh -c "${script_dir}/.install-prerequisites.sh"
+
 if ! chezmoi="$(command -v chezmoi)"; then
 	bin_dir="${HOME}/.local/bin"
 	chezmoi="${bin_dir}/chezmoi"

@@ -32,7 +32,23 @@ install_on_mac() {
 	xcode-select --install || echo "XCode already installed"
 
 	if [[ "$(uname -m)" == "arm64" ]]; then
-		softwareupdate --install-rosetta --agree-to-license
+		# Check if Rosetta is already installed
+		if [[ ! -f /Library/Apple/usr/share/rosetta/rosetta ]]; then
+			echo "Installing Rosetta 2..."
+			# Run the command and capture its output and exit status
+			output=$(softwareupdate --install-rosetta --agree-to-license 2>&1)
+			status=$?
+
+			# Check if the installation was successful despite potential warnings
+			if [[ $status -eq 0 ]] || [[ $output == *"finished successfully"* ]]; then
+				echo "Rosetta 2 installation completed successfully"
+			else
+				echo "Rosetta installation encountered errors but may still be functional"
+				echo "Error details: $output"
+			fi
+		else
+			echo "Rosetta 2 is already installed"
+		fi
 	fi
 
 	install_brew
