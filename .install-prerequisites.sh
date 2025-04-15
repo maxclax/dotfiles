@@ -36,9 +36,12 @@ install_age() {
 			sudo apt update && sudo apt install age
 		fi
 	fi
+	echo 'Generating age key...'
+	age-keygen | age --armor --passphrase >~/.config/chezmoi/key.txt
 }
 
 install_on_linux() {
+	sudo apt update && sudo apt install curl git wget
 	install_pkgx
 	install_1password
 	install_age

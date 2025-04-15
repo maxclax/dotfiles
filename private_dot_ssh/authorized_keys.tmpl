@@ -1,7 +1,8 @@
+{{ if eq .chezmoi.os "darwin" }}
 {{- $keys := gitHubKeys .gitGithub.name -}}
 {{- if $keys -}}
   {{- range $keys -}}
     {{ .Key }}
   {{- end -}}
 {{- end -}}
-
+{{ end }}
