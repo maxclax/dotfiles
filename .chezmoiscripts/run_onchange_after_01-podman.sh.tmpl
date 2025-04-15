@@ -11,6 +11,10 @@ case $(uname) in
 Darwin)
   brew install podman
   brew install podman-compose
+
+  # install podman-mac-helper
+  echo "Installing podman-mac-helper..."
+  sudo $/opt/homebrew/bin/podman-mac-helper install
   ;;
 Linux)
   sudo apt install podman podman-compose

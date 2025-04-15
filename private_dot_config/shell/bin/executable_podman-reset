@@ -4,7 +4,7 @@ set -e
 
 # Help function
 show_help() {
-    cat << EOF
+	cat <<EOF
 Usage: podman-reset [OPTIONS]
 
 Reset podman environment completely, removing all containers, images, volumes, and machine configuration.
@@ -20,38 +20,38 @@ EOF
 # Parse command line arguments
 FORCE=0
 while [[ $# -gt 0 ]]; do
-    case $1 in
-        -f|--force)
-            FORCE=1
-            shift
-            ;;
-        -h|--help)
-            show_help
-            exit 0
-            ;;
-        *)
-            echo "Unknown option: $1"
-            show_help
-            exit 1
-            ;;
-    esac
+	case $1 in
+	-f | --force)
+		FORCE=1
+		shift
+		;;
+	-h | --help)
+		show_help
+		exit 0
+		;;
+	*)
+		echo "Unknown option: $1"
+		show_help
+		exit 1
+		;;
+	esac
 done
 
 # Confirm unless force flag is used
 if [ $FORCE -eq 0 ]; then
-    echo "WARNING: This will remove all containers, images, volumes, and podman machine configuration!"
-    read -p "Are you sure you want to continue? (y/N) " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        echo "Operation cancelled."
-        exit 1
-    fi
+	echo "WARNING: This will remove all containers, images, volumes, and podman machine configuration!"
+	read -p "Are you sure you want to continue? (y/N) " -n 1 -r
+	echo
+	if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+		echo "Operation cancelled."
+		exit 1
+	fi
 fi
 
 # Check if podman is installed
 if ! command -v podman >/dev/null 2>&1; then
-    echo "Error: Podman is not installed."
-    exit 1
+	echo "Error: Podman is not installed."
+	exit 1
 fi
 
 echo "Removing Docker compatibility layer..."
@@ -62,18 +62,20 @@ podman system prune --all --volumes --force
 
 echo "Stopping Podman machine..."
 if podman machine list | grep -q "Currently running"; then
-    podman machine stop
+	podman machine stop
 fi
 
 echo "Removing Podman machine..."
 if podman machine list | grep -q "podman-machine-default"; then
-    podman machine rm -f
+	podman machine rm -f
 fi
 
-echo "Uninstalling Podman Mac helper..."
-if [ -f "$HOMEBREW_PREFIX/bin/podman-mac-helper" ]; then
-    sudo $HOMEBREW_PREFIX/bin/podman-mac-helper uninstall
+# Only uninstall Podman Mac helper on macOS
+if [[ "$OSTYPE" == "darwin"* ]]; then
+	echo "Uninstalling Podman Mac helper..."
+	if [ -f "$HOMEBREW_PREFIX/bin/podman-mac-helper" ]; then
+		sudo $HOMEBREW_PREFIX/bin/podman-mac-helper uninstall
+	fi
 fi
 
 echo "Podman environment has been reset successfully!"
-
