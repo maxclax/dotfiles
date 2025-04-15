@@ -51,40 +51,15 @@ while [[ $# -gt 0 ]]; do
 	esac
 done
 
-# Check if brew is installed
-if ! command -v brew >/dev/null 2>&1; then
-	echo "Error: Homebrew is required but not installed."
-	exit 1
-fi
-
 echo "Setting up Podman with CPU=$CPU, Memory=${MEM}MB, Disk=${DISK_SIZE}GB"
-
-# Install podman if not already installed
-if ! command -v podman >/dev/null 2>&1; then
-	echo "Installing podman..."
-	brew install podman
-else
-	echo "Podman is already installed, skipping installation..."
-fi
 
 # Initialize podman machine with specified or default CPU, memory and disk size
 echo "Initializing podman machine..."
 podman machine init --cpus "$CPU" -m "$MEM" --disk-size "$DISK_SIZE" -v /Users -v /Volumes
 podman machine start
 
-# install podman-mac-helper
-echo "Installing podman-mac-helper..."
-sudo $HOMEBREW_PREFIX/bin/podman-mac-helper install
 podman machine stop
 podman machine start
-
-# install podman-compose if not already installed
-if ! command -v podman-compose >/dev/null 2>&1; then
-	echo "Installing podman-compose..."
-	brew install podman-compose
-else
-	echo "Podman-compose is already installed, skipping installation..."
-fi
 
 # set up for ryuk testcontainers
 echo "Setting up testcontainers configuration..."
