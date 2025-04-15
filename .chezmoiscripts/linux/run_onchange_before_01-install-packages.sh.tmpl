@@ -31,8 +31,10 @@
      "ncdu"
      "neofetch"
      "neovim"
-     "openssh-server"
-     "openvpn"
+     "python3-pip"
+	 "inetutils-telnet"
+	 "openssh-server"
+	 "openvpn"
      "ranger"
      "ripgrep"
      "shellcheck"
@@ -40,6 +42,7 @@
      "tmuxinator"
      "trash-cli"
      "tree"
+	 "thefuck"
      "units"
      "vim"
      "wget"
@@ -49,7 +52,6 @@
      "zsh" -}}
 
 {{ $pkgx := list
-     "bat"
      "ctop"
      "eza"
      "fd"
@@ -58,25 +60,12 @@
      "kubectl"
      "kubectx"
      "lazygit"
-     "slides"
-     "thefuck" -}}
+     "slides" -}}
 
-{{ $gui := list -}}
-{{ $snaps := list -}}
-{{ $classicSnaps := list -}}
 
 {{ $fonts := list
      "fonts-firacode"
      "fonts-jetbrains-mono" -}}
-
-{{ if eq .osid "linux-alpine" -}}
-{{   $packages = concat $packages (list "build-base" "py3-pip") -}}
-{{ end -}}
-
-{{ if eq .osid "linux-debian" -}}
-{{   $packages = concat $packages (list "python3-pip" "inetutils-telnet") -}}
-{{ end -}}
-
 
 {{ if not .ephemeral -}}
 {{   $packages = concat $packages (list "i3" "keepassxc" "alacritty") -}}
@@ -91,8 +80,8 @@
 
 set -eufo pipefail
 
-{{ $sudo }}apt-get update
-{{ $sudo }}apt-get install -y {{ $packages | join " " }} {{ $fonts | join " " }}
+{{ $sudo }}apt update
+{{ $sudo }}apt install -y {{ $packages | join " " }} {{ $fonts | join " " }}
 
 {{ if not .ephemeral -}}
 curl -fsSL https://apt.fury.io/wez/gpg.key | {{ $sudo }}gpg --yes --dearmor -o /etc/apt/keyrings/wezterm-fury.gpg
@@ -101,20 +90,9 @@ curl -fsSL https://apt.fury.io/wez/gpg.key | {{ $sudo }}gpg --yes --dearmor -o /
 {{ $sudo }}apt-get install -y wezterm
 {{ end -}}
 
-{{ if eq .osid "linux-alpine" -}}
 {{ if lookPath "pkgx" }}
 {{   range $pkgx }}
 ( pkgx info {{ . }} | grep -q ^installed: ) || {{ $sudo }}pkgx install -y {{ . }}
-{{   end }}
-{{ end }}
-{{ end -}}
-
-{{ if lookPath "snap" }}
-{{   range $snaps }}
-( snap info {{ . }} | grep -q ^installed: ) || {{ $sudo }}snap install {{ . }}
-{{   end }}
-{{   range $classicSnaps }}
-( snap info {{ . }} | grep -q ^installed: ) || {{ $sudo }}snap install --classic {{ . }}
 {{   end }}
 {{ end }}
 
