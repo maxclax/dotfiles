@@ -17,8 +17,8 @@ install_1password() {
 		if [[ "$OS" == "Darwin" ]]; then
 			brew install --cask 1password 1password-cli
 		# For Linux
-		elif [[ "$OS" == "Linux" ]]; then
-			sudo apt update && sudo apt install 1password 1password-cli
+		# elif [[ "$OS" == "Linux" ]]; then
+		# 	sudo apt update && sudo apt install 1password 1password-cli
 		fi
 	fi
 }
