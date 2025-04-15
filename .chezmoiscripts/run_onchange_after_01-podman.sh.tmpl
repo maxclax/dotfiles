@@ -13,8 +13,7 @@ Darwin)
   brew install podman-compose
   ;;
 Linux)
-  apt install podman
-  apt install podman-compose
+  sudo apt install podman podman-compose
 
   # For AMD64 / x86_64
   [ $(uname -m) = x86_64 ] && curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.27.0/kind-linux-amd64
