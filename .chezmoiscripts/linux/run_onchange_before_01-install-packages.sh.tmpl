@@ -51,18 +51,6 @@
      "zsh-syntax-highlighting"
      "zsh" -}}
 
-{{ $pkgx := list
-     "ctop"
-     "eza"
-     "fd"
-     "helm"
-     "k9s"
-     "kubectl"
-     "kubectx"
-     "lazygit"
-     "slides" -}}
-
-
 {{ $fonts := list
      "fonts-firacode"
      "fonts-jetbrains-mono" -}}
@@ -89,12 +77,6 @@ curl -fsSL https://apt.fury.io/wez/gpg.key | {{ $sudo }}gpg --yes --dearmor -o /
 {{ $sudo }}apt-get update
 {{ $sudo }}apt-get install -y wezterm
 {{ end -}}
-
-{{ if lookPath "pkgx" }}
-{{   range $pkgx }}
-( pkgx info {{ . }} | grep -q ^installed: ) || {{ $sudo }}pkgx install -y {{ . }}
-{{   end }}
-{{ end }}
 
 # Check if Go is enabled and not already installed
 if [ "{{ .goEnabled }}" = "true" ]; then
