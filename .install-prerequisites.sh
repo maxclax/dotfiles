@@ -18,7 +18,7 @@ install_1password() {
 			brew install --cask 1password 1password-cli
 		# For Linux
 		# elif [[ "$OS" == "Linux" ]]; then
-		# 	sudo apt update && sudo apt install 1password 1password-cli
+		# 	apt update && apt install 1password 1password-cli
 		fi
 	fi
 }
@@ -33,7 +33,7 @@ install_age() {
 			brew install age
 		# For Linux
 		elif [[ "$OS" == "Linux" ]]; then
-			sudo apt update && sudo apt install age
+			apt update && apt install age
 		fi
 	fi
 	echo 'Generating age key...'
@@ -41,7 +41,7 @@ install_age() {
 }
 
 install_on_linux() {
-	sudo apt update && sudo apt install curl git wget
+	apt update && apt install curl git wget
 	install_pkgx
 	install_1password
 	install_age
