@@ -57,17 +57,17 @@
 {{-   end -}}
 {{- end -}}
 
-{{- $name := "dev" -}}
-{{- $email := "dev" -}}
-{{- $githubName := "dev" -}} 
-{{- $githubEmail := "dev" -}}
+{{- $name := "dev" | quote -}}
+{{- $email := "dev" | quote -}}
+{{- $githubName := "dev" | quote -}} 
+{{- $githubEmail := "dev" | quote -}}
 {{- $githubGpgsignEnabled := false -}}
-{{- $githubGpgsignSigningKey := "" -}}
-{{- $githubAccessToken := "" -}}
-{{- $githubGpgsignProgram := "" -}}
-{{- $agePubKey := "" -}}
-{{- $borgRepo := "" -}}
-{{- $borgEncryptionPassphrase := "" -}}
+{{- $githubGpgsignSigningKey := "" | quote -}}
+{{- $githubAccessToken := "" | quote -}}
+{{- $githubGpgsignProgram := "" | quote -}}
+{{- $agePubKey := "" | quote -}}
+{{- $borgRepo := "" | quote -}}
+{{- $borgEncryptionPassphrase := "" | quote -}}
 
 {{- $useOp := promptBoolOnce . "useOp" "Do you want to use 1Password CLI (op) for configuration?" true -}}
 
