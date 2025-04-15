@@ -23,9 +23,25 @@ install_1password() {
 	fi
 }
 
+install_age() {
+	if which age; then
+		echo 'age is already installed'
+	else
+		echo 'Installing age...'
+		# For macOS
+		if [[ "$OS" == "Darwin" ]]; then
+			brew install age
+		# For Linux
+		elif [[ "$OS" == "Linux" ]]; then
+			sudo apt update && sudo apt install age
+		fi
+	fi
+}
+
 install_on_linux() {
 	install_pkgx
 	install_1password
+	install_age
 }
 
 install_on_mac() {
@@ -56,6 +72,7 @@ install_on_mac() {
 
 	install_pkgx
 	install_1password
+	install_age
 }
 
 install_brew() {

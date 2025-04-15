@@ -111,7 +111,7 @@ encryption = "age"
     editor = {{ $editor | quote }}
 
     borgThisMachine = {{ promptBoolOnce . "borgThisMachine" "Use Borgbackups on this machine?" true }}
-	borgRepo = {{ $borgRepo }}
+    borgRepo = {{ $borgRepo }}
     borgEncryptionPassphrase = {{ $borgEncryptionPassphrase }}
     borgWithPushover = {{ promptBoolOnce . "borgWithPushover" "Use Pushover in Borgbackups?" true }}
 
@@ -151,7 +151,7 @@ encryption = "age"
     gitLocalRepositories = {{ printf "%s/.local/git" .chezmoi.destDir | quote }}
     gitGithub.name = {{ $githubName }}
     gitGithub.email = {{ $githubEmail }}
-	gitGithub.accessToken = {{ $githubAccessToken }}
+    gitGithub.accessToken = {{ $githubAccessToken }}
     gitGithub.gpgsign.enabled = {{ $githubGpgsignEnabled }}
     gitGithub.gpgsign.signingKey = {{ $githubGpgsignSigningKey }}
     gitGithub.gpgsign.program = {{ $githubGpgsignProgram  }}
