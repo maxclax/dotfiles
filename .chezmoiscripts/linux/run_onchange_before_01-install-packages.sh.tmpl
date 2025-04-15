@@ -101,12 +101,13 @@ curl -fsSL https://apt.fury.io/wez/gpg.key | {{ $sudo }}gpg --yes --dearmor -o /
 {{ $sudo }}apt-get install -y wezterm
 {{ end -}}
 
+{{ if eq .osid "linux-alpine" -}}
 {{ if lookPath "pkgx" }}
 {{   range $pkgx }}
 ( pkgx info {{ . }} | grep -q ^installed: ) || {{ $sudo }}pkgx install -y {{ . }}
 {{   end }}
-thefuck
 {{ end }}
+{{ end -}}
 
 {{ if lookPath "snap" }}
 {{   range $snaps }}
@@ -116,5 +117,25 @@ thefuck
 ( snap info {{ . }} | grep -q ^installed: ) || {{ $sudo }}snap install --classic {{ . }}
 {{   end }}
 {{ end }}
+
+# Check if Go is enabled and not already installed
+if [ "{{ .goEnabled }}" = "true" ]; then
+  if ! command -v go &> /dev/null; then
+    echo "Go installation..."
+    {{ $sudo }}apt install -y golang-go
+  else
+    echo "Go is already installed. Skipping installation."
+  fi
+fi
+
+# Check if Rust is enabled and not already installed
+if [ "{{ .rustEnabled }}" = "true" ]; then
+  if ! command -v rustc &> /dev/null; then
+    echo "Rust installation..."
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+  else
+    echo "Rust is already installed. Skipping installation."
+  fi
+fi
 
 {{ end -}}

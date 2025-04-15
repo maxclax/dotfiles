@@ -22,6 +22,8 @@ My personal dotfiles for macOS and Linux, managed with
 ## Quick Install
 
 ```bash
+sh -c "$(curl -fsLS https://raw.githubusercontent.com/maxclax/dotfiles/main/.install-prerequisites.sh)"
+#
 sh -c "$(curl -fsLS get.chezmoi.io)" -- init --branch main --apply maxclax
 ```
 
@@ -30,6 +32,8 @@ sh -c "$(curl -fsLS get.chezmoi.io)" -- init --branch main --apply maxclax
 1. Install chezmoi:
 
 ```bash
+sh -c "$(curl -fsLS https://raw.githubusercontent.com/maxclax/dotfiles/main/.install-prerequisites.sh)"
+#
 sh -c "$(curl -fsLS get.chezmoi.io)"
 ```
 

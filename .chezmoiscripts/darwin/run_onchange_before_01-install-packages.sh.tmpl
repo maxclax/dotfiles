@@ -193,14 +193,22 @@ mas "{{ . }}", id: {{ index $masApps . }}
 EOF
 
 
-# Check if Go are enabled
+# Check if Go is enabled and not already installed
 if [ "{{ .goEnabled }}" = "true" ]; then
-  echo "Go installation..."
-  brew install go 
+  if ! command -v go &> /dev/null; then
+    echo "Go installation..."
+    brew install go
+  else
+    echo "Go is already installed. Skipping installation."
+  fi
 fi
 
-# Check if Rust are enabled
+# Check if Rust is enabled and not already installed
 if [ "{{ .rustEnabled }}" = "true" ]; then
-  echo "Rust installation..."
-  brew install rust rustup-init
+  if ! command -v rustc &> /dev/null; then
+    echo "Rust installation..."
+    brew install rust rustup-init
+  else
+    echo "Rust is already installed. Skipping installation."
+  fi
 fi

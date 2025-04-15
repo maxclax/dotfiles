@@ -10,9 +10,10 @@
         "GITHUB_PERSONAL_ACCESS_TOKEN",
         "ghcr.io/github/github-mcp-server"
       ],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": {{ .gitGithub.accessToken | quote }}
-      }
+	"env": {
+	  "GITHUB_PERSONAL_ACCESS_TOKEN": "cmd:op read op://Personal/Anthropic/tokens/neovim --no-newline"
+	},
+      "disabled": true
     },
     "google-maps": {
       "command": "docker",
