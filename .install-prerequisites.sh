@@ -16,9 +16,6 @@ install_1password() {
 		# For macOS
 		if [[ "$OS" == "Darwin" ]]; then
 			brew install --cask 1password 1password-cli
-		# For Linux
-		# elif [[ "$OS" == "Linux" ]]; then
-		# 	apt update && apt install 1password 1password-cli
 		fi
 	fi
 }
@@ -29,10 +26,10 @@ install_age() {
 	else
 		echo 'Installing age...'
 		# For macOS
-		if [[ "$OS" == "Darwin" ]]; then
+		if [ "$OS" == "Darwin" ]; then
 			brew install age
 		# For Linux
-		elif [[ "$OS" == "Linux" ]]; then
+		elif [ "$OS" == "Linux" ]; then
 			apt update && apt install age
 		fi
 	fi
@@ -50,16 +47,16 @@ install_on_linux() {
 install_on_mac() {
 	xcode-select --install || echo "XCode already installed"
 
-	if [[ "$(uname -m)" == "arm64" ]]; then
+	if [ "$(uname -m)" == "arm64" ]; then
 		# Check if Rosetta is already installed
-		if [[ ! -f /Library/Apple/usr/share/rosetta/rosetta ]]; then
+		if [ ! -f /Library/Apple/usr/share/rosetta/rosetta ]; then
 			echo "Installing Rosetta 2..."
 			# Run the command and capture its output and exit status
 			output=$(softwareupdate --install-rosetta --agree-to-license 2>&1)
 			status=$?
 
 			# Check if the installation was successful despite potential warnings
-			if [[ $status -eq 0 ]] || [[ $output == *"finished successfully"* ]]; then
+			if [ $status -eq 0 ] || [ $output == *"finished successfully"* ]; then
 				echo "Rosetta 2 installation completed successfully"
 			else
 				echo "Rosetta installation encountered errors but may still be functional"
