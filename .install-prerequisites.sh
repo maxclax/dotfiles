@@ -16,30 +16,12 @@ install_pkgx() {
 	fi
 }
 
-generate_key() {
-	# Only generate key if age is installed and key doesn't exist
-	if which age >/dev/null 2>&1 && which age-keygen >/dev/null 2>&1; then
-		if [ ! -f ~/.config/chezmoi/key.txt ]; then
-			echo 'Generating age key...'
-			mkdir -p ~/.config/chezmoi
-			age-keygen | age --armor --passphrase >~/.config/chezmoi/key.txt
-		else
-			echo 'Age key already exists'
-		fi
-	else
-		echo 'Warning: age or age-keygen not found, skipping key generation'
-	fi
-}
-
 install_on_linux() {
 	echo "Installing prerequisites for Linux..."
 	sudo apt update && sudo apt install -y curl git wget age
 
 	# pkgx
 	install_pkgx
-
-	# Generate key
-	generate_key
 }
 
 install_on_mac() {
@@ -77,9 +59,6 @@ install_on_mac() {
 
 	# Install 1Password CLI and GUI
 	brew install --cask 1password 1password-cli
-
-	# Generate key
-	generate_key
 }
 
 OS="$(uname -s)"
