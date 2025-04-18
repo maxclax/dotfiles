@@ -65,7 +65,6 @@
 {{- $githubGpgsignSigningKey := "" | quote -}}
 {{- $githubAccessToken := "" | quote -}}
 {{- $githubGpgsignProgram := "" | quote -}}
-{{- $agePubKey := "" | quote -}}
 {{- $borgRepo := "" | quote -}}
 {{- $borgEncryptionPassphrase := "" | quote -}}
 
@@ -73,7 +72,6 @@
 
 {{- if $useOp -}}
 {{-   $githubGpgsignEnabled = promptBoolOnce . "gitGithub.gpgsign.enabled" "Enable GPG signing for Git commits?" false  -}}
-{{-   $agePubKey = onepasswordRead "op://Private/chezmoi-data/age-pub-key" | quote -}}
 {{-   $borgRepo = onepasswordRead "op://Private/chezmoi-data/borg-repo" | quote -}}
 {{-   $borgEncryptionPassphrase = onepasswordRead "op://Private/chezmoi-data/borg-encryption-passphrase" | quote -}}
 {{-   $name = onepasswordRead "op://Private/chezmoi-data/git-config-name" | quote -}}
@@ -85,11 +83,10 @@
 {{-   $githubGpgsignProgram = promptStringOnce . "gitGithub.gpgsign.program" "GPG signing program" "/Applications/1Password.app/Contents/MacOS/op-ssh-sign" | quote -}}
 {{- end -}}
 
-
 encryption = "age"
 [age]
-    identity = {{ promptStringOnce . "age.identity" "Age identity file location" (printf "%s/.config/chezmoi/key.txt" .chezmoi.homeDir) | quote }}
-    recipient = {{ $agePubKey }}
+    identity = "~/.ssh/dotfiles"
+    symmetric = true
 
 [onepassword]
     command = "op"

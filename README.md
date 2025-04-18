@@ -45,15 +45,11 @@ chezmoi init --branch main https://github.com/maxclax/dotfiles.git
 
 ## Security Setup (in your own branch)
 
-### 1. Generate age Key (First Time Setup)
+### 1. Symmetric encryption
 
-```bash
-chezmoi cd ~
-age-keygen | age --armor --passphrase > key.txt.age
-```
+[Encryption](https://www.chezmoi.io/user-guide/encryption/age/)
 
-Next use to add data in chezmoi.toml
-[Encryption](https://www.chezmoi.io/user-guide/frequently-asked-questions/encryption/)
+`chezmoi add --encrypt FILE`
 
 ### 2. Configure 1Password (only once in account)
 
