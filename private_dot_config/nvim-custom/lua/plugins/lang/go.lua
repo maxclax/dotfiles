@@ -10,67 +10,87 @@ vim.api.nvim_create_autocmd("FileType", {
 	end,
 })
 
---- Return local path, if it exists, or nil
-local function local_path(path)
-	if vim.fn.isdirectory(vim.fn.expand(path)) == 0 then
-		return nil
-	end
-	return path
-end
-
 local golangci_config_filepath_cache = nil
 local tags = "-tags=wireinject,integration"
 
+local function golangci_config()
+	if golangci_config_filepath_cache ~= nil then
+		vim.notify_once("golangci-lint: " .. golangci_config_filepath_cache, vim.log.levels.INFO)
+		return "--config=" .. golangci_config_filepath_cache
+	end
+
+	local found_bin = vim.fn.system("which golangci-lint")
+	if not string.find(found_bin, "mason/bin") then
+		vim.notify("golangci-lint binary not provided by mason: " .. found_bin, vim.log.levels.WARN)
+	end
+
+	local found_config
+	found_config = vim.fs.find(
+		{ ".golangci.yml", ".golangci.yaml", ".golangci.toml", ".golangci.json" },
+		{ type = "file", limit = 1 }
+	)
+	if #found_config == 1 then
+		local filepath = found_config[1]
+		golangci_config_filepath_cache = filepath
+		local arg = "--config=" .. golangci_config_filepath_cache
+		return arg
+	else
+		local filepath = vim.fn.expand("~/helpers/templates/.golangci.yml")
+		golangci_config_filepath_cache = filepath
+		local arg = "--config=" .. golangci_config_filepath_cache
+		return arg
+	end
+end
+
+local function golangci_filename()
+	local filepath = vim.api.nvim_buf_get_name(0)
+	local parent = vim.fn.fnamemodify(filepath, ":h")
+	return parent
+end
+
 local function golangcilint_args()
-	local args = {}
-	args = {
+	local ok, output = pcall(vim.fn.system, { "golangci-lint", "version" })
+	if not ok then
+		return
+	end
+
+	-- The golangci-lint install script and prebuilt binaries strip the v from the version
+	--   tag so both strings must be checked
+	if string.find(output, "version v1") or string.find(output, "version 1") then
+		return {
+			"run",
+			"--out-format",
+			"json",
+			"--issues-exit-code=0",
+			"--show-stats=false",
+			"--print-issued-lines=false",
+			"--print-linter-name=false",
+
+			golangci_config,
+			golangci_filename,
+		}
+	end
+
+	return {
 		"run",
-		"--out-format",
-		"json",
+		"--output.json.path=stdout",
+
+		-- Overwrite values possibly set in .golangci.yml
+		"--output.text.path=",
+		"--output.tab.path=",
+		"--output.html.path=",
+		"--output.checkstyle.path=",
+		"--output.code-climate.path=",
+		"--output.junit-xml.path=",
+		"--output.teamcity.path=",
+		"--output.sarif.path=",
+
 		"--issues-exit-code=0",
 		"--show-stats=false",
-		"--print-issued-lines=false",
-		"--print-linter-name=false",
 
-		-- config file
-		function()
-			if golangci_config_filepath_cache ~= nil then
-				vim.notify_once("golangci-lint: " .. golangci_config_filepath_cache, vim.log.levels.INFO)
-				return "--config=" .. golangci_config_filepath_cache
-			end
-
-			local found = vim.fn.system("which golangci-lint")
-			if not string.find(found, "mason/bin") then
-				vim.notify("golangci-lint binary not provided by mason: " .. found, vim.log.levels.WARN)
-			end
-
-			local found
-			found = vim.fs.find(
-				{ ".golangci.yml", ".golangci.yaml", ".golangci.toml", ".golangci.json" },
-				{ type = "file", limit = 1 }
-			)
-			if #found == 1 then
-				local filepath = found[1]
-				golangci_config_filepath_cache = filepath
-				local arg = "--config=" .. golangci_config_filepath_cache
-				return arg
-			else
-				local filepath = require("fredrik.utils.environ").getenv("DOTFILES") .. "/templates/.golangci.yml"
-				golangci_config_filepath_cache = filepath
-				local arg = "--config=" .. golangci_config_filepath_cache
-				return arg
-			end
-		end,
-
-		-- filename
-		function()
-			local filepath = vim.api.nvim_buf_get_name(0)
-			local parent = vim.fn.fnamemodify(filepath, ":h")
-			return parent
-		end,
+		golangci_config,
+		golangci_filename,
 	}
-
-	return args
 end
 
 return {
@@ -281,17 +301,6 @@ return {
 			})
 		end,
 		event = { "CmdlineEnter" },
-	},
-
-	{
-		"nvim-neotest/neotest",
-		lazy = true,
-		ft = { "go" },
-		dependencies = {},
-
-		opts = function(_, opts)
-			opts.adapters = opts.adapters or {}
-		end,
 	},
 
 	{
