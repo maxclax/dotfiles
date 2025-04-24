@@ -10,10 +10,10 @@
         "GITHUB_PERSONAL_ACCESS_TOKEN",
         "ghcr.io/github/github-mcp-server"
       ],
-	"env": {
-	  "GITHUB_PERSONAL_ACCESS_TOKEN": "cmd:op read op://Personal/Anthropic/tokens/neovim --no-newline"
-	},
-      "disabled": false
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "cmd:op read op://Personal/chezmoi-data/github-access-token --no-newline"
+      },
+	  "disabled": false
     },
     "google-maps": {
       "command": "docker",
@@ -47,6 +47,14 @@
       "autoApprove": [],
       "args": ["-y", "tavily-mcp@0.1.4"],
       "disabled": true
+    },
+    "filesystem": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "{{ .workspace }}"
+      ],
+      "command": "npx"
     }
   },
   "nativeMCPServers": []
