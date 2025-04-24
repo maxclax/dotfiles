@@ -31,17 +31,17 @@ sh -c "$(curl -fsLS get.chezmoi.io)" -- init --branch main --apply maxclax
 
 1. Install chezmoi:
 
-```bash
-sh -c "$(curl -fsLS https://raw.githubusercontent.com/maxclax/dotfiles/main/.install-prerequisites.sh)"
-#
-sh -c "$(curl -fsLS get.chezmoi.io)"
-```
+   ```bash
+   sh -c "$(curl -fsLS https://raw.githubusercontent.com/maxclax/dotfiles/main/.install-prerequisites.sh)"
+   #
+   sh -c "$(curl -fsLS get.chezmoi.io)"
+   ```
 
 2. Initialize chezmoi:
 
-```bash
-chezmoi init --branch main https://github.com/maxclax/dotfiles.git
-```
+   ```bash
+   chezmoi init --branch main https://github.com/maxclax/dotfiles.git
+   ```
 
 ## Security Setup (in your own branch)
 
@@ -127,7 +127,7 @@ chezmoi add --encrypt FILE
 borgmatic init --encryption=repokey ssh://user@your-storagebox.de:23/./backups/DIR
 ```
 
-#### To manually run a backup with Borgmatic, use the following command:
+#### To manually run a backup with Borgmatic, use the following command
 
 ```bash
 borgmatic --verbosity 1 --progress
@@ -165,5 +165,6 @@ To manually log in to Atuin using credentials stored in 1Password, run the
 following command:
 
 ```bash
-atuin login --username "$(op read op://Private/chezmoi-data/atuin-username)" --password "$(op read op://Private/chezmoi-data/atuin-password)"
+atuin login --username "$(op read op://Private/chezmoi-data/atuin-username)" \
+--password "$(op read op://Private/chezmoi-data/atuin-password)"
 ```
