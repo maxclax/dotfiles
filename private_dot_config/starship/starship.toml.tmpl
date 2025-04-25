@@ -4,10 +4,13 @@ format = """$directory$character"""
 palette = "gruvbox_dark"
 # move the rest of the prompt to the right
 right_format = """$all"""
-command_timeout = 1000
+command_timeout = 5000
 
 [directory.substitutions]
 '{{ .workspace }}' = 'workspace'
+'{{ .workspace_extra }}' = 'workspace_extra'
+'{{ .resources }}' = 'resources'
+'{{ .playground }}' = 'playground'
 
 [username]
 style_user = "bg:color_orange fg:color_fg0"

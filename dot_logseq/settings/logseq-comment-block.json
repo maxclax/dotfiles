@@ -1,4 +1,5 @@
 {
+  "putBlockRefAsChild": false,
   "disabled": false,
   "showToolbarIcon": true,
   "keyBindings": {

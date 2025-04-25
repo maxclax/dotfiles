@@ -29,7 +29,7 @@
  :logseq-swapblocks-plugin {:version "1.3.1", :repo "hkgnp/logseq-swapblocks-plugin", :effect false, :theme false}
  :logseq-move-block {:version "v1.0.0", :repo "vipzhicheng/logseq-plugin-move-block", :effect true, :theme false}
  :logseq-plugin-heading-level-shortcuts {:version "v0.0.6", :repo "vipzhicheng/logseq-plugin-heading-level-shortcuts", :effect false, :theme false}
- :logseq-comment-block {:version "v0.0.7", :repo "vipzhicheng/logseq-plugin-comment-block", :effect false, :theme false}
+ :logseq-comment-block {:version "v0.0.9", :repo "vipzhicheng/logseq-plugin-comment-block", :effect false, :theme false}
  :logseq-toc-plugin {:version "v2.0.3", :repo "benjypng/logseq-toc-plugin", :effect true, :theme false}
  :logseq-link-preview {:version "v2.3.0", :repo "pengx17/logseq-plugin-link-preview", :effect true, :theme false}
  :logseq-graph-analysis {:version "0.12.0", :repo "trashhalo/logseq-graph-analysis", :effect true, :theme false}
