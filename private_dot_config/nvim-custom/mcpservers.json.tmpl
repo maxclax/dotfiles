@@ -34,6 +34,11 @@
       "args": ["mcp-server-git"],
       "command": "uvx"
     },
+	"mcp-installer": {
+		"command": "npx",
+		"args": ["@anaisbetts/mcp-installer"],
+		"disabled": false
+	},
     "fetch": {
       "command": "uvx",
       "args": ["mcp-server-fetch"],
@@ -41,7 +46,7 @@
     },
     "github.com/tavily-ai/tavily-mcp": {
       "env": {
-        "TAVILY_API_KEY": null
+        "TAVILY_API_KEY":  "cmd:op read op://Personal/Tavily/TOKENS/token --no-newline"
       },
       "command": "npx",
       "autoApprove": [],
