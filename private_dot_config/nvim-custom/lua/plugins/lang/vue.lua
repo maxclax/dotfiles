@@ -1,0 +1,37 @@
+return {
+	{
+		"nvim-treesitter/nvim-treesitter",
+		opts = { ensure_installed = { "vue", "css" } },
+	},
+
+	{
+		"virtual-lsp-config",
+		dependencies = {
+			{
+				"williamboman/mason-lspconfig.nvim",
+				dependencies = { "williamboman/mason.nvim" },
+			},
+		},
+		opts = {
+			servers = {
+				volar = {
+					-- Add these lines to fix the error
+					cmd = { "vue-language-server", "--stdio" },
+					filetypes = { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue", "json" },
+					root_markers = { "package.json", "vite.config.ts", ".git" },
+					init_options = {
+						vue = {
+							hybridMode = true,
+						},
+						typescript = {
+							tsdk = vim.fn.expand(
+								"$HOME/.local/share/nvim-custom/mason/packages/typescript-language-server/node_modules/typescript/lib"
+							),
+						},
+					},
+				},
+				vtsls = {},
+			},
+		},
+	},
+}
