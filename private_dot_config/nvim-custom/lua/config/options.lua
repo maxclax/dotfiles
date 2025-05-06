@@ -88,14 +88,13 @@ function _G.custom_foldtext()
   return string.format("%s (%d lines)", line_text, line_count)
 end
 function M.treesitter_foldexpr()
-  vim.opt.foldmethod = "expr"
-  vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
-  vim.opt.foldtext = "v:lua.custom_foldtext()"
+  vim.opt_local.foldmethod = "expr"
+  vim.opt_local.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+  vim.opt_local.foldtext = "v:lua.custom_foldtext()"
 end
-function M.lsp_foldexpr(server)
+function M.lsp_foldexpr()
   vim.opt_local.foldmethod = "expr"
   vim.opt_local.foldexpr = "v:lua.vim.lsp.foldexpr()"
-  -- vim.opt_local.foldtext = "v:lua.vim.lsp.foldtext()"
   vim.opt_local.foldtext = "v:lua.custom_foldtext()"
 end
 vim.opt.foldcolumn = "0"
@@ -108,6 +107,9 @@ vim.opt.scrolloff = 4
 
 -- mouse support in all modes
 vim.opt.mouse = "a"
+
+-- scroll 1 line at a time
+vim.opt.mousescroll = { "ver:1", "hor:6" }
 
 -- project specific settings (see lazyrc.lua for .lazy.lua support)
 vim.opt.exrc = true -- allow local .nvim.lua .vimrc .exrc files

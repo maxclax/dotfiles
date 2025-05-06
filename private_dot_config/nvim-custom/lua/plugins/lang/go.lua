@@ -203,7 +203,10 @@ return {
 				---@type vim.lsp.Config
 				gopls = {
 					-- lsp: https://github.com/golang/tools/blob/master/gopls
-					-- reference: https://github.com/neovim/nvim-lspconfig/blob/master/lua/lspconfig/configs/gopls.lua
+					--
+					-- references:
+					-- vim.lsp.config: https://github.com/neovim/nvim-lspconfig/blob/master/lsp/gopls.lua
+					-- legacy: https://github.com/neovim/nvim-lspconfig/blob/master/lua/lspconfig/configs/gopls.lua
 					--
 					-- main readme: https://github.com/golang/tools/blob/master/gopls/doc/features/README.md
 					--
@@ -216,6 +219,7 @@ return {
 					cmd = { "gopls" },
 					filetypes = { "go", "gomod", "gowork", "gosum" },
 					root_markers = { "go.work", "go.mod", ".git" },
+					Workspace_required = true, -- disables single-file support
 					settings = {
 						gopls = {
 							buildFlags = { tags },
@@ -277,6 +281,36 @@ return {
 		lazy = true,
 		ft = "go",
 		opts = {},
+	},
+
+	{
+		"fang2hou/go-impl.nvim",
+		ft = "go",
+		dependencies = {
+			"MunifTanjim/nui.nvim",
+			"nvim-lua/plenary.nvim",
+			"folke/snacks.nvim",
+		},
+		opts = {},
+		cmd = { "GoImplOpen" },
+	},
+
+	{
+		"zgs225/gomodifytags.nvim",
+		dependencies = {
+			"nvim-treesitter/nvim-treesitter",
+			{
+				"williamboman/mason.nvim",
+				opts = function(_, opts)
+					opts.ensure_installed = opts.ensure_installed or {}
+					vim.list_extend(opts.ensure_installed, { "gomodifytags" })
+				end,
+			},
+		},
+		config = function(_, opts)
+			require("gomodifytags").setup(opts) -- Optional: You can add any specific configuration here if needed.
+		end,
+		cmd = { "GoAddTags", "GoRemoveTags", "GoInstallModifyTagsBin" },
 	},
 
 	{
