@@ -39,6 +39,8 @@
     "logseq-tocgen:open-toc",
     "logseq-kindle-import:kindle-higlights-import",
     "logseq-habit-tracker:show-habits",
+    "logseq-open-in-emacs:logseq-open-in-emacs",
+    "logseq-schrodinger:hugo-single-export",
     "logseq-tags:tags-plugin-open",
     "logseq-journals-calendar:goto-today",
     "logseq-random-note:RandomNote",

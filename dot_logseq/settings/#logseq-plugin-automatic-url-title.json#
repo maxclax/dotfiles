@@ -1,0 +1,6 @@
+{
+  "disabled": true
+:root {
+  --favicons: none;
+}
+}

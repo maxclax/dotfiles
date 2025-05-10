@@ -1,6 +1,6 @@
 {
-  "enableVisualModeIndicator": false,
-  "showRecentEmojis": false,
+  "enableVisualModeIndicator": true,
+  "showRecentEmojis": true,
   "disabled": false,
   "keyBindings": {
     "bottom": "shift+g",

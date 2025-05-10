@@ -1,6 +1,6 @@
 {
   "theme": "auto",
-  "enableBlurBackground": false,
+  "enableBlurBackground": true,
   "nodeAnchorEnabled": false,
   "nodeAnchorIcon": "🟢",
   "autofitEnabled": true,
