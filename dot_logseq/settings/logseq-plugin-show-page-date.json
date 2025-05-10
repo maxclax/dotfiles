@@ -1,6 +1,6 @@
 {
   "headingLoadPageInfoButton": "",
-  "loadPageInfoButton": false,
+  "loadPageInfoButton": true,
   "headingLoadPageDateNotifier": "",
   "loadPageDateNotifier": false,
   "pageDateNotifierCreatedAt": true,

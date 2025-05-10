@@ -11,28 +11,19 @@
  :logseq-random-note {:version "1.1.2", :repo "tankcool/logseq-random-note", :effect false, :theme false}
  :logseq-tags {:version "v0.1.2", :repo "gidongkwon/logseq-plugin-tags", :effect false, :theme false}
  :logseq-tocgen {:version "v2.13.0", :repo "sethyuan/logseq-plugin-tocgen", :effect true, :theme false}
- :logseq-add-para-properties {:version "v1.2.1", :repo "georgeguimaraes/logseq-plugin-add-PARA-properties", :effect false, :theme false}
  :logseq-git {:version "v1.7.0", :repo "haydenull/logseq-plugin-git", :effect true, :theme false}
  :logseq-find-and-replace {:version "v1.1.1", :repo "sawhney17/logseq-find-replace", :effect false, :theme false}
  :logseq-pdf-export-plugin {:version "2.2.10", :repo "sawhney17/logseq-pdf-export", :effect true, :theme false}
  :logseq-todo-master {:version "v1.10.3", :repo "pengx17/logseq-plugin-todo-master", :effect false, :theme false}
- :logseq-copy-code-plugin {:version "v.1.2.0", :repo "vyleung/logseq-copy-code-plugin", :effect true, :theme false}
- :logseq-plugin-automatic-url-title {:version "v1.1.0", :repo "0x7b1/logseq-plugin-automatic-url-title", :effect true, :theme false}
  :logseq-date-between {:version "v0.0.7", :repo "Cologler/logseq-date-between-typescript", :effect false, :theme false}
  :logseq-plugin-show-page-date {:version "v1.0.2", :repo "YU000jp/logseq-plugin-show-page-date", :effect true, :theme false}
  :logseq-show-github-star {:version "v0.0.2", :repo "studyduck/logseq-show-github-star", :effect true, :theme false}
  :logseq-vim-shortcuts {:version "v0.1.22", :repo "vipzhicheng/logseq-plugin-vim-shortcuts", :effect true, :theme false}
  :logseq-mermaid-plugin {:version "v2.0.4", :repo "benjypng/logseq-mermaid-plugin", :effect true, :theme false}
- :logseq-plugin-gpt3-openai {:version "v1.14.2", :repo "briansunter/logseq-plugin-gpt3-openai", :effect true, :theme false}
- :logseq-tabs {:version "v1.19.4", :repo "pengx17/logseq-plugin-tabs", :effect true, :theme false}
  :logseq-focus-mode {:version "v1.0.4", :repo "sethfair/logseq-focus-mode", :effect false, :theme false}
- :logseq-swapblocks-plugin {:version "1.3.1", :repo "hkgnp/logseq-swapblocks-plugin", :effect false, :theme false}
- :logseq-move-block {:version "v1.0.0", :repo "vipzhicheng/logseq-plugin-move-block", :effect true, :theme false}
- :logseq-plugin-heading-level-shortcuts {:version "v0.0.6", :repo "vipzhicheng/logseq-plugin-heading-level-shortcuts", :effect false, :theme false}
  :logseq-comment-block {:version "v0.0.9", :repo "vipzhicheng/logseq-plugin-comment-block", :effect false, :theme false}
  :logseq-toc-plugin {:version "v2.0.3", :repo "benjypng/logseq-toc-plugin", :effect true, :theme false}
- :logseq-link-preview {:version "v2.3.0", :repo "pengx17/logseq-plugin-link-preview", :effect true, :theme false}
  :logseq-graph-analysis {:version "0.12.0", :repo "trashhalo/logseq-graph-analysis", :effect true, :theme false}
  :logseq-awesome-links {:version "v1.15.16", :repo "yoyurec/logseq-awesome-links", :effect true, :theme false}
- :logseq-open-in-emacs {:version "v0.0.4", :repo "ksqsf/logseq-open-in-emacs", :effect true, :theme false}
- :logseq-plugin-copilot {:version "v0.1.1", :repo "chhabrakadabra/logseq-plugin-copilot", :effect false, :theme false}}
+ :logtools {:version "0.1.1", :repo "cannibalox/logtools", :effect false, :theme false}
+ :logseq-heatmap {:version "v2.4.3", :repo "pengx17/logseq-plugin-heatmap", :effect true, :theme false}}
