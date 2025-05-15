@@ -1,5 +1,21 @@
 #!/usr/bin/env bash
 
+# SUDO function to handle command execution with proper privileges
+SUDO() {
+	if command -v sudo >/dev/null 2>&1; then
+		sudo "$@"
+	elif [ "$(id -u)" -eq 0 ]; then
+		"$@"
+	else
+		echo "Error: 'sudo' command not found and not running as root."
+		echo "Please either:"
+		echo "1. Install sudo"
+		echo "2. Run this script as root"
+		echo "3. Manually install the required packages"
+		exit 1
+	fi
+}
+
 install_brew() {
 	if which brew >/dev/null 2>&1; then
 		echo 'Homebrew is already installed'
@@ -18,7 +34,9 @@ install_pkgx() {
 
 install_on_linux() {
 	echo "Installing prerequisites for Linux..."
-	sudo apt update && sudo apt install -y curl git wget age
+
+	# Use the SUDO function
+	SUDO apt update && SUDO apt install -y curl git wget age
 
 	# pkgx
 	install_pkgx
