@@ -1,0 +1,4 @@
+{{ if .personal }}
+# Running backups
+0 12 * * * cd {{ .chezmoi.homeDir }} && /usr/bin/make backup_create 
+{{ end }}

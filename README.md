@@ -161,6 +161,11 @@ borgmatic prune
 
 ### Atuin Login
 
+```bash
+# Install
+curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
+```
+
 To manually log in to Atuin using credentials stored in 1Password, run the
 following command:
 

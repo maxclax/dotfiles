@@ -11,9 +11,12 @@ opacity = 0.9
 x = 10
 y = 10
 
+{{- if (.fontsEnabled) -}}
 [font]
 # normal.family = "FiraCode Nerd Font Mono"
 normal.family = "Berkeley Mono"
+{{ end }}
+
 
 #regular
 size = 18

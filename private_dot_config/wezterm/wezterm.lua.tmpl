@@ -50,6 +50,7 @@ else
 	config.max_fps = 120
 end
 
+{{- if (.fontsEnabled) -}}
 -- font
 -- https://www.jetbrains.com/lp/mono
 -- https://github.com/ryanoasis/nerd-fonts/releases
@@ -63,6 +64,7 @@ config.font = wezterm.font_with_fallback({
 	{ family = "Noto Color Emoji" },
 	{ family = "Noto Emoji" },
 })
+{{ end }}
 
 if is_windows then
 	config.font_size = 10 -- Font size for Windows
@@ -115,9 +117,14 @@ config.window_background_opacity = 1.0 -- 0.4
 config.text_background_opacity = 1.0 -- 0.9
 
 -- tab config
+{{ if eq .osid "linux-debian" "linux-raspbian" "linux-ubuntu" -}}
+config.hide_tab_bar_if_only_one_tab = false
+config.use_fancy_tab_bar = true
+{{ else }}
 config.hide_tab_bar_if_only_one_tab = true
 config.use_fancy_tab_bar = false
 config.tab_max_width = 100
+{{ end }}
 
 local function get_current_working_dir(tab)
 	local current_dir = tab.active_pane and tab.active_pane.current_working_dir or { file_path = "" }
