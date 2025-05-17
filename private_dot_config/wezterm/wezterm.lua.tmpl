@@ -50,6 +50,7 @@ else
 	config.max_fps = 120
 end
 
+{{- if (.fontsEnabled) -}}
 -- font
 -- https://www.jetbrains.com/lp/mono
 -- https://github.com/ryanoasis/nerd-fonts/releases
@@ -63,6 +64,7 @@ config.font = wezterm.font_with_fallback({
 	{ family = "Noto Color Emoji" },
 	{ family = "Noto Emoji" },
 })
+{{ end }}
 
 if is_windows then
 	config.font_size = 10 -- Font size for Windows

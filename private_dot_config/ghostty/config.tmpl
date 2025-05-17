@@ -4,6 +4,7 @@
 # examples:
 # https://github.com/search?q=path%3Aghostty%2Fconfig&type=code
 
+{{- if (.fontsEnabled) -}}
 # ghostty +list-fonts
 font-family = "Berkeley Mono"
 
@@ -24,6 +25,7 @@ font-size = 18
 font-variation-bold-italic = wght=800
 
 window-title-font-family = "Berkeley Mono Variable"
+{{ end }}
 
 # alpha-blending = linear-corrected
 
