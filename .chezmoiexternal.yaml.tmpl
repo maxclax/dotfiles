@@ -29,6 +29,11 @@
   exact: true
   refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
 
+".config/alacritty/themes":
+  type: "git-repo"
+  url: "https://github.com/alacritty/alacritty-theme.git"
+  exact: true
+  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
 
 {{ if  or (eq .nvimType "kickstart.nvim") .nvimLoadAllDistros }}
 ".config/kickstart.nvim":

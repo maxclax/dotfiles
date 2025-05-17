@@ -28,6 +28,7 @@
      "lsb-release"
      "lsof"
      "make"
+     "kitty"
      "ncdu"
      "neofetch"
      "neovim"
@@ -97,5 +98,8 @@ if [ "{{ .rustEnabled }}" = "true" ]; then
     echo "Rust is already installed. Skipping installation."
   fi
 fi
+
+# Check if Atuin is enabled and not already installed
+curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
 
 {{ end -}}
