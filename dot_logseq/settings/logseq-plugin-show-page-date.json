@@ -3,6 +3,6 @@
   "loadPageInfoButton": true,
   "headingLoadPageDateNotifier": "",
   "loadPageDateNotifier": false,
-  "pageDateNotifierCreatedAt": true,
-  "disabled": false
+  "disabled": false,
+  "pageDateNotifierCreatedAt": true
 }
