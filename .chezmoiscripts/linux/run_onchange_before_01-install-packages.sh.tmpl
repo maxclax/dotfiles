@@ -100,6 +100,7 @@ if [ "{{ .rustEnabled }}" = "true" ]; then
 fi
 
 {{ if not .ephemeral -}}
+
 # Install kubectl
 # https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
 {{ $sudo }}apt update
@@ -123,9 +124,11 @@ if ! command -v protonvpn-app &> /dev/null; then
 else
 	echo "Proton Pass is already installed. Skipping installation."
 fi
-{{ end -}}
 
 # Check if Atuin is enabled and not already installed
 curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
+
+{{ end -}}
+
 
 {{ end -}}
