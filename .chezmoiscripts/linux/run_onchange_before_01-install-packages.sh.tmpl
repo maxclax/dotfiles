@@ -71,16 +71,6 @@ set -eufo pipefail
 {{ $sudo }}apt update
 {{ $sudo }}apt install -y {{ $packages | join " " }} {{ $fonts | join " " }}
 
-# Install kubectl
-# https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
-{{ $sudo }}apt update
-{{ $sudo }}apt install -y apt-transport-https ca-certificates curl gnupg
-curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.33/deb/Release.key | {{ $sudo }}gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-{{ $sudo }}chmod 644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg # allow unprivileged APT programs to read this keyring
-echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /' | {{ $sudo }}tee /etc/apt/sources.list.d/kubernetes.list
-{{ $sudo }}chmod 644 /etc/apt/sources.list.d/kubernetes.list   # helps tools such as command-not-found to work correctly
-{{ $sudo }}apt update
-{{ $sudo }}apt install -y kubectl
 
 # Helm
 curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | {{ $sudo }}tee /usr/share/keyrings/helm.gpg > /dev/null
@@ -110,6 +100,18 @@ if [ "{{ .rustEnabled }}" = "true" ]; then
 fi
 
 {{ if not .ephemeral -}}
+
+# Install kubectl
+# https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
+{{ $sudo }}apt update
+{{ $sudo }}apt install -y apt-transport-https ca-certificates curl gnupg
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.33/deb/Release.key | {{ $sudo }}gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+{{ $sudo }}chmod 644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg # allow unprivileged APT programs to read this keyring
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /' | {{ $sudo }}tee /etc/apt/sources.list.d/kubernetes.list
+{{ $sudo }}chmod 644 /etc/apt/sources.list.d/kubernetes.list   # helps tools such as command-not-found to work correctly
+{{ $sudo }}apt update
+{{ $sudo }}apt install -y kubectl
+
 # Check if Proton VPN not already installed
 # https://protonvpn.com/support/official-linux-vpn-debian/
 if ! command -v protonvpn-app &> /dev/null; then
@@ -122,9 +124,11 @@ if ! command -v protonvpn-app &> /dev/null; then
 else
 	echo "Proton Pass is already installed. Skipping installation."
 fi
-{{ end -}}
 
 # Check if Atuin is enabled and not already installed
 curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
+
+{{ end -}}
+
 
 {{ end -}}
