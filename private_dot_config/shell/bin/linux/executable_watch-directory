@@ -1,0 +1,8 @@
+#!/bin/bash
+
+WATCH_DIR=${1:-/etc}
+EVENTS="modify,create,delete,move"
+LOGFILE="watch_$(basename $WATCH_DIR)_$(date +%F).log"
+
+echo "👁️ Watching $WATCH_DIR for changes..."
+inotifywait -m -r -e $EVENTS "$WATCH_DIR" --format '%T %w%f %e' --timefmt '%F %T' | tee -a "$LOGFILE"
