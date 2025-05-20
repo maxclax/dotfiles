@@ -1,0 +1,14 @@
+#!/bin/bash
+
+CONTAINER_ENGINE="${1:-podman}"
+
+echo "🧹 Cleaning up dangling $CONTAINER_ENGINE images..."
+$CONTAINER_ENGINE image prune -f
+
+echo "🧺 Removing unused $CONTAINER_ENGINE volumes..."
+$CONTAINER_ENGINE volume prune -f
+
+echo "🗑️ Removing stopped $CONTAINER_ENGINE containers..."
+$CONTAINER_ENGINE container prune -f
+
+echo "✅ $CONTAINER_ENGINE cleanup complete."

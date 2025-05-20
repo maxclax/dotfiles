@@ -1,0 +1,41 @@
+#!/bin/bash
+
+TARGET_DIR=${1:-/var/log}
+DAYS_OLD=${2:-7}
+
+echo "🧼 Cleaning up logs in $TARGET_DIR older than $DAYS_OLD days..."
+
+# Check if the target directory exists
+if [ ! -d "$TARGET_DIR" ]; then
+    echo "❌ Error: Directory $TARGET_DIR does not exist!"
+    exit 1
+fi
+
+# Check if we have permission to access the directory
+if [ ! -r "$TARGET_DIR" ]; then
+    echo "❌ Error: No permission to read $TARGET_DIR!"
+    exit 1
+fi
+
+# Detect OS for appropriate find command
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS version - BSD find
+    find "$TARGET_DIR" -type f -name "*.log" -mtime +"$DAYS_OLD" -print0 | while IFS= read -r -d '' file; do
+        if [ -w "$file" ]; then
+            rm -v "$file"
+        else
+            echo "⚠️  No permission to remove: $file (try with sudo)"
+        fi
+    done
+else
+    # Debian/Linux version - GNU find
+    find "$TARGET_DIR" -type f -name "*.log" -mtime +"$DAYS_OLD" -print0 | while IFS= read -r -d '' file; do
+        if [ -w "$file" ]; then
+            rm -v "$file"
+        else
+            echo "⚠️  No permission to remove: $file (try with sudo)"
+        fi
+    done
+fi
+
+echo "✅ Cleanup complete!"

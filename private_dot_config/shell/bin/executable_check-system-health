@@ -1,0 +1,57 @@
+#!/bin/bash
+
+echo "📊 System Health Report - $(date)"
+echo "------------------------------------"
+
+# Detect operating system
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS specific commands
+    echo "🧠 Memory Usage:"
+    # Parse vm_stat output and convert to human-readable format
+    vm_stat | perl -ne '
+        if (/page size of (\d+)/) { $page_size = $1; }
+        if (/Pages free:\s+(\d+)/) { $free = $1 * $page_size; }
+        if (/Pages active:\s+(\d+)/) { $active = $1 * $page_size; }
+        if (/Pages inactive:\s+(\d+)/) { $inactive = $1 * $page_size; }
+        if (/Pages speculative:\s+(\d+)/) { $speculative = $1 * $page_size; }
+        if (/Pages wired down:\s+(\d+)/) { $wired = $1 * $page_size; }
+        END {
+            $free_mem = ($free + $speculative) / 1024 / 1024 / 1024;
+            $used_mem = ($active + $inactive + $wired) / 1024 / 1024 / 1024;
+            $total_mem = $free_mem + $used_mem;
+            printf("Total: %.2f GB\n", $total_mem);
+            printf("Used: %.2f GB (%.2f%%)\n", $used_mem, $used_mem/$total_mem*100);
+            printf("Free: %.2f GB (%.2f%%)\n", $free_mem, $free_mem/$total_mem*100);
+        }
+    '
+    echo
+
+    echo "🔥 CPU Load:"
+    sysctl -n vm.loadavg | awk '{print "Load average: " $2 " " $3 " " $4}'
+    uptime | awk '{print "System uptime: " $(NF-6) " " $(NF-5) " " $(NF-4) " " $(NF-3) " " $(NF-2) " " $(NF-1) " " $NF}'
+    echo
+
+    echo "💾 Disk Space:"
+    df -h /
+    echo
+
+    echo "✅ Top 5 memory-hungry processes:"
+    ps -Acmo pid,comm,%mem,%cpu -r | head -n 6
+else
+    # Debian/Linux commands
+    echo "🧠 Memory Usage:"
+    free -h
+    echo
+
+    echo "🔥 CPU Load:"
+    uptime
+    echo
+
+    echo "💾 Disk Space:"
+    df -h /
+    echo
+
+    echo "✅ Top 5 memory-hungry processes:"
+    ps -eo pid,comm,%mem,%cpu --sort=-%mem | head -n 6
+fi
+
