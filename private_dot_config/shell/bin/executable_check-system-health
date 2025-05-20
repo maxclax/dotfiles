@@ -5,10 +5,10 @@ echo "------------------------------------"
 
 # Detect operating system
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    # macOS specific commands
-    echo "🧠 Memory Usage:"
-    # Parse vm_stat output and convert to human-readable format
-    vm_stat | perl -ne '
+	# macOS specific commands
+	echo "🧠 Memory Usage:"
+	# Parse vm_stat output and convert to human-readable format
+	vm_stat | perl -ne '
         if (/page size of (\d+)/) { $page_size = $1; }
         if (/Pages free:\s+(\d+)/) { $free = $1 * $page_size; }
         if (/Pages active:\s+(\d+)/) { $active = $1 * $page_size; }
@@ -24,34 +24,50 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
             printf("Free: %.2f GB (%.2f%%)\n", $free_mem, $free_mem/$total_mem*100);
         }
     '
-    echo
+	echo
 
-    echo "🔥 CPU Load:"
-    sysctl -n vm.loadavg | awk '{print "Load average: " $2 " " $3 " " $4}'
-    uptime | awk '{print "System uptime: " $(NF-6) " " $(NF-5) " " $(NF-4) " " $(NF-3) " " $(NF-2) " " $(NF-1) " " $NF}'
-    echo
+	echo "🔥 CPU Load:"
+	sysctl -n vm.loadavg | awk '{print "Load average: " $2 " " $3 " " $4}'
+	uptime | awk '{print "System uptime: " $(NF-6) " " $(NF-5) " " $(NF-4) " " $(NF-3) " " $(NF-2) " " $(NF-1) " " $NF}'
 
-    echo "💾 Disk Space:"
-    df -h /
-    echo
+	# CPU temperature for macOS (if available)
+	if command -v osx-cpu-temp &>/dev/null; then
+		echo "🌡️ CPU Temperature:"
+		osx-cpu-temp
+	fi
+	echo
 
-    echo "✅ Top 5 memory-hungry processes:"
-    ps -Acmo pid,comm,%mem,%cpu -r | head -n 6
+	echo "💾 Disk Space:"
+	df -h /
+	echo
+
+	echo "✅ Top 5 memory-hungry processes:"
+	ps -Acmo pid,comm,%mem,%cpu -r | head -n 6
 else
-    # Debian/Linux commands
-    echo "🧠 Memory Usage:"
-    free -h
-    echo
+	# Debian/Linux commands
+	echo "🧠 Memory Usage:"
+	free -h
+	echo
 
-    echo "🔥 CPU Load:"
-    uptime
-    echo
+	echo "🔥 CPU Load:"
+	uptime
 
-    echo "💾 Disk Space:"
-    df -h /
-    echo
+	# Check for Raspberry Pi temperature command
+	if command -v vcgencmd &>/dev/null; then
+		echo "🌡️ CPU Temperature:"
+		vcgencmd measure_temp
+	elif [ -f "/sys/class/thermal/thermal_zone0/temp" ]; then
+		# Alternative method for Linux systems
+		echo "🌡️ CPU Temperature:"
+		temp=$(cat /sys/class/thermal/thermal_zone0/temp)
+		echo "temp=$(bc <<<"scale=1; $temp/1000")°C"
+	fi
+	echo
 
-    echo "✅ Top 5 memory-hungry processes:"
-    ps -eo pid,comm,%mem,%cpu --sort=-%mem | head -n 6
+	echo "💾 Disk Space:"
+	df -h /
+	echo
+
+	echo "✅ Top 5 memory-hungry processes:"
+	ps -eo pid,comm,%mem,%cpu --sort=-%mem | head -n 6
 fi
-
