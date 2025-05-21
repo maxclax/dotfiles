@@ -6,6 +6,12 @@ if [ "{{ .podmanEnabled }}" != "true" ]; then
   exit 0
 fi
 
+# Check if this is an extra user
+if [ "{{ .extraUser }}" == "true" ]; then
+  echo "Already installed by main user, skipping installation."
+  exit 0
+fi
+
 # Per-platform settings
 case $(uname) in
 Darwin)

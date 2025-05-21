@@ -21,7 +21,7 @@
 {{- end -}}
 
 {{/* boolean feature tags */}}
-{{- $ephemeral := false -}}{{/* true if this machine is ephemeral, e.g. a cloud, VM instance or for short time */}}
+{{- $ephemeral := false -}}{{/* true if this machine is ephemeral, e.g. a cloud, VM or for short time */}}
 {{- $headless := false -}}{{/* true if this machine does not have a screen and keyboard */}}
 {{- $personal :=  false -}}{{/* true if this machine should have personal secrets */}}
 {{- "" -}}
@@ -32,7 +32,7 @@
 {{- end -}}
 
 {{/* detect GitHub codespaces, VSCode remote containers, Docker containers, Multipass VMs, and Vagrant boxes */}}
-{{- if or (env "CODESPACES") (env "REMOTE_CONTAINERS_IPC") (eq .chezmoi.username "root" "ubuntu" "vagrant" "vscode") -}}
+{{- if or (env "CODESPACES") (env "REMOTE_CONTAINERS_IPC") (eq .chezmoi.username "root" "ubuntu" "debian" "vagrant" "vscode") -}}
 {{-   $ephemeral = true -}}
 {{-   $headless = true -}}
 {{- end -}}
@@ -50,7 +50,7 @@
 {{-     $personal = true -}}
 {{-   else if stdinIsATTY -}}
 {{-     $headless = promptBoolOnce . "headless" "Is this machine headless? Without a screen and keyboard?" false -}}
-{{-     $ephemeral = promptBoolOnce . "ephemeral" "Is this machine ephemeral? Cloud, VM instance or for short time?" false -}}
+{{-     $ephemeral = promptBoolOnce . "ephemeral" "Is this machine ephemeral? Cloud, VM, or for short time?" false -}}
 {{-   else -}}
 {{-     $ephemeral = true -}}
 {{-     $headless = true -}}
@@ -99,6 +99,7 @@ encryption = "age"
     personal = {{ $personal }}
     osid = {{ $osID | quote }}
     unameArch = {{ output "uname" "-m" | trim | quote }}
+    extraUser = {{ promptBoolOnce . "extraUser" "Extra user? True if all were instaled by main user" false }}
 
     workspace = {{ $workspace | quote }}
     workspace_extra = {{ $workspace_extra | quote }}

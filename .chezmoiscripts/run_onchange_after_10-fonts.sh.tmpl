@@ -13,6 +13,12 @@ if [ "{{ .fontsEnabled }}" != "true" ]; then
   exit 0
 fi
 
+# Check if this is an extra user
+if [ "{{ .extraUser }}" == "true" ]; then
+  echo "Already installed by main user, skipping installation."
+  exit 0
+fi
+
 # Check if the font directory exists
 if [ ! -d {{ .fontsPath }} ]; then
   echo "Font directory {{ .fontsPath }} does not exist."

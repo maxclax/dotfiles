@@ -1,8 +1,14 @@
-#!/bin/bash -ex
+#!/bin/bash
 
 # Check if Go are enabled
 if [ "{{ .goEnabled }}" != "true" ]; then
   echo "Go installation is disabled."
+  exit 0
+fi
+
+# Check if this is an extra user
+if [ "{{ .extraUser }}" == "true" ]; then
+  echo "Already installed by main user, skipping installation."
   exit 0
 fi
 
