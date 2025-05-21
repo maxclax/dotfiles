@@ -1,0 +1,75 @@
+encryption = "age"
+[age]
+identity = ""
+symmetric = true
+
+[onepassword]
+command = "op"
+prompt = false
+
+[data]
+ephemeral = true
+headless = true
+hostname = "hostname"
+personal = false
+osid = "linux-debian"
+unameArch = "aarch64"
+extraUser = false
+
+workspace = "USER_HOME/workspace"
+workspace_extra = "USER_HOME/workspace_extra"
+resources = "USER_HOME/workspace/resources"
+playground = "USER_HOME/workspace/playground"
+jupyter = "USER_HOME/workspace/jupyter"
+editor = "vim"
+
+borgThisMachine = false
+borgRepo = ""
+borgEncryptionPassphrase = ""
+borgWithPushover = false
+
+fontsEnabled = false
+fontsPath = ""
+
+nvimType = "default"
+nvimLoadAllDistros = false
+
+emacsType = "default"
+emacsEnabledClient = false
+emacsLoadAllDistros = false
+
+podmanEnabled = false
+dockerEnabled = false
+containerEngine = "podman"
+
+obsidianVault = ""
+
+goEnabled = false
+
+rustEnabled = false
+
+pythonEnabled = false
+pythonVersion = "3.13.1"
+
+ollamaPidFile = "/tmp/ollama.pid"
+ollamaPort = 11434
+ollamaModel = "llama3.2:latest"
+
+torproxyHost = "localhost"
+torproxyPortSocks5 = 9150
+torproxyPortDns = 8893
+
+gitName = "USER"
+gitEmail = "USER"
+gitLocalRepositories = "USER_HOME/.local/git"
+gitGithub.name = ""
+gitGithub.email = ""
+gitGithub.accessToken = ""
+gitGithub.gpgsign.enabled = false
+gitGithub.gpgsign.signingKey = ""
+gitGithub.gpgsign.program = ""
+
+
+[git]
+autoCommit = false
+autoPush = false
