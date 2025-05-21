@@ -43,6 +43,36 @@ sh -c "$(curl -fsLS get.chezmoi.io)" -- init --branch main --apply maxclax
    chezmoi init --branch main https://github.com/maxclax/dotfiles.git
    ```
 
+## Manual Installation (without init)
+
+1. Install chezmoi:
+
+   ```bash
+   sh -c "$(curl -fsLS https://raw.githubusercontent.com/maxclax/dotfiles/main/.install-prerequisites.sh)"
+   #
+   sh -c "$(curl -fsLS get.chezmoi.io)"
+   ```
+
+2. Clone repository directly:
+
+   ```bash
+   git clone https://github.com/maxclax/dotfiles.git ~/.local/share/chezmoi
+   ```
+
+3. Copy and customize reference config:
+
+   ```bash
+   # Create configuration directory
+   mkdir -p ~/.config/chezmoi
+   sed "s|USER_HOME|$HOME|g; s|USER|$USER|g" ~/.local/share/chezmoi/.reference-chezmoi.toml > ~/.config/chezmoi/chezmoi.toml
+   ```
+
+4. Apply configuration:
+
+   ```bash
+   chezmoi apply
+   ```
+
 ## Security Setup (in your own branch)
 
 ### 1. Symmetric encryption

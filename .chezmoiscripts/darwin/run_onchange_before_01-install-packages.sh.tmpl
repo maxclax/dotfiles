@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Check if this is an extra user
+if [ "{{ .extraUser }}" == "true" ]; then
+  echo "Already installed by main user, skipping installation."
+  exit 0
+fi
+
 # Initialize Homebrew environment
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
