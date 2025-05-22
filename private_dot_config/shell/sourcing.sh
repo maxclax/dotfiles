@@ -77,7 +77,6 @@ if [ -f ~/.cargo/env ]; then
 	source "$HOME/.cargo/env"
 fi
 
-eval "$(atuin init $shell)" # --disable-up-arrow)"
 eval "$(direnv hook $shell)"
 eval "$(zoxide init $shell)"
 eval "$(starship init $shell)"
@@ -89,17 +88,28 @@ eval "$(starship init $shell)"
 if [[ $shell == "zsh" ]]; then
 	zsh_completion
 	if [ -n "$brew_prefix" ]; then
+		eval "$(atuin init zsh)" # --disable-up-arrow)"
+
 		source <(fzf --zsh)
 		source <(pkgx dev --shellcode)
+	else
+		. "$HOME/.atuin/bin/env"
+		eval "$(atuin init zsh)"
 	fi
 
 elif [[ $shell == "bash" ]]; then
 	bash_completion
 	if [ -n "$brew_prefix" ]; then
+		eval "$(atuin init bash)"
+
 		eval "$(fzf --bash)"
 		eval "$(pkgx dev --shellcode)"
-	fi
+	else
+		. "$HOME/.atuin/bin/env"
 
+		[[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh
+		eval "$(atuin init bash)"
+	fi
 fi
 
 # ----------------------------------
