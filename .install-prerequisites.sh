@@ -24,14 +24,6 @@ install_brew() {
 	fi
 }
 
-install_pkgx() {
-	if which pkgx >/dev/null 2>&1; then
-		echo 'pkgx is already installed'
-	else
-		curl -fsSL https://pkgx.sh | bash
-	fi
-}
-
 install_on_linux() {
 	echo "Installing prerequisites for Linux..."
 
@@ -39,7 +31,11 @@ install_on_linux() {
 	SUDO apt update && SUDO apt install -y curl git wget age
 
 	# pkgx
-	install_pkgx
+	if which pkgx >/dev/null 2>&1; then
+		echo 'pkgx is already installed'
+	else
+		curl -fsSL https://pkgx.sh | bash
+	fi
 }
 
 install_on_mac() {
@@ -70,7 +66,8 @@ install_on_mac() {
 	eval "$(/opt/homebrew/bin/brew shellenv)"
 
 	# pkgx
-	install_pkgx
+	echo "Installing prerequisites for macOS..."
+	brew install pkgx
 
 	echo "Installing prerequisites for macOS..."
 	brew install age
