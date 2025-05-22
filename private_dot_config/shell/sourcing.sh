@@ -85,31 +85,35 @@ eval "$(starship init $shell)"
 # shell-specific configuration
 # ----------------------------
 
+# Load shell-specific completions
 if [[ $shell == "zsh" ]]; then
 	zsh_completion
-	if [ -n "$brew_prefix" ]; then
-		eval "$(atuin init zsh)" # --disable-up-arrow)"
-
-		source <(fzf --zsh)
-		source <(pkgx dev --shellcode)
-	else
-		. "$HOME/.atuin/bin/env"
-		eval "$(atuin init zsh)"
-	fi
-
 elif [[ $shell == "bash" ]]; then
 	bash_completion
-	if [ -n "$brew_prefix" ]; then
-		eval "$(atuin init bash)"
+fi
 
-		eval "$(fzf --bash)"
-		eval "$(pkgx dev --shellcode)"
+# Common initialization for both shells
+if [ -n "$brew_prefix" ]; then
+	# macOS with Homebrew
+	eval "$(atuin init $shell)"
+
+	if [[ $shell == "zsh" ]]; then
+		source <(fzf --zsh)
 	else
-		. "$HOME/.atuin/bin/env"
-
-		[[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh
-		eval "$(atuin init bash)"
+		eval "$(fzf --bash)"
 	fi
+
+	eval "$(pkgx dev --shellcode)"
+else
+	# Linux
+	eval "$(pkgx dev --shellcode)"
+
+	. "$HOME/.atuin/bin/env"
+
+	# Bash-specific preexec loader
+	[[ $shell == "bash" && -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh
+
+	eval "$(atuin init $shell)"
 fi
 
 # ----------------------------------
