@@ -107,7 +107,7 @@ if [ "{{ .rustEnabled }}" = "true" ]; then
   fi
 fi
 
-{{ if not .ephemeral -}}
+{{ if not .ephemeral }}
 
 # Install kubectl
 # https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
@@ -137,15 +137,19 @@ fi
 if ! command -v atuin &> /dev/null; then
 	echo "Atuin installation..."
 	curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
+else
+	echo "Atuin is already installed. Skipping installation."
 fi
 
 # Check if not already installed
 if ! command -v starship &> /dev/null; then
 	echo "Starship installation..."
 	curl -sS https://starship.rs/install.sh | sh
+else
+	echo "Starship is already installed. Skipping installation."
 fi
 
-{{ end -}}
+{{ end }}
 
 
 {{ end -}}

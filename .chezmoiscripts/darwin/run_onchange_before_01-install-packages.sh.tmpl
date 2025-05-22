@@ -85,7 +85,6 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
   "shellcheck"
   "snort"
   "thefuck"
-  "tlrc"
   "tldr"
   "tmux"
   "tmuxinator"
@@ -204,7 +203,6 @@ cask "{{ . }}"
 mas "{{ . }}", id: {{ index $masApps . }}
 {{ end -}}
 EOF
-
 
 # Check if Go is enabled and not already installed
 if [ "{{ .goEnabled }}" = "true" ]; then
