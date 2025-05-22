@@ -106,7 +106,7 @@ return {
 		"stevearc/conform.nvim",
 		dependencies = {
 			{
-				"williamboman/mason.nvim",
+				"mason-org/mason.nvim",
 				opts = function(_, opts)
 					opts.ensure_installed = opts.ensure_installed or {}
 					vim.list_extend(opts.ensure_installed, { "gofumpt", "goimports", "gci", "golines" })
@@ -154,7 +154,7 @@ return {
 		"mfussenegger/nvim-lint",
 		dependencies = {
 			{
-				"williamboman/mason.nvim",
+				"mason-org/mason.nvim",
 				opts = function(_, opts)
 					opts.ensure_installed = opts.ensure_installed or {}
 					vim.list_extend(opts.ensure_installed, { "golangci-lint" })
@@ -183,10 +183,10 @@ return {
 		"virtual-lsp-config",
 		dependencies = {
 			{
-				"williamboman/mason-lspconfig.nvim",
+				"mason-org/mason-lspconfig.nvim",
 				dependencies = {
 					{
-						"williamboman/mason.nvim",
+						"mason-org/mason.nvim",
 						opts = function(_, opts)
 							opts.ensure_installed = opts.ensure_installed or {}
 						end,
@@ -218,7 +218,7 @@ return {
 					-- https://github.com/golang/tools/blob/master/gopls/README.md
 					cmd = { "gopls" },
 					filetypes = { "go", "gomod", "gowork", "gosum" },
-					-- root_markers = { "go.work", "go.mod", ".git" },
+					root_markers = { "go.work", "go.mod", ".git" },
 					Workspace_required = true, -- disables single-file support
 					settings = {
 						gopls = {
@@ -300,7 +300,7 @@ return {
 		dependencies = {
 			"nvim-treesitter/nvim-treesitter",
 			{
-				"williamboman/mason.nvim",
+				"mason-org/mason.nvim",
 				opts = function(_, opts)
 					opts.ensure_installed = opts.ensure_installed or {}
 					vim.list_extend(opts.ensure_installed, { "gomodifytags" })
@@ -361,7 +361,7 @@ return {
 			{
 				"jay-babu/mason-nvim-dap.nvim",
 				dependencies = {
-					"williamboman/mason.nvim",
+					"mason-org/mason.nvim",
 				},
 				opts = {
 					ensure_installed = { "delve" },

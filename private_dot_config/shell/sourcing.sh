@@ -81,6 +81,9 @@ eval "$(direnv hook $shell)"
 eval "$(zoxide init $shell)"
 eval "$(starship init $shell)"
 
+# TODO need fix on pkgx side
+# eval "$(pkgx --quiet dev --shellcode)"
+
 # ----------------------------
 # shell-specific configuration
 # ----------------------------
@@ -102,18 +105,13 @@ if [ -n "$brew_prefix" ]; then
 	else
 		eval "$(fzf --bash)"
 	fi
-
-	eval "$(pkgx dev --shellcode)"
 else
-	# Linux
-	eval "$(pkgx dev --shellcode)"
-
+	# Atuin initialization
 	. "$HOME/.atuin/bin/env"
-
 	# Bash-specific preexec loader
 	[[ $shell == "bash" && -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh
-
 	eval "$(atuin init $shell)"
+	####
 fi
 
 # ----------------------------------
