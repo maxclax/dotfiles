@@ -99,10 +99,10 @@
 ## For details on the supported regular expression syntax, see
 ## https://docs.rs/regex/latest/regex/#syntax
 history_filter = [
-  "^cd /Volumes/develop/workspace/www/.*",
-  ".*/Volumes/develop/workspace/www/.*",
-  "^secret-cmd",
-  "^innocuous-cmd .*--secret=.+",
+	"^cd {{ .workspace_extra }}/www/.*",
+	".*{{ .workspace_extra }}/www/.*",
+	"^secret-cmd",
+	"^innocuous-cmd .*--secret=.+",
 ]
 
 ## prevent commands run with cwd matching any of these regexes from being written
@@ -164,27 +164,27 @@ enter_accept = false
 
 [stats]
 ## Set commands where we should consider the subcommand for statistics. Eg, kubectl get vs just kubectl
-# common_subcommands = [
-#   "apt",
-#   "cargo",
-#   "composer",
-#   "dnf",
-#   "docker",
-#   "git",
-#   "go",
-#   "ip",
-#   "kubectl",
-#   "nix",
-#   "nmcli",
-#   "npm",
-#   "pecl",
-#   "pnpm",
-#   "podman",
-#   "port",
-#   "systemctl",
-#   "tmux",
-#   "yarn",
-# ]
+common_subcommands = [
+	"apt",
+	"cargo",
+	"composer",
+	"dnf",
+	"docker",
+	"git",
+	"go",
+	"ip",
+	"kubectl",
+	"nix",
+	"nmcli",
+	"npm",
+	"pecl",
+	"pnpm",
+	"podman",
+	"port",
+	"systemctl",
+	"tmux",
+	"yarn",
+]
 
 ## Set commands that should be totally stripped and ignored from stats
 # common_prefix = ["sudo"]

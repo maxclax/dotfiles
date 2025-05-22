@@ -56,7 +56,8 @@ fi
      "zsh"
      "zsh-autosuggestions"
      "zsh-syntax-highlighting"
-     "zsh" -}}
+     "zsh"
+	 "zoxide" -}}
 
 {{ $fonts := list
      "fonts-firacode"
@@ -132,8 +133,17 @@ else
 	echo "Proton Pass is already installed. Skipping installation."
 fi
 
-# Check if Atuin is enabled and not already installed
-curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
+# Check if not already installed
+if ! command -v atuin &> /dev/null; then
+	echo "Atuin installation..."
+	curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
+fi
+
+# Check if not already installed
+if ! command -v starship &> /dev/null; then
+	echo "Starship installation..."
+	curl -sS https://starship.rs/install.sh | sh
+fi
 
 {{ end -}}
 
