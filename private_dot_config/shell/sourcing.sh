@@ -77,16 +77,10 @@ if [ -f ~/.cargo/env ]; then
 	source "$HOME/.cargo/env"
 fi
 
-if [ -n "$brew_prefix" ]; then
-	# TODO: evaluate whether pkgx can replace nvm
-	# source "$brew_prefix/opt/nvm/nvm.sh"
-
-	eval "$(atuin init $shell --disable-up-arrow)"
-	eval "$(direnv hook $shell)"
-	eval "$(zoxide init $shell)"
-	eval "$(starship init $shell)"
-
-fi
+eval "$(atuin init $shell)" # --disable-up-arrow)"
+eval "$(direnv hook $shell)"
+eval "$(zoxide init $shell)"
+eval "$(starship init $shell)"
 
 # ----------------------------
 # shell-specific configuration
