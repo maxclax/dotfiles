@@ -1,4 +1,7 @@
-{{ if .personal }}
+# Some example
+# 0 12 * * * comand
+
+{{ if .borgThisMachine }}
 # Running backups
 # 0 12 * * * cd {{ .chezmoi.homeDir }} && /usr/bin/make backup_create 
 {{ end }}
