@@ -42,8 +42,6 @@ podmanEnabled = false
 dockerEnabled = false
 containerEngine = "podman"
 
-obsidianVault = ""
-
 goEnabled = false
 
 rustEnabled = false

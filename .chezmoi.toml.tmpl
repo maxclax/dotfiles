@@ -127,8 +127,6 @@ encryption = "age"
     dockerEnabled = {{ promptBoolOnce . "dockerEnabled" "Enable Docker container engine?" false }}
     containerEngine = {{ promptStringOnce . "containerEngine" "Container engine to use (podman or docker)" "podman" | quote }}
 
-    obsidianVault = {{ promptStringOnce . "obsidianVault" "Obsidian vault location" "~/Library/Mobile Documents/iCloud~md~obsidian/Documents/" | quote }}
-
     goEnabled = {{ promptBoolOnce . "goEnabled" "Enable Go development environment?" false }}
     
     rustEnabled = {{ promptBoolOnce . "rustEnabled" "Enable Rust development environment?" false }}
