@@ -205,6 +205,9 @@ if.app-id = 'com.anthropic.claudefordesktop'
 run = "move-node-to-workspace A"
 
 [[on-window-detected]]
+if.app-id = 'company.thebrowser.Browser'
+run = "move-node-to-workspace B"
+[[on-window-detected]]
 if.app-id = 'com.ngocluu.goodlinks'
 run = "move-node-to-workspace B"
 [[on-window-detected]]
