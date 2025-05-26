@@ -2,6 +2,7 @@ return {
   {
     "nvim-treesitter/nvim-treesitter",
     lazy = true,
+    branch = "master", -- NOTE: master is frozen, continued work will be done in the main branch
     event = "BufRead",
     build = ":TSUpdate",
     opts = function(_, opts)
