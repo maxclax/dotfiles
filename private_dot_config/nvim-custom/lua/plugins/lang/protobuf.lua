@@ -172,7 +172,6 @@ local function api_linter_setup()
 end
 
 return {
-
   {
     "stevearc/conform.nvim",
     dependencies = {

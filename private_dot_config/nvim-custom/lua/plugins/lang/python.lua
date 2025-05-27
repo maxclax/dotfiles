@@ -67,7 +67,6 @@ vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
 })
 
 return {
-
   {
     "mfussenegger/nvim-lint",
     dependencies = {

@@ -1,5 +1,4 @@
 return {
-
   {
     "mfussenegger/nvim-lint",
     dependencies = {
