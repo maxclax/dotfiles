@@ -7,7 +7,12 @@
 [color]
 	ui = true
 [diff]
-	tool = vimdiff
+	# tool = vimdiff
+	tool = neovim
+[difftool "neovim"]
+	cmd = nvim -d $LOCAL $REMOTE
+[difftool "diffview"]
+  cmd = "nvim -d '$LOCAL' '$REMOTE' -c 'DiffviewOpen'"
 [difftool]
 	prompt = false
 [core]
@@ -18,10 +23,14 @@
 [init]
 	defaultBranch = main
 [merge]
-	tool = vimdiff
-	conflictstyle = diff3
+  tool = diffview
+  conflictstyle = diff3
+[mergetool "neovim"]
+	cmd = nvim -d $LOCAL $REMOTE $BASE $MERGED
+[mergetool "diffview"]
+  cmd = "nvim -c 'DiffviewOpen'"
 [mergetool]
-	prompt = false
+  prompt = false
 [credential]
 	helper = cache
 [color]
@@ -32,7 +41,7 @@
   newNormal = green
   newHighlight = green "#003000"
 [commit]
-	template = ~/.config/git/message
+	template = ~/.config/git/commit
 [color "diff"]
   meta = 11
   frag = magenta bold

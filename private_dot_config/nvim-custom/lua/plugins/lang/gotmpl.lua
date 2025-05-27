@@ -22,12 +22,6 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 
 return {
-
-  {
-    "nvim-treesitter/nvim-treesitter",
-    opts = { ensure_installed = { "gotmpl", "html" } },
-  },
-
   {
     "virtual-lsp-config",
     dependencies = {

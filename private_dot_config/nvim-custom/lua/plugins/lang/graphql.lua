@@ -1,5 +1,4 @@
 return {
-
   {
     "virtual-lsp-config",
     dependencies = {

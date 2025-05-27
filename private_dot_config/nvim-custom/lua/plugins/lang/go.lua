@@ -94,14 +94,6 @@ local function golangcilint_args()
 end
 
 return {
-
-	{
-		"nvim-treesitter/nvim-treesitter",
-		opts = {
-			ensure_installed = { "go", "gomod", "gosum", "gowork" },
-		},
-	},
-
 	{
 		"stevearc/conform.nvim",
 		dependencies = {
@@ -285,6 +277,7 @@ return {
 
 	{
 		"fang2hou/go-impl.nvim",
+		enabled = false,
 		ft = "go",
 		dependencies = {
 			"MunifTanjim/nui.nvim",
