@@ -55,22 +55,22 @@ return {
 				enabled = true,
 				auto_refresh = true,
 			},
-			suggestion = {
-				-- use the built-in keymapping for "accept" (<M-l>)
-				enabled = true,
-				auto_trigger = true,
-			},
 			-- suggestion = {
+			-- 	-- use the built-in keymapping for "accept" (<M-l>)
 			-- 	enabled = true,
 			-- 	auto_trigger = true,
-			-- 	accept = false, -- disable built-in keymapping
-			-- 	keymap = {
-			-- 		accept = "<Tab>",
-			-- 		reject = "<C-e>",
-			-- 		next = "<C-n>",
-			-- 		prev = "<C-p>",
-			-- 	},
 			-- },
+			suggestion = {
+				enabled = true,
+				auto_trigger = true,
+				accept = false, -- disable built-in keymapping
+				keymap = {
+					accept = "<Tab>",
+					reject = "<C-e>",
+					next = "<C-n>",
+					prev = "<C-p>",
+				},
+			},
 			filetypes = {
 				sh = function()
 					if string.match(vim.fs.basename(vim.api.nvim_buf_get_name(0)), "^%.env.*") then

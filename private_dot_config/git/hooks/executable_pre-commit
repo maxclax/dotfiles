@@ -1,0 +1,26 @@
+#!/bin/sh
+
+# List of words to check for
+PROHIBITED_WORDS="STOP_COMMITTING"
+
+# Get the staged changes, excluding this hook file
+STAGED_CHANGES=$(git diff --cached --name-only | grep -v "hooks/executable_pre-commit")
+
+if [ -z "$STAGED_CHANGES" ]; then
+    exit 0
+fi
+
+# Check each staged file for prohibited words (excluding hook files)
+for word in $PROHIBITED_WORDS; do
+    if git diff --cached | grep -v "hooks/" | grep -i "$word" > /dev/null; then
+        echo "❌ Commit blocked: Found '$word' in staged changes"
+        echo "Please remove or address '$word' before committing"
+        echo "Files with changes:"
+        git diff --cached --name-only | grep -v "hooks/"
+        exit 1
+    fi
+done
+
+echo "✅ Pre-commit check passed"
+exit 0
+

@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# Commit message validation
+commit_regex='^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: .{1,50}'
+
+if ! grep -qE "$commit_regex" "$1"; then
+    echo "❌ Invalid commit message format!"
+    echo "Format: type(scope): description"
+    echo "Types: feat, fix, docs, style, refactor, test, chore"
+    echo "Example: feat(auth): add login validation"
+    exit 1
+fi
+
+# Check commit message length
+if [ $(head -n1 "$1" | wc -c) -gt 72 ]; then
+    echo "❌ Commit message too long (max 72 characters)"
+    exit 1
+fi
+
+echo "✅ Commit message format valid"
+
