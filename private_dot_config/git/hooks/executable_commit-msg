@@ -1,6 +1,18 @@
 #!/bin/sh
 
-# Commit message validation
+# Check if this is a merge commit
+if [ -f .git/MERGE_HEAD ]; then
+    echo "✅ Merge commit detected, skipping validation"
+    exit 0
+fi
+
+# Allow quick commits with just "..."
+if [ "$(head -n1 "$1" | tr -d '\n')" = "..." ]; then
+    echo "⚡ Quick commit detected"
+    exit 0
+fi
+
+# Commit message validation for regular commits
 commit_regex='^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: .{1,50}'
 
 if ! grep -qE "$commit_regex" "$1"; then
