@@ -13,7 +13,7 @@
  :logseq-tocgen {:version "v2.13.0", :repo "sethyuan/logseq-plugin-tocgen", :effect true, :theme false}
  :logseq-git {:version "v1.7.0", :repo "haydenull/logseq-plugin-git", :effect true, :theme false}
  :logseq-find-and-replace {:version "v1.1.1", :repo "sawhney17/logseq-find-replace", :effect false, :theme false}
- :logseq-pdf-export-plugin {:version "2.2.10", :repo "sawhney17/logseq-pdf-export", :effect true, :theme false}
+ :logseq-pdf-export-plugin {:version "2.2.11", :repo "sawhney17/logseq-pdf-export", :effect true, :theme false}
  :logseq-todo-master {:version "v1.10.3", :repo "pengx17/logseq-plugin-todo-master", :effect false, :theme false}
  :logseq-date-between {:version "v0.0.7", :repo "Cologler/logseq-date-between-typescript", :effect false, :theme false}
  :logseq-plugin-show-page-date {:version "v1.0.3", :repo "YU000jp/logseq-plugin-show-page-date", :effect true, :theme false}

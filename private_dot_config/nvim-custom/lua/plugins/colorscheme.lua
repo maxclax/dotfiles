@@ -6,6 +6,38 @@ end
 local function set_light()
 	vim.o.background = "light"
 	vim.cmd.colorscheme("dayfox")
+	-- vim.cmd.colorscheme("rose-pine-dawn")
+	-- vim.cmd.colorscheme("tokyonight-day")
+end
+
+local function tmux_is_running()
+	local processes = vim.fn.systemlist("ps -e | grep tmux")
+	local found = false
+	for _, process in ipairs(processes) do
+		if string.find(process, "grep") then
+		-- do nothing, just skip
+		elseif string.find(process, "tmux") then
+			found = true
+		end
+	end
+	return found
+end
+
+local function set_tmux(style)
+	if not tmux_is_running() then
+		return
+	end
+
+	local tmux_theme = ""
+	if style == "dark" then
+		tmux_theme = vim.fn.expand("~/.local/share/nvim-custom/lazy/tokyonight.nvim/extras/tmux/tokyonight_moon.tmux")
+	elseif style == "light" then
+		tmux_theme = vim.fn.expand("~/.local/share/nvim-custom/lazy/nightfox.nvim/extra/dayfox/dayfox.tmux")
+	end
+
+	if vim.fn.filereadable(tmux_theme) == 1 then
+		os.execute("tmux source-file " .. tmux_theme)
+	end
 end
 
 return {
@@ -22,9 +54,11 @@ return {
 			update_interval = 3000, -- milliseconds
 			set_dark_mode = function()
 				set_dark()
+				-- set_tmux("dark")
 			end,
 			set_light_mode = function()
 				set_light()
+				-- set_tmux("light")
 			end,
 		},
 	},
@@ -58,17 +92,27 @@ return {
 		},
 	},
 	{
-		"catppuccin/nvim",
-		enabled = true,
-		lazy = true,
-		name = "catppuccin", -- or Lazy will show the plugin as "nvim"
-		opts = {
-			-- transparent_background = true,
-		},
-	},
-	{
 		"EdenEast/nightfox.nvim",
 		enabled = true,
 		lazy = true,
+		opts = {
+			options = {
+				styles = {
+					comments = "italic",
+				},
+			},
+		},
+	},
+	{
+		"rose-pine/neovim",
+		enabled = false,
+		name = "rose-pine",
+		lazy = true,
+		opts = {
+			enable = {
+				legacy_highlights = false,
+			},
+			dim_inactive_windows = true,
+		},
 	},
 }
