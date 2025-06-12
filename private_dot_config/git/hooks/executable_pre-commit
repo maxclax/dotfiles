@@ -1,0 +1,25 @@
+#!/bin/sh
+
+# List of words to check for (customize these)
+PROHIBITED_WORDS="STOP_COMMITTING"
+
+# Get the staged changes
+STAGED_CHANGES=$(git diff --cached --name-only)
+
+if [ -z "$STAGED_CHANGES" ]; then
+	exit 0
+fi
+
+# Check each staged file for prohibited words
+for word in $PROHIBITED_WORDS; do
+	if git diff --cached | grep -i "$word" >/dev/null; then
+		echo "❌ Commit blocked: Found '$word' in staged changes"
+		echo "Please remove or address '$word' before committing"
+		echo "Files with changes:"
+		git diff --cached --name-only
+		exit 1
+	fi
+done
+
+echo "✅ Pre-commit check passed"
+exit 0
