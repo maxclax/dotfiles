@@ -1,7 +1,7 @@
 {
   "actionlint": "v1.7.7",
   "api-linter": "v1.69.2",
-  "basedpyright": "1.29.2",
+  "basedpyright": "1.29.4",
   "bash-language-server": "5.6.0",
   "biome": "1.9.4",
   "black": "25.1.0",
@@ -37,7 +37,7 @@
   "markdownlint": "0.45.0",
   "mdformat": "0.7.22",
   "mypy": "1.16.0",
-  "postgrestools": "0.7.0",
+  "postgrestools": "0.8.0",
   "prettier": "3.5.3",
   "protolint": "v0.55.6",
   "pylint": "3.3.7",

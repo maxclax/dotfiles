@@ -126,25 +126,25 @@ alt-shift-cmd-r = 'reload-config'
 # alt-7 = 'workspace 7'
 # alt-8 = 'workspace 8'
 # alt-9 = 'workspace 9'
-alt-a = 'workspace A'
-alt-b = 'workspace B'
-alt-c = 'workspace C'
-alt-d = 'workspace D'
-alt-e = 'workspace E'
+alt-a = 'workspace A' # AI
+alt-b = 'workspace B' # Browser
+alt-c = 'workspace C' # Communication
+alt-d = 'workspace D' # Dev (vimex)
+alt-e = 'workspace E' # Dev (env, emacs)
 # alt-f = 'workspace F'  # NOTE: conflicts with aerospace 'fullscreen' binding
-# alt-g = 'workspace G'
-# alt-i = 'workspace I'
+# alt-g = 'workspace G' 
+# alt-i = 'workspace I' 
 # alt-m = 'workspace M'  # NOTE: conflicts with 'gh dependabot'
 # alt-n = 'workspace N'
 # alt-o = 'workspace O'
-alt-p = 'workspace P'
+alt-p = 'workspace P' # PKM 
 # alt-q = 'workspace Q'
 alt-r = 'workspace R'
 alt-s = 'workspace S'
 alt-t = 'workspace T'
 alt-u = 'workspace U'
 alt-v = 'workspace V'
-# alt-w = 'workspace W'
+alt-w = 'workspace W' # Wiki (Logseq)
 alt-x = 'workspace X'
 alt-y = 'workspace Y'
 alt-z = 'workspace Z'
@@ -180,7 +180,7 @@ alt-shift-s = 'move-node-to-workspace S'
 alt-shift-t = 'move-node-to-workspace T'
 alt-shift-u = 'move-node-to-workspace U'
 alt-shift-v = 'move-node-to-workspace V'
-# alt-shift-w = 'move-node-to-workspace W'
+alt-shift-w = 'move-node-to-workspace W'
 alt-shift-x = 'move-node-to-workspace X'
 alt-shift-y = 'move-node-to-workspace Y'
 alt-shift-z = 'move-node-to-workspace Z'
@@ -242,9 +242,6 @@ if.app-id = 'com.p5sys.jump.mac.viewer'
 run = "move-node-to-workspace V"
 
 [[on-window-detected]]
-if.app-id = 'com.electron.logseq'
-run = "move-node-to-workspace P"
-[[on-window-detected]]
 if.app-id = 'com.omnigroup.OmniFocus4'
 run = "move-node-to-workspace P"
 [[on-window-detected]]
@@ -256,16 +253,16 @@ run = "move-node-to-workspace P"
 
 
 [[on-window-detected]]
-if.app-id = 'md.obsidian'
-run = "move-node-to-workspace R"
-
-[[on-window-detected]]
 if.app-id = 'com.flexibits.fantastical2.mac'
 run = "move-node-to-workspace S"
 
 [[on-window-detected]]
 if.app-id = "org.gnu.Emacs"
 run = "move-node-to-workspace E"
+
+[[on-window-detected]]
+if.app-id = 'com.electron.logseq'
+run = "move-node-to-workspace W"
 
 [[on-window-detected]]
 if.app-id = 'com.github.wez.wezterm'
@@ -276,6 +273,10 @@ run = "move-node-to-workspace Y"
 [[on-window-detected]]
 if.app-id = 'net.kovidgoyal.kitty'
 run = "move-node-to-workspace Y"
+
+[[on-window-detected]]
+if.app-id = "app.zen-browser.zen"
+run = "move-node-to-workspace Z"
 
 [[on-window-detected]]
 if.app-id = "com.1password.1password"

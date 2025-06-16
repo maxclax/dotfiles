@@ -8,7 +8,7 @@
   "checkWhenDBChanged": false,
   "autoCheckSynced": false,
   "autoPush": false,
-  "typeCommitMessage": "Default Message With Date",
-  "customCommitMessage": "",
+  "typeCommitMessage": "Custom Message With Date",
+  "customCommitMessage": "chore: (log) ",
   "disabled": false
 }
