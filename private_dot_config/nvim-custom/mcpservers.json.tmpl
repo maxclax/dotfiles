@@ -53,14 +53,23 @@
       "args": ["-y", "tavily-mcp@0.1.4"],
       "disabled": true
     },
+	"sequential-thinking": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "disabled": false
+	},
     "filesystem": {
+      "command": "npx",
       "args": [
         "-y",
         "@modelcontextprotocol/server-filesystem",
         "{{ .workspace }}",
         "{{ .workspace_extra }}"
       ],
-      "command": "npx"
+      "disabled": false
     }
   },
   "nativeMCPServers": []
