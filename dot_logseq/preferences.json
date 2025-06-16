@@ -26,7 +26,6 @@
     "logseq-graph-analysis:logseq-graph-analysis",
     "logseq-on-this-day:on-this-day-3",
     "logseq-find-and-replace:open-find-and-replace",
-    "logseq-heatmap:heatmap-plugin-open",
     "logseq-calibre-annotation:logseg-calibre-annotation",
     "logseq-that-year-today:byp-logseq-that-year-today",
     "logseq-file-manager:logseq-plugin-file-manager",
@@ -43,10 +42,6 @@
     "logseq-schrodinger:hugo-single-export",
     "logseq-tags:tags-plugin-open",
     "logseq-journals-calendar:goto-today",
-    "logseq-random-note:RandomNote",
-    "logseq-focus-mode:logseq-focus-toolbar",
-    "logseq-git:git",
-    "logseq-my-highlights:my-highlights-open",
-    "logseq-pdf-export-plugin:logseq-pdf-export-plugin"
+    "logseq-git:git"
   ]
 }
