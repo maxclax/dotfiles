@@ -97,13 +97,6 @@ return {
 					"sources.default",
 				},
 			},
-			{
-				-- "epwalsh/obsidian.nvim",
-				"obsidian-nvim/obsidian.nvim",
-				opts = {
-					ui = { enable = false },
-				},
-			},
 		},
 		---@module 'render-markdown'
 		---@type render.md.UserConfig
