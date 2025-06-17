@@ -1,66 +1,33 @@
 {
   "mcpServers": {
-    "github": {
-      "command": "docker",
-      "args": [
-        "run",
-        "-i",
-        "--rm",
-        "-e",
-        "GITHUB_PERSONAL_ACCESS_TOKEN",
-        "ghcr.io/github/github-mcp-server"
-      ],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "cmd:op read op://Personal/chezmoi-data/github-access-token --no-newline"
-      },
-	  "disabled": false
+    "git": {
+      "command": "uvx",
+      "args": ["mcp-server-git"]
     },
-    "google-maps": {
-      "command": "docker",
-      "env": {
-        "GOOGLE_MAPS_API_KEY": null
-      },
-      "args": [
-        "run",
-        "-i",
-        "--rm",
-        "-e",
-        "GOOGLE_MAPS_API_KEY",
-        "mcp/google-maps"
-      ],
-      "disabled": true
+    "mcp-installer": {
+      "command": "npx",
+      "args": ["@anaisbetts/mcp-installer"],
+      "disabled": false
     },
-    "github.com/modelcontextprotocol/servers/tree/main/src/git": {
-      "args": ["mcp-server-git"],
-      "command": "uvx"
-    },
-	"mcp-installer": {
-		"command": "npx",
-		"args": ["@anaisbetts/mcp-installer"],
-		"disabled": false
-	},
     "fetch": {
       "command": "uvx",
       "args": ["mcp-server-fetch"],
       "disabled": false
     },
-    "github.com/tavily-ai/tavily-mcp": {
+    "tavily-mcp": {
+      "command": "npx",
+      "args": ["-y", "tavily-mcp@0.2.4"],
       "env": {
-        "TAVILY_API_KEY":  "cmd:op read op://Personal/Tavily/TOKENS/token --no-newline"
+        "TAVILY_API_KEY": "cmd:op read op://Personal/Tavily/TOKENS/token --no-newline"
       },
-      "command": "npx",
-      "autoApprove": [],
-      "args": ["-y", "tavily-mcp@0.1.4"],
-      "disabled": true
+      "disabled": false,
+      "autoApprove": []
     },
-	"sequential-thinking": {
+    "sequential-thinking": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-sequential-thinking"
-      ],
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
       "disabled": false
-	},
+    },
     "filesystem": {
       "command": "npx",
       "args": [
@@ -69,6 +36,19 @@
         "{{ .workspace }}",
         "{{ .workspace_extra }}"
       ],
+      "disabled": false
+    },
+    "airbnb": {
+      "command": "npx",
+      "args": ["-y", "@openbnb/mcp-server-airbnb", "--ignore-robots-txt"],
+      "disabled": false
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"],
+      "env": {
+        "DISPLAY": ":1"
+      },
       "disabled": false
     }
   },
