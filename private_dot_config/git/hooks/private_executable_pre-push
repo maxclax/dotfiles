@@ -1,0 +1,2 @@
+#!/usr/bin/env sh
+/Users/dev/.config/doomemacs.d/bin/doom --no-color ci hook pre-push "$@"
