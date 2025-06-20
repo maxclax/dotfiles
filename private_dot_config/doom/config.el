@@ -203,3 +203,7 @@
   ;; `envrc-global-mode' should be enabled after other global minor modes,
   ;; since each prepends itself to various hooks.
   (add-hook 'after-init-hook #'envrc-global-mode))
+
+;; ===========================================================================
+;; Load external configuration files
+(load! "keymaps")
