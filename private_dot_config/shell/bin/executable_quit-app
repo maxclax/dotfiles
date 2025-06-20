@@ -1,0 +1,75 @@
+#!/bin/bash
+
+# Function to get running GUI applications (one per line)
+get_running_apps() {
+	osascript <<'EOF'
+tell application "System Events"
+    set appList to name of every application process whose background only is false
+    set appNames to ""
+    repeat with appName in appList
+        set appNames to appNames & appName & "\n"
+    end repeat
+    return appNames
+end tell
+EOF
+}
+
+# Main loop
+while true; do
+	echo "Getting list of running applications..."
+
+	# Get apps and store in array (compatible with older bash)
+	apps=()
+	while IFS= read -r line; do
+		if [[ -n "$line" ]]; then
+			apps+=("$line")
+		fi
+	done < <(get_running_apps)
+
+	# Check if we got any apps
+	if [ ${#apps[@]} -eq 0 ]; then
+		echo "No GUI applications found."
+		exit 1
+	fi
+
+	echo ""
+	echo "Select an application to force quit:"
+	echo "0) Exit"
+
+	# Display numbered list
+	for i in "${!apps[@]}"; do
+		echo "$((i + 1))) ${apps[i]}"
+	done
+
+	echo ""
+	read -p "Enter your choice: " choice
+
+	# Validate input
+	if ! [[ "$choice" =~ ^[0-9]+$ ]]; then
+		echo "Invalid input. Please enter a number."
+		echo ""
+		continue
+	fi
+
+	# Check for exit
+	if [ "$choice" -eq 0 ]; then
+		echo "Goodbye!"
+		exit 0
+	fi
+
+	# Check if choice is in valid range
+	if [ "$choice" -ge 1 ] && [ "$choice" -le ${#apps[@]} ]; then
+		selected_app="${apps[$((choice - 1))]}"
+		echo "Force quitting: $selected_app"
+
+		# Force quit the application
+		osascript -e "tell application \"$selected_app\" to quit" 2>/dev/null ||
+			killall "$selected_app" 2>/dev/null
+
+		echo "Done."
+		echo ""
+	else
+		echo "Invalid selection. Please try again."
+		echo ""
+	fi
+done
