@@ -1,3 +1,5 @@
+# -*- mode: makefile; -*-
+
 # Detect the OS
 UNAME_S := $(shell uname -s)
 UNAME_M := $(shell uname -m)
@@ -216,7 +218,7 @@ backup_list:
 	/opt/homebrew/bin/borgmatic list --verbosity 1
 
 backup_list_files:
-	# Usage: make backup_list_files repo=/path/to/repo archive=/path/to/archive [path=optional/path/in/archive]
+    # Usage: make backup_list_files repo=/path/to/repo archive=/path/to/archive [path=optional/path/in/archive]
 	@if [ -z "$(repo)" ] || [ -z "$(archive)" ]; then \
 		echo "Error: Please provide repo and archive parameters."; \
 		echo "Usage: make backup_list_files repo=<repository_path> archive=<archive_name> [path=<optional/path/in/archive>]"; \
@@ -232,7 +234,7 @@ backup_list_files:
 	fi
 
 backup_restore:
-	# Usage: make backup_restore repo=/path/to/repo archive=/path/to/archive dest=/path/to/destination [path=optional/path/in/archive]
+    # Usage: make backup_restore repo=/path/to/repo archive=/path/to/archive dest=/path/to/destination [path=optional/path/in/archive]
 	@if [ -z "$(repo)" ] || [ -z "$(archive)" ] || [ -z "$(dest)" ]; then \
 		echo "Error: Please provide repo, archive, and dest parameters."; \
 		echo "Usage: make backup_restore repo=<repository_path> archive=<archive_name> dest=<destination_path> [path=<optional/path/in/archive>]"; \
@@ -250,5 +252,3 @@ backup_restore:
 	fi
 
 ##############################
-
-	

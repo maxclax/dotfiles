@@ -1,14 +1,43 @@
 
-# feat: (new feature for the user, not a new feature for build script)
-# fix: (bug fix for the user, not a fix to a build script)
-# docs: (changes to the documentation)
-# style: (formatting, missing semi colons, etc; no production code change)
-# refactor: (refactoring production code, eg. renaming a variable)
-# test: (adding missing tests, refactoring tests; no production code change)
-# chore: (updating grunt tasks etc; no production code change)
+# TYPE[!][(SCOPE)]: SUMMARY
 
-# Why?
-# - ...
+# dev: project infrastructure (build scripts, CI/CD, ignore files, etc.)
+# docs: user-facing documentation, templates, docstrings, CLI help output
+# feat: new feature or extends existing functionality
+# fix: resolves bugs or misbehavior
+# nit: cosmetic changes (comments, formatting, spelling) with no behavior change
+# perf: refactor to improve startup/runtime performance
+# refactor: code changes with little user-facing effect
+# revert: undoes previous change (must specify what's being reverted)
+# test: changes to tests (not testing infrastructure)
+# tweak: changes defaults/behavior but not drastically
 #
-# What?
-# - ...
+# bump: package updates or upstream changes
+# module: changes to module list (add/remove/move/deprecate modules)
+
+# SCOPES (examples):
+# ci: continuous integration/delivery
+# cli: Doom's CLI (core-cli.el, core/cli/**, bin/**)
+# Module names: python, doom-dashboard, popup
+# Categories: :lang, :editor, :ui
+# install: installation guide changes
+# migrate, contributing, index: for docs commits
+
+# BREAKING CHANGES:
+# - Add ! after TYPE: feat!: or fix!(scope):
+# - Add "BREAKING CHANGE:" in BODY with explanation
+
+# FOOTER TRAILERS:
+# Fix: #123 - resolves Github issue
+# Ref: #123 - reference for more info
+# Close: #123 - supersedes PR or closes issue
+# Revert: abc123def - completely reverts commit
+# Amend: #123 - addresses issue in same release
+
+# EXAMPLES:
+# feat(python): add new LSP integration
+# fix!: remove deprecated API
+# bump: :lang python, javascript, rust
+# nit(docs): fix typos in installation guide
+# module: add :lang zig
+
