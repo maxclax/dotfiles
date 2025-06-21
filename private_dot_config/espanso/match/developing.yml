@@ -57,13 +57,16 @@ matches:
       type:
         type: list
         values:
+          - dev
+          - docs
           - feat
           - fix
-          - docs
-          - style
+          - nit
+          - perf
           - refactor
+          - revert
           - test
-          - chore
+          - tweak
       message:
         type: text
         multiline: false
@@ -77,13 +80,16 @@ matches:
       type:
         type: list
         values:
+          - dev
+          - docs
           - feat
           - fix
-          - docs
-          - style
+          - nit
+          - perf
           - refactor
+          - revert
           - test
-          - chore
+          - tweak
       scope:
         type: text
         multiline: false
