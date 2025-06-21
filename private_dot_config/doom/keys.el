@@ -1,3 +1,9 @@
+;;; +keys.el -*- lexical-binding: t; -*-
+
+(when IS-MAC
+  (setq mac-command-modifier 'meta
+        mac-option-modifier  'alt))
+
 ;; Select all in buffer
 (map! :leader
       :desc "Select all in buffer"

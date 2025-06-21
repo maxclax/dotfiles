@@ -32,7 +32,6 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
   "cmatrix"
   "ctop"
   "universal-ctags"
-  "d12frosted/emacs-plus/emacs-plus"
   "direnv"
   "dockutil"
   "duf"
@@ -204,6 +203,10 @@ cask "{{ . }}"
 mas "{{ . }}", id: {{ index $masApps . }}
 {{ end -}}
 EOF
+
+# Emacs Plus with ImageMagick
+brew install d12frosted/emacs-plus/emacs-plus --with-imagemagick
+osascript -e 'tell application "Finder" to make alias file to posix file "/opt/homebrew/opt/emacs-plus@30/Emacs.app" at posix file "/Applications" with properties {name:"Emacs.app"}'
 
 # Check if Go is enabled and not already installed
 if [ "{{ .goEnabled }}" = "true" ]; then
