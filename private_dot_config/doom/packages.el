@@ -25,7 +25,6 @@
 (package! magit-delta)
 (package! imenu-list)
 (package! tmux-pane)
-(package! go-translate)
 (package! xclip)
 (package! consult-todo)
 
@@ -36,4 +35,3 @@
 (package! django-mode)
 (package! protobuf-mode)
 (package! gn-mode)
-(package! aider :recipe (:host github :repo "tninja/aider.el" :files ("aider.el" "aider-doom.el")))
