@@ -1,0 +1,4 @@
+[submodule "private_dot_config/doom"]
+	path = private_dot_config/doom
+	url = https://github.com/maxclax/doom-config
+	branch = main
