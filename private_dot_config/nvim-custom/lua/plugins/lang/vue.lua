@@ -20,30 +20,5 @@ return {
 				end,
 			},
 		},
-		opts = {
-			servers = {
-				---@type vim.lsp.Config
-				vue_ls = {
-					cmd = { "vue-language-server", "--stdio" },
-					filetypes = { "vue" },
-					root_markers = { "package.json", "vue.config.js", "vite.config.ts", "vite.config.js", ".git" },
-					init_options = {
-						typescript = {
-							tsdk = vim.fn.getcwd() .. "/node_modules/typescript/lib",
-						},
-					},
-					settings = {
-						vue = {
-							completeFunctionCalls = true,
-							updateImportsOnFileMove = { enabled = "always" },
-							inlayHints = {
-								missingProps = true,
-								optionsWrapper = true,
-							},
-						},
-					},
-				},
-			},
-		},
 	},
 }
