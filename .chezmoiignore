@@ -6,13 +6,11 @@ install.sh
 .oh-my-zsh/cache/**
 .oh-my-zsh/plugins/**
 .oh-my-zsh/templates/**
-.config/karabiner/automatic_backup/**
 
 {{ if ne .chezmoi.os "darwin" }}
 .chezmoiscripts/darwin/**
 .config/aerospace
 .config/homebrew
-.config/karabiner
 .config/espanso
 Library/Application\ Support/espanso
 Library/Application\ Support/lazygit/config.yml
