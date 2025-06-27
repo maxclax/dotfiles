@@ -22,6 +22,8 @@ dotfiles_add:
 	$(CHEZMOI) add $(file)
 dotfiles_apply:
 	$(CHEZMOI) apply
+dotfiles_apply_extra:
+	$(CHEZMOI) apply --refresh-externals
 dotfiles_update:
 	$(CHEZMOI) update
 
