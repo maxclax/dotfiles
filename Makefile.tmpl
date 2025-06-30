@@ -94,7 +94,8 @@ update_apps:
 ifeq ($(UNAME_S), Darwin)
 	@echo "Updating Homebrew packages..."
 	brew outdated ; brew update ; brew upgrade --force ; brew upgrade --cask
-	brew cleanup
+	brew cleanup --prune=all
+	rm -rf ~/Library/Caches/Homebrew/Cask/*
 
 	@echo "Updating App Store applications..."
 	mas outdated ; mas upgrade
