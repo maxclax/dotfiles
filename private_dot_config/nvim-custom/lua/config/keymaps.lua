@@ -5,9 +5,12 @@ vim.keymap.set("n", "<leader>ba", "ggVG", { desc = "Select all in buffer", silen
 vim.keymap.set("n", "<leader>bd", ":%d_<CR>", { desc = "Delete entire buffer without yank", silent = true })
 
 --  from emacs
-vim.keymap.set("n", "<leader>by", ":%y<CR>", { desc = "Yank entire buffer", silent = true })
+vim.keymap.set("n", "<C-x>h", "ggVG", { desc = "Select all in buffer", silent = true })
 
+--  from doom-emacs
+vim.keymap.set("n", "<leader>by", ":%y<CR>", { desc = "Yank entire buffer", silent = true })
 vim.keymap.set("n", "<leader>fs", ":w<CR>", { desc = "Save file", silent = true })
+
 vim.keymap.set("n", "<leader>fS", ":wq<CR>", { desc = "Save file and Quit", silent = true })
 
 -- Copy filename and path

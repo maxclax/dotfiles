@@ -7,47 +7,46 @@ brew uninstall emacs-plus
 
 # Function to safely remove directories and files
 safe_remove() {
-  if [ -e "$1" ]; then
-    echo "Removing $1"
-    rm -rf "$1"
-  else
-    echo "$1 does not exist, skipping..."
-  fi
+	if [ -e "$1" ]; then
+		echo "Removing $1"
+		rm -rf "$1"
+	else
+		echo "$1 does not exist, skipping..."
+	fi
 }
 
 # Function to check if directory/file was successfully removed
 check_removal() {
-  if [ ! -e "$1" ]; then
-    echo "✓ Successfully removed $1"
-  else
-    echo "⚠️  Warning: Failed to remove $1"
-  fi
+	if [ ! -e "$1" ]; then
+		echo "✓ Successfully removed $1"
+	else
+		echo "⚠️  Warning: Failed to remove $1"
+	fi
 }
 
 # List of directories and files to remove
 declare -a remove_list=(
-  "$HOME/.emacs.d"
-  "$HOME/.doom.d"
-  "$HOME/.config/doom"
-  "$HOME/.config/emacs"
-  "$HOME/.local/bin/doom"
-  "$HOME/.config/emacs/straight"
-  "$HOME/.cache/doom"
-  "$HOME/.cache/emacs"
-  "$HOME/.emacs.d.bak"
-  "$HOME/.emacs.bak"
-  "$HOME/.config/doomemacs.d"
-  "$HOME/.config/spacemacs.d"
-  "$HOME/.config/purcellemacs.d"
-  "$HOME/.config/preludeemacs.d"
-  "$HOME/.spacemacs"
+	"$HOME/.emacs.d"
+	"$HOME/.doom.d"
+	"$HOME/.config/doom"
+	"$HOME/.config/emacs"
+	"$HOME/.local/bin/doom"
+	"$HOME/.config/emacs/straight"
+	"$HOME/.cache/doom"
+	"$HOME/.cache/emacs"
+	"$HOME/.emacs.d.bak"
+	"$HOME/.emacs.bak"
+	"$HOME/.config/doomemacs.d"
+	"$HOME/.config/spacemacs.d"
+	"$HOME/.config/preludeemacs.d"
+	"$HOME/.spacemacs"
 )
 
 # Remove all listed directories and files
 echo "Removing Doom Emacs files and directories..."
 for item in "${remove_list[@]}"; do
-  safe_remove "$item"
-  check_removal "$item"
+	safe_remove "$item"
+	check_removal "$item"
 done
 
 rm -rf /opt/homebrew/bin/emacs
