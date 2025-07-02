@@ -39,6 +39,7 @@ declare -a remove_list=(
 	"$HOME/.config/doomemacs.d"
 	"$HOME/.config/spacemacs.d"
 	"$HOME/.config/preludeemacs.d"
+	"$HOME/.config/purcellemacs.d"
 	"$HOME/.spacemacs"
 )
 

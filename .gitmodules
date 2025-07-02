@@ -2,7 +2,7 @@
 	path = private_dot_config/doom
 	url = https://github.com/maxclax/doom-config
 	branch = main
-[submodule "private_dot_emacs.d"]
-	path = private_dot_emacs.d
-	url = https://github.com/maxclax/emacs.d.git
+[submodule "private_dot_config/purcellemacs.d"]
+	path = private_dot_config/purcellemacs.d
+	url = https://github.com/maxclax/purcellemacs.d.git
 	branch = main
