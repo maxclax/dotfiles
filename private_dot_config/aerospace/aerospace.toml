@@ -130,7 +130,7 @@ alt-a = 'workspace A' # AI
 alt-b = 'workspace B' # Browser
 alt-c = 'workspace C' # Communication
 alt-d = 'workspace D' # Dev (vimex)
-alt-e = 'workspace E' # Dev (env, emacs)
+alt-e = 'workspace E' # Dev (env)
 # alt-f = 'workspace F'  # NOTE: conflicts with aerospace 'fullscreen' binding
 # alt-g = 'workspace G' 
 # alt-i = 'workspace I' 
@@ -238,7 +238,7 @@ run = "move-node-to-workspace C"
 
 [[on-window-detected]]
 if.app-id = "org.gnu.Emacs"
-run = "move-node-to-workspace E"
+run = "move-node-to-workspace D"
 
 [[on-window-detected]]
 if.app-id = 'com.googlecode.iterm2'
