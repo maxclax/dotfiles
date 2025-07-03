@@ -9,5 +9,7 @@
 (package! keycast)
 (package! pomm)
 
+(package! aider)
+(package! gptel :recipe (:nonrecursive t))
 (package! copilot
   :recipe (:host github :repo "copilot-emacs/copilot.el" :files ("*.el")))
