@@ -26,10 +26,4 @@
         doom-big-font (font-spec :family user-font :weight user-font-weight :size (eval (round (* 18 resolution-factor))))
         doom-variable-pitch-font (font-spec :family user-font :weight user-font-weight :size (eval (round (* 13 resolution-factor))))
         doom-modeline-height (eval (round (* 24 resolution-factor))))
-  (setq doom-font-increment 1)
-
-  ;; set initl screen size
-  (setq initial-frame-alist
-        '((width . 110)
-          (height . 65))))
-
+  (setq doom-font-increment 1))
