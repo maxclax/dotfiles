@@ -8,6 +8,7 @@
 (load! "+ui")
 (load! "+keys")
 (cond
+ ((modulep! :tools lsp +eglot) (load! "+eglot"))
  ((modulep! :tools lsp) (load! "+lsp")))
 
 ;; If you use `org' and don't want your org files in the default location below,

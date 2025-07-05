@@ -13,3 +13,9 @@
 (package! aider)
 (package! copilot)
 (package! gptel :recipe (:nonrecursive t))
+
+(if (modulep! :tools lsp +eglot)
+    (progn
+      (package! breadcrumb :recipe (:host github :repo "joaotavora/breadcrumb")))
+  (progn
+    (package! lsp-docker)))
