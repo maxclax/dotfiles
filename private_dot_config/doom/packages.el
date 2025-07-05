@@ -5,11 +5,11 @@
 (package! company-box)  ; Better company UI
 
 
+(package! format-all)
 (package! tldr)
 (package! keycast)
 (package! pomm)
 
 (package! aider)
+(package! copilot)
 (package! gptel :recipe (:nonrecursive t))
-(package! copilot
-  :recipe (:host github :repo "copilot-emacs/copilot.el" :files ("*.el")))
