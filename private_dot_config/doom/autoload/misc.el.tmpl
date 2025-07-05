@@ -1,0 +1,39 @@
+;;; +misc.el -*- mode: emacs-lisp; lexical-binding: t; -*-
+
+;;;###autoload
+(defvar +my/repo-root-list '({{ .chezmoi.sourceDir | quote }}  ) "personal repo root to scan git projects")
+(defvar +my/user-custom-repos '("~/.config/chezmoi/"))
+
+;;;###autoload
+(defun update-projectile-known-projects ()
+  (interactive)
+  (require 'magit)
+  (setq magit-repository-directories '(("~/.local/git/" . 3) ({{ .workspace_extra | quote }} . 3)))
+
+  ;; Workplace folder has some permission error on macos
+  (let ((workspace-dir {{ .workspace | quote }}))
+    (when (file-directory-p workspace-dir)
+      (dolist (dir (directory-files workspace-dir t))
+        (when (and
+               (file-readable-p dir)
+               (not (string-equal ".." (substring dir -2)))
+               (not (string-equal "." (substring dir -1))))
+          (appendq! magit-repository-directories `((,dir . 2)))))))
+
+  (let (magit-repos
+        magit-abs-repos
+        (home (expand-file-name "~")))
+    ;; append magit repos at root with depth 1
+    (dolist (root +my/repo-root-list)
+      (setq magit-abs-repos (append magit-abs-repos (magit-list-repos-1 root 1))))
+    (setq magit-abs-repos (append magit-abs-repos (magit-list-repos)))
+
+    ;; convert abs path to relative path (HOME)
+	(dolist (repo magit-abs-repos)
+	  (if (string-prefix-p (expand-file-name "~") repo)
+		  (push (concat "~/" (file-relative-name repo "~")) magit-repos)
+		(push repo magit-repos)))
+    (setq projectile-known-projects magit-repos)
+    (dolist (repo +my/user-custom-repos)
+      (if (file-directory-p repo)
+          (push repo projectile-known-projects)))))

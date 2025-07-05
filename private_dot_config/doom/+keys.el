@@ -6,7 +6,8 @@
 (map! :leader
       :desc "Select all in buffer" "ba" #'(lambda () (interactive) (mark-whole-buffer))
       ;; :desc "Delete entire buffer without yank" "bd" #'(lambda () (interactive) (let ((inhibit-read-only t)) (erase-buffer)))
-      :desc "Open Treemacs" "e" #'treemacs)
+      :desc "Open Dirfish (Project Directory)" "e" #'dirvish-side)
+      ;; :desc "Open Treemacs" "e" #'treemacs)
 
 
 ;; Project navigation
