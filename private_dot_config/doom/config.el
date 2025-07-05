@@ -11,6 +11,8 @@
  ((modulep! :tools lsp +eglot) (load! "+eglot"))
  ((modulep! :tools lsp) (load! "+lsp")))
 
+(setq bookmark-default-file "~/.config/doom/bookmarks")
+
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
 (setq org-directory "~/org/")

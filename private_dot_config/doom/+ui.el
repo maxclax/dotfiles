@@ -4,6 +4,14 @@
 (setq doom-theme 'doom-one)
 (setq fancy-splash-image (concat doom-private-dir "assets/GNUEmacs.png"))
 
+;; Enable rainbow-mode for CSS, HTML, and other files with color codes
+(add-hook 'css-mode-hook #'rainbow-mode)
+(add-hook 'html-mode-hook #'rainbow-mode)
+(add-hook 'web-mode-hook #'rainbow-mode)  ; If using web-mode
+(add-hook 'prog-mode-hook #'rainbow-mode) ; For all programming modes (optional)
+
+(beacon-mode 1)
+
 ;; (setq display-line-numbers-type t)
 (setq display-line-numbers-type 'relative)
 
@@ -27,3 +35,10 @@
         doom-variable-pitch-font (font-spec :family user-font :weight user-font-weight :size (eval (round (* 13 resolution-factor))))
         doom-modeline-height (eval (round (* 24 resolution-factor))))
   (setq doom-font-increment 1))
+
+
+(setq doom-modeline-height 30     ;; sets modeline height
+      doom-modeline-bar-width 5   ;; sets right bar width
+      doom-modeline-persp-name t  ;; adds perspective name to modeline
+      doom-modeline-persp-icon t) ;; adds folder icon next to persp name
+

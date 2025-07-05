@@ -21,7 +21,7 @@
        ;;layout            ; auie,ctsrnm is the superior home row
 
        :completion
-       (company +childframe) ; the ultimate code completion backend
+       ;;(company +childframe) ; the ultimate code completion backend
        ;;(corfu +orderless)  ; complete with cap(f), cape and a flying feather!
        ;;helm              ; the *other* search engine for love and life
        ;;ido               ; the other *other* search engine...
@@ -39,11 +39,11 @@
        (emoji +unicode)  ; 🙂
        hl-todo           ; highlight TODO/FIXME/NOTE/DEPRECATED/HACK/REVIEW
        ;;indent-guides     ; highlighted indent columns
-       ligatures         ; ligatures and symbols to make your code pretty again
-       ;;minimap           ; show a map of the code on the side
+       (ligatures +extras)         ; ligatures and symbols to make your code pretty again
+       minimap           ; show a map of the code on the side
        modeline          ; snazzy, Atom-inspired modeline, plus API
        ;;nav-flash         ; blink cursor line after big motions
-       ;;neotree           ; a project drawer, like NERDTree for vim
+       ;; neotree           ; a project drawer, like NERDTree for vim
        ophints           ; highlight the region an operation acts on
        (popup +defaults)   ; tame sudden yet inevitable temporary windows
        ;;smooth-scroll     ; So smooth you won't believe it's not butter
@@ -74,10 +74,9 @@
        (dired            ; making dired pretty [functional]
         +dirvish          ; bringing the goodness of ranger to dired
         +icons)          ; colorful icons for dired-mode
-
        electric          ; smarter, keyword-based electric-indent
        ;;eww               ; the internet is gross
-       ibuffer           ; interactive buffer management
+       (ibuffer +icons)           ; interactive buffer management
        undo              ; persistent, smarter undo for your inevitable mistakes
        vc                ; version-control and Emacs, sitting in a tree
 
@@ -90,7 +89,7 @@
        :checkers
        syntax              ; tasing you for every semicolon you forget
        (spell +flyspell) ; tasing you for misspelling mispelling
-       grammar           ; tasing grammar mistake every you make
+       ;; grammar           ; tasing grammar mistake every you make
 
        :tools
        (projectile +icons)
@@ -107,7 +106,8 @@
        (lookup           ; navigate your code and its documentation
         ;;+dictionary      ; enable word definition and thesaurus lookup functionality
         +devdocs         ; ...on devdocs.io online
-        +docsets)        ; ...or in Dash docsets locally
+        ;; +docsets         ; ...or locally with Dash docsets
+        )
        lsp               ; M-x vscode
        magit             ; a git porcelain for Emacs
        ;;make              ; run make tasks from Emacs
@@ -168,7 +168,7 @@
        ;;nim               ; python + lisp at the speed of c
        (nix +tree-sitter)               ; I hereby declare "nix geht mehr!"
        ;;ocaml             ; an objective camel
-       org               ; organize your plain life in plain text
+-       org               ; organize your plain life in plain text
        ;;php               ; perl's insecure younger brother
        ;;plantuml          ; diagrams for confusing people more
        ;;graphviz          ; diagrams for confusing yourself even more
