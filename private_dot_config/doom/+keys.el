@@ -10,9 +10,7 @@
       ;; :desc "Open Treemacs" "e" #'treemacs)
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; WORKSPACES
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (map! :leader
       :desc "Switch to perspective NAME"       "DEL" #'persp-switch
@@ -39,6 +37,13 @@
        :desc "Window configuration to register" "w" #'window-configuration-to-register
        :desc "Increment register" "+" #'increment-register
        :desc "Point to register" "SPC" #'point-to-register))
+
+;; Toogles
+(map! :leader
+      :prefix "t"
+      :desc "Pomm-third timer" "t" #'pomm-third-time
+      "k" #'keycast-log-mode
+      "R" #'rainbow-mode)
 
 ;; Dotfiles commands
 (map! :leader
