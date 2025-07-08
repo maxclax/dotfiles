@@ -14,27 +14,46 @@
 
 ;; (setq display-line-numbers-type t)
 (setq display-line-numbers-type 'relative)
+;; Set the default font
+(set-face-attribute 'default nil
+                    :family "Berkeley Mono Variable"
+                    :height 200       ;; 20pt
+                    :weight 'normal
+                    :width 'normal)
 
-(when (display-graphic-p)
-  (setq user-font
-        (cond
-         ((find-font (font-spec :name "Berkeley Mono Variable")) "Berkeley Mono Variable")
-         ((find-font (font-spec :name "Maple Mono Normal NF")) "Maple Mono Normal NF")))
+;; ;; Set the big font variant
+;; (set-face-attribute 'default nil
+;;                     :family "Berkeley Mono Variable"
+;;                     :height 360       ;; 36pt
+;;                     :weight 'bold)
 
-  ;; Some font uses Light font as regular, not sure why. Only use medium weight for this font.
-  (setq user-font-weight
-        (cond
-         ((string= user-font "Berkeley Mono Variable") 'normal)
-         (t 'normal))
-        )
+ ; ;; Set the bold font variant
+;; (set-face-attribute 'default nil
+;;                     :family "Berkeley Mono Variable"
+;;                     :height 200       ;; 20pt
+;;                     :weight 'bold
+;;                     :width 'normal)
 
-  ;; calculate the font size based on display-pixel-height
-  (setq resolution-factor (eval (/ (x-display-pixel-height) 1080.0)))
-  (setq doom-font (font-spec :family user-font :weight user-font-weight :size (eval (round (* 14 resolution-factor))))
-        doom-big-font (font-spec :family user-font :weight user-font-weight :size (eval (round (* 18 resolution-factor))))
-        doom-variable-pitch-font (font-spec :family user-font :weight user-font-weight :size (eval (round (* 13 resolution-factor))))
-        doom-modeline-height (eval (round (* 24 resolution-factor))))
-  (setq doom-font-increment 1))
+;; (when (display-graphic-p)
+;;   (setq user-font
+;;         (cond
+;;          ((find-font (font-spec :name "Berkeley Mono Variable")) "Berkeley Mono Variable")
+;;          ((find-font (font-spec :name "Maple Mono Normal NF")) "Maple Mono Normal NF")))
+
+;;   ;; Some font uses Light font as regular, not sure why. Only use medium weight for this font.
+;;   (setq user-font-weight
+;;         (cond
+;;          ((string= user-font "Berkeley Mono Variable") 'normal)
+;;          (t 'normal))
+;;         )
+
+;;   ;; calculate the font size based on display-pixel-height
+;;   (setq resolution-factor (eval (/ (x-display-pixel-height) 1080.0)))
+;;   (setq doom-font (font-spec :family user-font :weight user-font-weight :size (eval (round (* 14 resolution-factor))))
+;;         doom-big-font (font-spec :family user-font :weight user-font-weight :size (eval (round (* 18 resolution-factor))))
+;;         doom-variable-pitch-font (font-spec :family user-font :weight user-font-weight :size (eval (round (* 13 resolution-factor))))
+;;         doom-modeline-height (eval (round (* 24 resolution-factor))))
+;;   (setq doom-font-increment 1))
 
 
 (setq doom-modeline-height 30     ;; sets modeline height
