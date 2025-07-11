@@ -16,8 +16,7 @@
 (setq display-line-numbers-type 'relative)
 ;; Set the default font
 (set-face-attribute 'default nil
-                    :family "Berkeley Mono Variable"
-                    :height 180       ;; 20pt
+                    :font "Berkeley Mono Variable-18"
                     :weight 'normal
                     :width 'normal)
 
@@ -56,19 +55,19 @@
 ;;   (setq doom-font-increment 1))
 
 
-(set-popup-rules! '(("^\\*helpful" :size 0.35)
-                    ("^\\*Ibuffer\\*$" :size 0.35)
-                    ("^\\*info.*" :size 80 :side right)
-                    ("^\\*Man.*" :size 80 :side right)
-                    ("^\\*keycast.*" :size 50 :side right)
-                    ("^\\*Customize" :actions display-buffer)
-                    ("^\\*edit-indirect" :size 0.6)
-                    ("^\\*YASnippet Tables\\*$" :size 0.35)
-                    ("^\\*grep\\*$" :size 0.35)
-                    ("^\\*pytest\\*" :size 0.35)
-                    ("^\\*aider.*$" :size 0.35 :side right)
-                    ("\\*.*server log\\*$" :side top :size 0.20 :select nil)
-                    ((lambda (buf _) (with-current-buffer buf (eq major-mode 'forge-topic-mode))) :size 0.35)
+(set-popup-rules! '(("^\\*helpful" :size 0.35 :modeline nil)
+                    ("^\\*Ibuffer\\*$" :size 0.35 :modeline nil)
+                    ("^\\*info.*" :size 80 :side right :modeline nil)
+                    ("^\\*Man.*" :size 80 :side right :modeline nil)
+                    ("^\\*keycast.*" :size 50 :side right :modeline nil)
+                    ("^\\*Customize" :actions display-buffer :modeline nil)
+                    ("^\\*edit-indirect" :size 0.6 :modeline nil)
+                    ("^\\*YASnippet Tables\\*$" :size 0.35 :modeline nil)
+                    ("^\\*grep\\*$" :size 0.35 :modeline nil)
+                    ("^\\*pytest\\*" :size 0.35 :modeline nil)
+                    ("^\\*aider.*$" :size 0.35 :side right :modeline nil)
+                    ("\\*.*server log\\*$" :side top :size 0.20 :select nil :modeline nil)
+                    ((lambda (buf _) (with-current-buffer buf (eq major-mode 'forge-topic-mode))) :size 0.35 :modeline nil)
                     ))
 
 (setq doom-modeline-height 30     ;; sets modeline height
