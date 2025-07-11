@@ -17,7 +17,7 @@
 ;; Set the default font
 (set-face-attribute 'default nil
                     :family "Berkeley Mono Variable"
-                    :height 200       ;; 20pt
+                    :height 180       ;; 20pt
                     :weight 'normal
                     :width 'normal)
 

@@ -36,7 +36,6 @@ declare -a remove_list=(
 	"$HOME/.cache/emacs"
 	"$HOME/.emacs.d.bak"
 	"$HOME/.emacs.bak"
-	"$HOME/.config/doomemacs.d"
 	"$HOME/.config/spacemacs.d"
 	"$HOME/.config/preludeemacs.d"
 	"$HOME/.config/purcellemacs.d"

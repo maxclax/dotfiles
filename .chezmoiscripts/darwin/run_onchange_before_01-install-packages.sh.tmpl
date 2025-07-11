@@ -22,7 +22,6 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
   "btop"
   "bandwhich"
   "borders"
-  "borgbackup"
   "borgbackup/tap/borgbackup-fuse"
   "borgmatic"
   "coreutils"
@@ -31,7 +30,6 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
   "cmake"
   "cmatrix"
   "ctop"
-  "universal-ctags"
   "direnv"
   "dockutil"
   "duf"
@@ -76,7 +74,6 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
   "ollama"
   "ranger"
   "ripgrep"
-  "sesh"
   "slides"
   "speedtest-cli"
   "starship"
@@ -113,6 +110,7 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
   "macfuse"
   "daisydisk"
   "devonthink"
+  "emacs-app"
   "oversight"
   "banktivity"
   "podman-desktop"
@@ -138,7 +136,6 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
   "little-snitch"
   "logseq"
   "nikitabobko/tap/aerospace"
-  "neovide-app"
   "rescuetime"
   "raspberry-pi-imager"
   "send-to-kindle"
@@ -164,8 +161,6 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
   "Disk Speed Test" 425264550
   "Drafts" 1435957248
   "Folx GO" 736584830
-  "Flow" 1423210932
-  "GoodLinks" 1474335294
   "IP Scanner Ultra" 404167677
   "Irvue" 1039633667
   "Kindle" 302584613
@@ -200,10 +195,6 @@ cask "{{ . }}"
 mas "{{ . }}", id: {{ index $masApps . }}
 {{ end -}}
 EOF
-
-# Emacs Plus with ImageMagick
-brew install d12frosted/emacs-plus/emacs-plus --with-imagemagick
-osascript -e 'tell application "Finder" to make alias file to posix file "/opt/homebrew/opt/emacs-plus@30/Emacs.app" at posix file "/Applications" with properties {name:"Emacs.app"}'
 
 # Check if Go is enabled and not already installed
 if [ "{{ .goEnabled }}" = "true" ]; then

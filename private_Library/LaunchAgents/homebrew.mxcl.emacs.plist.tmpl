@@ -10,7 +10,7 @@
         <string>/opt/homebrew/bin/emacs</string>
         <string>--daemon</string>
     {{- if eq .emacsType "Doom" }}
-    <string>--init-directory={{ .chezmoi.homeDir }}/.config/doomemacs.d</string>
+    <string>--init-directory={{ .chezmoi.homeDir }}/.config/emacs</string>
     {{- else if eq .emacsType "Spacemacs" }}
     <string>--init-directory={{ .chezmoi.homeDir }}/.config/spacemacs.d</string>
     {{- else if eq .emacsType "prelude" }}

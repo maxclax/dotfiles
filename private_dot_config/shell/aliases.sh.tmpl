@@ -25,10 +25,10 @@ alias ec='emacsclient -c -n'  # GUI Emacs (non-blocking)
 alias killemacs='emacsclient -e "(kill-emacs)"'
 
 # Emacs commands for different distributions
-alias doom={{ .chezmoi.homeDir }}/.config/doomemacs.d/bin/doom
+alias doom={{ .chezmoi.homeDir }}/.config/emacs/bin/doom
 
 # Emacs server commands for different distributions
-alias emacs-server-doom='emacs --daemon --init-directory={{ .chezmoi.homeDir }}/.config/doomemacs.d'
+alias emacs-server-doom='emacs --daemon --init-directory={{ .chezmoi.homeDir }}/.config/emacs'
 alias emacs-server-spacemacs='emacs --daemon --init-directory={{ .chezmoi.homeDir }}/.config/spacemacs.d'
 alias emacs-server-prelude='emacs --daemon --init-directory={{ .chezmoi.homeDir }}/.config/preludeemacs.d'
 alias emacs-server-purcell='emacs --daemon --init-directory={{ .chezmoi.homeDir }}/.config/purcellemacs.d'
