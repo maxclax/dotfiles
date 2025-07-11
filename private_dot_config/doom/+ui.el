@@ -56,6 +56,21 @@
 ;;   (setq doom-font-increment 1))
 
 
+(set-popup-rules! '(("^\\*helpful" :size 0.35)
+                    ("^\\*Ibuffer\\*$" :size 0.35)
+                    ("^\\*info.*" :size 80 :side right)
+                    ("^\\*Man.*" :size 80 :side right)
+                    ("^\\*keycast.*" :size 50 :side right)
+                    ("^\\*Customize" :actions display-buffer)
+                    ("^\\*edit-indirect" :size 0.6)
+                    ("^\\*YASnippet Tables\\*$" :size 0.35)
+                    ("^\\*grep\\*$" :size 0.35)
+                    ("^\\*pytest\\*" :size 0.35)
+                    ("^\\*aider.*$" :size 0.35 :side right)
+                    ("\\*.*server log\\*$" :side top :size 0.20 :select nil)
+                    ((lambda (buf _) (with-current-buffer buf (eq major-mode 'forge-topic-mode))) :size 0.35)
+                    ))
+
 (setq doom-modeline-height 30     ;; sets modeline height
       doom-modeline-bar-width 5   ;; sets right bar width
       doom-modeline-persp-name t  ;; adds perspective name to modeline
