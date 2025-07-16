@@ -47,9 +47,10 @@
 
 ;; Dotfiles commands
 (map! :leader
+      (:prefix ("la" . "ai")
+       :desc "Aider menu" "a" #'aider-transient-menu
+       :desc "GPTel" "g" #'gptel)
       :prefix "l"
-      :desc "Aider menu" "aa" #'aider-transient-menu
-      :desc "GPTel" "ag" #'gptel
       :desc "Open LINK under cursor" "l" #'browse-url-at-point
       :desc "Start backup" "b" (lambda () (interactive) (compile "cd ~/ && make backup_create"))
       :desc "Update all" "u" (lambda () (interactive) (compile "cd ~/ && make update_apps && make update_macos"))
