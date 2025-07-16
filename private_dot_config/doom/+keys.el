@@ -47,7 +47,7 @@
 
 ;; Dotfiles commands
 (map! :leader
-      (:prefix ("la" . "ai")
+      (:prefix ("la" . "AI")
        :desc "Aider menu" "a" #'aider-transient-menu
        :desc "GPTel" "g" #'gptel)
       :prefix "l"

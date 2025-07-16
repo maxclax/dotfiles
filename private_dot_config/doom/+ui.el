@@ -20,40 +20,6 @@
                     :weight 'normal
                     :width 'normal)
 
-;; ;; Set the big font variant
-;; (set-face-attribute 'default nil
-;;                     :family "Berkeley Mono Variable"
-;;                     :height 360       ;; 36pt
-;;                     :weight 'bold)
-
- ; ;; Set the bold font variant
-;; (set-face-attribute 'default nil
-;;                     :family "Berkeley Mono Variable"
-;;                     :height 200       ;; 20pt
-;;                     :weight 'bold
-;;                     :width 'normal)
-
-;; (when (display-graphic-p)
-;;   (setq user-font
-;;         (cond
-;;          ((find-font (font-spec :name "Berkeley Mono Variable")) "Berkeley Mono Variable")
-;;          ((find-font (font-spec :name "Maple Mono Normal NF")) "Maple Mono Normal NF")))
-
-;;   ;; Some font uses Light font as regular, not sure why. Only use medium weight for this font.
-;;   (setq user-font-weight
-;;         (cond
-;;          ((string= user-font "Berkeley Mono Variable") 'normal)
-;;          (t 'normal))
-;;         )
-
-;;   ;; calculate the font size based on display-pixel-height
-;;   (setq resolution-factor (eval (/ (x-display-pixel-height) 1080.0)))
-;;   (setq doom-font (font-spec :family user-font :weight user-font-weight :size (eval (round (* 14 resolution-factor))))
-;;         doom-big-font (font-spec :family user-font :weight user-font-weight :size (eval (round (* 18 resolution-factor))))
-;;         doom-variable-pitch-font (font-spec :family user-font :weight user-font-weight :size (eval (round (* 13 resolution-factor))))
-;;         doom-modeline-height (eval (round (* 24 resolution-factor))))
-;;   (setq doom-font-increment 1))
-
 
 (set-popup-rules! '(("^\\*helpful" :size 0.35 :modeline nil)
                     ("^\\*Ibuffer\\*$" :size 0.35 :modeline nil)
@@ -74,4 +40,3 @@
       doom-modeline-bar-width 5   ;; sets right bar width
       doom-modeline-persp-name t  ;; adds perspective name to modeline
       doom-modeline-persp-icon t) ;; adds folder icon next to persp name
-
