@@ -45,8 +45,11 @@
       "k" #'keycast-log-mode
       "R" #'rainbow-mode)
 
-;; Dotfiles commands
+;; Own commands
 (map! :leader
+      (:prefix ("lp" . "Podman")
+       :desc "Podman machine start" "s" (lambda () (interactive) (compile "cd ~/ && podman machine start"))
+       :desc "Podman machine stop" "S" (lambda () (interactive) (compile "cd ~/ && podman machine stop")))
       (:prefix ("la" . "AI")
        :desc "Aider menu" "a" #'aider-transient-menu
        :desc "GPTel" "g" #'gptel)
