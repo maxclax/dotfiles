@@ -23,3 +23,21 @@
 ;;  '(markdown-header-face-4 ((t (:inherit markdown-header-face :height 1.4))))
 ;;  '(markdown-header-face-5 ((t (:inherit markdown-header-face :height 1.3))))
 ;;  '(markdown-header-face-6 ((t (:inherit markdown-header-face :height 1.2)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; OTHERS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package! tldr
+  :defer t
+  :config
+  (setq tldr-directory-path (concat doom-etc-dir "tldr/"))
+  (set-popup-rule! "^\\*tldr\\*" :side 'right :select t :quit t)
+  )
+
+(use-package! symbol-overlay :defer t)
+
+(use-package! adoc-mode
+  :defer t
+  :init
+  (add-to-list 'auto-mode-alist (cons "\\.adoc\\'" 'adoc-mode)))

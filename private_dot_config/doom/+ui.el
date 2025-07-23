@@ -32,6 +32,7 @@
                     ("^\\*grep\\*$" :size 0.35 :modeline nil)
                     ("^\\*pytest\\*" :size 0.35 :modeline nil)
                     ("^\\*aider.*$" :size 0.35 :side right :modeline nil)
+                    ("^\\*Chat" :size 0.35 :side right :modeline nil)
                     ("\\*.*server log\\*$" :side top :size 0.20 :select nil :modeline nil)
                     ((lambda (buf _) (with-current-buffer buf (eq major-mode 'forge-topic-mode))) :size 0.35 :modeline nil)
                     ))
@@ -40,3 +41,32 @@
       doom-modeline-bar-width 5   ;; sets right bar width
       doom-modeline-persp-name t  ;; adds perspective name to modeline
       doom-modeline-persp-icon t) ;; adds folder icon next to persp name
+
+(after! ibuffer
+  (setq-hook! 'ibuffer-hook ibuffer-formats
+              '((mark modified read-only locked " "
+                 (name 50 18 :left :elide)
+                 " "
+                 (size 9 -1 :right)
+                 " "
+                 (mode 16 16 :left :elide)
+                 " " filename-and-process)
+                (mark " "
+                      (name 16 -1)
+                      " " filename))))
+
+(use-package! all-the-icons-ibuffer
+  :after ibuffer
+  :init (all-the-icons-ibuffer-mode 1)
+  )
+
+(add-hook! 'process-menu-mode-hook
+  (setq-local tabulated-list-format [("Process" 30 t)
+                                     ("PID"      7 t)
+                                     ("Status"   7 t)
+                                     ("Buffer"  15 t)
+                                     ("TTY"     12 t)
+                                     ("Command"  0 t)]))
+
+(after! centered-window
+  (setq cwm-centered-window-width 160))

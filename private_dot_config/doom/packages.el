@@ -3,15 +3,30 @@
 (package! lsp-ui)       ; UI enhancements for LSP
 (package! vue-mode)     ; Vue.js mode
 
+;; text
+(package! adoc-mode)
+(package! tldr)
+(package! pomm)
+(package! symbol-overlay)
+(package! org-appear)
 
+;; misc
 (package! beacon)
 (package! clippy)
 (package! rainbow-mode)
 (package! format-all)
-(package! tldr)
 (package! keycast)
-(package! pomm)
+(package! all-the-icons-ibuffer)
+(package! git-link)
+(package! magit-delta)
+(package! imenu-list)
+(package! tmux-pane)
+(package! xclip)
+(package! consult-todo)
+(package! restclient)
 
+;; programming
+(package! jinja2-mode)
 (package! aider)
 (package! copilot)
 (package! gptel :recipe (:nonrecursive t))

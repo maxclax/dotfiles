@@ -14,3 +14,14 @@
 (setq docker-command "podman")
 (setq docker-compose-command "podman-compose")
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; TRASH
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; delete to trash
+(setq delete-by-moving-to-trash t)
+
+;; using trash over rm
+(when (executable-find "trash")
+  (os--trash-setup))

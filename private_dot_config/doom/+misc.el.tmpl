@@ -4,6 +4,23 @@
 (use-package! keycast
   :defer t)
 
+(use-package consult-todo
+  :defer t)
+
+(use-package! imenu-list
+  :defer t
+  :config
+  (set-popup-rules! '(("^\\*Ilist\\*" :side right :size 40 :select t))))
+
+(after! nav-flash
+  (defun +advice/nav-flash-show (orig-fn &rest args)
+    (ignore-errors (apply orig-fn args)))
+  (advice-add 'nav-flash-show :around #'+advice/nav-flash-show))
+
+(after! dash-docs
+  (setq dash-docs-use-workaround-for-emacs-bug nil)
+  (setq dash-docs-browser-func 'browse-url-generic))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ERC
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -55,4 +72,42 @@
   ;; set projectile-known-projects after magit
   (after! magit
     (update-projectile-known-projects))
+  )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; PRODIGY
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; TODO create a module for prodigy
+(use-package prodigy
+  :config
+
+  (prodigy-define-tag
+    :name 'jekyll
+    :env '(("LANG" "en_US.UTF-8")
+           ("LC_ALL" "en_US.UTF-8")))
+
+  (prodigy-define-service
+    :name "make dcr"
+    :command "make"
+    :args '("dcr")
+    :cwd (projectile-project-root)
+    :tags '(manager runserver)
+    :port 8000
+    :kill-signal 'sigkill
+    :kill-process-buffer-on-stop t)
+
+  (prodigy-define-service
+    :name "Podman Machine - Start"
+    :command "podman"
+    :args '("machine" "start")
+    :tags '(podman infra)
+    :port nil)
+
+  (prodigy-define-service
+    :name "Podman Machine - Stop"
+    :command "podman"
+    :args '("machine" "stop")
+    :tags '(podman infra)
+    :port nil)
   )

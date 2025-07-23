@@ -54,7 +54,10 @@
        :desc "Aider menu" "a" #'aider-transient-menu
        :desc "GPTel" "g" #'gptel)
       :prefix "l"
+      :desc "Services (prodigy)" "s" #'prodigy
+      :desc "List process" "t" #'list-processes
       :desc "Open LINK under cursor" "l" #'browse-url-at-point
       :desc "Start backup" "b" (lambda () (interactive) (compile "cd ~/ && make backup_create"))
       :desc "Update all" "u" (lambda () (interactive) (compile "cd ~/ && make update_apps && make update_macos"))
-      :desc "Chezmoi apply" "c" (lambda () (interactive) (compile "cd ~/ && chezmoi apply")))
+      :desc "Chezmoi apply" "c" (lambda () (interactive) (compile "cd ~/ && chezmoi apply"))
+       "x" #'align-regexp)
