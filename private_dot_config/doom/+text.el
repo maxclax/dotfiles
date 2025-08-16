@@ -12,6 +12,21 @@
   (pomm-mode-line-mode))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Org
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package! org-roam
+  :custom
+  (org-roam-directory
+   (expand-file-name "~/Library/Mobile Documents/iCloud~com~logseq~logseq/Documents/Org"))
+  (org-roam-dailies-directory "journals/")
+  (org-roam-capture-templates
+   '(("d" "default" plain
+      "%?" :target
+      (file+head "pages/${slug}.org" "#+title: ${title}\n")
+      :unnarrowed t))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; MARKDOWN
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

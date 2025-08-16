@@ -1,0 +1,4 @@
+machine api.openai.com login apikey password {{ onepasswordRead "op://Personal/OpenAI/tokens/emacs" }}
+machine api.anthropic.com login apikey password {{ onepasswordRead "op://Personal/Anthropic/tokens/emacs" }}
+machine generativelanguage.googleapis.com login apikey password {{ onepasswordRead "op://Personal/Gemini/tokens/emacs" }}
+machine api.deepseek.com login apikey password {{ onepasswordRead "op://Personal/DeepSeek/tokens/emacs" }}

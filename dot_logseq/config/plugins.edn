@@ -16,7 +16,7 @@
  :logseq-pdf-export-plugin {:version "2.2.11", :repo "sawhney17/logseq-pdf-export", :effect true, :theme false}
  :logseq-todo-master {:version "v1.10.3", :repo "pengx17/logseq-plugin-todo-master", :effect false, :theme false}
  :logseq-date-between {:version "v0.0.7", :repo "Cologler/logseq-date-between-typescript", :effect false, :theme false}
- :logseq-plugin-show-page-date {:version "v1.0.3", :repo "YU000jp/logseq-plugin-show-page-date", :effect true, :theme false}
+ :logseq-plugin-show-page-date {:version "v1.2.0", :repo "YU000jp/logseq-plugin-show-page-date", :effect true, :theme false}
  :logseq-show-github-star {:version "v0.0.2", :repo "studyduck/logseq-show-github-star", :effect true, :theme false}
  :logseq-vim-shortcuts {:version "v0.1.22", :repo "vipzhicheng/logseq-plugin-vim-shortcuts", :effect true, :theme false}
  :logseq-mermaid-plugin {:version "v2.0.4", :repo "benjypng/logseq-mermaid-plugin", :effect true, :theme false}

@@ -99,8 +99,7 @@
        ;;ansible
        ;;biblio            ; Writes a PhD for you (citation needed)
        ;;collab            ; buffers with friends
-       (debugger         ; FIXME stepping through code, to help you add bugs
-        +lsp)
+       debugger         ; FIXME stepping through code, to help you add bugs
        direnv
        docker
        editorconfig      ; let someone else argue about tabs vs spaces
@@ -172,11 +171,8 @@
        (nix +tree-sitter)               ; I hereby declare "nix geht mehr!"
        ;;ocaml             ; an objective camel
        (org              ; organize your plain life in plain text
-        ;; +roam2
+        +roam2
         +dragndrop       ; drag & drop files/images into org buffers
-        ;;+hugo            ; use Emacs for hugo blogging
-        ;;+jupyter         ; ipython/jupyter support for babel
-        ;; +pomodoro        ; be fruitful with the tomato technique
         +pandoc          ; export-with-pandoc support
         +present)        ; using org-mode for presentations
        ;;php               ; perl's insecure younger brother

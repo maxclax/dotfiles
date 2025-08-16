@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: Django ipdb debug
+# key: ipdb
+# --
+{% load djcore_tags %}{{ ${1:variable}|ipdb }}$0

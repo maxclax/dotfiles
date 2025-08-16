@@ -1,0 +1,51 @@
+##########################################################
+# Sample .aider.conf.yml
+# This file lists *all* the valid configuration entries.
+# Place in your home dir, or at the root of your git repo.
+##########################################################
+
+# Note: You can only put OpenAI and Anthropic API keys in the YAML
+# config file. Keys for all APIs can be stored in a .env file
+# https://aider.chat/docs/config/dotenv.html
+
+##########
+# options:
+
+## show this help message and exit
+#help: xxx
+
+#############
+# Main model:
+
+## Specify the model to use for the main chat
+model: gemini/gemini-2.0-flash-exp
+
+########################
+# API Keys and settings:
+
+## Specify the OpenAI API key
+openai-api-key: {{ onepasswordRead "op://Personal/OpenAI/tokens/emacs" }}
+
+## Specify the Anthropic API key
+anthropic-api-key: {{ onepasswordRead "op://Personal/Anthropic/tokens/emacs" }}
+
+## Set an API key for a provider (eg: --api-key provider=<key> sets PROVIDER_API_KEY=<key>)
+api-key:
+  - gemini={{ onepasswordRead "op://Personal/Gemini/tokens/emacs" }}
+  - deepseek={{ onepasswordRead "op://Personal/DeepSeek/tokens/emacs" }}
+
+
+
+
+###############
+# Git settings:
+
+## Enable/disable looking for a git repo (default: True)
+git: false
+
+## Enable/disable adding .aider* to .gitignore (default: True)
+gitignore: true
+
+
+## Use VI editing mode in the terminal (default: False)
+vim: true

@@ -3,6 +3,8 @@
   "loadPageInfoButton": true,
   "headingLoadPageDateNotifier": "",
   "loadPageDateNotifier": false,
+  "userLanguage": "default",
+  "userLanguageSample": null,
   "disabled": false,
   "pageDateNotifierCreatedAt": true
 }

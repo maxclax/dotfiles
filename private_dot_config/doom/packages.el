@@ -3,6 +3,12 @@
 (package! lsp-ui)       ; UI enhancements for LSP
 (package! vue-mode)     ; Vue.js mode
 
+;; AI and LSP tools
+(package! aider)
+(package! copilot)
+(package! mcp)
+(package! gptel :recipe (:nonrecursive t))
+
 ;; text
 (package! adoc-mode)
 (package! tldr)
@@ -16,6 +22,7 @@
 (package! rainbow-mode)
 (package! format-all)
 (package! keycast)
+(package! key-chord)
 (package! all-the-icons-ibuffer)
 (package! git-link)
 (package! magit-delta)
@@ -27,10 +34,6 @@
 
 ;; programming
 (package! jinja2-mode)
-(package! aider)
-(package! copilot)
-(package! gptel :recipe (:nonrecursive t))
-
 (if (modulep! :tools lsp +eglot)
     (progn
       (package! breadcrumb :recipe (:host github :repo "joaotavora/breadcrumb")))

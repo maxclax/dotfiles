@@ -17,6 +17,44 @@
     (ignore-errors (apply orig-fn args)))
   (advice-add 'nav-flash-show :around #'+advice/nav-flash-show))
 
+(after! dirvish
+  (setq dirvish-attributes
+        '(vc-state file-size nerd-icons collapse subtree-state file-time))
+  (setq dirvish-quick-access-entries
+        `(("h" "~/" "Home")
+          ("c" "~/.config" "config")
+          ("l" "~/.local" "local")
+          ("d" "~/Desktop" "Desktop")
+          ("D" "~/Downloads" "Downloads")
+          ("I" ,(expand-file-name "~/Library/Mobile Documents/com~apple~CloudDocs/Downloads") "Downloads (iCloud)")
+
+          ("w" ,(expand-file-name {{ .workspace | quote }}) "Workspace")
+          ("W" ,(expand-file-name {{ .workspace_extra | quote }}) "Workspace extra")
+          ("p" ,(expand-file-name {{ .playground | quote }}) "Playground")
+          ("r" ,(expand-file-name {{ .resources | quote }}) "Resources")))
+
+  (setq dirvish-hide-details '(dired dirvish dirvish-side)
+        dirvish-hide-cursor '(dired dirvish dirvish-side))
+
+  (when (executable-find "lla")
+    (dirvish-define-preview lla (file)
+      "Use `lla' to generate directory preview."
+      :require ("lla")         ; tell Dirvish to check if we have the executable
+      (when (file-directory-p file)     ; we only interest in directories here
+        `(shell . ("lla" "-l" "--icons" ,file))))
+
+    (add-to-list 'dirvish-preview-dispatchers 'lla))
+
+  (defun dirvish-copy-file-relative-path (&optional multi-line)
+    "Copy filepath of marked files.
+    If MULTI-LINE, make every path occupy a new line."
+    (interactive "P")
+    (let* ((files (mapcar (lambda (file)
+                            (file-relative-name (file-local-name file)))
+                          (dired-get-marked-files)))
+           (names (mapconcat #'concat files (if multi-line "\n" " "))))
+      (dirvish--kill-and-echo (if multi-line (concat "\n" names) names)))))
+
 (after! dash-docs
   (setq dash-docs-use-workaround-for-emacs-bug nil)
   (setq dash-docs-browser-func 'browse-url-generic))
@@ -42,6 +80,50 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; AI
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package! gptel
+  :config
+  (require 'gptel-integrations)
+  (require 'gptel-org)
+  (setq gptel-model 'gpt-4.1 ;; gpt-4.5, gemini-2.5-pro, claude-sonnet-4, claude-4-opus
+        gptel-default-mode 'org-mode
+        gptel-use-curl t
+        gptel-use-tools t
+        gptel-confirm-tool-calls 'always
+        gptel-include-tool-results 'auto
+        gptel--system-message (concat gptel--system-message " Make sure to use English language.")
+        gptel-backend (gptel-make-gh-copilot "gptel.Copilot" :stream t))
+
+  (setq gptel-gh-copilot-model "claude-sonnet-4")
+  (setq gptel-anthropic-model "claude-sonnet-4-20250514")
+  (setq gptel-gemini-model "gemini-2.0-flash-exp")
+  (setq gptel-deepseek-model "deepseek-pro")
+
+  (gptel-make-deepseek "gptel.DeepSeek" :stream t)
+  (gptel-make-anthropic "gptel.Claude" :stream t)
+  (gptel-make-gemini "gptel.Gemini" :stream t))
+
+
+(use-package! mcp
+  :after gptel
+  :custom
+  (mcp-hub-servers
+   `(("git" . (:command "uvx" :args ("mcp-server-git")))
+     ("fetch" . (:command "uvx" :args ("mcp-server-fetch")))
+     ("filesystem" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-filesystem", (getenv "HOME"), "{{ .workspace }}", "{{ .workspace_extra }}")))
+
+     ("nixos" . (:command "uvx" :args ("mcp-nixos")))
+     ("airbnb" . (:command "npx" :args ("-y" "@openbnb/mcp-server-airbnb")))
+     ("duckduckgo" . (:command "uvx" :args ("duckduckgo-mcp-server")))
+     ("sequential-thinking" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-sequential-thinking")))
+     ("context7" . (:command "npx" :args ("-y" "@upstash/context7-mcp") :env (:DEFAULT_MINIMUM_TOKENS "6000")))
+     ;; ("everything" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-everything")))
+    )
+   )
+
+  :config (require 'mcp-hub)
+  :hook (after-init . mcp-hub-start-all-server))
+
 
 (use-package! copilot
   :hook (prog-mode . copilot-mode)

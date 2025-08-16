@@ -33,6 +33,7 @@
                     ("^\\*pytest\\*" :size 0.35 :modeline nil)
                     ("^\\*aider.*$" :size 0.35 :side right :modeline nil)
                     ("^\\*Chat" :size 0.35 :side right :modeline nil)
+                    ("^\\*gptel.*" :size 0.35 :side right :modeline nil)
                     ("\\*.*server log\\*$" :side top :size 0.20 :select nil :modeline nil)
                     ((lambda (buf _) (with-current-buffer buf (eq major-mode 'forge-topic-mode))) :size 0.35 :modeline nil)
                     ))
