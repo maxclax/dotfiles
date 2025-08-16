@@ -39,3 +39,6 @@
       (package! breadcrumb :recipe (:host github :repo "joaotavora/breadcrumb")))
   (progn
     (package! lsp-docker)))
+;; PostgreSQL-related packages
+(package! pgmacs
+  :recipe (:host github :repo "emarsden/pgmacs"))
