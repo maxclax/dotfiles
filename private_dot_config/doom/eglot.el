@@ -5,8 +5,7 @@
   :when (modulep! :tools lsp +eglot)
   :hook
   (prog-mode . breadcrumb-local-mode)
-  (text-mode . breadcrumb-local-mode)
-  )
+  (text-mode . breadcrumb-local-mode))
 
 (after! eglot
   ;; JS & TS

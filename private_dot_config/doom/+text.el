@@ -50,6 +50,8 @@
   (set-popup-rule! "^\\*tldr\\*" :side 'right :select t :quit t)
   )
 
+(use-package! link-hint :defer t)
+
 (use-package! symbol-overlay :defer t)
 
 (use-package! adoc-mode

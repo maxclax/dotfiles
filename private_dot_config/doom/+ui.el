@@ -3,6 +3,8 @@
 
 (setq doom-theme 'doom-one)
 (setq fancy-splash-image (concat doom-private-dir "assets/GNUEmacs.png"))
+(setq evil-emacs-state-cursor `(box ,(doom-color 'violet)))
+
 
 (use-package circadian
   :ensure t
@@ -21,13 +23,27 @@
 
 (setq display-line-numbers-type t)
 ;; (setq display-line-numbers-type 'relative)
-(setq global-display-fill-column-indicator-mode t)
 
 ;; Set the default font
 (set-face-attribute 'default nil
                     :font "Berkeley Mono Variable-18"
                     :weight 'normal
                     :width 'normal)
+
+;; ====================== Fix for emacsclient ======================
+;; Reapply GUI settings for new frames (emacsclient)
+
+(add-hook 'server-after-make-frame-hook
+          (lambda ()
+            (when (and (boundp 'circadian--current-theme)
+                       circadian--current-theme)
+              (load-theme circadian--current-theme t))
+            (set-face-attribute 'default nil
+                               :font "Berkeley Mono Variable-18"
+                               :weight 'normal
+                               :width 'normal)))
+
+;; ====================== End Fix for emacsclient ======================
 
 
 (set-popup-rules! '(("^\\*helpful" :size 0.35 :modeline nil)
@@ -69,6 +85,8 @@
   :after ibuffer
   :init (all-the-icons-ibuffer-mode 1)
   )
+
+(defface breakpoint-enabled '((t)) "Breakpoint face.")
 
 (add-hook! 'process-menu-mode-hook
   (setq-local tabulated-list-format [("Process" 30 t)

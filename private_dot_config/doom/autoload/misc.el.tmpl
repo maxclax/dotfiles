@@ -37,3 +37,13 @@
     (dolist (repo +my/user-custom-repos)
       (if (file-directory-p repo)
           (push repo projectile-known-projects)))))
+
+;;;###autoload
+(defun +default/yank-filename  ()
+  "Copy and show the file name of the current buffer."
+  (interactive)
+  (if-let (file-name (file-name-nondirectory (buffer-file-name)))
+      (progn
+        (kill-new file-name)
+        (message "%s" file-name))
+    (message "WARNING: Current buffer is not attached to a file!")))

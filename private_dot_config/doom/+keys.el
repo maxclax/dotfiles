@@ -3,19 +3,11 @@
 (when IS-MAC (setq mac-command-modifier 'meta
                    mac-option-modifier  'alt))
 
-(map! :leader
-      :desc "Select all in buffer" "ba" #'(lambda () (interactive) (mark-whole-buffer))
-      :desc "Make buffer empty without yank" "be" #'(lambda () (interactive) (let ((inhibit-read-only t)) (erase-buffer))))
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (map! :leader
       :desc "Switch to perspective NAME"       "DEL" #'persp-switch
       :desc "Switch to buffer in perspective"  "," #'persp-switch-to-buffer
-      :desc "Switch to next perspective"       "]" #'persp-next
-      :desc "Switch to previous perspective"   "[" #'persp-prev
-      :desc "Add a buffer current perspective" "+" #'persp-add-buffer
       :desc "Remove perspective by name"       "-" #'persp-remove-by-name)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -36,6 +28,33 @@
        :desc "Increment register" "+" #'increment-register
        :desc "Point to register" "SPC" #'point-to-register))
 
+;; Jumps
+(map! :leader
+      :prefix "j"
+      "j" #'avy-goto-char-timer
+      "l" #'avy-goto-line
+      "b" #'avy-pop-mark
+      "t" #'yas-describe-tables)
+
+;; Files
+(map! :leader
+      :prefix "f"
+      :desc "Find file in project" "f" #'projectile-find-file
+      :desc "Yank filename" "n" #'+default/yank-filename
+      :desc "Dirvish" "j" #'dirvish-dwim)
+
+;; Buffers
+(map! :leader
+      :prefix "b"
+      :desc "Select all in buffer" "a" #'(lambda () (interactive) (mark-whole-buffer))
+      :desc "Make buffer empty without yank" "e" #'(lambda () (interactive) (let ((inhibit-read-only t)) (erase-buffer))))
+
+;; Open
+(map! :leader
+      :prefix "o"
+      :desc "Open link" "x" #'link-hint-open-link
+      :desc "Open link at point" "X" #'link-hint-open-link-at-point)
+
 ;; Toogles
 (map! :leader
       :prefix "t"
@@ -45,8 +64,7 @@
 
 (map! :leader
       :prefix "l"
-      (:desc "Open LINK under cursor" "l" #'browse-url-at-point
-       "x" #'align-regexp
+      ("x" #'align-regexp
        (:prefix ("p" . "Process Management")
         "p" #'prodigy
         "l" #'list-processes
