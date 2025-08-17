@@ -4,6 +4,13 @@
 (setq doom-theme 'doom-one)
 (setq fancy-splash-image (concat doom-private-dir "assets/GNUEmacs.png"))
 
+(use-package circadian
+  :ensure t
+  :config
+  (setq circadian-themes '(("5:00" . doom-one-light)
+                           ("18:30" . doom-one)))
+  (circadian-setup))
+
 ;; Enable rainbow-mode for CSS, HTML, and other files with color codes
 (add-hook 'css-mode-hook #'rainbow-mode)
 (add-hook 'html-mode-hook #'rainbow-mode)
@@ -12,8 +19,10 @@
 
 (beacon-mode 1)
 
-;; (setq display-line-numbers-type t)
-(setq display-line-numbers-type 'relative)
+(setq display-line-numbers-type t)
+;; (setq display-line-numbers-type 'relative)
+(setq global-display-fill-column-indicator-mode t)
+
 ;; Set the default font
 (set-face-attribute 'default nil
                     :font "Berkeley Mono Variable-18"

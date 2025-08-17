@@ -127,12 +127,12 @@
      ("duckduckgo" . (:command "uvx" :args ("duckduckgo-mcp-server")))
      ("sequential-thinking" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-sequential-thinking")))
      ("context7" . (:command "npx" :args ("-y" "@upstash/context7-mcp") :env (:DEFAULT_MINIMUM_TOKENS "6000")))
+     ("postgres" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-postgres" "postgresql://127.0.0.1/postgres?user=postgres&password=postgres")))
      ;; ("everything" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-everything")))
-    )
+     )
    )
 
-  :config (require 'mcp-hub)
-  :hook (after-init . mcp-hub-start-all-server))
+  :config (require 'mcp-hub))
 
 
 (use-package! copilot

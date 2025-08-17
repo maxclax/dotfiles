@@ -17,6 +17,7 @@
 (package! org-appear)
 
 ;; misc
+(package! circadian)
 (package! beacon)
 (package! clippy)
 (package! rainbow-mode)
