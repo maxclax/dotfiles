@@ -11,6 +11,23 @@
   ;; OVERRIDE
   (advice-add #'git-link--select-remote :override #'git-link--read-remote))
 
+
+(after! magit
+  (setq magit-save-repository-buffers nil
+        git-commit-style-convention-checks nil
+        magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
+
+  ;; Add git-credential-manager-core support
+  (add-hook 'magit-process-prompt-functions
+            'magit-process-git-credential-manager-core)
+
+  ;; fix magit prompt for midway auth
+  (cl-callf2 append '("Kerberos authentication failed.  Password:")
+    magit-process-password-prompt-regexps)
+
+  (magit-wip-after-apply-mode -1)
+  (magit-wip-before-change-mode -1))
+
 (use-package! magit-delta
   :after magit
   :init

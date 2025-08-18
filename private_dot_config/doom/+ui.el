@@ -6,9 +6,7 @@
 (setq evil-emacs-state-cursor `(box ,(doom-color 'violet)))
 
 
-(use-package circadian
-  :ensure t
-  :config
+(after! circadian
   (setq circadian-themes '(("5:00" . doom-one-light)
                            ("18:30" . doom-one)))
   (circadian-setup))
