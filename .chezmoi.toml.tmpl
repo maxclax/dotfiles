@@ -2,9 +2,9 @@
 {{- $workspace_extra := promptStringOnce . "workspace_extra" "extra workspace directory" (printf "%s/workspace_extra" .chezmoi.homeDir) -}}
 {{- $resources := promptStringOnce . "resources" "resources directory" (printf "%s/workspace/resources" .chezmoi.homeDir) -}}
 
-{{- $nvimType := "default" -}}
+{{- $nvimType := "LunarVim" -}}
 {{- if stdinIsATTY -}}
-  {{- $choices := list "default" "nvim-custom" "kickstart.nvim" "kickstart-modular.nvim" "LunarVim" "LazyVim" "NvChad" "AstroNvim" "NormalNvim" "neovim-for-newbs" -}}
+  {{- $choices := list "default" "LunarVim" "LazyVim" -}}
   {{- $nvimType = promptChoiceOnce . "nvimType" "What type of NeoVim are you on" $choices -}}
 {{- end -}}
 
