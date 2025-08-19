@@ -1,14 +1,29 @@
 ;;; +ui.el -*- lexical-binding: t; -*-
 
-
-(setq doom-theme 'doom-one)
+;; Set fallback theme
 (setq fancy-splash-image (concat doom-private-dir "assets/GNUEmacs.png"))
-(setq evil-emacs-state-cursor `(box ,(doom-color 'violet)))
 
 
-(after! circadian
+(use-package! circadian
+  :config
   (setq circadian-themes '(("5:00" . doom-one-light)
                            ("18:30" . doom-one)))
+
+  ;; Determine the correct initial theme based on current time
+  (let* ((hour-now (string-to-number (format-time-string "%H")))
+         (minute-now (string-to-number (format-time-string "%M")))
+         (time-now (+ (* hour-now 60) minute-now))
+         (light-start (+ (* 5 60) 0))   ;; 5:00 in minutes
+         (dark-start (+ (* 18 60) 30))) ;; 18:30 in minutes
+
+    ;; Set the initial theme based on current time
+    (setq doom-theme
+          (if (and (>= time-now light-start)
+                   (< time-now dark-start))
+              'doom-one-light ;; During day (5:00-18:30)
+            'doom-one)))      ;; During night
+
+  ;; Setup circadian for automatic switching
   (circadian-setup))
 
 ;; Enable rainbow-mode for CSS, HTML, and other files with color codes

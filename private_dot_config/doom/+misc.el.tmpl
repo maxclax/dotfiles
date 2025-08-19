@@ -1,16 +1,79 @@
 ;;; +misc.el -*- mode: emacs-lisp; lexical-binding: t; -*-
 
 
-(use-package! keycast
-  :defer t)
-
 (use-package consult-todo
   :defer t)
+
+(use-package! screenshot
+  :defer t)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; NAVIGATION
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(setq evil-cross-lines t
+      evil-split-window-below t
+      evil-vsplit-window-right t
+      ;; Implicit /g flag on evil ex substitution, because I less often want the
+      ;; default behavior.
+      evil-ex-substitute-global t)
+
+(after! evil
+  (evil-define-text-object evil-inner-buffer (count &optional beg end type)
+    (list (point-min) (point-max)))
+  (define-key evil-inner-text-objects-map "g" 'evil-inner-buffer))
+
+
+(after! evil-snipe
+  (setq evil-snipe-scope 'buffer
+        evil-snipe-repeat-scope 'buffer)
+  (push 'prodigy-mode evil-snipe-disabled-modes))
+
+
+;; This package provides the g~ operator to transform CamelCase words into snake_case. You can customize the binding.
+;; Try using g~io
+(use-package! evil-string-inflection :after evil)
+
+
+(use-package! tmux-pane
+  :unless (display-graphic-p)
+  :defer t
+  :commands (tmux-pane--windmove)
+  :hook (after-init . my-tmux-pane-mode)
+  :init
+  (defvar my-tmux-pane-mode-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map (kbd "C-t k")
+                  (lambda () (interactive) (tmux-pane--windmove "up"  "-U")))
+      (define-key map (kbd "C-t j")
+                  (lambda () (interactive) (tmux-pane--windmove "down"  "-D")))
+      (define-key map (kbd "C-t h")
+                  (lambda () (interactive) (tmux-pane--windmove "left" "-L")))
+      (define-key map (kbd "C-t l")
+                  (lambda () (interactive) (tmux-pane--windmove "right" "-R")))
+      (define-key map (kbd "C-t C-k")
+                  (lambda () (interactive) (tmux-pane--windmove "up"  "-U")))
+      (define-key map (kbd "C-t C-j")
+                  (lambda () (interactive) (tmux-pane--windmove "down"  "-D")))
+      (define-key map (kbd "C-t C-h")
+                  (lambda () (interactive) (tmux-pane--windmove "left" "-L")))
+      (define-key map (kbd "C-t C-l")
+                  (lambda () (interactive) (tmux-pane--windmove "right" "-R")))
+      map))
+
+  (define-minor-mode my-tmux-pane-mode
+    "Seamlessly navigate between tmux pane and emacs window"
+    :init-value nil
+    :global t
+    :keymap 'my-tmux-pane-mode-map))
+
 
 (use-package! imenu-list
   :defer t
   :config
   (set-popup-rules! '(("^\\*Ilist\\*" :side right :size 40 :select t))))
+
+(add-hook! 'better-jumper-post-jump-hook #'recenter)
 
 (after! nav-flash
   (defun +advice/nav-flash-show (orig-fn &rest args)
@@ -31,7 +94,10 @@
           ("w" ,(expand-file-name {{ .workspace | quote }}) "Workspace")
           ("W" ,(expand-file-name {{ .workspace_extra | quote }}) "Workspace extra")
           ("p" ,(expand-file-name {{ .playground | quote }}) "Playground")
-          ("r" ,(expand-file-name {{ .resources | quote }}) "Resources")))
+          ("r" ,(expand-file-name {{ .resources | quote }}) "Resources")
+          ;; Add cloud storage entries
+          ("P" ,(expand-file-name {{ .primary_cloud | quote }}) "Primary Cloud")
+          ("S" ,(expand-file-name {{ .secondary_cloud | quote }}) "Secondary Cloud")))
 
   (setq dirvish-hide-details '(dired dirvish dirvish-side)
         dirvish-hide-cursor '(dired dirvish dirvish-side))
@@ -59,6 +125,34 @@
   (setq dash-docs-use-workaround-for-emacs-bug nil)
   (setq dash-docs-browser-func 'browse-url-generic))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; TRANSLATE
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package! gt
+  :defer t
+  :config
+  (setq gt-langs '(en fr))
+  (setq gt-default-translator
+        (gt-translator
+         :taker   (gt-taker :text 'buffer :pick 'paragraph) ; config the Taker
+         :engines (list (gt-bing-engine) (gt-google-engine)) ; specify the Engines
+         :render  (gt-buffer-render)))                       ; config the Render
+  )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; LOG
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package! keycast
+  :defer t)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; SSH
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(after! ssh-deploy
+  (setq ssh-deploy-automatically-detect-remote-changes 1))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; DB
@@ -158,10 +252,58 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; COMPLETION
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(after! corfu
+  (setq +corfu-want-ret-to-confirm "both")
+  )
+
+(when (modulep! :completion vertico)
+  (setq vertico-posframe-border-width 3)
+  (setq vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center)
+
+  ;; Fix jump issue for vertico, https://github.com/hlissner/doom-emacs/issues/5386
+  (dolist (func '(+default/search-project))
+    (advice-add func :around #'doom-set-jump-a)))
+
+(when (modulep! :completion ivy)
+  (after! (:and ivy ivy-prescient)
+    (setq ivy-prescient-retain-classic-highlighting t))
+
+  (after! ivy-posframe
+    (setq ivy-posframe-border-width 3)
+
+    ;; Use minibuffer to display ivy functions
+    (dolist (fn '(+ivy/switch-workspace-buffer
+                  ivy-switch-buffer))
+      (setf (alist-get fn ivy-posframe-display-functions-alist) #'ivy-display-function-fallback)))
+
+  (after! ivy-rich
+    (plist-put! ivy-rich-display-transformers-list
+                'ivy-switch-buffer
+                '(:columns
+                  ((ivy-switch-buffer-transformer (:width 60))
+                   (ivy-rich-switch-buffer-size (:width 7))
+                   (ivy-rich-switch-buffer-indicators (:width 4 :face error :align right))
+                   (ivy-rich-switch-buffer-major-mode (:width 12 :face warning))
+                   (ivy-rich-switch-buffer-project (:width 15 :face success))
+                   (ivy-rich-switch-buffer-path (:width (lambda (x) (ivy-rich-switch-buffer-shorten-path x (ivy-rich-minibuffer-width 0.3))))))
+                  :predicate
+                  (lambda (cand) (get-buffer cand)))))
+
+  (after! counsel
+    ;; counsel-rg-base-command is configurable
+    (setq counsel-find-file-ignore-regexp "\\(?:^[#.]\\)\\|\\(?:[#~]$\\)\\|\\(?:^Icon?\\)"
+          counsel-describe-function-function 'helpful-callable
+          counsel-describe-variable-function 'helpful-variable)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; PROJECTILE
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (after! projectile
+  (setq compilation-read-command nil)   ; no prompt in projectile-compile-project
   ;; set projectile-known-projects after magit
   (after! magit
     (update-projectile-known-projects))
@@ -204,3 +346,32 @@
     :tags '(podman infra)
     :port nil)
   )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; TERM
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(after! eshell
+  ;; eshell-mode imenu index
+  (add-hook! 'eshell-mode-hook (setq-local imenu-generic-expression '(("Prompt" " λ \\(.*\\)" 1))))
+
+  (defun eshell/l (&rest args) (eshell/ls "-l" args))
+  (defun eshell/e (file) (find-file file))
+  (defun eshell/md (dir) (eshell/mkdir dir) (eshell/cd dir))
+  (defun eshell/ft (&optional arg) (treemacs arg))
+
+  (defun eshell/up (&optional pattern)
+    (let ((p (locate-dominating-file
+              (f-parent default-directory)
+              (lambda (p)
+                (if pattern
+                    (string-match-p pattern (f-base p))
+                  t)))
+             ))
+      (eshell/pushd p)))
+  )
+
+
+(after! term
+  ;; term-mode imenu index
+  (add-hook! 'term-mode-hook (setq-local imenu-generic-expression '(("Prompt" "➜\\(.*\\)" 1)))))
