@@ -1,5 +1,8 @@
 ;;; +os.el -*- lexical-binding: t; -*-
 
+;; Increase kill ring size (default is 120)
+(setq kill-ring-max 250)
+
 (xterm-mouse-mode 1)
 (global-auto-revert-mode 1)
 (setq global-auto-revert-non-file-buffers t)

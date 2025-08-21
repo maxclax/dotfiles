@@ -7,7 +7,7 @@
 (use-package! circadian
   :config
   (setq circadian-themes '(("5:00" . doom-one-light)
-                           ("18:30" . doom-one)))
+                           ("20:00" . doom-one)))
 
   ;; Determine the correct initial theme based on current time
   (let* ((hour-now (string-to-number (format-time-string "%H")))
