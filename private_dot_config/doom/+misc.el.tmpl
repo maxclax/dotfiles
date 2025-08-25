@@ -11,12 +11,6 @@
 ;; NAVIGATION
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(setq evil-cross-lines t
-      evil-split-window-below t
-      evil-vsplit-window-right t
-      ;; Implicit /g flag on evil ex substitution, because I less often want the
-      ;; default behavior.
-      evil-ex-substitute-global t)
 
 (after! evil
   (evil-define-text-object evil-inner-buffer (count &optional beg end type)
@@ -132,7 +126,7 @@
 (use-package! gt
   :defer t
   :config
-  (setq gt-langs '(en fr))
+  (setq gt-langs '(en uk))
   (setq gt-default-translator
         (gt-translator
          :taker   (gt-taker :text 'buffer :pick 'paragraph) ; config the Taker
@@ -184,6 +178,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; AI
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(set-evil-initial-state!
+  '(comint-mode)
+  'insert)
+
+(add-hook! 'comint-mode-hook #'visual-line-mode)
 
 (use-package! gptel
   :config

@@ -109,7 +109,7 @@
         ;;+dictionary      ; enable word definition and thesaurus lookup functionality
         +devdocs         ; ...on devdocs.io online
         +docsets)        ; ...or in Dash docsets locally
-       lsp               ; M-x vscode
+       (lsp +eglot)               ; M-x vscode
        magit             ; a git porcelain for Emacs
        prodigy           ; FIXME managing external services & code builders
        ;;make              ; run make tasks from Emacs

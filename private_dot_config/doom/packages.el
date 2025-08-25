@@ -40,7 +40,8 @@
 (package! jinja2-mode)
 (if (modulep! :tools lsp +eglot)
     (progn
-      (package! breadcrumb :recipe (:host github :repo "joaotavora/breadcrumb")))
+      (package! breadcrumb :recipe (:host github :repo "joaotavora/breadcrumb"))
+      (package! eglot-java))
   (progn
     (package! lsp-docker)))
 

@@ -203,6 +203,9 @@ run = "move-node-to-workspace 5"
 if.app-id = 'com.openai.chat'
 run = "move-node-to-workspace 5"
 [[on-window-detected]]
+if.app-id = 'dev.warp.Warp-Stable'
+run = "move-node-to-workspace 5"
+[[on-window-detected]]
 if.app-id = 'com.anthropic.claudefordesktop'
 run = "move-node-to-workspace 5"
 
