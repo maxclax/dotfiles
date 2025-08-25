@@ -179,11 +179,30 @@
 ;; AI
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
 (set-evil-initial-state!
   '(comint-mode)
   'insert)
 
 (add-hook! 'comint-mode-hook #'visual-line-mode)
+
+(use-package! aidermacs
+  :config
+  (setq aidermacs-auto-accept-architect nil)
+  (setq aidermacs-backend 'vterm)
+  :custom
+  (aidermacs-default-chat-mode 'architect)
+  (aidermacs-default-model "sonnet"))
+
+
+(use-package! aider
+  :config
+  ;; For latest claude sonnet model
+  (setq aider-args '("--no-auto-accept-architect" "--no-auto-commits"))
+  (aider-magit-setup-transients) ;; add aider magit function to magit menu
+  ;; auto revert buffer
+  (global-auto-revert-mode 1)
+  (auto-revert-mode 1))
 
 (use-package! gptel
   :config

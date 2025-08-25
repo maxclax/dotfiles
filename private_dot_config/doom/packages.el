@@ -4,6 +4,7 @@
 (package! vue-mode)     ; Vue.js mode
 
 ;; AI and LSP tools
+(package! aidermacs)
 (package! aider)
 (package! copilot)
 (package! mcp)

@@ -65,12 +65,13 @@
 (map! :leader
       :prefix "l"
       ("x" #'align-regexp
+        :desc "Aidermacs" "a" #'aidermacs-transient-menu
+        :desc "Aider" "A" #'aider-transient-menu
        (:prefix ("p" . "Process Management")
         "p" #'prodigy
         "l" #'list-processes
         :desc "podman machine start" "s" (lambda () (interactive) (compile "cd ~/ && podman machine start"))
         :desc "podman machine stop" "S" (lambda () (interactive) (compile "cd ~/ && podman machine stop")))
-       (:prefix ("a" . "Aider") "a" #'aider-transient-menu)
        (:prefix ("g" . "GPTel")
                 "a" #'gptel-add
                 "g" #'gptel
