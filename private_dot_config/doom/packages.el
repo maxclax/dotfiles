@@ -33,6 +33,7 @@
 (package! tmux-pane)
 (package! gt)
 (package! xclip)
+(package! simpleclip)  ; Better clipboard integration
 (package! consult-todo)
 (package! restclient)
 (package! vimrc-mode)

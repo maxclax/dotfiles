@@ -6,27 +6,23 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (map! :leader
-      :desc "Switch to perspective NAME"       "DEL" #'persp-switch
-      :desc "Switch to buffer in perspective"  "," #'persp-switch-to-buffer
+      :desc "Fix too many open files" "K" #'file-notify-rm-all-watches
       :desc "Remove perspective by name"       "-" #'persp-remove-by-name)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; REGISTERS
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(map! :leader
-      (:prefix ("r" . "registers")
-       :desc "Copy to register" "c" #'copy-to-register
-       :desc "Frameset to register" "f" #'frameset-to-register
-       :desc "Insert contents of register" "i" #'insert-register
-       :desc "Jump to register" "j" #'jump-to-register
-       :desc "List registers" "l" #'list-registers
-       :desc "Number to register" "n" #'number-to-register
-       :desc "Interactively choose a register" "r" #'counsel-register
-       :desc "View a register" "v" #'view-register
-       :desc "Window configuration to register" "w" #'window-configuration-to-register
-       :desc "Increment register" "+" #'increment-register
-       :desc "Point to register" "SPC" #'point-to-register))
+;; Registers
+;; (map! :leader
+;;       (:prefix ("r" . "registers")
+;;        :desc "Copy to register" "c" #'copy-to-register
+;;        :desc "Frameset to register" "f" #'frameset-to-register
+;;        :desc "Insert contents of register" "i" #'insert-register
+;;        :desc "Jump to register" "j" #'jump-to-register
+;;        :desc "List registers" "l" #'list-registers
+;;        :desc "Number to register" "n" #'number-to-register
+;;        :desc "Interactively choose a register" "r" #'counsel-register
+;;        :desc "View a register" "v" #'view-register
+;;        :desc "Window configuration to register" "w" #'window-configuration-to-register
+;;        :desc "Increment register" "+" #'increment-register
+;;        :desc "Point to register" "SPC" #'point-to-register))
 
 ;; Jumps
 (map! :leader
@@ -47,7 +43,27 @@
 (map! :leader
       :prefix "b"
       :desc "Select all in buffer" "a" #'(lambda () (interactive) (mark-whole-buffer))
-      :desc "Make buffer empty without yank" "e" #'(lambda () (interactive) (let ((inhibit-read-only t)) (erase-buffer))))
+      ;; :desc "Make buffer empty without yank" "e" #'(lambda () (interactive) (let ((inhibit-read-only t)) (erase-buffer)))
+      :desc "Revert buffer" "r" #'revert-buffer-no-confirm
+      ;; :desc "Reload buffer" "R" #'reload-buffer-no-confirm
+      :desc "Format-all buffer"      "f" #'format-all-buffer)
+
+;; Code
+(map! :leader
+      :prefix "c"
+      :desc "Format-all buffer"      "f" #'format-all-buffer
+      "F" #'+my/untabify-buffer
+      :desc "Check grammar"          "g" #'langtool-check-buffer
+      :desc "Done Check grammar"     "G" #'langtool-check-done
+      (:when (modulep! :tools lsp +eglot)
+        :desc "Eglot organize imports"   "I" #'eglot-code-action-organize-imports
+        :desc "Eglot workspace restart"  "R" #'eglot-reconnect
+        :desc "Eglot quickfix" "q" #'eglot-code-action-quickfix
+        )
+      (:when (not (modulep! :tools lsp +eglot))
+        :desc "LSP organize imports"   "I" #'lsp-organize-imports
+        :desc "LSP workspace restart"  "R" #'lsp-workspace-restart
+        :desc "Treemacs references"    "D" #'lsp-treemacs-references))
 
 ;; Open
 (map! :leader
@@ -65,8 +81,8 @@
 (map! :leader
       :prefix "l"
       ("x" #'align-regexp
-        :desc "Aidermacs" "a" #'aidermacs-transient-menu
-        :desc "Aider" "A" #'aider-transient-menu
+       :desc "Aidermacs" "a" #'aidermacs-transient-menu
+       :desc "Aider" "A" #'aider-transient-menu
        (:prefix ("p" . "Process Management")
         "p" #'prodigy
         "l" #'list-processes
