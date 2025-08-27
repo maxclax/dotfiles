@@ -1,4 +1,4 @@
-;;; +keys.el -*- lexical-binding: t; -*-
+;; +keys.el -*- lexical-binding: t; -*-
 
 (when IS-MAC (setq mac-command-modifier 'meta
                    mac-option-modifier  'alt))
@@ -42,8 +42,7 @@
 ;; Buffers
 (map! :leader
       :prefix "b"
-      :desc "Select all in buffer" "a" #'(lambda () (interactive) (mark-whole-buffer))
-      ;; :desc "Make buffer empty without yank" "e" #'(lambda () (interactive) (let ((inhibit-read-only t)) (erase-buffer)))
+      :desc "Make buffer empty" "e" #'+my/erase-buffer-no-yank
       :desc "Revert buffer" "r" #'revert-buffer-no-confirm
       ;; :desc "Reload buffer" "R" #'reload-buffer-no-confirm
       :desc "Format-all buffer"      "f" #'format-all-buffer)

@@ -1,5 +1,12 @@
 ;;; autoload/buffer.el -*- lexical-binding: t; -*-
 
+;;;###autoload
+(defun +my/erase-buffer-no-yank ()
+  "Erase the current buffer's contents without affecting the kill ring. Works even in read-only buffers."
+  (interactive)
+  (let ((inhibit-read-only t))
+    (erase-buffer)))
+
 ;; Do this when you encounter "Too many open files" issue
 ;;;###autoload
 (defun file-notify-rm-all-watches ()

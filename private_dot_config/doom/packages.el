@@ -1,4 +1,21 @@
 ;; LSP-related packages
+
+;; disabled packages
+(disable-packages! solaire-mode
+                   osx-trash
+                   realgud
+                   realgud-trepan-ni
+                   ccls
+                   tide
+                   swiper
+                   forge
+                   code-review
+                   writegood-mode
+                   dired-x
+                   flymake-popon
+                   lsp-python-ms
+                   pyimport)
+
 (package! lsp-pyright)  ; Python LSP client using Pyright
 (package! lsp-ui)       ; UI enhancements for LSP
 (package! vue-mode)     ; Vue.js mode
