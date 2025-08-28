@@ -84,9 +84,11 @@
        :desc "Aider" "A" #'aider-transient-menu
        (:prefix ("p" . "Process Management")
         "p" #'prodigy
-        "l" #'list-processes
-        :desc "podman machine start" "s" (lambda () (interactive) (compile "cd ~/ && podman machine start"))
-        :desc "podman machine stop" "S" (lambda () (interactive) (compile "cd ~/ && podman machine stop")))
+        "l" #'list-processes)
+       (:prefix ("c" . "Claude")
+                "a" #'ai-code-menu
+                "c" #'claude-code-transient
+                "C" #'claude-code-ide-menu)
        (:prefix ("g" . "GPTel")
                 "a" #'gptel-add
                 "g" #'gptel
@@ -97,7 +99,9 @@
                 "S" #'mcp-hub-start-server
                 "t" #'gptel-tools
                 "f" #'gptel-add-file)
-       (:prefix ("s" . "System Management")
+       (:prefix ("s" . "Shell Commands")
+        :desc "podman machine start" "p" (lambda () (interactive) (compile "cd ~/ && podman machine start"))
+        :desc "podman machine stop" "P" (lambda () (interactive) (compile "cd ~/ && podman machine stop"))
         :desc "make backup_create" "b" (lambda () (interactive) (compile "cd ~/ && make backup_create"))
         :desc "make update_macos" "u" (lambda () (interactive) (compile "cd ~/ && make update_apps && make update_macos"))
         :desc "chezmoi apply" "c" (lambda () (interactive) (compile "cd ~/ && chezmoi apply")))))

@@ -4,7 +4,6 @@
 (setq kill-ring-max 250)
 
 (xterm-mouse-mode 1)
-(global-auto-revert-mode 1)
 (setq global-auto-revert-non-file-buffers t)
 ;; (setq persp-auto-save-opt 1)  ; Auto-save workspaces
 

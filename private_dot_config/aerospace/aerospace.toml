@@ -36,12 +36,12 @@ on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 on-focus-changed = "move-mouse window-lazy-center"
 
 [gaps]
-inner.horizontal = [{ monitor."Retina" = 1 }, 5]
-inner.vertical = [{ monitor."Retina" = 1 }, 5]
-outer.left = [{ monitor."Retina" = 1 }, 5]
-outer.bottom = [{ monitor."Retina" = 1 }, 5]
-outer.top = [{ monitor."Retina" = 1 }, 5]
-outer.right = [{ monitor."Retina" = 1 }, 5]
+inner.horizontal = [{ monitor."Retina" = 1 }, 7]
+inner.vertical = [{ monitor."Retina" = 1 }, 7]
+outer.left = [{ monitor."Retina" = 1 }, 7]
+outer.bottom = [{ monitor."Retina" = 1 }, 7]
+outer.top = [{ monitor."Retina" = 1 }, 7]
+outer.right = [{ monitor."Retina" = 1 }, 7]
 
 [mode.main.binding]
 alt-enter = 'exec-and-forget open -n /Applications/Ghostty.app'

@@ -2,7 +2,6 @@
 
 ;; Set fallback theme
 (setq fancy-splash-image (concat doom-private-dir "assets/GNUEmacs.png"))
-(setq evil-emacs-state-cursor `(box ,(doom-color 'violet)))
 
 
 (use-package! circadian
@@ -101,78 +100,6 @@
   )
 
 (defface breakpoint-enabled '((t)) "Breakpoint face.")
-
-;; Faces need to postpone renderring
-;; custom-set-faces! doesn't work properly when you switch doom themes
-(custom-theme-set-faces! '(doom-acario-light doom-one-light doom-city-lights)
-  `(hl-line :background ,(doom-color 'bg-alt)) ; sometimes ranger doesn't show hl-line color
-  `(doom-modeline-debug-visual :background ,(doom-blend 'red 'bg 0.3))
-  `(mode-line :background ,(doom-blend 'blue 'bg 0.3))
-  `(mode-line-inactive :background ,(doom-color 'bg-alt))
-  `(vertical-border :foreground ,(doom-color 'bg-alt))
-  `(vertico-posframe-border :background ,(doom-blend 'blue 'bg 0.35))
-  '(font-lock-doc-face :italic t)
-  '(font-lock-comment-face :italic t)
-  '(font-lock-builtin-face :italic t)
-  '(font-lock-type-face :italic t)
-  '(tide-hl-identifier-face :inherit 'lsp-face-highlight-read)
-  `(breakpoint-enabled :background ,(doom-blend 'red 'bg 0.15))
-  `(lsp-ui-peek-highlight :foreground ,(doom-color 'blue))
-  `(ivy-posframe-border :background ,(doom-color 'blue))
-  `(magit-diff-file-heading :background ,(doom-blend 'blue 'bg 0.2))
-  `(magit-diff-file-heading-highlight :background ,(doom-blend 'blue 'bg 0.5))
-  '(markdown-header-face-1 :inherit 'org-level-1)
-  '(markdown-header-face-2 :inherit 'org-level-2)
-  '(markdown-header-face-3 :inherit 'org-level-3)
-  `(smerge-upper :background ,(doom-blend 'red 'bg 0.2))
-  `(smerge-lower :background ,(doom-blend 'green 'bg 0.2))
-  `(web-mode-jsx-depth-1-face :background ,(doom-blend 'teal 'fg 0.1))
-  `(web-mode-jsx-depth-2-face :background ,(doom-blend 'teal 'fg 0.2))
-  `(web-mode-jsx-depth-3-face :background ,(doom-blend 'teal 'fg 0.3))
-  `(web-mode-jsx-depth-4-face :background ,(doom-blend 'teal 'fg 0.4))
-  `(web-mode-jsx-depth-5-face :background ,(doom-blend 'teal 'fg 0.5))
-  `(flyspell-incorrect :underline ,(doom-color 'red))
-  `(flyspell-duplicate :underline ,(doom-color 'orange))
-  `(flymake-warning :underline (:style wave :color ,(doom-color 'yellow)) :bold t)
-  `(flycheck-warning :underline nil :bold t)
-  `(flycheck-error :underline (:style wave :color ,(doom-color 'red)))
-  `(flycheck-info :underline (:style wave :color ,(doom-color 'green)))
-  `(ein:cell-input-area :background ,(doom-blend 'red 'fg 0.15))
-  `(ein:cell-input-prompt :background ,(doom-color 'red) :foreground ,(doom-color 'fg) :bold t)
-  `(font-lock-comment-face :foreground ,(doom-color 'blue))
-  `(font-lock-doc-face :foreground ,(doom-color 'blue)))
-
-(custom-theme-set-faces! 'doom-city-lights
-  `(mode-line :background ,(doom-blend 'dark-blue 'bg 0.2))
-  `(hl-todo :foreground ,(doom-lighten 'fg 0.7))
-  `(region :background ,(doom-color 'base5))
-  ;; ediff
-  `(ediff-current-diff-A :foreground ,(doom-color 'red)   :background ,(doom-blend 'red 'fg 0.2))
-  `(ediff-current-diff-B :foreground ,(doom-color 'green) :background ,(doom-blend 'green 'fg 0.2))
-  `(ediff-current-diff-C :foreground ,(doom-color 'blue)  :background ,(doom-blend 'blue 'fg 0.2))
-  `(ediff-current-diff-Ancestor :foreground ,(doom-color 'teal)  :background ,(doom-blend 'teal 'fg 0.2))
-  )
-
-(custom-theme-set-faces! 'doom-acario-light
-  ;; ediff
-  `(ediff-current-diff-A :foreground ,(doom-color 'red)   :background ,(doom-blend 'red 'bg 0.2))
-  `(ediff-current-diff-B :foreground ,(doom-color 'green) :background ,(doom-blend 'green 'bg 0.2))
-  `(ediff-current-diff-C :foreground ,(doom-color 'blue)  :background ,(doom-blend 'blue 'bg 0.2))
-  `(ediff-current-diff-Ancestor :foreground ,(doom-color 'teal)  :background ,(doom-blend 'teal 'bg 0.2))
-  `(vertico-posframe-border :background ,(doom-blend 'teal 'bg 0.35))
-  `(mode-line :background ,(doom-blend 'teal 'bg 0.2))
-  `(lazy-highlight :foreground ,(doom-color 'base0) :background ,(doom-color 'teal))
-  `(internal-border :background nil)
-  `(lsp-face-highlight-textual :foreground ,(doom-color 'fg) :background ,(doom-color 'bg-alt))
-  `(wgrep-face :background ,(doom-blend 'grey 'bg 0.2))
-  `(markdown-code-face :background ,(doom-color 'bg-alt) :extend t)
-  )
-
-;; Light theme for winter
-(custom-theme-set-faces! 'doom-winter-is-coming-light
-  `(markdown-code-face :background ,(doom-color 'bg-alt) :extend t)
-  )
-
 
 
 (add-hook! 'process-menu-mode-hook

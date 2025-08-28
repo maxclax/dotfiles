@@ -22,10 +22,19 @@
 
 ;; AI and LSP tools
 (package! aidermacs)
-(package! aider)
+(package! aider :recipe (:host github :repo "tninja/aider.el" ))
 (package! copilot)
 (package! mcp)
 (package! gptel :recipe (:nonrecursive t))
+(package! monet
+  :recipe (:host github :repo "stevemolitor/monet"))
+(package! claude-code
+  :recipe (:host github :repo "stevemolitor/claude-code.el"
+           :files ("*.el")))
+(package! claude-code-ide
+  :recipe (:host github :repo "manzaltu/claude-code-ide.el"))
+(package! ai-code-interface
+  :recipe (:host github :repo "tninja/ai-code-interface.el"))
 
 ;; text
 (package! adoc-mode)
