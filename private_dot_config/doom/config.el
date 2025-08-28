@@ -34,13 +34,6 @@
 ;; buffer associated with a file when the file changes on disk
 (global-auto-revert-mode)
 
-;; Use xclip if not in SSH
-(let ((env (getenv "SSH_TTY")))
-  (if (or (null env) (string-empty-p env))
-    (progn (require 'xclip nil t)
-      (with-demoted-errors "%s" (xclip-mode +1)))
-    (setq clipetty-tmux-ssh-tty "tmux show-environment -g SSH_TTY")))
-
 ;; check minified-file
 (add-to-list 'magic-mode-alist (cons #'+my/check-minified-file 'fundamental-mode))
 

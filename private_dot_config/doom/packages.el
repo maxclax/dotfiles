@@ -46,7 +46,6 @@
 ;; misc
 (package! circadian)
 (package! beacon)
-(package! clippy)
 (package! rainbow-mode)
 (package! format-all)
 (package! keycast)
@@ -58,7 +57,6 @@
 (package! imenu-list)
 (package! tmux-pane)
 (package! gt)
-(package! xclip)
 (package! simpleclip)  ; Better clipboard integration
 (package! consult-todo)
 (package! restclient)
