@@ -74,3 +74,5 @@
 ;; PostgreSQL-related packages
 (package! pgmacs
   :recipe (:host github :repo "emarsden/pgmacs"))
+
+(package! keyfreq)  ; Track command frequency

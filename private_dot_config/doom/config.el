@@ -1,5 +1,6 @@
 ;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
 
+;; Load all configuration modules from the root directory
 (load! "+os")
 (load! "+git")
 (load! "+misc")
@@ -7,6 +8,14 @@
 (load! "+prog")
 (load! "+ui")
 (load! "+keys")
+
+;; Autoload all files from the modules directory
+(let ((modules-dir (expand-file-name "modules" doom-user-dir)))
+  (when (file-directory-p modules-dir)
+    (dolist (file (directory-files modules-dir t "\\.el$"))
+      (load file nil 'nomessage))))
+
+;; Conditional LSP configuration
 (cond
  ((modulep! :tools lsp +eglot) (load! "+eglot"))
  ((modulep! :tools lsp) (load! "+lsp")))

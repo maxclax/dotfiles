@@ -99,6 +99,9 @@
                 "S" #'mcp-hub-start-server
                 "t" #'gptel-tools
                 "f" #'gptel-add-file)
+       (:prefix ("m" . "Metrics")
+                :desc "Keyfreq show" "k" #'keyfreq-show
+                :desc "Keyfreq reset" "r" #'keyfreq-reset)
        (:prefix ("s" . "Shell Commands")
         :desc "podman machine start" "p" (lambda () (interactive) (compile "cd ~/ && podman machine start"))
         :desc "podman machine stop" "P" (lambda () (interactive) (compile "cd ~/ && podman machine stop"))
