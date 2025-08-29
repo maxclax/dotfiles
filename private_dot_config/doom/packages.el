@@ -30,8 +30,6 @@
            :files ("*.el")))
 (package! claude-code-ide
   :recipe (:host github :repo "manzaltu/claude-code-ide.el"))
-(package! ai-code-interface
-  :recipe (:host github :repo "tninja/ai-code-interface.el"))
 
 ;; text
 (package! adoc-mode)

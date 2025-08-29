@@ -269,30 +269,6 @@
 
   :config (require 'mcp-hub))
 
-;; Company configuration
-(after! company
-  (setq company-idle-delay 0.2
-        company-minimum-prefix-length 2)
-  (setq company-box-doc-delay 0.3)
-  (setq company-box-icons-alist 'company-box-icons-all-the-icons))
-
-;; Make company-box more compact
-(after! company-box
-  (setq company-box-max-candidates 10)
-  (setq company-box-show-single-candidate t)
-  (setq company-box-scrollbar nil))
-
-;; Adjust when company and copilot trigger
-(setq company-idle-delay 0.3)        ;; Show company completions quickly
-(setq copilot-idle-delay 0.5)        ;; Show copilot suggestions after company
-
-;; Optional: Make TAB prioritize copilot, then try company
-(with-eval-after-load 'company
-  (define-key company-active-map (kbd "<tab>")
-    (lambda ()
-      (interactive)
-      (or (copilot-accept-completion)
-          (company-complete-selection)))))
 
 (use-package! copilot
   :hook (prog-mode . copilot-mode)
@@ -318,16 +294,36 @@
   (add-to-list 'copilot-indentation-alist '(org-mode 2))
   (add-to-list 'copilot-indentation-alist '(text-mode 2))
   (add-to-list 'copilot-indentation-alist '(closure-mode 2))
-  (add-to-list 'copilot-indentation-alist '(emacs-lisp-mode 2))
-
+  (add-to-list 'copilot-indentation-alist '(emacs-lisp-mode 2)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;; COMPLETION
+;; COMPLETION
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  (after! corfu
-    (setq +corfu-want-ret-to-confirm "both")
-    ))
+;; Company configuration
+(after! company
+  (setq company-idle-delay 0.2
+        company-minimum-prefix-length 2)
+  (setq company-box-doc-delay 0.3)
+  (setq company-box-icons-alist 'company-box-icons-all-the-icons))
+
+;; Make company-box more compact
+(after! company-box
+  (setq company-box-max-candidates 10)
+  (setq company-box-show-single-candidate t)
+  (setq company-box-scrollbar nil))
+
+;; Adjust when company and copilot trigger
+(setq company-idle-delay 0.3)
+
+;; Optional: Make TAB prioritize copilot, then try company
+(with-eval-after-load 'company
+  (define-key company-active-map (kbd "<tab>")
+    (lambda ()
+      (interactive)
+      (or (copilot-accept-completion)
+          (company-complete-selection)))))
+
 
 (when (modulep! :completion vertico)
   (setq vertico-posframe-border-width 3)
@@ -336,37 +332,6 @@
   ;; Fix jump issue for vertico, https://github.com/hlissner/doom-emacs/issues/5386
   (dolist (func '(+default/search-project))
     (advice-add func :around #'doom-set-jump-a)))
-
-(when (modulep! :completion ivy)
-  (after! (:and ivy ivy-prescient)
-    (setq ivy-prescient-retain-classic-highlighting t))
-
-  (after! ivy-posframe
-    (setq ivy-posframe-border-width 3)
-
-    ;; Use minibuffer to display ivy functions
-    (dolist (fn '(+ivy/switch-workspace-buffer
-                  ivy-switch-buffer))
-      (setf (alist-get fn ivy-posframe-display-functions-alist) #'ivy-display-function-fallback)))
-
-  (after! ivy-rich
-    (plist-put! ivy-rich-display-transformers-list
-                'ivy-switch-buffer
-                '(:columns
-                  ((ivy-switch-buffer-transformer (:width 60))
-                   (ivy-rich-switch-buffer-size (:width 7))
-                   (ivy-rich-switch-buffer-indicators (:width 4 :face error :align right))
-                   (ivy-rich-switch-buffer-major-mode (:width 12 :face warning))
-                   (ivy-rich-switch-buffer-project (:width 15 :face success))
-                   (ivy-rich-switch-buffer-path (:width (lambda (x) (ivy-rich-switch-buffer-shorten-path x (ivy-rich-minibuffer-width 0.3))))))
-                  :predicate
-                  (lambda (cand) (get-buffer cand)))))
-
-  (after! counsel
-    ;; counsel-rg-base-command is configurable
-    (setq counsel-find-file-ignore-regexp "\\(?:^[#.]\\)\\|\\(?:[#~]$\\)\\|\\(?:^Icon?\\)"
-          counsel-describe-function-function 'helpful-callable
-          counsel-describe-variable-function 'helpful-variable)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; PROJECTILE

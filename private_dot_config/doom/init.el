@@ -21,8 +21,8 @@
        ;;layout            ; auie,ctsrnm is the superior home row
 
        :completion
-       (company +childframe) ; the ultimate code completion backend
-       ;; (corfu +orderless +icons)        ; complete with cap(f), cape and a flying feather!
+       (company +childframe)
+       ;; (corfu +orderless +icons +childframe)
        ;;helm              ; the *other* search engine for love and life
        ;;ido               ; the other *other* search engine...
        ;;ivy               ; a search engine for love and life
@@ -184,7 +184,7 @@
        ;;purescript        ; javascript, but functional
        (python
         +conda
-        +pyright
+        +pyright  ; disabled in favor of ruff
         +tree-sitter
         +lsp)            ; beautiful is better than ugly
        ;;qt                ; the 'cutest' gui framework ever
@@ -224,8 +224,7 @@
 
        :private
        my-python
-       my-checker
-       )
+       my-checker)
 
 (setq custom-file (expand-file-name "custom.el" doom-local-dir))
 (load custom-file 'no-error 'no-message)
