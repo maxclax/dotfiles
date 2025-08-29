@@ -10,7 +10,7 @@
 (load! "+keys")
 
 ;; Autoload all files from the modules directory
-(let ((modules-dir (expand-file-name "modules" doom-user-dir)))
+(let ((modules-dir (expand-file-name "helpers" doom-user-dir)))
   (when (file-directory-p modules-dir)
     (dolist (file (directory-files modules-dir t "\\.el$"))
       (load file nil 'nomessage))))

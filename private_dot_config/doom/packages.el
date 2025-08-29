@@ -16,11 +16,8 @@
                    lsp-python-ms
                    pyimport)
 
-(package! lsp-pyright)  ; Python LSP client using Pyright
-(package! lsp-ui)       ; UI enhancements for LSP
-(package! vue-mode)     ; Vue.js mode
 
-;; AI and LSP tools
+;; AI
 (package! aidermacs)
 (package! aider :recipe (:host github :repo "tninja/aider.el" ))
 (package! copilot)
@@ -74,5 +71,3 @@
 ;; PostgreSQL-related packages
 (package! pgmacs
   :recipe (:host github :repo "emarsden/pgmacs"))
-
-(package! keyfreq)  ; Track command frequency
