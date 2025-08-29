@@ -269,6 +269,30 @@
 
   :config (require 'mcp-hub))
 
+;; Company configuration
+(after! company
+  (setq company-idle-delay 0.2
+        company-minimum-prefix-length 2)
+  (setq company-box-doc-delay 0.3)
+  (setq company-box-icons-alist 'company-box-icons-all-the-icons))
+
+;; Make company-box more compact
+(after! company-box
+  (setq company-box-max-candidates 10)
+  (setq company-box-show-single-candidate t)
+  (setq company-box-scrollbar nil))
+
+;; Adjust when company and copilot trigger
+(setq company-idle-delay 0.3)        ;; Show company completions quickly
+(setq copilot-idle-delay 0.5)        ;; Show copilot suggestions after company
+
+;; Optional: Make TAB prioritize copilot, then try company
+(with-eval-after-load 'company
+  (define-key company-active-map (kbd "<tab>")
+    (lambda ()
+      (interactive)
+      (or (copilot-accept-completion)
+          (company-complete-selection)))))
 
 (use-package! copilot
   :hook (prog-mode . copilot-mode)
@@ -277,28 +301,33 @@
               ("TAB" . 'copilot-accept-completion)
               ("C-TAB" . 'copilot-accept-completion-by-word)
               ("C-<tab>" . 'copilot-accept-completion-by-word)
-              ("C-n" . 'copilot-next-completion)
-              ("C-p" . 'copilot-previous-completion))
+              ("M-n" . 'copilot-next-completion)
+              ("M-p" . 'copilot-previous-completion))
   :config
   (setq copilot-max-char 500000)
-  (setq copilot-idle-delay 0.2)
+  (setq copilot-idle-delay 1)
+
+  ;; Ensure company-box is used to avoid overlay conflicts
+  (with-eval-after-load 'company
+    (delq 'company-preview-if-just-one-frontend company-frontends))
 
   (add-to-list 'copilot-indentation-alist '(web-mode 2))
+  (add-to-list 'copilot-indentation-alist '(html-mode 2))
   (add-to-list 'copilot-indentation-alist '(markdown-mode 2))
   (add-to-list 'copilot-indentation-alist '(prog-mode 2))
   (add-to-list 'copilot-indentation-alist '(org-mode 2))
   (add-to-list 'copilot-indentation-alist '(text-mode 2))
   (add-to-list 'copilot-indentation-alist '(closure-mode 2))
-  (add-to-list 'copilot-indentation-alist '(emacs-lisp-mode 2)))
+  (add-to-list 'copilot-indentation-alist '(emacs-lisp-mode 2))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; COMPLETION
+  ;; COMPLETION
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(after! corfu
-  (setq +corfu-want-ret-to-confirm "both")
-  )
+  (after! corfu
+    (setq +corfu-want-ret-to-confirm "both")
+    ))
 
 (when (modulep! :completion vertico)
   (setq vertico-posframe-border-width 3)
