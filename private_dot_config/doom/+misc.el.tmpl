@@ -7,6 +7,12 @@
 (use-package! screenshot
   :defer t)
 
+;; Set personal ispell dictionary file
+(when (and
+       (executable-find "aspell")
+       (file-exists-p (expand-file-name "~/.aspell.en.pws")))
+  (setq ispell-personal-dictionary (expand-file-name "~/.aspell.en.pws")))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; NAVIGATION
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

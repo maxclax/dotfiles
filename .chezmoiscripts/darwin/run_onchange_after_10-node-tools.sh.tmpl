@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# Check if this is an extra user
+if [ "{{ .extraUser }}" == "true" ]; then
+  echo "Already installed by main user, skipping installation."
+  exit 0
+fi
+
+# Check if npm is available
+if ! command -v npm &> /dev/null; then
+  echo "npm is not installed, skipping cspell dictionaries installation."
+  exit 0
+fi
+
+echo "Installing cspell dictionaries globally..."
+
+# Install all cspell dictionaries globally
+npm install -g \
+  cspell \
+  @cspell/dict-bash \
+  @cspell/dict-cryptocurrencies \
+  @cspell/dict-css \
+  @cspell/dict-data-science \
+  @cspell/dict-de-de \
+  @cspell/dict-django \
+  @cspell/dict-docker \
+  @cspell/dict-elisp \
+  @cspell/dict-filetypes \
+  @cspell/dict-fonts \
+  @cspell/dict-fullstack \
+  @cspell/dict-git \
+  @cspell/dict-html \
+  @cspell/dict-html-symbol-entities \
+  @cspell/dict-k8s \
+  @cspell/dict-lorem-ipsum \
+  @cspell/dict-markdown \
+  @cspell/dict-node \
+  @cspell/dict-npm \
+  @cspell/dict-python \
+  @cspell/dict-ru_ru \
+  @cspell/dict-shell \
+  @cspell/dict-software-terms \
+  @cspell/dict-terraform \
+  @cspell/dict-typescript \
+  @cspell/dict-uk-ua \
+  @cspell/dict-vue
+
+echo "cspell dictionaries installation completed."

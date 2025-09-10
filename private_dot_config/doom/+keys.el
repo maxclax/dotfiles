@@ -104,4 +104,4 @@
         :desc "podman machine stop" "P" (lambda () (interactive) (compile "cd ~/ && podman machine stop"))
         :desc "make backup_create" "b" (lambda () (interactive) (compile "cd ~/ && make backup_create"))
         :desc "make update_macos" "u" (lambda () (interactive) (compile "cd ~/ && make update_apps && make update_macos"))
-        :desc "chezmoi apply" "c" (lambda () (interactive) (compile "cd ~/ && chezmoi apply")))))
+        :desc "chezmoi apply" "c" (lambda () (interactive) (compile "cd ~/ && chezmoi apply --force")))))

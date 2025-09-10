@@ -42,6 +42,7 @@
     "logseq-schrodinger:hugo-single-export",
     "logseq-tags:tags-plugin-open",
     "logseq-journals-calendar:goto-today",
-    "logseq-git:git"
+    "logseq-git:git",
+    "logseq-my-highlights:my-highlights-open"
   ]
 }
