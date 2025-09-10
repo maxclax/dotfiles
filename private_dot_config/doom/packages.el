@@ -59,6 +59,8 @@
 
 ;; programming
 (package! jinja2-mode)
+(package! django-mode)
+
 (if (modulep! :tools lsp +eglot)
     (progn
       (package! breadcrumb :recipe (:host github :repo "joaotavora/breadcrumb"))
