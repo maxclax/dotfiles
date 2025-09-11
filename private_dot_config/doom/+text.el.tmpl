@@ -1,0 +1,251 @@
+;;; +text.el -*- mode: emacs-lisp; lexical-binding: t; -*-
+
+(use-package! pomm
+  :defer t
+  :commands (pomm pomm-third-time)
+  :config
+  (setq pomm-work-period 40
+        pomm-long-break-period 25
+        pomm-short-break-period 5
+        alert-default-style (if IS-MAC 'osx-notifier 'libnotify)
+        pomm-audio-enabled t)
+  (pomm-mode-line-mode))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Org
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; (use-package! org-roam
+;;   :custom
+;;   (org-roam-directory
+;;    (expand-file-name "~/Library/Mobile Documents/iCloud~com~logseq~logseq/Documents/Org"))
+;;   (org-roam-dailies-directory "journals/")
+;;   (org-roam-capture-templates
+;;    '(("d" "default" plain
+;;       "%?" :target
+;;       (file+head "pages/${slug}.org" "#+title: ${title}\n")
+;;       :unnarrowed t))))
+
+(setq org-directory (expand-file-name "~/.org")
+      org-roam-directory (expand-file-name "roam" org-directory)
+      ;; Start with just personal TODOs - project TODOs added only when created
+      org-agenda-files (list org-directory)
+      org-ellipsis " ▼ "
+      org-hide-emphasis-markers t
+      org-babel-python-command "python3"
+      ;; The standard unicode characters are usually misaligned depending on the
+      ;; font. This bugs me. Markdown #-marks for headlines are more elegant.
+      org-bullets-bullet-list '("#"))
+
+;; Fast org-agenda discovery - run once at startup, manual refresh available
+(defun +my/update-org-agenda-files ()
+  "Update org-agenda-files to include project TODO files."
+  (interactive)  ; Make it callable via M-x
+  (message "Scanning for project TODO files...")
+  (setq org-agenda-files
+        (append (list org-directory)
+                ;; Find all todo.org files in multiple workspace directories
+                (when (file-directory-p {{ .workspace | quote }})
+                  (directory-files-recursively {{ .workspace | quote }} "^todo\.org$"))
+                (when (file-directory-p {{ .workspace_extra | quote }})
+                  (directory-files-recursively {{ .workspace_extra | quote }} "^todo\.org$"))
+                (when (file-directory-p {{ .chezmoi.sourceDir | quote }})
+                  (directory-files-recursively {{ .chezmoi.sourceDir | quote }} "^todo\.org$"))))
+  (message "Updated org-agenda-files: %d files found" (length org-agenda-files)))
+
+;; Manual refresh command for when you add new project TODO files
+(defun +my/refresh-org-agenda-files ()
+  "Manually refresh org-agenda-files when you've added new project TODOs."
+  (interactive)
+  (+my/update-org-agenda-files))
+
+;; Fix existing project TODO files to have proper categories
+(defun +my/fix-project-todo-categories ()
+  "Add category headers to existing project TODO files."
+  (interactive)
+  (let ((todo-files '()))
+    ;; Collect TODO files from all workspace directories
+    (when (file-directory-p {{ .workspace | quote }})
+      (setq todo-files (append todo-files
+                               (directory-files-recursively {{ .workspace | quote }} "^todo\.org$"))))
+    (when (file-directory-p {{ .workspace_extra | quote }})
+      (setq todo-files (append todo-files
+                               (directory-files-recursively {{ .workspace_extra | quote }} "^todo\.org$"))))
+    (when (file-directory-p {{ .chezmoi.sourceDir | quote }})
+      (setq todo-files (append todo-files
+                               (directory-files-recursively {{ .chezmoi.sourceDir | quote }} "^todo\.org$"))))
+      (dolist (file todo-files)
+        (let* ((project-root (file-name-directory file))
+               (project-name (file-name-nondirectory (directory-file-name project-root))))
+          (with-temp-buffer
+            (insert-file-contents file)
+            (goto-char (point-min))
+            ;; Check if category already exists
+            (unless (re-search-forward "^#\\+CATEGORY:" nil t)
+              (goto-char (point-min))
+              ;; Insert after TITLE or at the beginning
+              (if (re-search-forward "^#\\+TITLE:.*\n" nil t)
+                  (insert (format "#+CATEGORY: %s\n" project-name))
+                (insert (format "#+CATEGORY: %s\n" project-name)))
+              (write-file file)
+              (message "Added category to: %s" file)))))
+      (message "Fixed %d project TODO files" (length todo-files))
+    (message "No TODO files found to fix")))
+
+(after! org-roam
+  (make-directory (concat org-directory "/roam") 'parents))
+
+;; (use-package! websocket
+;;   :after org-roam)
+
+;; (use-package! org-roam-ui
+;;   :after org-roam ;; or :after org
+;;   ;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
+;;   ;;         a hookable mode anymore, you're advised to pick something yourself
+;;   ;;         if you don't care about startup time, use
+;;   ;; :hook (after-init . org-roam-ui-mode)
+;;   :config
+;;   (setq org-roam-ui-sync-theme t
+;;         org-roam-ui-follow t
+;;         org-roam-ui-update-on-save t
+;;         org-roam-ui-open-on-start t))
+
+;; Better org-agenda formatting with project context
+(after! org-agenda
+  ;; Customize agenda display format
+  (setq org-agenda-prefix-format
+        '((agenda . " %i %-12:c%?-12t% s")
+          (todo . " ☐ %-15:c ")
+          (tags . " %i %-12:c")
+          (search . " %i %-12:c")))
+  
+  ;; Remove weird icons and use simple formatting
+  (setq org-agenda-category-icon-alist nil))
+
+;; Improve project TODO file creation with proper category
+(defun +my/get-project-name-from-path (file-path)
+  "Extract project name from file path."
+  (cond
+   ;; Main workspace
+   ((string-match (concat (regexp-quote {{ .workspace | quote }}) "/\([^/]+\)/") file-path)
+    (match-string 1 file-path))
+   ;; Extra workspace
+   ((string-match (concat (regexp-quote {{ .workspace_extra | quote }}) "/\([^/]+\)/") file-path)
+    (match-string 1 file-path))
+   ;; Dotfiles
+   ((string-match (regexp-quote {{ .chezmoi.sourceDir | quote }}) file-path)
+    "dotfiles")
+   ;; Unknown
+   (t "Unknown")))
+
+;; Custom project TODO file function that always works
+(defun +my/org-capture-project-todo-file ()
+  "Return the todo.org file path for the current project."
+  (if (projectile-project-p)
+      (let* ((project-root (projectile-project-root))
+             (todo-file (expand-file-name "todo.org" project-root))
+             (project-name (file-name-nondirectory (directory-file-name project-root))))
+        ;; Create the file if it doesn't exist
+        (unless (file-exists-p todo-file)
+          (with-temp-buffer
+            ;; Include project category in the file header
+            (insert (format "#+TITLE: %s - Project TODOs\n" project-name))
+            (insert (format "#+CATEGORY: %s\n\n" project-name))
+            (insert "* Inbox\n")
+            (write-file todo-file))
+          ;; Refresh agenda files to include the new todo.org
+          (+my/update-org-agenda-files)
+          (message "Created new project TODO file: %s" todo-file))
+        todo-file)
+    ;; Fallback to personal todo if not in project
+    (expand-file-name "todo.org" org-directory)))
+
+(after! org
+  (setq org-capture-templates
+        '(("t" "Personal todo" entry
+           (file+headline +org-capture-todo-file "Inbox")
+           "** TODO %?\n%i" :prepend t :kill-buffer t)
+          ("n" "Personal notes" entry
+           (file+headline +org-capture-notes-file "Inbox")
+           "* %u %?\n%i" :prepend t :kill-buffer t)
+
+          ;; Project templates with explicit file paths
+          ("p" "Templates for projects")
+          ("pt" "Project todo" entry       ; Explicitly use project todo.org
+           (file+headline +my/org-capture-project-todo-file "Inbox")
+           "** TODO %?\n%i" :prepend t :kill-buffer t)
+          ("pn" "Project notes" entry      ; {project-root}/notes.org
+           (file+headline +org-capture-project-notes-file "Inbox")
+           "** TODO %?\n%i" :prepend t :kill-buffer t)
+          ("pc" "Project changelog" entry  ; {project-root}/changelog.org
+           (file+headline +org-capture-project-notes-file "Unreleased")
+           "** TODO %?\n%i" :prepend t :kill-buffer t)))
+
+  (setq org-log-into-drawer "LOGBOOK")
+
+  ;; Schedule/deadline popup with default time
+  (defvar org-default-time "10:30"
+    "The default time for deadlines.")
+
+  (defun advise-org-default-time (func arg &optional time)
+    (let ((old-time (symbol-function #'org-read-date)))
+      (cl-letf (((symbol-function #'org-read-date)
+                 #'(lambda (&optional a b c d default-time f g)
+                     (let ((default-time (or default-time
+                                             org-default-time)))
+                       (apply old-time a b c d f default-time g)
+                       ))))
+        (apply func arg time))))
+
+  (advice-add #'org-deadline :around #'advise-org-default-time)
+  (advice-add #'org-schedule :around #'advise-org-default-time))
+
+(after! ox-pandoc
+  (setq org-pandoc-options-for-revealjs '((variable . "highlight-theme=github")
+                                          (variable . "theme=white"))))
+(use-package! org-appear
+  :defer t
+  :hook (org-mode . org-appear-mode)
+  :config
+  (setq org-appear-autolinks t
+        org-appear-autosubmarkers t
+        org-appear-delay 0.3))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; MARKDOWN
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(setq markdown-fontify-code-blocks-natively t)
+
+(remove-hook 'text-mode-hook #'auto-fill-mode)
+
+(use-package! edit-indirect :defer t)
+
+(add-hook! 'markdown-mode-hook (setq-local format-all-formatters '(("Markdown" prettier))))
+
+(after! markdown-mode
+  (advice-add #'markdown-follow-thing-at-point :around #'doom-set-jump-a))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; OTHERS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package! tldr
+  :defer t
+  :config
+  (setq tldr-directory-path (concat doom-etc-dir "tldr/"))
+  (set-popup-rule! "^\\*tldr\\*" :side 'right :select t :quit t)
+  )
+
+(use-package! link-hint :defer t)
+
+(use-package! symbol-overlay :defer t)
+
+(after! so-long
+  (setq so-long-target-modes (delete 'text-mode so-long-target-modes)))
+
+(use-package! adoc-mode
+  :defer t
+  :init
+  (add-to-list 'auto-mode-alist (cons "\\.adoc\\'" 'adoc-mode)))

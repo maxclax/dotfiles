@@ -70,6 +70,21 @@
       :desc "Open link" "x" #'link-hint-open-link
       :desc "Open link at point" "X" #'link-hint-open-link-at-point)
 
+;; Project  
+(map! :leader
+      :prefix "p"
+      "n" #'+default/yank-project-name
+      ;; Use the working method for SPC p t
+      :desc "Search project TODOs" "t" (lambda () (interactive) 
+                                            (if (projectile-project-p)
+                                                (consult-ripgrep (projectile-project-root) "TODO\\|FIXME\\|NOTE\\|HACK")
+                                              (message "Not in a project")))
+      ;; Keep the original broken one for debugging
+      :desc "Original consult-todo-project" "T" #'consult-todo-project
+      :desc "Switch projects" "p" (λ! (update-projectile-known-projects) (projectile-switch-project))
+      "*" (+my/prefix-M-x "projectile-")
+      :desc "Update projectile list" "u" #'update-projectile-known-projects)
+
 ;; Toogles
 (map! :leader
       :prefix "t"

@@ -37,6 +37,8 @@
 (package! pomm)
 (package! symbol-overlay)
 (package! org-appear)
+(package! nov)      ; EPUB reader
+(package! djvu)     ; DjVu document viewer
 
 ;; misc
 (package! circadian)
