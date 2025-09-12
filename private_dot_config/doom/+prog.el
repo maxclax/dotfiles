@@ -19,9 +19,16 @@
   :defer t
   :mode (("\\.http\\'" . restclient-mode)))
 
-(after! company
-  ;; (setq company-idle-delay 0.2)
-  (setq company-format-margin-function #'company-detect-icons-margin))
+;; Corfu completion configuration (replacing company)
+(after! corfu
+  ;; Enable corfu globally
+  (global-corfu-mode)
+  ;; Ensure LSP completion works with corfu
+  (setq corfu-auto t
+        corfu-auto-delay 0.2
+        corfu-auto-prefix 2
+        corfu-cycle t
+        corfu-separator ?_))
 
 
 (use-package! graphql-mode

@@ -20,6 +20,18 @@
 
 (after! lsp-mode
   (add-hook! 'lsp-help-mode-hook (visual-line-mode 1))
+  
+  ;; Force single workspace per project
+  (setq lsp-auto-guess-root nil)
+  (setq lsp-restart 'auto-restart)
+  
+  ;; Configure LSP completion for corfu
+  (setq lsp-completion-provider :capf) ; Use completion-at-point-functions
+  
+  ;; Configure completion settings
+  (setq lsp-completion-enable t
+        lsp-completion-show-detail t
+        lsp-completion-show-kind t)
 
   (setq lsp-log-io nil
         lsp-file-watch-threshold 4000

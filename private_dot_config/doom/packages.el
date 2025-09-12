@@ -61,7 +61,6 @@
 
 ;; programming
 (package! jinja2-mode)
-(package! django-mode)
 
 (if (modulep! :tools lsp +eglot)
     (progn

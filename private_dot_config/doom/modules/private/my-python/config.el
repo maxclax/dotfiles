@@ -34,27 +34,33 @@
         pippel-python-command "python3"
         importmagic-python-interpreter "python3"
         flycheck-python-pylint-executable "pylint"
-        flycheck-python-flake8-executable "flake8")
+        flycheck-python-flake8-executable "flake8"))
 
-  ;; if you use pyton2, then you could comment the following 2 lines
-  ;; (setq python-shell-interpreter "python2"
-  ;;       python-shell-interpreter-args "-i")
-  )
 (add-hook! 'python-mode-hook #'+python/annotate-pdb)
-
 (add-hook! 'python-mode-hook (setq-local format-all-formatters '(("Python" ruff))))
 
-(after! lsp-pyls
-  ;; disable live-mode for mypy
-  (lsp-register-custom-settings `(("pyls.plugins.pyls_mypy.enabled" t)))
-  (lsp-register-custom-settings `(("pyls.plugins.pyls_mypy.live_mode" t)))
-
-  ;; ignore some linting info
-  (setq lsp-pyls-plugins-pycodestyle-ignore  [ "E501" ]
-        lsp-pyls-plugins-pylint-args [ "--errors-only" ]))
+;; Remove custom completion hook - let Doom handle LSP + corfu integration
 
 (after! lsp-pyright
-  (setq lsp-pyright-python-executable-cmd "python3"))
+  (setq lsp-pyright-python-executable-cmd "python3")
+  ;; Set Pyright as highest priority Python LSP server
+  (set-lsp-priority! 'pyright 1)
+  ;; Ensure pyright uses correct workspace root
+  (setq lsp-pyright-multi-root nil)
+  ;; Disable other Python LSP clients to prevent conflicts  
+  (setq lsp-disabled-clients '(pylsp pyls mspyls))
+  ;; Ensure single workspace per project
+  (setq lsp-enable-file-watchers t)
+  (setq lsp-file-watch-threshold 2000)
+  
+  ;; Python-specific completion settings
+  (setq lsp-pyright-disable-organize-imports nil)
+  (setq lsp-pyright-auto-import-completions t)
+  (setq lsp-pyright-auto-search-paths t)
+  
+  ;; Ensure pyright provides completion capabilities
+  (setq lsp-pyright-disable-language-services nil)
+  (setq lsp-pyright-disable-tag-complete nil))
 
 (use-package! py-isort
   :defer t
@@ -91,7 +97,7 @@
   ;; Override pipenv--clean-response to trim color codes
   (defun pipenv--clean-response (response)
     "Clean up RESPONSE from shell command."
-    (replace-regexp-in-string "\n\\[0m$" "" (s-chomp response)))
+    (replace-regexp-in-string "\n\[0m$" "" (s-chomp response)))
 
   ;; restart flycheck-mode after env activate and deactivate
   (dolist (func '(pipenv-activate pipenv-deactivate))
