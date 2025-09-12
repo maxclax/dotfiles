@@ -132,3 +132,22 @@
 ;; For pytest-mode
 (set-evil-initial-state! '(comint-mode) 'normal)
 (set-evil-initial-state! '(shell-mode) 'normal)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; DAPE (Debug Adapter Protocol for Emacs)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(when (modulep! :tools debugger)
+  (after! dape
+    (add-to-list 'dape-configs
+                 `(debugpy-remote
+                   modes (python-mode python-ts-mode)
+                   host "localhost"
+                   port 5678
+                   :request "attach"
+                   :type "python"
+                   :pathMappings [(:localRoot ,(lambda () (projectile-project-root)) :remoteRoot "/usr/src/app")]
+                   :justMyCode t
+                   :showReturnValue t
+                   :console "integratedTerminal"
+                   :name "Debugpy Remote"))))
