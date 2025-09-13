@@ -306,30 +306,9 @@
 ;; COMPLETION
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Company configuration
-(after! company
-  (setq company-idle-delay 0.2
-        company-minimum-prefix-length 2)
-  (setq company-box-doc-delay 0.3)
-  (setq company-box-icons-alist 'company-box-icons-all-the-icons))
-
-;; Make company-box more compact
-(after! company-box
-  (setq company-box-max-candidates 10)
-  (setq company-box-show-single-candidate t)
-  (setq company-box-scrollbar nil))
-
-;; Adjust when company and copilot trigger
-(setq company-idle-delay 0.3)
-
-;; Optional: Make TAB prioritize copilot, then try company
-(with-eval-after-load 'company
-  (define-key company-active-map (kbd "<tab>")
-    (lambda ()
-      (interactive)
-      (or (copilot-accept-completion)
-          (company-complete-selection)))))
-
+(after! corfu
+  (setq +corfu-want-ret-to-confirm "both")
+  )
 
 (when (modulep! :completion vertico)
   (setq vertico-posframe-border-width 3)

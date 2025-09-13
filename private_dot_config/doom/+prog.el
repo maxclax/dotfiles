@@ -78,6 +78,68 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; DEBUG & RUN
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(after! quickrun
+  (quickrun-add-command "c++/c1z"
+    '((:command . "clang++")
+      (:exec    . ("%c -std=c++1z %o -o %e %s"
+                   "%e %a"))
+      (:remove  . ("%e")))
+    :default "c++"))
+
+(when (modulep! :tools debugger)
+  (defun +my/dape-breakpoint-toggle ()
+    (interactive)
+    (require 'dape)
+    (dape-breakpoint-toggle)
+    (+go/write-project-breakpoints))
+
+  (defun +my/dape-breakpoint-remove-all ()
+    (interactive)
+    (require 'dape)
+    (dape-breakpoint-remove-all)
+    (+go/write-project-breakpoints))
+
+  (map! :leader
+        (:prefix ("d" . "debug")
+         :desc "dape breakpoint toggle" "b" #'+my/dape-breakpoint-toggle
+         :desc "dape breakpoint remove all" "B" #'+my/dape-breakpoint-remove-all
+         ))
+
+  (after! dape
+    (setq dape-configs (assq-delete-all 'dlv dape-configs))
+    (add-to-list 'dape-configs
+                 `(delve
+                   modes (go-mode go-ts-mode)
+                   ensure dape-ensure-command
+                   fn (dape-config-autoport dape-config-tramp)
+                   command "dlv"
+                   command-args ("dap" "--listen" "127.0.0.1::autoport")
+                   command-insert-stderr t
+                   command-cwd (lambda()(if (string-suffix-p "_test.go" (buffer-name))
+                                            default-directory (dape-cwd)))
+                   port :autoport
+                   :type "debug"
+                   :request "launch"
+                   :mode (lambda() (if (string-suffix-p "_test.go" (buffer-name)) "test" "debug"))
+                   :program "."
+                   :cwd "."
+                   :args (lambda()
+                           (if (string-suffix-p "_test.go" (buffer-name))
+                               (save-excursion
+                                 (when (re-search-backward "^func[ \t]+\\(\\(\\w\\|\\s_\\)+\\)" nil t)
+                                   (let* ((test-name (match-string 1))
+                                          (test-regexp (concat "^" test-name "$")))
+                                     `["-test.run" ,test-regexp])))
+                             []))))
+    ))
+
+
+(add-hook! 'go-mode-hook (add-hook! 'after-save-hook :local #'+go/write-project-breakpoints))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; LANGUAGE CUSTOMIZATION
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
