@@ -75,7 +75,7 @@
         +dirvish                        ; bringing the goodness of ranger to dired
         +icons)                         ; colorful icons for dired-mode
        electric                         ; smarter, keyword-based electric-indent
-       ;;eww               ; the internet is gross
+       eww               ; the internet is gross
        (ibuffer +icons)                 ; interactive buffer management
        undo                             ; persistent, smarter undo for your inevitable mistakes
        vc                               ; version-control and Emacs, sitting in a tree
@@ -97,7 +97,7 @@
        :tools
        (projectile +icons)
        ;;ansible
-       ;;biblio            ; Writes a PhD for you (citation needed)
+       biblio            ; Writes a PhD for you (citation needed)
        ;;collab            ; buffers with friends
        debugger                         ; FIXME stepping through code, to help you add bugs
        direnv
@@ -114,7 +114,7 @@
         ;; +peek
         )
        magit                            ; a git porcelain for Emacs
-       prodigy                          ; FIXME managing external services & code builders
+       prodigy                          ; managing external services & code builders
        make                             ; run make tasks from Emacs
                                         ;pass              ; password manager for nerds
        pdf                              ; pdf enhancements
@@ -211,9 +211,9 @@
 
        :app
        calendar
-       ;;emms
+       ;; emms
        everywhere                       ; *leave* Emacs!? You must be joking
-       ;;irc               ; how neckbeards socialize
+       irc               ; how neckbeards socialize
        (rss +org)                       ; emacs as an RSS reader
 
        :config

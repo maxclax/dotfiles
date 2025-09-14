@@ -112,3 +112,8 @@
 
 (after! centered-window
   (setq cwm-centered-window-width 160))
+
+;; Auto-run pomm-third-time after Emacs starts
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (run-with-timer 3 nil #'pomm-third-time)))

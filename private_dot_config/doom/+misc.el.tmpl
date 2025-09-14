@@ -145,7 +145,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (use-package! keycast
-  :defer t)
+  :config
+  ;; Enable keycast-header-line-mode by default
+  (keycast-header-line-mode 1)
+  ;; Optional: customize keycast appearance
+  (setq keycast-header-line-format "%2s%k%c%R")
+  ;; Show in header line instead of mode line for cleaner look
+  (setq keycast-insert-after 'mode-line-buffer-identification))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; SSH
@@ -254,6 +260,20 @@
   (gptel-make-anthropic "gptel.Claude" :stream t)
   (gptel-make-gemini "gptel.Gemini" :stream t))
 
+;; Simple AI commit message generator
+(defun +my/smart-commit ()
+  "Generate commit message using AI."
+  (interactive)
+  (let ((diff (shell-command-to-string "git diff --cached")))
+    (if (string-empty-p (string-trim diff))
+        (message "No staged changes found")
+      (gptel-request 
+       (format "Generate a short git commit message for:\n%s" diff)
+       :callback (lambda (response info)
+                   (when response
+                     (kill-new (string-trim response))
+                     (message "Commit message: %s" (string-trim response))))))))
+
 
 (use-package! mcp
   :after gptel
@@ -333,7 +353,7 @@
 ;; PRODIGY
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; TODO create a module for prodigy
+;; Create a module for prodigy
 (use-package prodigy
   :config
 
@@ -342,30 +362,27 @@
     :env '(("LANG" "en_US.UTF-8")
            ("LC_ALL" "en_US.UTF-8")))
 
+  ;; Podman Machine Start (action service)
   (prodigy-define-service
-    :name "make dcr"
-    :command "make"
-    :args '("dcr")
-    :cwd (projectile-project-root)
-    :tags '(manager runserver)
-    :port 8000
-    :kill-signal 'sigkill
-    :kill-process-buffer-on-stop t)
-
-  (prodigy-define-service
-    :name "Podman Machine - Start"
+    :name "🚀 Start Podman Machine"
     :command "podman"
     :args '("machine" "start")
-    :tags '(podman infra)
-    :port nil)
+    :tags '(podman infra action)
+    :port nil
+    :init (lambda ()
+            (message "Starting podman machine..."))
+    :kill-process-buffer-on-stop t)
 
+  ;; Podman Machine Stop (action service)
   (prodigy-define-service
-    :name "Podman Machine - Stop"
+    :name "🛑 Stop Podman Machine"
     :command "podman"
     :args '("machine" "stop")
-    :tags '(podman infra)
-    :port nil)
-  )
+    :tags '(podman infra action)
+    :port nil
+    :init (lambda ()
+            (message "Stopping podman machine..."))
+    :kill-process-buffer-on-stop t))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; TERM

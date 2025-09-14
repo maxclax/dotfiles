@@ -9,35 +9,6 @@
       :desc "Fix too many open files" "K" #'file-notify-rm-all-watches
       :desc "Remove perspective by name"       "-" #'persp-remove-by-name)
 
-;; Registers
-;; (map! :leader
-;;       (:prefix ("r" . "registers")
-;;        :desc "Copy to register" "c" #'copy-to-register
-;;        :desc "Frameset to register" "f" #'frameset-to-register
-;;        :desc "Insert contents of register" "i" #'insert-register
-;;        :desc "Jump to register" "j" #'jump-to-register
-;;        :desc "List registers" "l" #'list-registers
-;;        :desc "Number to register" "n" #'number-to-register
-;;        :desc "Interactively choose a register" "r" #'counsel-register
-;;        :desc "View a register" "v" #'view-register
-;;        :desc "Window configuration to register" "w" #'window-configuration-to-register
-;;        :desc "Increment register" "+" #'increment-register
-;;        :desc "Point to register" "SPC" #'point-to-register))
-
-;; Jumps
-(map! :leader
-      :prefix "j"
-      "j" #'avy-goto-char-timer
-      "l" #'avy-goto-line
-      "b" #'avy-pop-mark
-      "t" #'yas-describe-tables)
-
-;; Files
-(map! :leader
-      :prefix "f"
-      :desc "Find file in project" "f" #'projectile-find-file
-      :desc "Yank filename" "n" #'+default/yank-filename
-      :desc "Dirvish" "j" #'dirvish-dwim)
 
 ;; Buffers
 (map! :leader
@@ -46,6 +17,7 @@
       :desc "Revert buffer" "r" #'revert-buffer-no-confirm
       ;; :desc "Reload buffer" "R" #'reload-buffer-no-confirm
       :desc "Format-all buffer"      "f" #'format-all-buffer)
+
 
 ;; Code
 (map! :leader
@@ -63,6 +35,21 @@
         :desc "LSP organize imports"   "I" #'lsp-organize-imports
         :desc "LSP workspace restart"  "R" #'lsp-workspace-restart
         :desc "Treemacs references"    "D" #'lsp-treemacs-references))
+
+
+;; Files
+(map! :leader
+      :prefix "f"
+      :desc "Find file in project" "f" #'projectile-find-file
+      :desc "Yank filename" "n" #'+default/yank-filename
+      :desc "Dirvish" "j" #'dirvish-dwim)
+
+
+;; Git with AI helpers
+(map! :leader
+      (:prefix ("G" . "Git + AI")
+       :desc "Magit status" "g" #'magit-status
+       :desc "🤖 AI Commit Message" "c" #'+my/smart-commit))
 
 ;; Open
 (map! :leader
@@ -85,11 +72,27 @@
       "*" (+my/prefix-M-x "projectile-")
       :desc "Update projectile list" "u" #'update-projectile-known-projects)
 
+;; Registers
+(map! :leader
+      (:prefix ("r" . "registers")
+       :desc "Copy to register" "c" #'copy-to-register
+       :desc "Frameset to register" "f" #'frameset-to-register
+       :desc "Insert contents of register" "i" #'insert-register
+       :desc "Jump to register" "j" #'jump-to-register
+       :desc "List registers" "l" #'list-registers
+       :desc "Number to register" "n" #'number-to-register
+       :desc "Interactively choose a register" "r" #'counsel-register
+       :desc "View a register" "v" #'view-register
+       :desc "Window configuration to register" "w" #'window-configuration-to-register
+       :desc "Increment register" "+" #'increment-register
+       :desc "Point to register" "SPC" #'point-to-register))
+
 ;; Toogles
 (map! :leader
       :prefix "t"
       :desc "Pomm-third timer" "t" #'pomm-third-time
-      "k" #'keycast-log-mode
+      "k" #'keycast-header-line-mode
+      "K" #'keycast-log-mode
       "R" #'rainbow-mode)
 
 (map! :leader
@@ -104,19 +107,30 @@
                 "a" #'ai-code-menu
                 "c" #'claude-code-transient
                 "C" #'claude-code-ide-menu)
-       (:prefix ("g" . "GPTel")
-                "a" #'gptel-add
+       (:prefix ("g" . "GPTel & Git AI")
                 "g" #'gptel
+                "a" #'gptel-add
                 "r" #'gptel-rewrite
                 "s" #'gptel-send
                 "m" #'gptel-menu
                 "M" #'mcp-hub
                 "S" #'mcp-hub-start-server
                 "t" #'gptel-tools
-                "f" #'gptel-add-file)
+                "f" #'gptel-add-file
+                ;; AI Git helper
+                "c" #'+my/smart-commit)
        (:prefix ("s" . "Shell Commands")
         :desc "podman machine start" "p" (lambda () (interactive) (compile "cd ~/ && podman machine start"))
         :desc "podman machine stop" "P" (lambda () (interactive) (compile "cd ~/ && podman machine stop"))
         :desc "make backup_create" "b" (lambda () (interactive) (compile "cd ~/ && make backup_create"))
         :desc "make update_macos" "u" (lambda () (interactive) (compile "cd ~/ && make update_apps && make update_macos"))
         :desc "chezmoi apply" "c" (lambda () (interactive) (compile "cd ~/ && chezmoi apply --force")))))
+
+
+;; Jumps
+(map! :leader
+      :prefix "j"
+      "j" #'avy-goto-char-timer
+      "l" #'avy-goto-line
+      "b" #'avy-pop-mark
+      "t" #'yas-describe-tables)
