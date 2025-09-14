@@ -45,12 +45,6 @@
       :desc "Dirvish" "j" #'dirvish-dwim)
 
 
-;; Git with AI helpers
-(map! :leader
-      (:prefix ("G" . "Git + AI")
-       :desc "Magit status" "g" #'magit-status
-       :desc "🤖 AI Commit Message" "c" #'+my/smart-commit))
-
 ;; Open
 (map! :leader
       :prefix "o"
@@ -118,7 +112,9 @@
                 "t" #'gptel-tools
                 "f" #'gptel-add-file
                 ;; AI Git helper
-                "c" #'+my/smart-commit)
+                ;;
+                :desc "🤖 Generate AI Commit Message" "m" #'+my/smart-commit
+                :desc "🤖 Commit with AI Message" "C" #'+my/commit-with-ai)
        (:prefix ("s" . "Shell Commands")
         :desc "podman machine start" "p" (lambda () (interactive) (compile "cd ~/ && podman machine start"))
         :desc "podman machine stop" "P" (lambda () (interactive) (compile "cd ~/ && podman machine stop"))

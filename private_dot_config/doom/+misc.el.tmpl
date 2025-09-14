@@ -260,19 +260,55 @@
   (gptel-make-anthropic "gptel.Claude" :stream t)
   (gptel-make-gemini "gptel.Gemini" :stream t))
 
-;; Simple AI commit message generator
+;; AI Commit Message Generator
 (defun +my/smart-commit ()
-  "Generate commit message using AI."
+  "Generate commit message using AI with your template."
   (interactive)
   (let ((diff (shell-command-to-string "git diff --cached")))
     (if (string-empty-p (string-trim diff))
         (message "No staged changes found")
-      (gptel-request 
-       (format "Generate a short git commit message for:\n%s" diff)
-       :callback (lambda (response info)
-                   (when response
-                     (kill-new (string-trim response))
-                     (message "Commit message: %s" (string-trim response))))))))
+      (let ((prompt (concat "Generate a concise git commit message using conventional commits format.\n\n"
+                           "Available types: dev, docs, feat, fix, nit, perf, refactor, revert, test, tweak\n\n"
+                           "Rules:\n"
+                           "- Use format: type: description (no scope unless needed)\n"
+                           "- Keep under 50 characters\n"
+                           "- Use imperative mood (Add, Fix, Update, etc.)\n"
+                           "- Be specific and clear\n\n"
+                           "Staged changes to analyze:\n" diff)))
+        (gptel-request prompt
+                       :callback (lambda (response info)
+                                   (when response
+                                     (let ((msg (string-trim response)))
+                                       (kill-new msg)
+                                       (message "✅ Generated: %s" msg)
+                                       ;; Try to insert into active commit buffer
+                                       (when-let ((buffer (or (get-buffer "COMMIT_EDITMSG")
+                                                              (get-buffer "*vc-log*")
+                                                              (get-buffer "*magit-commit*"))))
+                                         (with-current-buffer buffer
+                                           (goto-char (point-min))
+                                           ;; Skip comment lines and find insertion point
+                                           (while (and (not (eobp)) (looking-at "^#"))
+                                             (forward-line 1))
+                                           ;; If we're still at a comment, go to very beginning
+                                           (when (looking-at "^#")
+                                             (goto-char (point-min)))
+                                           ;; Save insertion point
+                                           (let ((insert-point (point)))
+                                             ;; Insert the commit message
+                                             (insert msg "\n")
+                                             ;; Move cursor to end of inserted message
+                                             (goto-char (+ insert-point (length msg))))))))))))))
+
+(defun +my/commit-with-ai ()
+  "Start commit and auto-generate message."
+  (interactive)
+  (if (magit-anything-staged-p)
+      (progn
+        (magit-commit-create)
+        (message "⏳ Generating AI commit message...")
+        (run-with-timer 2 nil #'+my/smart-commit))
+    (message "❌ No staged changes found")))
 
 
 (use-package! mcp
