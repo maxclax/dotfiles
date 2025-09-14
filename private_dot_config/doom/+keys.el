@@ -85,6 +85,7 @@
 (map! :leader
       :prefix "t"
       :desc "Pomm-third timer" "t" #'pomm-third-time
+      :desc "Pomm-third" "T" #'pomm
       "k" #'keycast-header-line-mode
       "K" #'keycast-log-mode
       "R" #'rainbow-mode)

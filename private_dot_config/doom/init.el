@@ -21,11 +21,7 @@
        ;;layout            ; auie,ctsrnm is the superior home row
 
        :completion
-       ;; (company +childframe)
        (corfu +orderless +icons +childframe)
-       ;;helm              ; the *other* search engine for love and life
-       ;;ido               ; the other *other* search engine...
-       ;;ivy               ; a search engine for love and life
        (vertico                         ; the search engine of the future
         +icons
         ;; +childframe
@@ -47,7 +43,7 @@
        ophints                          ; highlight the region an operation acts on
        (popup +defaults)                ; tame sudden yet inevitable temporary windows
        ;;smooth-scroll     ; So smooth you won't believe it's not butter
-       ;;tabs              ; a tab bar for Emacs
+       tabs              ; a tab bar for Emacs
        treemacs                         ; a project drawer, like neotree but cooler
        ;;unicode           ; extended unicode support for various languages
        vc-gutter                        ; vcs diff in the fringe
