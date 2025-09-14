@@ -6,28 +6,17 @@
                                          (note "" compilation-info)))
 
 (when (modulep! :checkers syntax))
-(if (modulep! :checkers syntax +flymake)
-    (map! :leader
-          (:prefix-map ("e" . "error")
-           :desc "Next error"      "n" #'flymake-goto-next-error
-           :desc "Previous error"  "p" #'flymake-goto-prev-error
-           :desc "Explain error"   "e" #'flymake-show-diagnostic
-           :desc "List errors"     "l" #'flymake-show-buffer-diagnostics
-           :desc "Lsp list errors" "L" #'consult-flymake
-           :desc "List project error" "P" #'flymake-show-project-diagnostics
-           :desc "Verify setup"    "v" #'flymake-running-backends))
-  (map! :leader
-        (:prefix-map ("e" . "error")
-         :desc "Next error"      "n" #'flycheck-next-error
-         :desc "Previous error"  "p" #'flycheck-previous-error
-         :desc "Explain error"   "e" #'flycheck-explain-error-at-point
-         :desc "List errors"     "l" #'flycheck-list-errors
-         :desc "Lsp list errors" "L" #'consult-lsp-diagnostics
-         :desc "Verify setup"    "v" #'flycheck-verify-setup)))
 (map! :leader
-      (:prefix "c"
-       :desc "Cspell check all changed files" "c" #'cspell-check-diff-from-HEAD
-       :desc "Cspell check buffer"    "C" #'cspell-check-buffer))
+        (:prefix-map ("e" . "error")
+        :desc "Cspell check all changed files" "c" #'cspell-check-diff-from-HEAD
+        :desc "Cspell check buffer"    "C" #'cspell-check-buffer
+        :desc "Next error"      "n" #'flymake-goto-next-error
+        :desc "Previous error"  "p" #'flymake-goto-prev-error
+        :desc "Explain error"   "e" #'flymake-show-diagnostic
+        :desc "List errors"     "l" #'flymake-show-buffer-diagnostics
+        :desc "Lsp list errors" "L" #'consult-flymake
+        :desc "List project error" "P" #'flymake-show-project-diagnostics
+        :desc "Verify setup"    "v" #'flymake-running-backends))
 
 (use-package flymake-cspell
   :when (executable-find "cspell")
@@ -56,48 +45,3 @@
              (command (string-join `("git diff --name-only HEAD | xargs -I{}" ,cspell-base-program ,cspell-args "'{}'") " ")))
         (compilation-start command 'grep-mode))
     (message "Cannot find cspell, please install with `npm install -g cspell`")))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; FLYCHECK
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; (use-package! wucuo
-;;   :defer t
-;;   :init
-;;   (add-hook! (js2-mode rjsx-mode go-mode c-mode c++-mode) #'wucuo-start))
-
-
-(after! flycheck
-  (setq-default flycheck-disabled-checkers
-                '(
-                  typescript-tslint javascript-jshint handlebars
-                  eglot json-jsonlist json-python-json
-                  c/c++-clang c/c++-cppcheck c/c++-gcc c/c++-googlelint
-                  python-mypy python-pylint python-pycompile
-                  ;; Disable Perl for Coral Config file
-                  perl
-                  ))
-
-  ;; customize flycheck temp file prefix
-  (setq-default flycheck-temp-prefix ".flycheck")
-
-  ;; ======================== JS & TS ========================
-  ;; https://github.com/hlissner/doom-emacs/blob/c2f8476c8641fcc9a1371d873ed3b5924952a059/modules/lang/javascript/config.el#L109
-
-  ;; ======================== CC ========================
-  (when (modulep! :checkers syntax)
-    (require 'flycheck-google-cpplint)
-    (setq flycheck-c/c++-googlelint-executable "cpplint")
-    (flycheck-add-next-checker 'c/c++-gcc '(t . c/c++-googlelint)))
-
-  (setq flycheck-c/c++-gcc-executable "gcc-7"
-        flycheck-gcc-include-path '("/usr/local/inclue"))
-
-  (add-hook! c++-mode-hook
-    (setq flycheck-gcc-language-standard "c++11"
-          flycheck-clang-language-standard "c++11"))
-  )
-
-;; (defun disable-flycheck-mode ()
-;;   (flycheck-mode -1))
-;; (add-hook! (emacs-lisp-mode) 'disable-flycheck-mode)

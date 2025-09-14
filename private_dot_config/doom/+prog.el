@@ -6,6 +6,24 @@
 
 (add-hook! compilation-mode #'visual-line-mode)
 
+;; Fix for makefile compilation buffer name error
+(after! compile
+  ;; Ensure compilation-buffer-name-function handles nil gracefully
+  (setq compilation-buffer-name-function
+        (lambda (name-of-mode)
+          (if (stringp name-of-mode)
+              (format "*%s*" name-of-mode)
+            "*compilation*"))))
+
+;; Fix for makefile-executor compilation issues
+(after! makefile-executor
+  ;; Override the problematic buffer naming function
+  (defun makefile-executor--compilation-buffer-name (target)
+    "Generate compilation buffer name for TARGET."
+    (if (and target (stringp target))
+        (format "*makefile: %s*" target)
+      "*makefile*")))
+
 (use-package! format-all
   ;; :hook (emacs-lisp-mode . format-all-mode)
   :defer t)

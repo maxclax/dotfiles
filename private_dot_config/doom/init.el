@@ -115,7 +115,7 @@
         )
        magit                            ; a git porcelain for Emacs
        prodigy                          ; FIXME managing external services & code builders
-       ;;make              ; run make tasks from Emacs
+       make                             ; run make tasks from Emacs
                                         ;pass              ; password manager for nerds
        pdf                              ; pdf enhancements
        terraform                        ; infrastructure as code
@@ -183,10 +183,9 @@
        ;;graphviz          ; diagrams for confusing yourself even more
        ;;purescript        ; javascript, but functional
        (python
-        +conda
-        +pyright  ; disabled in favor of ruff
+        +pyright    ; LSP for Python
         +tree-sitter
-        +lsp)            ; beautiful is better than ugly
+        +lsp)       ; beautiful is better than ugly
        ;;qt                ; the 'cutest' gui framework ever
        ;;racket            ; a DSL for DSLs
        ;;raku              ; the artist formerly known as perl6

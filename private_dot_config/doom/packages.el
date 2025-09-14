@@ -41,6 +41,7 @@
 (package! djvu)     ; DjVu document viewer
 
 ;; misc
+(package! makefile-executor)
 (package! circadian)
 (package! beacon)
 (package! rainbow-mode)
@@ -61,6 +62,7 @@
 
 ;; programming
 (package! jinja2-mode)
+(package! graphql-mode)
 
 (if (modulep! :tools lsp +eglot)
     (progn

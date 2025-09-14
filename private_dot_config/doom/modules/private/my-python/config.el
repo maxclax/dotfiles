@@ -18,8 +18,6 @@
    :desc "Insert copied import" "p" #'+python/insert-temp-import
    :desc "Copy module import " "i" #'+python/yank-module-import)
   (:prefix ("v" . "ENV")
-   "c" #'conda-env-activate
-   "C" #'conda-env-deactivate
    :desc "Activate .venv" "p" (λ! (pyvenv-activate (concat (doom-project-root) ".venv")))
    ;; deactivate not work well. Just try activate again.
    "P" #'pyvenv-deactivate)))
@@ -32,9 +30,7 @@
   (setq python-indent-offset 4
         python-shell-interpreter "python3"
         pippel-python-command "python3"
-        importmagic-python-interpreter "python3"
-        flycheck-python-pylint-executable "pylint"
-        flycheck-python-flake8-executable "flake8"))
+        importmagic-python-interpreter "python3"))
 
 (add-hook! 'python-mode-hook #'+python/annotate-pdb)
 (add-hook! 'python-mode-hook (setq-local format-all-formatters '(("Python" ruff))))
@@ -49,18 +45,28 @@
   (setq lsp-pyright-multi-root nil)
   ;; Disable other Python LSP clients to prevent conflicts  
   (setq lsp-disabled-clients '(pylsp pyls mspyls))
-  ;; Ensure single workspace per project
-  (setq lsp-enable-file-watchers t)
-  (setq lsp-file-watch-threshold 2000)
+  ;; Reduce file watching to improve performance
+  (setq lsp-enable-file-watchers nil)  ; Disable file watchers completely
+  (setq lsp-file-watch-threshold 1000)   ; Lower threshold
   
   ;; Python-specific completion settings
   (setq lsp-pyright-disable-organize-imports nil)
   (setq lsp-pyright-auto-import-completions t)
   (setq lsp-pyright-auto-search-paths t)
   
-  ;; Ensure pyright provides completion capabilities
-  (setq lsp-pyright-disable-language-services nil)
-  (setq lsp-pyright-disable-tag-complete nil))
+  ;; Enhanced completion capabilities while keeping diagnostics minimal
+  (setq lsp-pyright-disable-language-services nil)  ; Keep language services for completion
+  (setq lsp-pyright-disable-tag-complete nil)       ; Keep tag completion
+  
+  ;; Enable type checking for better completions but limit diagnostics
+  (setq lsp-pyright-type-checking-mode "basic")     ; Basic type checking for completions
+  (setq lsp-pyright-diagnostic-mode "openFilesOnly") ; Only current file diagnostics
+  
+  ;; Enhanced completion and import settings
+  (setq lsp-pyright-include-file-specs ["**/*.py"])
+  (setq lsp-pyright-exclude-file-specs ["**/node_modules" "**/.git" "**/.*"])
+  (setq lsp-pyright-stub-path "")                   ; Use default stub path
+  (setq lsp-pyright-venv-path ""))                  ; Auto-detect virtual env
 
 (use-package! py-isort
   :defer t
@@ -101,19 +107,6 @@
 
   ;; restart flycheck-mode after env activate and deactivate
   (dolist (func '(pipenv-activate pipenv-deactivate))
-    (progn
-      (when (modulep! :checkers syntax)
-        (advice-add func :after #'reset-flycheck))
-      (advice-add func :after #'+lsp/restart))))
-
-
-(after! conda
-  (setq conda-anaconda-home (cond ((file-directory-p "~/.miniconda") "~/.miniconda")
-                                  ((file-directory-p "~/.anaconda") "~/.anaconda")))
-  (when (file-exists-p! "~/.conda")
-    (setq conda-env-home-directory (expand-file-name "~/.conda")))
-  ;; restart flycheck-mode after env activate and deactivate
-  (dolist (func '(conda-env-activate conda-env-deactivate))
     (progn
       (when (modulep! :checkers syntax)
         (advice-add func :after #'reset-flycheck))
