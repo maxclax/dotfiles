@@ -43,6 +43,7 @@
 ;; misc
 (package! makefile-executor)
 (package! circadian)
+(package! prodigy)
 (package! beacon)
 (package! rainbow-mode)
 (package! format-all)
