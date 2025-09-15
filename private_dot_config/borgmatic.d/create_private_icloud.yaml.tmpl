@@ -1,8 +1,8 @@
 {{ if .borgThisMachine }}
 source_directories:
   - {{ printf "%s/Documents" .chezmoi.homeDir | quote }}
-  - {{ printf "%s/Downloads" .chezmoi.homeDir | quote }}
   - {{ printf "%s/Desktop" .chezmoi.homeDir | quote }}
+#  - {{ printf "%s/Downloads" .chezmoi.homeDir | quote }}
 
 local_path: /opt/homebrew/bin/borg
 repositories:
