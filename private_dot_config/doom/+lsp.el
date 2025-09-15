@@ -28,7 +28,7 @@
   ;; Disable LSP diagnostics completely
   (setq lsp-diagnostics-provider :none)        ; Disable LSP diagnostics
   (setq lsp-eldoc-enable-hover nil)           ; Disable hover info
-  (setq lsp-modeline-diagnostics-enable t)  ; Disable modeline diagnostics
+  (setq lsp-modeline-diagnostics-enable nil)  ; Disable modeline diagnostics
   (setq lsp-modeline-code-actions-enable t) ; Disable code actions in modeline
   (setq lsp-signature-auto-activate nil)      ; Disable signature help
   (setq lsp-signature-render-documentation nil) ; Disable signature docs

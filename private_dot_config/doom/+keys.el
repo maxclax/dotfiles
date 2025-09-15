@@ -62,7 +62,7 @@
                                               (message "Not in a project")))
       ;; Keep the original broken one for debugging
       :desc "Original consult-todo-project" "T" #'consult-todo-project
-      :desc "Switch projects" "p" (λ! (update-projectile-known-projects) (projectile-switch-project))
+      :desc "Switch projects" "p" #'projectile-switch-project
       "*" (+my/prefix-M-x "projectile-")
       :desc "Update projectile list" "u" #'update-projectile-known-projects)
 
@@ -84,8 +84,8 @@
 ;; Toogles
 (map! :leader
       :prefix "t"
-      :desc "Pomm-third timer" "t" #'pomm-third-time
-      :desc "Pomm-third" "T" #'pomm
+      :desc "Pomm-third timer" "T" #'pomm-third-time
+      :desc "Pomm-third" "t" #'pomm
       "k" #'keycast-header-line-mode
       "K" #'keycast-log-mode
       "R" #'rainbow-mode)
