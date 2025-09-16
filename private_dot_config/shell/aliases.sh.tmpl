@@ -29,7 +29,6 @@ alias doom={{ .chezmoi.homeDir }}/.config/emacs/bin/doom
 
 # Emacs server commands for different distributions
 alias emacs-server-doom='emacs --daemon --init-directory={{ .chezmoi.homeDir }}/.config/emacs'
-alias emacs-server-spacemacs='emacs --daemon --init-directory={{ .chezmoi.homeDir }}/.config/spacemacs.d'
 alias emacs-server-prelude='emacs --daemon --init-directory={{ .chezmoi.homeDir }}/.config/preludeemacs.d'
 alias emacs-server-purcell='emacs --daemon --init-directory={{ .chezmoi.homeDir }}/.config/purcellemacs.d'
 alias emacs-server-default='emacs --daemon'
@@ -37,8 +36,6 @@ alias emacs-server-default='emacs --daemon'
 # Set default emacs-server based on chosen distribution
 {{- if eq .emacsType "Doom" }}
 alias emacs-server='emacs-server-doom'
-{{- else if eq .emacsType "Spacemacs" }}
-alias emacs-server='emacs-server-spacemacs'
 {{- else if eq .emacsType "prelude" }}
 alias emacs-server='emacs-server-prelude'
 {{- else if eq .emacsType "purcell" }}
@@ -50,7 +47,6 @@ alias emacs-server='emacs-server-default'
 # Restart commands for each distribution
 alias restart-emacs='killemacs && emacs-server'  # Restart current default
 alias restart-emacs-doom='killemacs && emacs-server-doom'
-alias restart-emacs-spacemacs='killemacs && emacs-server-spacemacs'
 alias restart-emacs-prelude='killemacs && emacs-server-prelude'
 alias restart-emacs-purcell='killemacs && emacs-server-purcell'
 alias restart-emacs-default='killemacs && emacs-server-default'

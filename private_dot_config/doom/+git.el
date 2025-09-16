@@ -91,16 +91,13 @@
   (when (executable-find "delta")
     (add-hook! magit-mode #'magit-delta-mode))
   :config
-  (setq magit-delta-default-light-theme "GitHub"
-        magit-delta-default-dark-theme "OneHalfDark")
+  (setq magit-delta-default-light-theme "GitHub")
+  (setq magit-delta-default-dark-theme "OneHalfDark")
   )
 
-(after! magit-todos
-  (setq magit-todos-exclude-globs '("third-party/*" "third_party/*" "node_modules/*" "vendor/*" "*.log" "*.min.*")
-        magit-todos-max-items 20  ; Limit number of todos shown
-        magit-todos-depth 1       ; Only search top-level directories
-        magit-todos-auto-group-items nil)) ; Disable grouping for speed
-
+(use-package! magit-todos
+  :after magit
+  :config (magit-todos-mode 1))
 
 ;; magit-todos uses hl-todo-keywords
 (custom-theme-set-faces! doom-theme

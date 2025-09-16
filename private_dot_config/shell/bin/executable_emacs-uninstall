@@ -36,10 +36,8 @@ declare -a remove_list=(
 	"$HOME/.cache/emacs"
 	"$HOME/.emacs.d.bak"
 	"$HOME/.emacs.bak"
-	"$HOME/.config/spacemacs.d"
 	"$HOME/.config/preludeemacs.d"
 	"$HOME/.config/purcellemacs.d"
-	"$HOME/.spacemacs"
 )
 
 # Remove all listed directories and files

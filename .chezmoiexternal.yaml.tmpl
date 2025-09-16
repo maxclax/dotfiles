@@ -59,16 +59,6 @@
   refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
 {{ end }}
 
-{{ if or (eq .emacsType "Spacemacs") .emacsLoadAllDistros }}
-".config/spacemacs.d":
-  type: "git-repo"
-  url: "https://github.com/syl20bnr/spacemacs.git"
-  args:
-    - "--depth=1"  
-  exact: true
-  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
-{{ end }}
-
 {{ if or (eq .emacsType "purcell") .emacsLoadAllDistros }}
 ".config/purcellemacs.d":
   type: "git-repo"

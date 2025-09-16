@@ -58,12 +58,12 @@
        fold                             ; (nigh) universal code folding
        ;;(format +onsave)  ; automated prettiness
        ;;god               ; run Emacs commands without modifier keys
-       lispy                            ; vim for lisp, for people who don't like vim
+       ;; lispy                            ; vim for lisp, for people who don't like vim
        multiple-cursors                 ; editing in many places at once
        ;;objed             ; text object editing for the innocent
        ;;parinfer          ; turn lisp into python, sort of
        ;;rotate-text       ; cycle region at point between text candidates
-       snippets                         ; my elves. They type so I don't have to
+       ;; snippets                         ; my elves. They type so I don't have to
        ;;word-wrap         ; soft wrapping with language-aware indent
 
        :emacs
@@ -71,7 +71,7 @@
         +dirvish                        ; bringing the goodness of ranger to dired
         +icons)                         ; colorful icons for dired-mode
        electric                         ; smarter, keyword-based electric-indent
-       eww               ; the internet is gross
+       ;; eww               ; the internet is gross
        (ibuffer +icons)                 ; interactive buffer management
        undo                             ; persistent, smarter undo for your inevitable mistakes
        vc                               ; version-control and Emacs, sitting in a tree
@@ -93,7 +93,7 @@
        :tools
        (projectile +icons)
        ;;ansible
-       biblio            ; Writes a PhD for you (citation needed)
+       ;; biblio            ; Writes a PhD for you (citation needed)
        ;;collab            ; buffers with friends
        debugger                         ; FIXME stepping through code, to help you add bugs
        direnv
@@ -206,11 +206,11 @@
        ;;(wanderlust +gmail)
 
        :app
-       calendar
+       ;; calendar
        ;; emms
-       everywhere                       ; *leave* Emacs!? You must be joking
-       irc               ; how neckbeards socialize
-       (rss +org)                       ; emacs as an RSS reader
+       ;; everywhere                       ; *leave* Emacs!? You must be joking
+       ;; irc               ; how neckbeards socialize
+       ;; (rss +org)                       ; emacs as an RSS reader
 
        :config
        ;;literate

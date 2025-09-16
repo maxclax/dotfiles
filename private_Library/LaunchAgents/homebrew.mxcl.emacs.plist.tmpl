@@ -11,8 +11,6 @@
         <string>--daemon</string>
     {{- if eq .emacsType "Doom" }}
     <string>--init-directory={{ .chezmoi.homeDir }}/.config/emacs</string>
-    {{- else if eq .emacsType "Spacemacs" }}
-    <string>--init-directory={{ .chezmoi.homeDir }}/.config/spacemacs.d</string>
     {{- else if eq .emacsType "prelude" }}
     <string>--init-directory={{ .chezmoi.homeDir }}/.config/preludeemacs.d</string>
     {{- else if eq .emacsType "purcell" }}

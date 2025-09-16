@@ -13,7 +13,7 @@
 
 {{- $emacsType := "default" -}}
 {{- if stdinIsATTY -}}
-  {{- $choices := list "default" "Doom" "Spacemacs" "prelude" "purcell" -}}
+  {{- $choices := list "default" "Doom" "prelude" "purcell" -}}
   {{- $emacsType = promptChoiceOnce . "emacsType" "What type of Emacs are you on" $choices -}}
 {{- end -}}
 

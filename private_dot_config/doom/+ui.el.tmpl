@@ -1,4 +1,4 @@
-;;; +ui.el -*- lexical-binding: t; -*-
+;;; +ui.el -*- mode: emacs-lisp; lexical-binding: t; -*-
 
 ;; Set fallback theme
 (setq fancy-splash-image (concat doom-private-dir "assets/GNUEmacs.png"))
@@ -7,7 +7,7 @@
 (use-package! circadian
   :config
   (setq circadian-themes '(("5:00" . doom-one-light)
-                           ("20:00" . doom-one)))
+                           ("21:00" . doom-one)))
 
   ;; Determine the correct initial theme based on current time
   (let* ((hour-now (string-to-number (format-time-string "%H")))
@@ -25,12 +25,6 @@
 
   ;; Setup circadian for automatic switching
   (circadian-setup))
-
-;; Enable rainbow-mode for CSS, HTML, and other files with color codes
-(add-hook 'css-mode-hook #'rainbow-mode)
-(add-hook 'html-mode-hook #'rainbow-mode)
-(add-hook 'web-mode-hook #'rainbow-mode)  ; If using web-mode
-(add-hook 'prog-mode-hook #'rainbow-mode) ; For all programming modes (optional)
 
 (beacon-mode 1)
 
@@ -59,40 +53,40 @@
 ;; ====================== End Fix for emacsclient ======================
 
 
-(set-popup-rules! '(("^\\*helpful" :size 0.35 :modeline nil)
-                    ("^\\*Ibuffer\\*$" :size 0.35 :modeline nil)
-                    ("^\\*info.*" :size 80 :side right :modeline nil)
-                    ("^\\*Man.*" :size 80 :side right :modeline nil)
-                    ("^\\*keycast.*" :size 50 :side right :modeline nil)
-                    ("^\\*Customize" :actions display-buffer :modeline nil)
-                    ("^\\*edit-indirect" :size 0.6 :modeline nil)
-                    ("^\\*YASnippet Tables\\*$" :size 0.35 :modeline nil)
-                    ("^\\*grep\\*$" :size 0.35 :modeline nil)
-                    ("^\\*pytest\\*" :size 0.35 :modeline nil)
-                    ;; ("^\\*aider.*$" :size 0.35 :side right :modeline nil)
-                    ("^\\*Chat" :size 0.35 :side right :modeline nil)
-                    ;; ("^\\*gptel.*" :size 0.35 :side right :modeline nil)
-                    ("\\*.*server log\\*$" :side top :size 0.20 :select nil :modeline nil)
-                    ((lambda (buf _) (with-current-buffer buf (eq major-mode 'forge-topic-mode))) :size 0.35 :modeline nil)
-                    ))
+;; (set-popup-rules! '(("^\\*helpful" :size 0.35 :modeline nil)
+;;                     ("^\\*Ibuffer\\*$" :size 0.35 :modeline nil)
+;;                     ("^\\*info.*" :size 80 :side right :modeline nil)
+;;                     ("^\\*Man.*" :size 80 :side right :modeline nil)
+;;                     ("^\\*keycast.*" :size 50 :side right :modeline nil)
+;;                     ("^\\*Customize" :actions display-buffer :modeline nil)
+;;                     ("^\\*edit-indirect" :size 0.6 :modeline nil)
+;;                     ("^\\*YASnippet Tables\\*$" :size 0.35 :modeline nil)
+;;                     ("^\\*grep\\*$" :size 0.35 :modeline nil)
+;;                     ("^\\*pytest\\*" :size 0.35 :modeline nil)
+;;                     ;; ("^\\*aider.*$" :size 0.35 :side right :modeline nil)
+;;                     ("^\\*Chat" :size 0.35 :side right :modeline nil)
+;;                     ;; ("^\\*gptel.*" :size 0.35 :side right :modeline nil)
+;;                     ("\\*.*server log\\*$" :side top :size 0.20 :select nil :modeline nil)
+;;                     ((lambda (buf _) (with-current-buffer buf (eq major-mode 'forge-topic-mode))) :size 0.35 :modeline nil)
+;;                     ))
 
-(setq doom-modeline-height 30     ;; sets modeline height
-      doom-modeline-bar-width 5   ;; sets right bar width
-      doom-modeline-persp-name t  ;; adds perspective name to modeline
-      doom-modeline-persp-icon t) ;; adds folder icon next to persp name
+;; (setq doom-modeline-height 30     ;; sets modeline height
+;;       doom-modeline-bar-width 5   ;; sets right bar width
+;;       doom-modeline-persp-name t  ;; adds perspective name to modeline
+;;       doom-modeline-persp-icon t) ;; adds folder icon next to persp name
 
-(after! ibuffer
-  (setq-hook! 'ibuffer-hook ibuffer-formats
-              '((mark modified read-only locked " "
-                 (name 50 18 :left :elide)
-                 " "
-                 (size 9 -1 :right)
-                 " "
-                 (mode 16 16 :left :elide)
-                 " " filename-and-process)
-                (mark " "
-                      (name 16 -1)
-                      " " filename))))
+;; (after! ibuffer
+;;   (setq-hook! 'ibuffer-hook ibuffer-formats
+;;               '((mark modified read-only locked " "
+;;                  (name 50 18 :left :elide)
+;;                  " "
+;;                  (size 9 -1 :right)
+;;                  " "
+;;                  (mode 16 16 :left :elide)
+;;                  " " filename-and-process)
+;;                 (mark " "
+;;                       (name 16 -1)
+;;                       " " filename))))
 
 (use-package! all-the-icons-ibuffer
   :after ibuffer
@@ -116,4 +110,4 @@
 ;; Auto-run pomm after Emacs starts
 (add-hook 'emacs-startup-hook
           (lambda ()
-            (run-with-timer 3 nil #'pomm)))
+            (run-with-timer 2 nil #'pomm)))

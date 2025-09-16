@@ -7,11 +7,7 @@ options=(
   active_color=0xff00ff00
   inactive_color=0xff2e2e2e
   border_radius=10
-  shadow=on
-  shadow_color=0xff000000
-  shadow_offset_x=0
-  shadow_offset_y=2
-  shadow_blur_radius=10
+  shadow=off
 )
 
 borders "${options[@]}"

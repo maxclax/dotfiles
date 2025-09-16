@@ -99,14 +99,6 @@
 ;; DEBUG & RUN
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(after! quickrun
-  (quickrun-add-command "c++/c1z"
-    '((:command . "clang++")
-      (:exec    . ("%c -std=c++1z %o -o %e %s"
-                   "%e %a"))
-      (:remove  . ("%e")))
-    :default "c++"))
-
 (when (modulep! :tools debugger)
   (defun +my/dape-breakpoint-toggle ()
     (interactive)
@@ -119,12 +111,6 @@
     (require 'dape)
     (dape-breakpoint-remove-all)
     (+go/write-project-breakpoints))
-
-  (map! :leader
-        (:prefix ("d" . "debug")
-         :desc "dape breakpoint toggle" "b" #'+my/dape-breakpoint-toggle
-         :desc "dape breakpoint remove all" "B" #'+my/dape-breakpoint-remove-all
-         ))
 
   (after! dape
     (setq dape-configs (assq-delete-all 'dlv dape-configs))
