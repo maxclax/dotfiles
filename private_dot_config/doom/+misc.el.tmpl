@@ -318,11 +318,11 @@
    `(("git" . (:command "uvx" :args ("mcp-server-git")))
      ("fetch" . (:command "uvx" :args ("mcp-server-fetch")))
      ("filesystem" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-filesystem", (getenv "HOME"), "{{ .workspace }}", "{{ .workspace_extra }}")))
-
      ("nixos" . (:command "uvx" :args ("mcp-nixos")))
      ("airbnb" . (:command "npx" :args ("-y" "@openbnb/mcp-server-airbnb")))
      ("duckduckgo" . (:command "uvx" :args ("duckduckgo-mcp-server")))
      ("sequential-thinking" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-sequential-thinking")))
+     ("playwright" . (:command "npx" :args ("-y" "@playwright/mcp@latest")))
      ("context7" . (:command "npx" :args ("-y" "@upstash/context7-mcp") :env (:DEFAULT_MINIMUM_TOKENS "6000")))
      ("postgres" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-postgres" "postgresql://127.0.0.1/postgres?user=postgres&password=postgres")))
      ;; ("everything" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-everything")))
