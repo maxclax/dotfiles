@@ -24,11 +24,27 @@ install_brew() {
 	fi
 }
 
+install_nix() {
+	if command -v nix >/dev/null 2>&1; then
+		echo 'Nix is already installed'
+	else
+		echo 'Installing Nix using OFFICIAL installer...'
+		curl -L https://nixos.org/nix/install | sh
+		# Source Nix for current session
+		if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
+			. '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
+		fi
+	fi
+}
+
 install_on_linux() {
 	echo "Installing prerequisites for Linux..."
 
 	# Use the SUDO function
 	SUDO apt update && SUDO apt install -y curl git wget age
+
+	# Install Nix
+	install_nix
 
 	# pkgx
 	if which pkgx >/dev/null 2>&1; then
@@ -64,6 +80,9 @@ install_on_mac() {
 
 	install_brew
 	eval "$(/opt/homebrew/bin/brew shellenv)"
+
+	# Install Nix
+	install_nix
 
 	# pkgx
 	echo "Installing prerequisites for macOS..."

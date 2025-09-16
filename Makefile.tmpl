@@ -27,6 +27,58 @@ dotfiles_apply_extra:
 dotfiles_update:
 	$(CHEZMOI) update
 
+# Nix management commands
+nix_list:
+	@if command -v nix-env >/dev/null 2>&1; then \
+		echo "Installed Nix packages:"; \
+		nix-env -q; \
+	else \
+		echo "Nix not installed"; \
+	fi
+
+nix_generations:
+	@if command -v nix-env >/dev/null 2>&1; then \
+		echo "Available generations (for rollback):"; \
+		nix-env --list-generations; \
+	else \
+		echo "Nix not installed"; \
+	fi
+
+nix_rollback:
+	@if command -v nix-env >/dev/null 2>&1; then \
+		echo "Rolling back to previous generation..."; \
+		nix-env --rollback; \
+		echo "Rollback complete. Current packages:"; \
+		nix-env -q; \
+	else \
+		echo "Nix not installed"; \
+	fi
+
+nix_latest:
+	@if command -v nix-env >/dev/null 2>&1; then \
+		latest_gen=$(nix-env --list-generations | tail -n 1 | awk '{print $1}'); \
+		if [ -z "$latest_gen" ]; then \
+			echo "Could not determine the latest generation."; \
+			exit 1; \
+		fi; \
+		echo "Switching to latest generation: $latest_gen..."; \
+		nix-env --switch-generation $latest_gen; \
+		echo "Switch complete. Current packages:"; \
+		nix-env -q; \
+	else \
+		echo "Nix not installed"; \
+	fi
+
+
+nix_gc:
+	@if command -v nix-env >/dev/null 2>&1; then \
+		echo "Cleaning old generations..."; \
+		nix-collect-garbage -d; \
+		echo "Cleanup complete"; \
+	else \
+		echo "Nix not installed"; \
+	fi
+
 extra_exports:
 	@echo "To export API keys to your current shell, run this command:"
 	@echo ""

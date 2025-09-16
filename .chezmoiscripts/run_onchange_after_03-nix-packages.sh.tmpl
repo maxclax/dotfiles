@@ -1,0 +1,136 @@
+#!/bin/bash
+
+# Nix package installation - minimal start with ranger
+# Designed to gradually replace Homebrew packages
+
+# Check if this is an extra user
+if [ "{{ .extraUser }}" == "true" ]; then
+  echo "Already installed by main user, skipping Nix packages."
+  exit 0
+fi
+
+echo "Installing Nix packages..."
+
+# Source Nix environment
+if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
+  . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
+fi
+
+# Check if Nix is available
+if ! command -v nix-env >/dev/null 2>&1; then
+  echo "❌ Nix not found. Please run prerequisites script first."
+  exit 1
+fi
+
+echo "✅ Nix is available"
+
+# Define minimal package list - START WITH RANGER ONLY
+# These are packages we want to move FROM Homebrew TO Nix
+NIX_PACKAGES=(
+  "borgmatic"
+  "borgbackup"
+  "nodejs_24"
+  "luarocks"
+  "mas"
+  "cmake"
+  "gcc"
+  "gnumake"
+  "jankyborders"
+  "ranger"      # File manager - you specifically requested this
+  "atuin"
+  "bat"         # Better cat (currently in your Brewfile)
+  "btop"        # Better htop (currently in your Brewfile)
+  "eza"         # Better ls (currently in your Brewfile)
+  "fd"          # Better find (currently in your Brewfile)
+  "fzf"         # Fuzzy finder (currently in your Brewfile)
+  "gh"
+  "git"         # Version control (currently in your Brewfile)
+  "lazygit"
+  "neofetch"
+  "neovim"      # Editor (currently in your Brewfile)
+  "ripgrep"     # Better grep (currently in your Brewfile) 
+  "starship"
+  "pay-respects"
+  "tmux"
+  "zoxide"
+  "wget"        # Downloader (currently in your Brewfile)
+  "age"
+  "bandwhich"
+  "coreutils"
+  "chafa"
+  "chezmoi"
+  "cmatrix"
+  "ctop"
+  "direnv"
+  "dockutil"
+  "duf"
+  "glances"
+  "hcloud"
+  "hey"
+  "htop"
+  "iftop"
+  "imagemagick"
+  "k9s"
+  "k6"
+  "kind"
+  "kubectl"
+  "kubectx"
+  "lazydocker"
+  "linkerd"
+  "lsof"
+  "ncdu"
+  "nmap"
+  "popeye"
+  "pngpaste"
+  "pnpm"
+  "pgcli"
+  "ollama"
+  "slides"
+  "speedtest-cli"
+  "stern"
+  "shellcheck"
+  "tldr"
+  "tmuxinator"
+  "trufflehog"
+  "tree"
+  "uv"
+  "vips"
+  "watch"
+)
+
+
+for package in "${NIX_PACKAGES[@]}"; do
+  echo "Installing $package via Nix..."
+  if nix-env -iA "nixpkgs.$package" 2>/dev/null; then
+    echo "✅ $package installed via Nix (takes priority over Homebrew)"
+    if command -v brew &>/dev/null; then
+      if brew list --formula | grep -q "^$package$"; then
+          echo "  🗑️ Uninstalling $package from Homebrew..."
+          brew uninstall "$package"
+          echo ""
+      fi
+    fi
+  else
+    echo "❌ Failed to install $package via Nix (will use Homebrew fallback)"
+    echo ""
+  fi
+done
+
+echo ""
+echo "Nix package installation complete!"
+echo ""
+echo "Installed packages:"
+nix-env -q
+
+echo ""
+echo "PATH Priority Strategy:"
+echo "• Nix packages take priority (appear first in PATH)"
+echo "• Homebrew packages remain as automatic fallback"
+echo "• If package exists in both: Nix version is used"
+echo "• If package only in Homebrew: Homebrew version is used"
+echo "• No conflicts - best of both worlds!"
+echo "• Use 'nix-env --rollback' if anything goes wrong"
+
+echo ""
+echo "System generations (for rollback):"
+nix-env --list-generations | tail -5

@@ -228,27 +228,19 @@ fe() {
 	fi
 }
 
-# Search file contents and edit
-rg() {
-	if ! command -v rg >/dev/null 2>&1; then
-		echo "ripgrep not installed. Install with: brew install ripgrep"
-		return 1
-	fi
+# Source Nix environment if available
+# This adds Nix paths to the FRONT of PATH, giving Nix priority over Homebrew
+if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
+	. '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
+fi
 
-	local selected
-	selected=$(command rg --color=always --line-number --no-heading --smart-case "${*:-}" | \
-		fzf --ansi \
-			--delimiter=':' \
-			--preview 'echo {} | cut -d: -f1 | xargs bat --color=always --highlight-line={2}' \
-			--preview-window=right:50%)
-
-	if [[ -n "$selected" ]]; then
-		local file line
-		file=$(echo "$selected" | cut -d: -f1)
-		line=$(echo "$selected" | cut -d: -f2)
-		"${EDITOR:-vim}" "+$line" "$file"
-	fi
-}
+# Ensure Nix user profile is in PATH with high priority
+if [ -e '/nix/var/nix/profiles/default/bin' ]; then
+	export PATH="/nix/var/nix/profiles/default/bin:$PATH"
+fi
+if [ -d "$HOME/.nix-profile/bin" ]; then
+    export PATH="$HOME/.nix-profile/bin:$PATH"
+fi
 
 # Process killer with fzf
 fkill() {

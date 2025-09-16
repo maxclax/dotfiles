@@ -114,11 +114,8 @@ alias cs='gh copilot suggest'
 alias ce='gh copilot explain'
 alias ca='gh copilot alias'
 
-# ---- TheFuck -----
-if command -v thefuck &>/dev/null; then
-  eval "$(thefuck --alias)"
-  eval "$(thefuck --alias fk)"
-fi
+# ---- pay-respects -----
+eval "$(pay-respects zsh --alias)"
 
 # Per-platform settings, will override the above commands
 case $(uname) in
