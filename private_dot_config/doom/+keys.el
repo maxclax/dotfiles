@@ -63,11 +63,11 @@
       "n" #'+default/yank-project-name
       ;; Use the working method for SPC p t
       :desc "Search project TODOs" "T" (lambda () (interactive)
-                                         (if (projectile-project-p)
-                                             (consult-ripgrep (projectile-project-root) "TODO:")
-                                           (message "Not in a project")))
+                                            (if (projectile-project-p)
+                                                (consult-ripgrep (projectile-project-root) "TODO\\|HACK\\|TEMP\\|DONE\\|NOTE\\|DONT\\|DEBUG\\|FAIL\\|FIXME\\|XXX\\|XXXX")
+                                              (message "Not in a project")))
       ;; Keep the original broken one for debugging
-      :desc "Magit todo list" "t" #'magit-todos-list
+      :desc "Projec TODOs" "t" #'magit-todos-list
       "*" (+my/prefix-M-x "projectile-")
       :desc "Update projectile list" "u" #'update-projectile-known-projects)
 
@@ -108,19 +108,15 @@
                 "c" #'claude-code-transient
                 "C" #'claude-code-ide-menu)
        (:prefix ("g" . "GPTel & Git AI")
-        "g" #'gptel
-        "a" #'gptel-add
-        "r" #'gptel-rewrite
-        "s" #'gptel-send
-        "m" #'gptel-menu
-        "M" #'mcp-hub
-        "S" #'mcp-hub-start-server
-        "t" #'gptel-tools
-        "f" #'gptel-add-file
-        ;; AI Git helper
-        ;;
-        :desc "🤖 Generate AI Commit Message" "m" #'+my/smart-commit
-        :desc "🤖 Commit with AI Message" "C" #'+my/commit-with-ai)
+                "g" #'gptel
+                "a" #'gptel-add
+                "r" #'gptel-rewrite
+                "s" #'gptel-send
+                "m" #'gptel-menu
+                "M" #'mcp-hub
+                "S" #'mcp-hub-start-server
+                "t" #'gptel-tools
+                "f" #'gptel-add-file)
        (:prefix ("s" . "Shell Commands")
         :desc "podman machine start" "p" (lambda () (interactive) (compile "cd ~/ && podman machine start"))
         :desc "podman machine stop" "P" (lambda () (interactive) (compile "cd ~/ && podman machine stop"))
@@ -128,6 +124,13 @@
         :desc "make update_macos" "u" (lambda () (interactive) (compile "cd ~/ && make update_apps && make update_macos"))
         :desc "chezmoi apply" "c" (lambda () (interactive) (compile "cd ~/ && chezmoi apply --force")))))
 
+;; Magit AI helpers
+(map! :leader
+      :prefix "g"
+      (:prefix ("c" . "Create")
+       ;; AI Git helper
+       :desc "Generate AI Commit Message" "A" #'+my/smart-commit
+       :desc "Commit with AI Message" "a" #'+my/commit-with-ai))
 
 ;; Jumps
 (map! :leader
