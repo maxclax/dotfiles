@@ -1,0 +1,356 @@
+# sourcing.sh -*- mode: sh; lexical-binding: t; -*-
+
+# shellcheck shell=bash
+# shellcheck source=/dev/null
+
+# ----------------------------
+# functions and shell-agnostic
+# ----------------------------
+
+function virtual_env_activate() {
+	if [[ -n "$VIRTUAL_ENV" ]]; then
+		# check the current folder belong to earlier VIRTUAL_ENV folder
+		parentdir="$(dirname "$VIRTUAL_ENV")"
+		if [[ "$PWD"/ != "$parentdir"/* ]]; then
+			deactivate
+		fi
+	fi
+
+	if [ -f .python-version ] && [ ! -d ./.venv ]; then
+		uv venv
+	fi
+
+	if [[ -z "$VIRTUAL_ENV" ]]; then
+		# if .venv folder is found then activate the vitualenv
+		if [ -d ./.venv ] && [ -f ./.venv/bin/activate ]; then
+			source ./.venv/bin/activate
+
+			# if pyproject.toml is found then sync the virtualenv
+			if [[ -f pyproject.toml ]]; then
+				uv sync --all-groups
+			fi
+		fi
+	fi
+}
+
+function node_version_manager() {
+	if [[ -z "$NVMRC_PATH" ]]; then
+		if [ -f .nvmrc ]; then
+			nvm use
+			export NVMRC_PATH=$PWD/.nvmrc
+		fi
+	else
+		parent_nvmdir="$(dirname "$NVMRC_PATH")"
+		if [[ "$PWD"/ != "$parent_nvmdir"/* ]]; then
+			nvm deactivate
+			export NVMRC_PATH=""
+		fi
+	fi
+}
+
+function zsh_completion() {
+	# Makefile completion
+	zstyle ':completion:*:*:make:*' tag-order 'targets'
+	zstyle ':completion:*:make:*:targets' call-command true
+
+	autoload -Uz compinit
+	compinit
+}
+
+function bash_completion() {
+	if [ -f "$brew_prefix/share/google-cloud-sdk" ]; then
+		source "$brew_prefix/share/google-cloud-sdk/path.bash.inc"
+		source "$brew_prefix/share/google-cloud-sdk/completion.bash.inc"
+	fi
+}
+
+# ----------------------------
+# globals
+# ----------------------------
+
+brew_prefix="$DOTFILES_BREW_PREFIX"
+shell="$DOTFILES_SHELL"
+
+# ----------------------------
+# shell-agnostic configuration
+# ----------------------------
+
+if [ -f ~/.cargo/env ]; then
+	source "$HOME/.cargo/env"
+fi
+
+eval "$(direnv hook $shell)"
+eval "$(zoxide init $shell)"
+eval "$(starship init $shell)"
+
+# TODO need fix on pkgx side
+# eval "$(pkgx --quiet dev --shellcode)"
+
+# ----------------------------
+# shell-specific configuration
+# ----------------------------
+
+# Load shell-specific completions
+if [[ $shell == "zsh" ]]; then
+	zsh_completion
+elif [[ $shell == "bash" ]]; then
+	bash_completion
+fi
+
+# Common initialization for both shells
+if [ -n "$brew_prefix" ]; then
+	# macOS with Homebrew
+	eval "$(atuin init $shell)"
+
+	if [[ $shell == "zsh" ]]; then
+		source <(fzf --zsh)
+	else
+		eval "$(fzf --bash)"
+	fi
+else
+	# Atuin initialization
+	. "$HOME/.atuin/bin/env"
+	# Bash-specific preexec loader
+	[[ $shell == "bash" && -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh
+	eval "$(atuin init $shell)"
+	####
+fi
+
+# ----------------------------
+# custom helpers
+# ----------------------------
+
+fp() {
+  local -a search_paths
+  search_paths=(
+    "{{ .chezmoi.sourceDir }}"
+    "$HOME/.config/chezmoi"
+    "$HOME/.local/git"
+    "{{ .workspace }}"
+    "{{ .workspace_extra }}"
+  )
+
+  # Create temp files for proper deduplication
+  local tmp_all tmp_zoxide tmp_final
+  tmp_all=$(mktemp)
+  tmp_zoxide=$(mktemp)
+  tmp_final=$(mktemp)
+
+  # Get all git projects (both .git dirs and .git files for worktrees/submodules) and deduplicate
+  {
+    # Find .git directories
+    find "${search_paths[@]}" -name ".git" -type d -maxdepth 5 -prune 2>/dev/null | sed 's#/\.git##'
+    # Find .git files (worktrees, submodules)
+    find "${search_paths[@]}" -name ".git" -type f -maxdepth 5 2>/dev/null | sed 's#/\.git##'
+  } | sort -u > "$tmp_all"
+
+  # Get zoxide list and filter to only include our projects
+  if command -v zoxide >/dev/null 2>&1; then
+    zoxide query --list 2>/dev/null | while IFS= read -r zdir; do
+      if [[ -n "$zdir" ]] && grep -Fxq "$zdir" "$tmp_all"; then
+        echo "$zdir"
+      fi
+    done > "$tmp_zoxide"
+  else
+    touch "$tmp_zoxide"
+  fi
+
+  # Combine: zoxide-ordered projects first, then remaining projects
+  {
+    cat "$tmp_zoxide"
+    if [[ -s "$tmp_zoxide" ]]; then
+      grep -Fvxf "$tmp_zoxide" "$tmp_all" 2>/dev/null || true
+    else
+      cat "$tmp_all"
+    fi
+  } > "$tmp_final"
+
+  # Use fzf for selection with better search behavior
+  local selected_dir
+  selected_dir=$(cat "$tmp_final" | fzf \
+    --prompt='fp> ' \
+    --header='Select project (zoxide frequency first)' \
+    --preview 'echo "📁 $(basename {})" && echo "Path: {}" && echo "" && if [[ -f {}/README.md ]]; then head -15 {}/README.md; elif [[ -f {}/readme.md ]]; then head -15 {}/readme.md; else echo "No README found"; fi' \
+    --preview-window=right:50% \
+    --scheme=path \
+    --algo=v2)
+
+  # Cleanup temp files
+  rm -f "$tmp_all" "$tmp_zoxide" "$tmp_final"
+
+  # Jump using zoxide (records usage automatically)
+  if [[ -n "$selected_dir" ]]; then
+    z "$selected_dir"
+  fi
+}
+
+
+function j() {
+	cd "$(find . -type d 2>/dev/null | fzf)" || return
+}
+
+function killport() {
+	lsof -ti tcp:$1 | xargs kill -9
+}
+
+function extract() {
+	if [ -f "$1" ]; then
+		case "$1" in
+		*.tar.bz2) tar xjf "$1" ;;
+		*.tar.gz) tar xzf "$1" ;;
+		*.bz2) bunzip2 "$1" ;;
+		*.rar) unrar x "$1" ;;
+		*.gz) gunzip "$1" ;;
+		*.tar) tar xf "$1" ;;
+		*.tbz2) tar xjf "$1" ;;
+		*.tgz) tar xzf "$1" ;;
+		*.zip) unzip "$1" ;;
+		*.Z) uncompress "$1" ;;
+		*.7z) 7z x "$1" ;;
+		*) echo "'$1' cannot be extracted via extract()" ;;
+		esac
+	else
+		echo "'$1' is not a valid file"
+	fi
+}
+
+function hstart() {
+	history | grep -E "^ *[0-9]+ +$1"
+}
+
+# Find and edit files with fzf + preview
+fe() {
+	local files
+	files=$(find . -type f -not -path '*/\.git/*' -not -path '*/node_modules/*' -not -path '*/.venv/*' 2>/dev/null | \
+		fzf --preview 'head -100 {}' --preview-window=right:50% --prompt='edit> ')
+	if [[ -n "$files" ]]; then
+		"${EDITOR:-vim}" "$files"
+	fi
+}
+
+# Search file contents and edit
+rg() {
+	if ! command -v rg >/dev/null 2>&1; then
+		echo "ripgrep not installed. Install with: brew install ripgrep"
+		return 1
+	fi
+
+	local selected
+	selected=$(command rg --color=always --line-number --no-heading --smart-case "${*:-}" | \
+		fzf --ansi \
+			--delimiter=':' \
+			--preview 'echo {} | cut -d: -f1 | xargs bat --color=always --highlight-line={2}' \
+			--preview-window=right:50%)
+
+	if [[ -n "$selected" ]]; then
+		local file line
+		file=$(echo "$selected" | cut -d: -f1)
+		line=$(echo "$selected" | cut -d: -f2)
+		"${EDITOR:-vim}" "+$line" "$file"
+	fi
+}
+
+# Process killer with fzf
+fkill() {
+	local pid
+	pid=$(ps -ef | sed 1d | fzf -m --prompt='kill> ' | awk '{print $2}')
+	
+	if [[ -n "$pid" ]]; then
+		echo "$pid" | xargs kill "${1:-9}"
+	fi
+}
+
+# SSH connection manager (reads from ~/.ssh/config)
+fssh() {
+	local host
+	if [[ -f ~/.ssh/config ]]; then
+		host=$(grep -E '^Host [^*]' ~/.ssh/config | awk '{print $2}' | \
+			fzf --prompt='ssh> ' --preview 'grep -A 10 "^Host {}" ~/.ssh/config')
+		
+		if [[ -n "$host" ]]; then
+			ssh "$host"
+		fi
+	else
+		echo "No ~/.ssh/config found"
+	fi
+}
+
+# Environment variable viewer
+fenv() {
+	local var
+	var=$(env | sort | fzf --prompt='env> ' --preview 'echo {} | cut -d= -f2-')
+	
+	if [[ -n "$var" ]]; then
+		echo "$var"
+		echo "$var" | pbcopy 2>/dev/null || echo "(copied to clipboard)"
+	fi
+}
+
+# Command inspector - understand what any command/alias/function does
+what_is() {
+	if [[ -z "$1" ]]; then
+		echo "Usage: what <command>"
+		return 1
+	fi
+
+	local cmd="$1"
+	echo "🔍 Analyzing: $cmd"
+	echo ""
+
+	# Check if it's an alias
+	if alias "$cmd" >/dev/null 2>&1; then
+		echo "📎 Alias:"
+		alias "$cmd"
+		echo ""
+	fi
+
+	# Check what type it is
+	echo "📋 Type:"
+	type "$cmd"
+	echo ""
+
+	# If it's a function, show the definition
+	if declare -f "$cmd" >/dev/null 2>&1; then
+		echo "🔧 Function definition:"
+		declare -f "$cmd"
+		echo ""
+	fi
+
+	# If it's a binary, show which and info
+	if command -v "$cmd" >/dev/null 2>&1; then
+		echo "💾 Location:"
+		command -v "$cmd"
+		
+		# Try to get version or help
+		echo ""
+		echo "ℹ️  Quick info:"
+		if "$cmd" --version >/dev/null 2>&1; then
+			"$cmd" --version 2>/dev/null | head -3
+		elif "$cmd" -v >/dev/null 2>&1; then
+			"$cmd" -v 2>/dev/null | head -3
+		elif man "$cmd" >/dev/null 2>&1; then
+			echo "Manual available: man $cmd"
+		else
+			echo "No version info available"
+		fi
+	fi
+}
+
+# ----------------------------------
+# overrides
+# ----------------------------------
+
+function cd() {
+	builtin cd "$@" || return
+	virtual_env_activate
+}
+cd . # trigger cd overrides when shell starts
+
+function z() {
+	__zoxide_z "$@" && cd . || return
+}
+
+function zi() {
+	__zoxide_zi "$@" && cd . || return
+
+}

@@ -1,3 +1,5 @@
+# aliases.sh -*- mode: sh; lexical-binding: t; -*-
+
 # shellcheck shell=bash
 
 # Aliases; runs in the same shell you are already in
@@ -84,12 +86,6 @@ alias venv='PIP_REQUIRE_VIRTUALENV=false python3 -m pip install --upgrade --user
 # ---- Eza (better ls) -----
 alias ls="eza --icons=always --grid"
 alias ll='eza --long --header --group-directories-first --group --all'
-# Gerrit
-# alias gerrit-push='git push origin HEAD:refs/for/master'
-# alias gerrit-draft='git push origin HEAD:refs/drafts/master'
-# alias gerrit-amend='git commit --amend'
-# alias gp='gerrit-amend && gerrit-push'
-# alias gp-draft='gerrit-amend && gerrit-draft'
 
 alias ls='ls -G'
 alias la='ls -all'
