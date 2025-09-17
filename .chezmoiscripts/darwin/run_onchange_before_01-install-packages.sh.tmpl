@@ -10,20 +10,11 @@ fi
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
 {{ $brew_taps := list
-  "borgbackup/tap" -}}
+  -}}
   
 # Define the list of brew packages
 {{ $brews := list
-  "helm"
-  "snort"
-  "terraform"
-  "duck"
-  "markdown"
-  "ptpython"
-  "trash"
-  "node"
-  "mas"
-  "pkgx" -}}
+  "snort" -}}
 
 # Define the list of cask applications
 {{ $casks := list
@@ -124,23 +115,3 @@ cask "{{ . }}"
 mas "{{ . }}", id: {{ index $masApps . }}
 {{ end -}}
 EOF
-
-# Check if Go is enabled and not already installed
-if [ "{{ .goEnabled }}" = "true" ]; then
-  if ! command -v go &> /dev/null; then
-    echo "Go installation..."
-    brew install go
-  else
-    echo "Go is already installed. Skipping installation."
-  fi
-fi
-
-# Check if Rust is enabled and not already installed
-if [ "{{ .rustEnabled }}" = "true" ]; then
-  if ! command -v rustc &> /dev/null; then
-    echo "Rust installation..."
-    brew install rust rustup-init
-  else
-    echo "Rust is already installed. Skipping installation."
-  fi
-fi

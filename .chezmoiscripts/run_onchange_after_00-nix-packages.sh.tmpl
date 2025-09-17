@@ -24,39 +24,46 @@ fi
 
 echo "✅ Nix is available"
 
-# Define minimal package list - START WITH RANGER ONLY
-# These are packages we want to move FROM Homebrew TO Nix
+export NIXPKGS_ALLOW_UNFREE=1
+
 NIX_PACKAGES=(
+  "gemini-cli"
+  "aspell"
+  "_1password-cli"
+  "age"
+  "terraform"
+  "kubernetes-helm"
+  "curl"
   "borgmatic"
   "borgbackup"
-  "nodejs_24"
   "luarocks"
   "mas"
   "cmake"
+  "tree-sitter"
   "gcc"
   "gnumake"
   "jankyborders"
-  "ranger"      # File manager - you specifically requested this
+  "ranger"      # File manager
   "atuin"
-  "bat"         # Better cat (currently in your Brewfile)
-  "btop"        # Better htop (currently in your Brewfile)
-  "eza"         # Better ls (currently in your Brewfile)
-  "fd"          # Better find (currently in your Brewfile)
-  "fzf"         # Fuzzy finder (currently in your Brewfile)
+  "bat"         # Better cat
+  "btop"        # Better htop
+  "eza"         # Better ls
+  "fd"          # Better find
+  "fzf"         # Fuzzy finder
   "gh"
-  "git"         # Version control (currently in your Brewfile)
+  "git"         # Version control
   "lazygit"
   "neofetch"
-  "neovim"      # Editor (currently in your Brewfile)
-  "ripgrep"     # Better grep (currently in your Brewfile) 
+  "neovim"      # Editor
+  "ripgrep"     # Better grep
   "starship"
   "pay-respects"
   "tmux"
   "zoxide"
-  "wget"        # Downloader (currently in your Brewfile)
+  "wget"        # Downloader
   "age"
   "bandwhich"
-  "coreutils"
+  "coreutils-prefixed"
   "chafa"
   "chezmoi"
   "cmatrix"
@@ -92,45 +99,63 @@ NIX_PACKAGES=(
   "tldr"
   "tmuxinator"
   "trufflehog"
+  "gtrash"
   "tree"
   "uv"
   "vips"
   "watch"
+  "nixfmt"
+  "python3"
+  "pipenv"
+  "python3Packages.isort"
+  "python3Packages.pytest"
+  "python3Packages.ptpython"
+  "discount" # Markdown
+  "ruff"
+  "cyberduck"
+
+  "stylelint"
+  "nodejs"
+  "nodePackages.js-beautify"
+  "nodePackages.cspell"
+{{ if .podmanEnabled }}
+  "podman"
+  "podman-compose"
+  "kind"
+{{ end }}
+{{ if .dockerEnabled }}
+  "docker"
+  "docker-compose"
+{{ end }}
+{{ if .goEnabled }}
+  "go"
+  "gomodifytags"
+  "gotests"
+  "gore"
+{{ end }}
+{{ if .rustEnabled }}
+  "rustc"
+  "rustup"
+{{ end }}
 )
 
-
 for package in "${NIX_PACKAGES[@]}"; do
-  echo "Installing $package via Nix..."
   if nix-env -iA "nixpkgs.$package" 2>/dev/null; then
-    echo "✅ $package installed via Nix (takes priority over Homebrew)"
+    echo "✅ ** ${package} ** installed via Nix"
     if command -v brew &>/dev/null; then
       if brew list --formula | grep -q "^$package$"; then
-          echo "  🗑️ Uninstalling $package from Homebrew..."
+          echo "  🗑️ Uninstalling ** ${package} ** from Homebrew..."
           brew uninstall "$package"
           echo ""
       fi
     fi
   else
-    echo "❌ Failed to install $package via Nix (will use Homebrew fallback)"
+    echo "❌ Failed to install ** ${package} ** via Nix (will use Homebrew fallback)"
     echo ""
   fi
 done
 
 echo ""
-echo "Nix package installation complete!"
-echo ""
-echo "Installed packages:"
-nix-env -q
-
-echo ""
-echo "PATH Priority Strategy:"
-echo "• Nix packages take priority (appear first in PATH)"
-echo "• Homebrew packages remain as automatic fallback"
-echo "• If package exists in both: Nix version is used"
-echo "• If package only in Homebrew: Homebrew version is used"
-echo "• No conflicts - best of both worlds!"
-echo "• Use 'nix-env --rollback' if anything goes wrong"
-
-echo ""
 echo "System generations (for rollback):"
 nix-env --list-generations | tail -5
+-list-generations | tail -5

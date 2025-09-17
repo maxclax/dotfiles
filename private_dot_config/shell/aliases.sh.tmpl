@@ -6,7 +6,6 @@
 # See bin folder for scripts which will run in their own shell
 
 # Global settings
-alias cz=chezmoi
 alias dotfiles='cd {{ .chezmoi.sourceDir }}'
 
 alias workspace='cd {{ .workspace }}'
@@ -53,34 +52,14 @@ alias restart-emacs-prelude='killemacs && emacs-server-prelude'
 alias restart-emacs-purcell='killemacs && emacs-server-purcell'
 alias restart-emacs-default='killemacs && emacs-server-default'
 
-# pkgx/dev
-alias dev-dirs='fd dev.pkgx.activated "$HOME/Library/Application Support/pkgx/dev" --exec dirname {}'
-
 # Git
-alias gs='git status'
-alias glog="git log --oneline --graph --decorate --all"
 alias lg='lazygit'
 alias lazypodman='DOCKER_HOST=unix://$(podman machine inspect --format '"'"'{{`{{.ConnectionInfo.PodmanSocket.Path}}`}}'"'"') lazydocker'
 alias lp='lazypodman'
-alias git-purge='git branch --merged | egrep -v "(^\*|master|main|dev)" | xargs git branch -d'
-alias git-grep='git rev-list --all | xargs git --no-pager grep --extended-regexp --ignore-case' # usage: gg <regexp>
-alias glog='git log --graph --decorate --pretty=oneline --abbrev-commit --all'
-alias submodule-reset='git submodule deinit -f . && git submodule update --init --recursive'
-
-# Containers
-alias tf="terraform"
-alias mk="minikube"
-alias k="kubectl"
-alias h="helm"
 
 # Python
 alias pyclean='find . | grep -E "(__pycache__|\.pyc|\.pyo$)" | xargs rm -rvf'
-alias pip-purge='pip list --format freeze | xargs pip uninstall -y'
-alias pip-install-reqs='ls requirements*.txt | xargs -n 1 pip install -r'
-alias poetry-install-master='pipx install --suffix=@master --force git+https://github.com/python-poetry/poetry.git'
 alias activate='source .venv/bin/activate'
-# assuming pyenv
-alias venv='PIP_REQUIRE_VIRTUALENV=false python3 -m pip install --upgrade --user pip virtualenv && python3 -m virtualenv .venv && source .venv/bin/activate && python3 -m pip install --upgrade pip && which pip && pip list && pip --version && python3 --version'
 
 # Colorize terminal
 # ---- Eza (better ls) -----
@@ -108,11 +87,6 @@ alias vim='nvim'
 alias docker=podman
 alias docker-compose=podman-compose
 {{ end }}
-
-# ---- GitHub Copilot CLI -----
-alias cs='gh copilot suggest'
-alias ce='gh copilot explain'
-alias ca='gh copilot alias'
 
 # ---- pay-respects -----
 eval "$(pay-respects zsh --alias)"

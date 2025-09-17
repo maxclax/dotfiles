@@ -110,8 +110,6 @@ add_to_path append "$HOME/.docker/bin"
 
 add_to_path append "$HOME/.cargo/bin"
 add_to_path append "$HOME/go/bin"
-add_to_path append "$DOTFILES_BREW_PREFIX/opt/mysql-client/bin"
-add_to_path prepend "$DOTFILES_BREW_PREFIX/opt/gnu-sed/libexec/gnubin"
 
 # NOTE: the last prepend appears first in $PATH, so make sure the order is correct below
 add_to_path prepend "$PYENV_ROOT/bin"         # pyenv
@@ -122,6 +120,10 @@ add_to_path prepend "$HOME/.config/emacs/bin"      # emacs binaries
 # By default, zsh considers many characters part of a word (e.g., _ and -).
 # Narrow that down to allow easier skipping through words via M-f and M-b.
 export WORDCHARS='*?[]~&;!$%^<>'
+
+# Ensure Nix user profile is in PATH with high priority
+add_to_path prepend "/nix/var/nix/profiles/default/bin"
+add_to_path prepend "$HOME/.nix-profile/bin"
 
 # Per-platform settings
 case $(uname) in

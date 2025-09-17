@@ -57,12 +57,8 @@ function zsh_completion() {
 	compinit
 }
 
-function bash_completion() {
-	if [ -f "$brew_prefix/share/google-cloud-sdk" ]; then
-		source "$brew_prefix/share/google-cloud-sdk/path.bash.inc"
-		source "$brew_prefix/share/google-cloud-sdk/completion.bash.inc"
-	fi
-}
+# Nix sourcing for nix-shell and nix commands
+source '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
 
 # ----------------------------
 # globals
@@ -82,9 +78,6 @@ fi
 eval "$(direnv hook $shell)"
 eval "$(zoxide init $shell)"
 eval "$(starship init $shell)"
-
-# TODO need fix on pkgx side
-# eval "$(pkgx --quiet dev --shellcode)"
 
 # ----------------------------
 # shell-specific configuration
@@ -228,19 +221,6 @@ fe() {
 	fi
 }
 
-# Source Nix environment if available
-# This adds Nix paths to the FRONT of PATH, giving Nix priority over Homebrew
-if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
-	. '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
-fi
-
-# Ensure Nix user profile is in PATH with high priority
-if [ -e '/nix/var/nix/profiles/default/bin' ]; then
-	export PATH="/nix/var/nix/profiles/default/bin:$PATH"
-fi
-if [ -d "$HOME/.nix-profile/bin" ]; then
-    export PATH="$HOME/.nix-profile/bin:$PATH"
-fi
 
 # Process killer with fzf
 fkill() {
@@ -279,7 +259,7 @@ fenv() {
 }
 
 # Command inspector - understand what any command/alias/function does
-what_is() {
+fw() {
 	if [[ -z "$1" ]]; then
 		echo "Usage: what <command>"
 		return 1

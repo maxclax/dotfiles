@@ -71,6 +71,7 @@ nix_latest:
 
 
 nix_gc:
+	nix_gc:
 	@if command -v nix-env >/dev/null 2>&1; then \
 		echo "Cleaning old generations..."; \
 		nix-collect-garbage -d; \
@@ -78,6 +79,19 @@ nix_gc:
 	else \
 		echo "Nix not installed"; \
 	fi
+
+nix_update:
+	@if command -v nix-channel >/dev/null 2>&1; then \
+		echo "🔄 Updating Nix channels..."; \
+		nix-channel --update; \
+		echo "✅ Nix channels updated. Now upgrading installed packages..."; \
+		nix-env -u '*'; \
+		echo "✅ Nix packages upgraded. Current packages:"; \
+		nix-env -q; \
+	else \
+		echo "❌ Nix not installed"; \
+	fi
+
 
 extra_exports:
 	@echo "To export API keys to your current shell, run this command:"
