@@ -46,8 +46,13 @@ nix_generations:
 
 nix_rollback:
 	@if command -v nix-env >/dev/null 2>&1; then \
-		echo "Rolling back to previous generation..."; \
-		nix-env --rollback; \
+		if [ -z "$(generation)" ]; then \
+			echo "Rolling back to previous generation..."; \
+			nix-env --rollback; \
+		else \
+			echo "Rolling back to generation $(generation)..."; \
+			nix-env --switch-generation $(generation); \
+		fi; \
 		echo "Rollback complete. Current packages:"; \
 		nix-env -q; \
 	else \
@@ -70,8 +75,7 @@ nix_latest:
 	fi
 
 
-nix_gc:
-	nix_gc:
+nix_cleaning_old_generations:
 	@if command -v nix-env >/dev/null 2>&1; then \
 		echo "Cleaning old generations..."; \
 		nix-collect-garbage -d; \
@@ -81,17 +85,24 @@ nix_gc:
 	fi
 
 nix_update:
-	@if command -v nix-channel >/dev/null 2>&1; then \
-		echo "🔄 Updating Nix channels..."; \
-		nix-channel --update; \
-		echo "✅ Nix channels updated. Now upgrading installed packages..."; \
-		nix-env -u '*'; \
-		echo "✅ Nix packages upgraded. Current packages:"; \
-		nix-env -q; \
+	nix-channel --update
+	nix-env -u '*'
+	nix-env -q
+
+nix_reset:
+	@echo "This will uninstall all your Nix packages and reinstall only the ones defined in your dotfiles."
+	@read -p "Are you sure? (y/n) " -n 1 -r; \
+	echo; \
+	if [[ $REPLY =~ ^[Yy]$ ]]; then \
+		echo "Uninstalling all Nix packages..."; \
+		nix-env -e '.*'; \
+		echo "Re-applying dotfiles to install packages..."; \
+		$(CHEZMOI) apply; \
 	else \
-		echo "❌ Nix not installed"; \
+		echo "Aborted."; \
 	fi
 
+########################################
 
 extra_exports:
 	@echo "To export API keys to your current shell, run this command:"
@@ -161,13 +172,14 @@ ifeq ($(UNAME_S), Darwin)
 	@echo "Updating Homebrew packages..."
 	brew outdated ; brew update ; brew upgrade --force ; brew upgrade --cask
 	brew cleanup --prune=all
-	rm -rf ~/Library/Caches/Homebrew/Cask/*
 
 	@echo "Updating App Store applications..."
 	mas outdated ; mas upgrade
 else
 	@echo "This target is for macOS only."
 endif
+
+update_nix: nix_update
 
 # Clear caches
 clear_caches:
@@ -280,11 +292,11 @@ torproxy_check:
 ##############################
 
 backup_create:
-	/opt/homebrew/bin/borgmatic --verbosity 2 --progress
-	/opt/homebrew/bin/borgmatic prune --verbosity 1 
+	borgmatic --verbosity 2 --progress
+	borgmatic prune --verbosity 1
 
 backup_list:
-	/opt/homebrew/bin/borgmatic list --verbosity 1
+	borgmatic list --verbosity 1
 
 backup_list_files:
     # Usage: make backup_list_files repo=/path/to/repo archive=/path/to/archive [path=optional/path/in/archive]
@@ -297,9 +309,9 @@ backup_list_files:
 		exit 1; \
 	fi
 	@if [ -z "$(path)" ]; then \
-		/opt/homebrew/bin/borg list --verbose "$(repo)::$(archive)"; \
+		borg list --verbose "$(repo)::$(archive)"; \
 	else \
-		/opt/homebrew/bin/borg list --verbose "$(repo)::$(archive)" "$(path)"; \
+		borg list --verbose "$(repo)::$(archive)" "$(path)"; \
 	fi
 
 backup_restore:
@@ -314,10 +326,10 @@ backup_restore:
 	fi
 	@if [ -z "$(path)" ]; then \
 		echo "Restoring entire archive $(archive) to $(dest)..."; \
-		/opt/homebrew/bin/borgmatic extract --verbosity 1 --progress --repository $(repo) --archive $(archive) --destination $(dest); \
+		borgmatic extract --verbosity 1 --progress --repository $(repo) --archive $(archive) --destination $(dest); \
 	else \
 		echo "Restoring path $(path) from archive $(archive) to $(dest)..."; \
-		/opt/homebrew/bin/borgmatic extract --verbosity 1 --progress --repository $(repo) --archive $(archive) --destination $(dest) --path "$(path)"; \
+		borgmatic extract --verbosity 1 --progress --repository $(repo) --archive $(archive) --destination $(dest) --path "$(path)"; \
 	fi
 
 ##############################
