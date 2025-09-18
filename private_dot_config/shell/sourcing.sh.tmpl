@@ -58,8 +58,11 @@ function zsh_completion() {
 }
 
 # Nix sourcing for nix-shell and nix commands
-source '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
-
+if [ -f '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
+  source '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
+elif [ -f "$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
+  source "$HOME/.nix-profile/etc/profile.d/nix.sh"
+fi
 # ----------------------------
 # globals
 # ----------------------------
