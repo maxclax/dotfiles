@@ -1,9 +1,9 @@
 # exports.sh -*- mode: sh; lexical-binding: t; -*-
 # shellcheck shell=bash
 
-# ----------------------------
-# functions and shell-agnostic
-# ----------------------------
+# ============================================================================
+# PATH Management Functions
+# ============================================================================
 
 function add_to_path() {
   # NOTE: zsh only
@@ -50,9 +50,10 @@ function remove_from_path() {
   fi
 }
 
-# ----------------------------
-# globals
-# ----------------------------
+# ============================================================================
+# Shell Detection
+# ============================================================================
+# Determines which shell is being used and sets debug flags accordingly
 
 if [ -n "${ZSH_VERSION}" ]; then
   shell="zsh"
@@ -64,9 +65,10 @@ else
   shell=""
 fi
 
-# ----------------------------
-# exports
-# ----------------------------
+# ============================================================================
+# Package Manager Configuration
+# ============================================================================
+# Homebrew, Nix, and other package manager settings
 
 # NOTE: brew shellenv exports several environment variables and extends $PATH
 if [ -f /opt/homebrew/bin/brew ]; then
@@ -88,12 +90,28 @@ export NVIM_APPNAME={{ .nvimType }}
 export DOTFILES={{ .chezmoi.sourceDir }}
 export DOTFILES_SHELL=$shell
 export DOTFILES_BREW_PREFIX=$brew_prefix
-export HOMEBREW_NO_ANALYTICS=1
-export PIP_REQUIRE_VIRTUALENV=true # use pip --isolated to bypass
-export PYENV_ROOT="$HOME/.pyenv"   # pyenv
 
-export GIT_EDITOR="nvim"
-export EDITOR="nvim"
+# ============================================================================
+# Python Development
+# ============================================================================
+export PIP_REQUIRE_VIRTUALENV=true  # Enforce virtualenv usage (use pip --isolated to bypass)
+export PYENV_ROOT="$HOME/.pyenv"    # pyenv installation directory
+
+# ============================================================================
+# Package Manager Settings
+# ============================================================================
+# Nix package manager configuration
+export NIXPKGS_ALLOW_UNFREE=1       # Allow installation of unfree/proprietary packages
+export NIX_SHOW_WARNINGS=0          # Suppress deprecation warnings and other noise
+
+# Homebrew configuration
+export HOMEBREW_NO_ANALYTICS=1      # Disable Homebrew's analytics collection
+
+# ============================================================================
+# Editor Configuration
+# ============================================================================
+export GIT_EDITOR="nvim"            # Default editor for Git operations
+export EDITOR="nvim"               # Default system editor
 
 {{ if eq .editor "emacsclient" }}
 export GIT_EDITOR="emacsclient -t"
@@ -101,8 +119,11 @@ export EDITOR="emacsclient -t"
 export VISUAL="emacsclient -c"
 {{ end }}
 
-export PATH="$HOME/.local/bin:$PATH"
-export LOCAL_GIT_REPOS_PATH={{ .gitLocalRepositories | quote  }}
+# ============================================================================
+# Path and Repository Configuration
+# ============================================================================
+export PATH="$HOME/.local/bin:$PATH"                              # User binaries
+export LOCAL_GIT_REPOS_PATH={{ .gitLocalRepositories | quote  }} # Local Git repositories
 
 {{ if .dockerEnabled }}
 add_to_path append "$HOME/.docker/bin"
@@ -111,21 +132,31 @@ add_to_path append "$HOME/.docker/bin"
 add_to_path append "$HOME/.cargo/bin"
 add_to_path append "$HOME/go/bin"
 
-# NOTE: the last prepend appears first in $PATH, so make sure the order is correct below
+# ============================================================================
+# PATH Configuration
+# ============================================================================
+# NOTE: The last prepend appears first in $PATH - order matters!
+# Priority (highest to lowest):
 add_to_path prepend "$PYENV_ROOT/bin"         # pyenv
 add_to_path prepend "$HOME/.local/bin"        # user-installed binaries
 add_to_path prepend "$HOME/.config/shell/bin" # personal and custom scripts
 add_to_path prepend "$HOME/.config/emacs/bin"      # emacs binaries
 
+# ============================================================================
+# Shell Behavior Configuration
+# ============================================================================
+# Customize word-splitting behavior for better navigation (M-f/M-b)
 # By default, zsh considers many characters part of a word (e.g., _ and -).
-# Narrow that down to allow easier skipping through words via M-f and M-b.
+# This narrows it down for more intuitive word navigation.
 export WORDCHARS='*?[]~&;!$%^<>'
 
 # Ensure Nix user profile is in PATH with high priority
 add_to_path prepend "/nix/var/nix/profiles/default/bin"
 add_to_path prepend "$HOME/.nix-profile/bin"
 
-# Per-platform settings
+# ============================================================================
+# Platform-Specific Configuration
+# ============================================================================
 case $(uname) in
 Darwin)
   # commands for macOS go here

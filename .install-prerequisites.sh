@@ -28,8 +28,14 @@ install_nix() {
 	if command -v nix >/dev/null 2>&1; then
 		echo 'Nix is already installed'
 	else
-		echo 'Installing Nix using OFFICIAL installer...'
-		curl -L https://nixos.org/nix/install | sh
+		if [[ "$(uname)" == "Darwin" ]]; then
+			echo 'Installing Nix using nix-darwin installer...'
+			curl -L https://nixos.org/nix/install | sh -s -- --darwin-use-unencrypted-nix-store-volume
+		else
+			echo 'Installing Nix using default installer...'
+			curl -L https://nixos.org/nix/install | sh
+		fi
+		
 		source '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
 	fi
 }

@@ -20,7 +20,14 @@ if ! command -v nix-env >/dev/null 2>&1; then
   exit 1
 fi
 
+# Configure environment
 export NIXPKGS_ALLOW_UNFREE=1
+
+if ! nix-channel --list | grep -q "^nixpkgs "; then
+  echo "Adding nixpkgs-unstable channel..."
+  nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs
+  nix-channel --update
+fi
 
 NIX_PACKAGES=(
   # ----------------------------------------------------------------------------
