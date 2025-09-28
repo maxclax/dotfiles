@@ -35,7 +35,7 @@ done
 # Add applications to the dock
 declare -a add_apps=(
 	"/Applications/DEVONthink 3.app"
-	"/Applications/Arc.app"
+	"/Applications/Zen.app"
 	"/Applications/Fantastical.app"
 	"/Applications/OmniFocus.app"
 	"/Applications/Logseq.app"

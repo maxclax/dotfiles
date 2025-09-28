@@ -5,8 +5,8 @@ source_directories:
 repositories:
   - path: {{ .borgRepo | quote }}
     
-local_path: /opt/homebrew/bin/borg
-encryption_passcommand: /opt/homebrew/bin/op read "op://Private/chezmoi-data/borg-encryption-passphrase"
+local_path: borg
+encryption_passcommand: op read "op://Private/chezmoi-data/borg-encryption-passphrase"
 compression: 'lz4'
 archive_name_format: "{hostname}-git-{now:%Y-%m-%d-%H%M%S}"
 

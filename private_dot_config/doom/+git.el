@@ -97,7 +97,9 @@
 
 (use-package! magit-todos
   :after magit
-  :config (magit-todos-mode 1))
+  :config
+  (magit-todos-mode 1)
+  (setq magit-todos-scanner-exclude-patterns '("node_modules" "static")))
 
 ;; magit-todos uses hl-todo-keywords
 (custom-theme-set-faces! doom-theme

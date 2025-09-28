@@ -4,11 +4,11 @@ source_directories:
   - {{ printf "%s/Desktop" .chezmoi.homeDir | quote }}
 #  - {{ printf "%s/Downloads" .chezmoi.homeDir | quote }}
 
-local_path: /opt/homebrew/bin/borg
+local_path: borg
 repositories:
   - path: {{ .borgRepo | quote }}
 
-encryption_passcommand: /opt/homebrew/bin/op read "op://Private/chezmoi-data/borg-encryption-passphrase"
+encryption_passcommand: op read "op://Private/chezmoi-data/borg-encryption-passphrase"
 compression: "lz4"
 archive_name_format: "{hostname}-icloud-{now:%Y-%m-%d-%H%M%S}"
 

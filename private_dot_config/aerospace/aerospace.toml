@@ -261,9 +261,5 @@ run = 'move-node-to-workspace 4'
 # ---------------------------------------------------------
 # https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
 [workspace-to-monitor-force-assignment]
-5 = '2'
-# B = 'secondary'
-# C = 'secondary'
-7 = '1'
-8 = '2'
-9 = '3'
+5 = '3' # AI
+7 = 'main' # Emacs
