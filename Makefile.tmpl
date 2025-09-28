@@ -28,79 +28,36 @@ dotfiles_update:
 	$(CHEZMOI) update
 
 # Nix management commands
-nix_list:
-	@if command -v nix-env >/dev/null 2>&1; then \
-		echo "Installed Nix packages:"; \
-		nix-env -q; \
-	else \
-		echo "Nix not installed"; \
-	fi
 
-nix_generations:
-	@if command -v nix-env >/dev/null 2>&1; then \
-		echo "Available generations (for rollback):"; \
-		nix-env --list-generations; \
-	else \
-		echo "Nix not installed"; \
-	fi
-
-nix_rollback:
-	@if command -v nix-env >/dev/null 2>&1; then \
-		if [ -z "$(generation)" ]; then \
-			echo "Rolling back to previous generation..."; \
-			nix-env --rollback; \
-		else \
-			echo "Rolling back to generation $(generation)..."; \
-			nix-env --switch-generation $(generation); \
-		fi; \
-		echo "Rollback complete. Current packages:"; \
-		nix-env -q; \
-	else \
-		echo "Nix not installed"; \
-	fi
-
-nix_latest:
-	@if command -v nix-env >/dev/null 2>&1; then \
-		latest_gen=$(nix-env --list-generations | tail -n 1 | awk '{print $1}'); \
-		if [ -z "$latest_gen" ]; then \
-			echo "Could not determine the latest generation."; \
-			exit 1; \
-		fi; \
-		echo "Switching to latest generation: $latest_gen..."; \
-		nix-env --switch-generation $latest_gen; \
-		echo "Switch complete. Current packages:"; \
-		nix-env -q; \
-	else \
-		echo "Nix not installed"; \
-	fi
-
-
-nix_cleaning_old_generations:
-	@if command -v nix-env >/dev/null 2>&1; then \
-		echo "Cleaning old generations..."; \
-		nix-collect-garbage -d; \
-		echo "Cleanup complete"; \
-	else \
-		echo "Nix not installed"; \
-	fi
+nix_diff:
+	@echo "📋 Checking what will change..."
+	cd ~/.config/nix && home-manager build --flake ~/.config/nix
+	nix store diff-closures ~/.local/state/nix/profiles/home-manager ~/.config/nix/result
 
 nix_update:
-	nix-channel --update
-	nix-env -u '*'
-	nix-env -q
+	@echo "🔄 Updating Nix flake and Home Manager..."
+	cd ~/.config/nix && nix flake update
+	home-manager switch --flake ~/.config/nix
+	@echo "✅ Update complete!"
 
-nix_reset:
-	@echo "This will uninstall all your Nix packages and reinstall only the ones defined in your dotfiles."
-	@read -p "Are you sure? (y/n) " -n 1 -r; \
-	echo; \
-	if [[ $REPLY =~ ^[Yy]$ ]]; then \
-		echo "Uninstalling all Nix packages..."; \
-		nix-env -e '.*'; \
-		echo "Re-applying dotfiles to install packages..."; \
-		$(CHEZMOI) apply; \
-	else \
-		echo "Aborted."; \
-	fi
+nix_list:
+	@echo "📦 Home Manager packages:"
+	@home-manager packages | sort
+
+nix_rollback:
+	@echo "🔄 Rolling back Home Manager..."
+	home-manager rollback
+	@echo "✅ Rollback complete!"
+
+nix_generations:
+	@echo "📋 Home Manager generations:"
+	home-manager generations
+
+nix_clean:
+	@echo "🧹 Cleaning up old generations..."
+	home-manager expire-generations '-30 days'
+	nix-collect-garbage -d
+	@echo "✅ Cleanup complete!"
 
 ########################################
 
@@ -158,17 +115,19 @@ else
 	@echo "Login items command is specific to macOS."
 endif
 
-# macOS-specific updates
-update_macos:
+update_os:
 ifeq ($(UNAME_S), Darwin)
 	@echo "Updating macOS software..."
 	softwareupdate -i -a
 else
-	@echo "This target is for macOS only."
+	@echo "That is no Darwin."
 endif
 
 update_apps:
 ifeq ($(UNAME_S), Darwin)
+	@echo "Updating nix..."
+	$(MAKE) nix_update
+
 	@echo "Updating Homebrew packages..."
 	brew outdated ; brew update ; brew upgrade --force ; brew upgrade --cask
 	brew cleanup --prune=all
@@ -179,9 +138,6 @@ else
 	@echo "This target is for macOS only."
 endif
 
-update_nix: nix_update
-
-# Clear caches
 clear_caches:
 ifeq ($(UNAME_S), Darwin)
 	@echo "Clearing macOS caches..."
@@ -192,7 +148,6 @@ else
 	@echo "This target is for macOS only."
 endif
 
-# Test Shared Volumes
 test_shared_volumes:
 ifeq ($(UNAME_S), Darwin)
 	$(CONTAINER_ENGINE) run -ti --rm \

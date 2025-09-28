@@ -154,6 +154,9 @@ export WORDCHARS='*?[]~&;!$%^<>'
 add_to_path prepend "/nix/var/nix/profiles/default/bin"
 add_to_path prepend "$HOME/.nix-profile/bin"
 
+# Home Manager packages
+add_to_path prepend "$HOME/.local/state/nix/profiles/home-manager/home-path/bin"
+
 # ============================================================================
 # Platform-Specific Configuration
 # ============================================================================

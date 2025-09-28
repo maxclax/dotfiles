@@ -57,15 +57,21 @@ function zsh_completion() {
 	compinit
 }
 
+# ----------------------------
+# globals
+# ----------------------------
+
 # Nix sourcing for nix-shell and nix commands
 if [ -f '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
   source '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
 elif [ -f "$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
   source "$HOME/.nix-profile/etc/profile.d/nix.sh"
 fi
-# ----------------------------
-# globals
-# ----------------------------
+
+# Home Manager session variables
+if [ -f "$HOME/.local/state/nix/profiles/home-manager/etc/profile.d/hm-session-vars.sh" ]; then
+  source "$HOME/.local/state/nix/profiles/home-manager/etc/profile.d/hm-session-vars.sh"
+fi
 
 brew_prefix="$DOTFILES_BREW_PREFIX"
 shell="$DOTFILES_SHELL"

@@ -24,7 +24,7 @@ install_brew() {
 	fi
 }
 
-install_nix() {
+install_nix_and_home_manager() {
 	if command -v nix >/dev/null 2>&1; then
 		echo 'Nix is already installed'
 	else
@@ -35,12 +35,30 @@ install_nix() {
 			echo 'Installing Nix using default installer...'
 			curl -L https://nixos.org/nix/install | sh
 		fi
-		
-		if [ -f '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
-			source '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
-		elif [ -f "$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
-			source "$HOME/.nix-profile/etc/profile.d/nix.sh"
-		fi
+	fi
+
+    if [ -f '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
+        source '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
+    elif [ -f "$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
+        source "$HOME/.nix-profile/etc/profile.d/nix.sh"
+    fi
+
+	if command -v home-manager >/dev/null 2>&1; then
+		echo 'Home Manager is already installed'
+	else
+		echo 'Installing Home Manager...'
+
+		# Add home-manager channel
+		nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager
+		nix-channel --update
+
+		# Enable flakes for Home Manager installation
+		export NIX_CONFIG="experimental-features = nix-command flakes"
+
+		# Install Home Manager
+		nix-shell '<home-manager>' -A install
+
+		echo 'Home Manager installed successfully!'
 	fi
 }
 
@@ -48,7 +66,7 @@ OS="$(uname -s)"
 case "${OS}" in
 Linux*)
 	echo "Installing prerequisites for Linux..."
-	install_nix
+	install_nix_and_home_manager
 
 	;;
 Darwin*)
@@ -56,7 +74,7 @@ Darwin*)
 	xcode-select --install || echo "XCode already installed"
 
 	echo "Installing prerequisites for macOS..."
-	install_nix
+	install_nix_and_home_manager
 
 	install_brew
 	eval "$(/opt/homebrew/bin/brew shellenv)"
@@ -68,3 +86,11 @@ Darwin*)
 	exit 1
 	;;
 esac
+
+echo ""
+echo "🎉 Prerequisites installation complete!"
+echo ""
+echo "Next steps:"
+echo "1. Run: chezmoi init && chezmoi apply"
+echo "2. Restart your shell to pick up new PATH"
+echo "3. Your packages will be managed by Home Manager in ~/.config/nix/"
