@@ -99,7 +99,24 @@
   :after magit
   :config
   (magit-todos-mode 1)
-  (setq magit-todos-scanner-exclude-patterns '("node_modules" "static")))
+  (setq magit-todos-exclude-globs '("node_modules/**/*"
+                                   "static/**/*"
+                                   "build/**/*"
+                                   "dist/**/*"
+                                   "target/**/*"
+                                   ".git/**/*"
+                                   "vendor/**/*"
+                                   "venv/**/*"
+                                   ".venv/**/*"
+                                   "__pycache__/**/*"
+                                   "*.min.js"
+                                   "*.bundle.js"
+                                   "coverage/**/*"
+                                   ".next/**/*"
+                                   ".nuxt/**/*"
+                                   "public/assets/**/*")
+        magit-todos-max-items 20
+        magit-todos-update-delay 2.0))
 
 ;; magit-todos uses hl-todo-keywords
 (custom-theme-set-faces! doom-theme
