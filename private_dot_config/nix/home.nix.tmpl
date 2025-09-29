@@ -40,6 +40,8 @@
     tree                   # Display directory tree
     wget                   # Retrieve files from web
     zoxide                 # A smarter cd command
+    zsh                    # Z shell
+
 
     # ----------------------------------------------------------------------------
     # Development machines
@@ -200,6 +202,164 @@
 {{- end }}
 
   ];
+
+  # ----------------------------------------------------------------------------
+  # Program Configurations
+  # ----------------------------------------------------------------------------
+
+  # Zsh Configuration with improvements
+  programs.zsh = {
+    enable = true;
+    enableCompletion = true;
+    autosuggestion.enable = true;
+    syntaxHighlighting.enable = true;
+
+    # History configuration
+    history = {
+      size = 10000;
+      save = 10000;
+      share = true;
+      ignoreDups = true;
+      ignoreSpace = true;
+      expireDuplicatesFirst = true;
+    };
+
+    # Better completion
+    completionInit = "autoload -Uz compinit && compinit -C";
+
+    oh-my-zsh = {
+      enable = true;
+      theme = "robbyrussell";
+      plugins = [
+        "brew"
+        "git"
+        "podman"
+        "poetry"
+        "kubectl"
+        "kubectx"
+        "chezmoi"
+        "colored-man-pages"  # Colorized man pages
+        "command-not-found"  # Suggests packages when command not found
+        "sudo"              # Double ESC to add sudo
+        "history"           # Better history commands
+{{- if eq .chezmoi.os "darwin" }}
+        "macos"             # macOS specific commands
+{{- end }}
+      ];
+    };
+
+    shellAliases = {
+      reload-zsh = "source ~/.zshrc";
+      edit-zsh = "nvim ~/.zshrc";
+    };
+
+    initContent = ''
+      # completion using arrow keys (based on history)
+      bindkey '^[[A' history-search-backward
+      bindkey '^[[B' history-search-forward
+
+      # Source file if it exists and have a size greater than zero
+      [[ -s ~/.config/shell/exports.sh ]] && source ~/.config/shell/exports.sh
+      [[ -s ~/.config/shell/aliases.sh ]] && source ~/.config/shell/aliases.sh
+      [[ -s ~/.config/shell/sourcing.sh ]] && source ~/.config/shell/sourcing.sh
+
+      # Source additional configurations from .zshrc.local
+      if [ -f ~/.zshrc.local ]; then
+        source ~/.zshrc.local
+      fi
+    '';
+  };
+
+  # Bash Configuration (replaces dot_bashrc)
+  programs.bash = {
+    enable = true;
+
+    initExtra = ''
+      # Source file if it exists and have a size greater than zero
+      [[ -s ~/.config/shell/exports.sh ]] && source ~/.config/shell/exports.sh
+      [[ -s ~/.config/shell/aliases.sh ]] && source ~/.config/shell/aliases.sh
+      [[ -s ~/.config/shell/sourcing.sh ]] && source ~/.config/shell/sourcing.sh
+
+      # neofetch
+    '';
+  };
+
+  # Vim Configuration with plugins (replaces dot_vimrc and vim-plug)
+  programs.vim = {
+    enable = true;
+
+    plugins = with pkgs.vimPlugins; [
+      # Core plugins
+      vim-fugitive              # Git integration
+      vim-vinegar               # - to open netrw
+      vim-airline               # powerline
+      easymotion                # better move commands
+      vim-tmux-navigator        # better tmux integration
+      supertab                  # more powerful <tab>
+      goyo-vim                  # distraction-free writing
+      vim-dirvish               # less buggy netrw alternative
+      nerdtree                  # file explorer
+      typescript-vim            # typescript syntax
+      ack-vim                   # ack integration
+      vim-mundo                 # visualize the undo tree
+      tcomment_vim              # commenting helpers
+      vim-abolish               # change case on the fly
+      vim-repeat                # repeat everything
+      vim-surround              # better surround commands
+      vim-unimpaired            # pairs of helpful commands
+      vimwiki                   # personal wiki
+      ale                       # async syntax checker
+      ctrlp-vim                 # Ctrl+p to fuzzy search
+      fzf-vim                   # fzf integration
+
+      # Color schemes
+      papercolor-theme          # PaperColor theme
+      vim-colors-solarized      # Solarized theme
+      vim-colorschemes          # Collection of color schemes
+    ];
+
+    extraConfig = ''
+      " -*- mode: vimrc -*-"
+
+      " Load the rest of your configuration
+      source $HOME/.config/vim/settings/configs.vim
+      source $HOME/.config/vim/settings/functions.vim
+      source $HOME/.config/vim/settings/mappings.vim
+      source $HOME/.config/vim/settings/commands.vim
+
+      " Plugin configurations (from your plugins.vim)
+      let g:plug_timeout = 300
+
+      " nerdtree
+      let NERDTreeIgnore=['\.pyc$', '\~$']
+      let NERDTreeShowBookmarks=1
+      let NERDTreeHijackNetrw=0
+      let g:NERDTreeFileLines = 1
+
+      " CtrlP
+      let g:ctrlp_working_path_mode = 'ra'
+
+      " fzf
+      let $FZF_DEFAULT_COMMAND = 'list_all_files'
+      nnoremap <c-p> :FZF<cr>
+      set grepprg=rg\ --vimgrep\ --smart-case\ --follow
+
+      " vim-test
+      let test#strategy = "dispatch"
+
+      " ack -> ag
+      if executable('ag')
+        let g:ackprg = 'ag --vimgrep'
+      endif
+
+      " :Far -> ag
+      let g:far#source = 'ag'
+
+      " Mundo
+      let g:gundo_preview_bottom = 1
+      nnoremap <F5> :MundoToggle<cr>
+    '';
+  };
 
   # Let Home Manager install and manage itself
   programs.home-manager.enable = true;

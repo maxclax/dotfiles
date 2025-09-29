@@ -1,7 +1,0 @@
-" -*- mode: vimrc -*-"
-
-source $HOME/.config/vim/settings/plugins.vim
-source $HOME/.config/vim/settings/configs.vim
-source $HOME/.config/vim/settings/functions.vim
-source $HOME/.config/vim/settings/mappings.vim
-source $HOME/.config/vim/settings/commands.vim
