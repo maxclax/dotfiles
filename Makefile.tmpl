@@ -38,7 +38,15 @@ nix_update:
 	@echo "🔄 Updating Nix flake and Home Manager..."
 	cd ~/.config/nix && nix flake update
 	home-manager switch --flake ~/.config/nix
-	@echo "✅ Update complete!"
+	@echo "✅ Update complete! Run 'make nix_commit' to commit the changes"
+
+nix_commit:
+	@echo "📄 Syncing flake.lock to dotfiles..."
+	chezmoi add ~/.config/nix/flake.lock
+	@echo "📝 Committing updated flake.lock to dotfiles..."
+	cd {{ .chezmoi.sourceDir }} && git add private_dot_config/nix/flake.lock
+	cd {{ .chezmoi.sourceDir }} && git commit -m "dev: update Nix flake.lock - $(shell date '+%Y-%m-%d')"
+	@echo "✅ flake.lock changes committed!"
 
 nix_list:
 	@echo "📦 Home Manager packages:"
