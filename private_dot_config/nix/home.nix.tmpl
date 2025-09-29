@@ -9,90 +9,94 @@
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release
   # introduces backwards incompatible changes.
-  home.stateVersion = "24.05";
+  home.stateVersion = "25.05";
 
   # The home.packages option allows you to install Nix packages into your environment
   home.packages = with pkgs; [
-    # Core System & CLI Tools
+    # Core System & CLI Tools (installed on all systems)
     age                    # Encryption with GPG keys
     atuin                  # Magical shell history
     bandwhich              # Network utilization display
     bat                    # Cat clone with syntax highlighting
-    borgbackup             # Deduplicating backup program
-    borgmatic              # BorgBackup wrapper
     btop                   # Resource monitor
-    chafa                  # Image to terminal converter
     chezmoi                # Manage dotfiles across machines
-    cmatrix                # Matrix digital rain effect
-    coreutils-prefixed     # GNU core utilities with 'g' prefix
-    ctop                   # Top-like interface for containers
     curl                   # Transfer data with URLs
     direnv                 # Environment switcher for shell
     duf                    # Disk Usage/Free Utility
     eza                    # Modern replacement for 'ls'
     fd                     # Simple, fast, user-friendly 'find'
-    fontconfig             # Library for configuring fonts
     fzf                    # Command-line fuzzy finder
     gh                     # GitHub command-line tool
     git                    # Distributed version control
-    glances                # System monitoring tool
-    gnumake                # GNU make utility
-    gtrash                 # Trash can for command-line
-    hcloud                 # Hetzner Cloud CLI
     htop                   # Interactive process viewer
-    iftop                  # Display bandwidth usage
-    lazydocker             # Simple terminal UI for Docker
     lazygit                # Simple terminal UI for Git
     lsof                   # List open files
     ncdu                   # Disk usage analyzer
     neofetch               # System information tool
-    nmap                   # Network discovery and security
-    cowsay                 # ASCII pictures of a cow with a message - TEST PACKAGE
-    sl                     # Steam locomotive animation
-    pay-respects           # Pay respects
-    ranger                 # Console file manager
     ripgrep                # Recursively searches directories
     shellcheck             # Shell script static analysis
-    speedtest-cli          # Test internet bandwidth
     starship               # Cross-shell prompt
-    tldr                   # Collaborative cheatsheets
     tmux                   # Terminal multiplexer
-    tmuxinator             # Manage complex tmux sessions
     tree                   # Display directory tree
-    watch                  # Execute a program periodically
     wget                   # Retrieve files from web
     zoxide                 # A smarter cd command
 
-    # AI
+    # ----------------------------------------------------------------------------
+    # Development machines
+    # ----------------------------------------------------------------------------
+{{- if eq .chezmoi.os "darwin" }}
+    # AI Development Tools
     aider-chat
-    gemini-cli
     claude-code
     codex
+    gemini-cli
+    ollama                 # Run large language models
 
-    # Development & Programming
+    # Advanced Development & Programming
     _1password-cli         # 1Password CLI
+    borgbackup             # Deduplicating backup program
+    borgmatic              # BorgBackup wrapper
+    chafa                  # Image to terminal converter
     cmake                  # Cross-platform build system
+    cmatrix                # Matrix digital rain effect
+    coreutils-prefixed     # GNU core utilities with 'g' prefix
+    cowsay                 # ASCII pictures of a cow with a message - TEST PACKAGE
+    ctop                   # Top-like interface for containers
     discount               # Markdown C implementation
+    fontconfig             # Library for configuring fonts
     gcc                    # GNU Compiler Collection
+    glances                # System monitoring tool
+    gnumake                # GNU make utility
     graphviz               # Graph visualization software
+    gtrash                 # Trash can for command-line
+    hcloud                 # Hetzner Cloud CLI
     hey                    # HTTP load generator
+    hugo                   # Fast static site generator
+    iftop                  # Display bandwidth usage
     imagemagick            # Convert, edit, compose images
     k6                     # Modern load testing tool
+    lazydocker             # Simple terminal UI for Docker
     luarocks               # Package manager for Lua
     neovim                 # Hyperextensible Vim-based editor
     nixfmt                 # Nix code formatter
-    ollama                 # Run large language models
+    nmap                   # Network discovery and security
+    pay-respects           # Pay respects
     pnpm                   # Fast, efficient package manager
+    ranger                 # Console file manager
     ruff                   # Extremely fast Python linter
+    sl                     # Steam locomotive animation
     slides                 # Terminal presentation tool
+    speedtest-cli          # Test internet bandwidth
     stylelint              # Linter for CSS
+    tldr                   # Collaborative cheatsheets
+    tmuxinator             # Manage complex tmux sessions
     tree-sitter            # Parser generator tool
     trufflehog             # Find leaked credentials
     uv                     # Fast Python package installer
     vips                   # Fast image processing library
-    hugo                   # Fast static site generator
+    watch                  # Execute a program periodically
 
-    # Kubernetes & Cloud
+    # Kubernetes & Cloud Development
     k9s                    # Kubernetes CLI To Manage Clusters
     kind                   # Kubernetes IN Docker
     kubectl                # Kubernetes command-line tool
@@ -103,7 +107,8 @@
     stern                  # Multi pod log tailing
     terraform              # Infrastructure as Code
 
-    # Language-specific packages
+    # Language-specific packages for development
+     
     # Python
     pipenv                 # Python dependency management
     python3                # The Python programming language
@@ -120,12 +125,10 @@
     # Emacs
     emacsPackages.editorconfig # EditorConfig for Emacs
 
-    # Misc
+    # Development utilities
     aspell                 # Spell checker
-
-    # Databases
     pgcli                  # Postgres CLI with autocompletion
-
+    
     # Conditional Packages
 {{- if .podmanEnabled }}
     podman                 # Daemonless container engine
@@ -149,7 +152,6 @@
     # ----------------------------------------------------------------------------
     # macOS-specific packages
     # ----------------------------------------------------------------------------
-{{- if eq .chezmoi.os "darwin" }}
     dockutil               # Manage macOS Dock items
     jankyborders           # Borders for macOS windows
     mas                    # Mac App Store CLI
