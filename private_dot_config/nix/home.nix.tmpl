@@ -138,6 +138,56 @@
     docker                 # Containerization platform
     docker-compose         # Run multi-container applications
 {{- end }}
+
+    # ----------------------------------------------------------------------------
+    # macOS-specific packages
+    # ----------------------------------------------------------------------------
+    dockutil               # Manage macOS Dock items
+    jankyborders           # Borders for macOS windows
+    mas                    # Mac App Store CLI
+    pngpaste               # Paste PNG into file
+{{- end }}
+
+    # ----------------------------------------------------------------------------
+    # Server/Headless machines (rp-, debian, ubuntu, centos)
+    # ----------------------------------------------------------------------------
+{{- if eq .chezmoi.os "linux" }}
+    asciinema
+    atop
+    bash
+    build-essential
+    ca-certificates
+    cmake
+    curl
+    fd-find
+    gcc
+    git-absorb
+    git-lfs
+    gnupg
+    gpg
+    jq
+    libfuse2
+    lsb-release
+    make
+    python3-pip
+	inetutils-telnet
+	inotify-tools
+	openssh-server
+	openvpn
+    trash-cli
+    units
+    zsh-autosuggestions
+    zsh-syntax-highlighting
+
+    fonts-firacode
+    fonts-jetbrains-mono
+
+    kubectl                # Kubernetes command-line tool
+    kubectx                # Switch between k8s contexts
+    kubernetes-helm        # Kubernetes package manager
+{{- end }}
+
+    # Conditional Packages
 {{- if .goEnabled }}
     go                     # The Go programming language
     gomodifytags           # Go tool to modify struct tags
@@ -149,14 +199,6 @@
     rustup                 # Rust toolchain installer
 {{- end }}
 
-    # ----------------------------------------------------------------------------
-    # macOS-specific packages
-    # ----------------------------------------------------------------------------
-    dockutil               # Manage macOS Dock items
-    jankyborders           # Borders for macOS windows
-    mas                    # Mac App Store CLI
-    pngpaste               # Paste PNG into file
-{{- end }}
   ];
 
   # Let Home Manager install and manage itself

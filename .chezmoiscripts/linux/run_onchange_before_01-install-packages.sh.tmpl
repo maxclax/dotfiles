@@ -8,32 +8,7 @@ if [ "{{ .extraUser }}" == "true" ]; then
 fi
 
 {{ $packages := list
-     "asciinema"
-     "atop"
-     "bash"
-     "build-essential"
-     "ca-certificates"
-     "cmake"
-     "curl"
-     "fd-find"
-     "gcc"
-     "git-absorb"
-     "git-lfs"
-     "gnupg"
-     "gpg"
-     "jq"
-     "libfuse2"
-     "lsb-release"
-     "make"
-     "python3-pip"
-	 "inetutils-telnet"
-	 "inotify-tools"
-	 "openssh-server"
-	 "openvpn"
-     "trash-cli"
-     "units"
-     "zsh-autosuggestions"
-     "zsh-syntax-highlighting" -}}
+     "curl" -}}
 
 {{ $fonts := list
      "fonts-firacode"
@@ -52,45 +27,8 @@ fi
 {{ $sudo }}apt install -y {{ $packages | join " " }} {{ $fonts | join " " }}
 
 
-# Helm
-curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | {{ $sudo }}tee /usr/share/keyrings/helm.gpg > /dev/null
-{{ $sudo }}apt install apt-transport-https --yes
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | {{ $sudo }}tee /etc/apt/sources.list.d/helm-stable-debian.list
-{{ $sudo }}apt update
-{{ $sudo }}apt install helm
-
-# Check if Go is enabled and not already installed
-if [ "{{ .goEnabled }}" = "true" ]; then
-  if ! command -v go &> /dev/null; then
-    echo "Go installation..."
-    {{ $sudo }}apt install -y golang-go
-  else
-    echo "Go is already installed. Skipping installation."
-  fi
-fi
-
-# Check if Rust is enabled and not already installed
-if [ "{{ .rustEnabled }}" = "true" ]; then
-  if ! command -v rustc &> /dev/null; then
-    echo "Rust installation..."
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-  else
-    echo "Rust is already installed. Skipping installation."
-  fi
-fi
 
 {{ if not .ephemeral }}
-
-# Install kubectl
-# https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
-{{ $sudo }}apt update
-{{ $sudo }}apt install -y apt-transport-https ca-certificates curl gnupg
-curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.33/deb/Release.key | {{ $sudo }}gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-{{ $sudo }}chmod 644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg # allow unprivileged APT programs to read this keyring
-echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /' | {{ $sudo }}tee /etc/apt/sources.list.d/kubernetes.list
-{{ $sudo }}chmod 644 /etc/apt/sources.list.d/kubernetes.list   # helps tools such as command-not-found to work correctly
-{{ $sudo }}apt update
-{{ $sudo }}apt install -y kubectl
 
 # Check if Proton VPN not already installed
 # https://protonvpn.com/support/official-linux-vpn-debian/
@@ -103,22 +41,6 @@ if ! command -v protonvpn-app &> /dev/null; then
 	{{ $sudo }}apt install libayatana-appindicator3-1 gir1.2-ayatanaappindicator3-0.1 gnome-shell-extension-appindicator
 else
 	echo "Proton Pass is already installed. Skipping installation."
-fi
-
-# Check if not already installed
-if ! command -v atuin &> /dev/null; then
-	echo "Atuin installation..."
-	curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
-else
-	echo "Atuin is already installed. Skipping installation."
-fi
-
-# Check if not already installed
-if ! command -v starship &> /dev/null; then
-	echo "Starship installation..."
-	curl -sS https://starship.rs/install.sh | sh
-else
-	echo "Starship is already installed. Skipping installation."
 fi
 
 {{ end }}
