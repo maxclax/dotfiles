@@ -127,8 +127,21 @@ update_os:
 ifeq ($(UNAME_S), Darwin)
 	@echo "Updating macOS software..."
 	softwareupdate -i -a
+else ifeq ($(UNAME_S), Linux)
+	@echo "Updating Linux system packages..."
+	@if command -v apt >/dev/null 2>&1; then \
+		sudo apt update && sudo apt upgrade -y; \
+	elif command -v dnf >/dev/null 2>&1; then \
+		sudo dnf upgrade -y; \
+	elif command -v pacman >/dev/null 2>&1; then \
+		sudo pacman -Syu --noconfirm; \
+	elif command -v zypper >/dev/null 2>&1; then \
+		sudo zypper update -y; \
+	else \
+		echo "No supported package manager found (apt/dnf/pacman/zypper)"; \
+	fi
 else
-	@echo "That is no Darwin."
+	@echo "Unsupported operating system: $(UNAME_S)"
 endif
 
 update_apps:
@@ -142,8 +155,32 @@ ifeq ($(UNAME_S), Darwin)
 
 	@echo "Updating App Store applications..."
 	mas outdated ; mas upgrade
+else ifeq ($(UNAME_S), Linux)
+	@echo "Updating Home Manager..."
+	$(MAKE) hm_update
+
+	@echo "Updating APT packages..."
+	@if command -v apt >/dev/null 2>&1; then \
+		sudo apt update && sudo apt upgrade -y; \
+	else \
+		echo "APT not available"; \
+	fi
+
+	@echo "Updating Flatpak applications..."
+	@if command -v flatpak >/dev/null 2>&1; then \
+		flatpak update -y; \
+	else \
+		echo "Flatpak not available"; \
+	fi
+
+	@echo "Updating Snap packages..."
+	@if command -v snap >/dev/null 2>&1; then \
+		sudo snap refresh; \
+	else \
+		echo "Snap not available"; \
+	fi
 else
-	@echo "This target is for macOS only."
+	@echo "Unsupported operating system: $(UNAME_S)"
 endif
 
 clear_caches:
