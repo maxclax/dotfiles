@@ -117,7 +117,7 @@ encryption = "age"
     borgEncryptionPassphrase = {{ $borgEncryptionPassphrase }}
     borgWithPushover = {{ promptBoolOnce . "borgWithPushover" "Use Pushover in Borgbackups?" false }}
 
-    fontsEnabled = {{ promptBoolOnce . "fontsEnabled" "Enable FONTS installation?" false }}
+    fontsEnabled = {{ promptBoolOnce . "fontsEnabled" "Enable FONTS installation (from resources dir)?" false }}
     fontsPath = {{ printf "%s/fonts" $resources | quote }}
 
     nvimType = {{ $nvimType | quote }}

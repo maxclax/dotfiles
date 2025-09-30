@@ -87,6 +87,7 @@ fi
 eval "$(direnv hook $shell)"
 eval "$(zoxide init $shell)"
 eval "$(starship init $shell)"
+eval "$(atuin init $shell)"
 
 # ----------------------------
 # shell-specific configuration
@@ -96,26 +97,18 @@ eval "$(starship init $shell)"
 if [[ $shell == "zsh" ]]; then
 	zsh_completion
 elif [[ $shell == "bash" ]]; then
-	bash_completion
+	# Enable bash completion if available
+	if [[ -f /etc/bash_completion ]]; then
+		source /etc/bash_completion
+	elif [[ -f /usr/share/bash-completion/bash_completion ]]; then
+		source /usr/share/bash-completion/bash_completion
+	fi
 fi
 
-# Common initialization for both shells
-if [ -n "$brew_prefix" ]; then
-	# macOS with Homebrew
-	eval "$(atuin init $shell)"
-
-	if [[ $shell == "zsh" ]]; then
-		source <(fzf --zsh)
-	else
-		eval "$(fzf --bash)"
-	fi
+if [[ $shell == "zsh" ]]; then
+	source <(fzf --zsh)
 else
-	# Atuin initialization
-	. "$HOME/.atuin/bin/env"
-	# Bash-specific preexec loader
-	[[ $shell == "bash" && -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh
-	eval "$(atuin init $shell)"
-	####
+	eval "$(fzf --bash)"
 fi
 
 # ----------------------------

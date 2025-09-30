@@ -70,11 +70,12 @@ if podman machine list | grep -q "podman-machine-default"; then
 	podman machine rm -f
 fi
 
-# Only uninstall Podman Mac helper on macOS
+# Only uninstall Podman Mac helper on macOS (if available)
 if [[ "$OSTYPE" == "darwin"* ]]; then
-	echo "Uninstalling Podman Mac helper..."
-	if [ -f "$HOMEBREW_PREFIX/bin/podman-mac-helper" ]; then
-		sudo $HOMEBREW_PREFIX/bin/podman-mac-helper uninstall
+	echo "Checking for Podman Mac helper..."
+	if command -v podman-mac-helper >/dev/null 2>&1; then
+		echo "Uninstalling Podman Mac helper..."
+		sudo podman-mac-helper uninstall
 	fi
 fi
 
