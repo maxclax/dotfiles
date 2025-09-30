@@ -2,6 +2,13 @@
 
 set -e
 
+# Configuration
+GITHUB_USER="maxclax"
+REPO_NAME="dotfiles"
+BRANCH="main"
+GITHUB_URL="https://github.com/${GITHUB_USER}/${REPO_NAME}.git"
+RAW_URL="https://raw.githubusercontent.com/${GITHUB_USER}/${REPO_NAME}/${BRANCH}"
+
 echo "🚀 Starting complete dotfiles installation..."
 echo ""
 
@@ -9,9 +16,9 @@ echo ""
 echo "📋 Step 1: Installing prerequisites (Nix + Home Manager)..."
 echo "📥 Downloading prerequisites script..."
 if command -v curl >/dev/null 2>&1; then
-    curl -fsLS https://raw.githubusercontent.com/maxclax/dotfiles/main/.install-prerequisites.sh | bash
+    curl -fsLS "${RAW_URL}/.install-prerequisites.sh" | bash
 elif command -v wget >/dev/null 2>&1; then
-    wget -qO- https://raw.githubusercontent.com/maxclax/dotfiles/main/.install-prerequisites.sh | bash
+    wget -qO- "${RAW_URL}/.install-prerequisites.sh" | bash
 else
     echo "❌ Error: curl or wget required for installation"
     exit 1
@@ -46,7 +53,7 @@ fi
 # Step 3: Apply dotfiles using chezmoi via nix-shell
 echo "📋 Step 3: Applying dotfiles configuration..."
 nix-shell -p chezmoi --run "
-    chezmoi init --branch main --apply https://github.com/maxclax/dotfiles.git && \
+    chezmoi init --branch ${BRANCH} --apply ${GITHUB_URL} && \
     echo '✅ Dotfiles applied successfully!'
 "
 
