@@ -7,6 +7,11 @@ if [ "{{ .extraUser }}" == "true" ]; then
   exit 0
 fi
 
+{{ $sudo := "sudo " -}}
+{{ if eq .chezmoi.username "root" -}}
+{{   $sudo = "" -}}
+{{ end -}}
+
 {{ if not .ephemeral }}
 # Check if Proton VPN not already installed
 # https://protonvpn.com/support/official-linux-vpn-debian/
