@@ -156,6 +156,15 @@
     # Linux-specific packages only
     atop                   # Advanced system and process monitor
     inotify-tools          # Filesystem event monitoring
+
+{{ if not .ephemeral -}}
+    # GUI
+    i3                     # Tiling window manager
+    keepassxc              # Password manager
+    alacritty              # GPU-accelerated terminal
+    appimage-run           # For running AppImages like Proton VPN
+{{- end }}
+
 {{- end }}
 
     # Conditional Packages

@@ -7,29 +7,7 @@ if [ "{{ .extraUser }}" == "true" ]; then
   exit 0
 fi
 
-{{ $packages := list
-     "curl" -}}
-
-{{ $fonts := list
-     "fonts-firacode"
-     "fonts-jetbrains-mono" -}}
-
-{{ if not .ephemeral -}}
-{{   $packages = concat $packages (list "i3" "keepassxc" "alacritty") -}}
-{{ end -}}
-
-{{ $sudo := "sudo " -}}
-{{ if eq .chezmoi.username "root" -}}
-{{   $sudo = "" -}}
-{{ end -}}
-
-{{ $sudo }}apt update
-{{ $sudo }}apt install -y {{ $packages | join " " }} {{ $fonts | join " " }}
-
-
-
 {{ if not .ephemeral }}
-
 # Check if Proton VPN not already installed
 # https://protonvpn.com/support/official-linux-vpn-debian/
 if ! command -v protonvpn-app &> /dev/null; then
@@ -42,7 +20,6 @@ if ! command -v protonvpn-app &> /dev/null; then
 else
 	echo "Proton Pass is already installed. Skipping installation."
 fi
-
 {{ end }}
 
 
