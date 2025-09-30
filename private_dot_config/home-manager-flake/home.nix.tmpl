@@ -34,4 +34,7 @@
 
   # Font configuration
   fonts.fontconfig.enable = true;
+
+  # Nix configuration
+  home.file.".config/nix/nix.conf".source = ./nix.conf;
 }
