@@ -1,19 +1,21 @@
 # Dotfiles
 
 My personal dotfiles for macOS and Linux, managed with
-[`chezmoi`](https://github.com/twpayne/chezmoi) and secured with
-[age](https://age-encryption.org/) encryption.
+[`chezmoi`](https://github.com/twpayne/chezmoi) and [Nix](https://nixos.org/) with
+[Home Manager](https://github.com/nix-community/home-manager). Secured with
+[age](https://age-encryption.org/) encryption and [1Password](https://1password.com/) integration.
 
 ## Recommendations
 
 1. Fork the repository's main branch.
 2. Follow the instructions below to set up your environment.
-3. Create a personal/me/private branch, and all personal data needs to be stored
-   in this new branch. Then push this branch to your repo.
+3. Create a personal/private branch for your personal data and push to your repo.
 4. Use your personal develop branch between your setups.
 
 ## Prerequisites
 
+- [Nix](https://nixos.org/download.html) package manager
+- [Home Manager](https://github.com/nix-community/home-manager)
 - [chezmoi](https://www.chezmoi.io/)
 - [age](https://age-encryption.org/)
 - [1Password](https://1password.com/) and
@@ -111,41 +113,68 @@ op signin
 
 ## Usage
 
-### Apply Configuration
+### Daily Operations
 
 ```bash
+# Apply dotfiles configuration
 chezmoi apply
-```
 
-### Update Configuration
-
-```bash
-# Pull and apply updates
-chezmoi update
-
-# Edit configuration
-chezmoi edit
-
-# See pending changes
+# See what changes would be applied
 chezmoi diff
 
-# Add new files
+# Pull and apply updates from repository
+chezmoi update
+
+# Add new files to be managed
 chezmoi add FILE
 
-# Add new files with encryption
+# Add encrypted files
 chezmoi add --encrypt FILE
+```
+
+### Package Management with Nix
+
+```bash
+# See what packages will change
+make nix_diff
+
+# Update Nix packages and Home Manager
+make nix_update
+
+# Commit flake.lock changes after update
+make nix_commit
+
+# List all installed packages
+make nix_list
+
+# Rollback to previous generation
+make nix_rollback
+
+# Clean old generations and garbage collect
+make nix_clean
+```
+
+### System Updates
+
+```bash
+# Update all apps and packages (macOS)
+make update_apps
+
+# Update macOS system software
+make update_os
 ```
 
 ## Features
 
-- 🔒 Encrypted sensitive data using age
-- 🔑 Secure credential management with 1Password
-- 📝 Git configuration with SSH signing
-- 🐳 Container setup (Podman/Docker)
-- 🚀 Development environment configurations
-- 📦 Package management
-- 🔧 Various tool configurations
-- 🗄️ Automated backups with Borgmatic
+- 📦 **Nix + Home Manager**: Declarative package management across platforms
+- 🔒 **Age encryption**: Encrypted sensitive data with symmetric keys
+- 🔑 **1Password integration**: Secure credential management via CLI
+- 📝 **Git configuration**: SSH signing with automated setup
+- 🐳 **Container support**: Podman/Docker development environments
+- 🚀 **Multi-editor**: Vim, Neovim (LunarVim, LazyVim), Emacs (Doom, Prelude)
+- 🔧 **Shell configurations**: Zsh, Bash with Starship prompt and Atuin history
+- 🗄️ **Automated backups**: Borgmatic with encrypted repositories
+- 🖥️ **Cross-platform**: macOS and Linux support with platform detection
 
 ## Extra
 
@@ -189,15 +218,25 @@ borgmatic list
 borgmatic prune
 ```
 
-### Atuin Login
+### Development Environment
 
 ```bash
-# Install
-curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
+# Start tmux development environment
+make env
+
+# Kill tmux session
+make tkill
+
+# Start Ollama AI server
+make ollama_start
+
+# Chat with Ollama
+make ollama_chat
 ```
 
-To manually log in to Atuin using credentials stored in 1Password, run the
-following command:
+### Atuin Shell History
+
+Atuin is automatically configured through Nix. To manually log in using 1Password credentials:
 
 ```bash
 atuin login --username "$(op read op://Private/chezmoi-data/atuin-username)" \
