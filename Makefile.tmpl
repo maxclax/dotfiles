@@ -27,41 +27,41 @@ dotfiles_apply_extra:
 dotfiles_update:
 	$(CHEZMOI) update
 
-# Nix management commands
+# Home Manager management commands
 
-nix_diff:
+hm_diff:
 	@echo "📋 Checking what will change..."
-	cd ~/.config/nix && home-manager build --flake ~/.config/nix
-	nix store diff-closures ~/.local/state/nix/profiles/home-manager ~/.config/nix/result
+	cd ~/.config/home-manager-flake && home-manager build --flake ~/.config/home-manager-flake
+	nix store diff-closures ~/.local/state/nix/profiles/home-manager ~/.config/home-manager-flake/result
 
-nix_update:
-	@echo "🔄 Updating Nix flake and Home Manager..."
-	cd ~/.config/nix && nix flake update
-	home-manager switch --flake ~/.config/nix
-	@echo "✅ Update complete! Run 'make nix_commit' to commit the changes"
+hm_update:
+	@echo "🔄 Updating Home Manager flake..."
+	cd ~/.config/home-manager-flake && nix flake update
+	home-manager switch --flake ~/.config/home-manager-flake
+	@echo "✅ Update complete! Run 'make hm_commit' to commit the changes"
 
-nix_commit:
+hm_commit:
 	@echo "📄 Syncing flake.lock to dotfiles..."
-	chezmoi add ~/.config/nix/flake.lock
+	chezmoi add ~/.config/home-manager-flake/flake.lock
 	@echo "📝 Committing updated flake.lock to dotfiles..."
-	cd {{ .chezmoi.sourceDir }} && git add private_dot_config/nix/flake.lock
-	cd {{ .chezmoi.sourceDir }} && git commit -m "dev: update Nix flake.lock - $(shell date '+%Y-%m-%d')"
+	cd {{ .chezmoi.sourceDir }} && git add private_dot_config/home-manager-flake/flake.lock
+	cd {{ .chezmoi.sourceDir }} && git commit -m "dev: update Home Manager flake.lock - $(shell date '+%Y-%m-%d')"
 	@echo "✅ flake.lock changes committed!"
 
-nix_list:
+hm_list:
 	@echo "📦 Home Manager packages:"
 	@home-manager packages | sort
 
-nix_rollback:
+hm_rollback:
 	@echo "🔄 Rolling back Home Manager..."
 	home-manager rollback
 	@echo "✅ Rollback complete!"
 
-nix_generations:
+hm_generations:
 	@echo "📋 Home Manager generations:"
 	home-manager generations
 
-nix_clean:
+hm_clean:
 	@echo "🧹 Cleaning up old generations..."
 	home-manager expire-generations '-30 days'
 	nix-collect-garbage -d
@@ -133,8 +133,8 @@ endif
 
 update_apps:
 ifeq ($(UNAME_S), Darwin)
-	@echo "Updating nix..."
-	$(MAKE) nix_update
+	@echo "Updating Home Manager..."
+	$(MAKE) hm_update
 
 	@echo "Updating Homebrew packages..."
 	brew outdated ; brew update ; brew upgrade --force ; brew upgrade --cask

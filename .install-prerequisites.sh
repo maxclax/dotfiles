@@ -60,6 +60,7 @@ install_nix_and_home_manager() {
 
 		echo 'Home Manager installed successfully!'
 	fi
+
 }
 
 OS="$(uname -s)"
@@ -90,7 +91,3 @@ esac
 echo ""
 echo "🎉 Prerequisites installation complete!"
 echo ""
-echo "Next steps:"
-echo "1. Run: chezmoi init && chezmoi apply"
-echo "2. Restart your shell to pick up new PATH"
-echo "3. Your packages will be managed by Home Manager in ~/.config/nix/"

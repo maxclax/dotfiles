@@ -24,35 +24,17 @@ My personal dotfiles for macOS and Linux, managed with
 ## Quick Install
 
 ```bash
-sh -c "$(curl -fsLS https://raw.githubusercontent.com/maxclax/dotfiles/main/.install-prerequisites.sh)"
-#
-sh -c "$(curl -fsLS get.chezmoi.io)" -- init --branch main --apply maxclax
+sh -c "$(curl -fsLS https://raw.githubusercontent.com/maxclax/dotfiles/main/install.sh)"
 ```
-
-## Manual Installation
-
-1. Install chezmoi:
-
-   ```bash
-   sh -c "$(curl -fsLS https://raw.githubusercontent.com/maxclax/dotfiles/main/.install-prerequisites.sh)"
-   #
-   sh -c "$(curl -fsLS get.chezmoi.io)"
-   ```
-
-2. Initialize chezmoi:
-
-   ```bash
-   chezmoi init --branch main https://github.com/maxclax/dotfiles.git
-   ```
 
 ## Manual Installation (without init)
 
 1. Install chezmoi:
 
    ```bash
+   # brew install curl wget git
+   # sudo apt update && sudo apt install -y curl wget git
    sh -c "$(curl -fsLS https://raw.githubusercontent.com/maxclax/dotfiles/main/.install-prerequisites.sh)"
-   #
-   sh -c "$(curl -fsLS get.chezmoi.io)"
    ```
 
 2. Clone repository directly:
@@ -132,26 +114,26 @@ chezmoi add FILE
 chezmoi add --encrypt FILE
 ```
 
-### Package Management with Nix
+### Package Management with Home Manager
 
 ```bash
 # See what packages will change
-make nix_diff
+make hm_diff
 
-# Update Nix packages and Home Manager
-make nix_update
+# Update Home Manager packages and flake
+make hm_update
 
 # Commit flake.lock changes after update
-make nix_commit
+make hm_commit
 
 # List all installed packages
-make nix_list
+make hm_list
 
 # Rollback to previous generation
-make nix_rollback
+make hm_rollback
 
 # Clean old generations and garbage collect
-make nix_clean
+make hm_clean
 ```
 
 ### System Updates

@@ -26,25 +26,25 @@ chezmoi add <file>
 chezmoi add --encrypt <file>
 ```
 
-### Nix Package Management
+### Home Manager Package Management
 ```bash
 # See what packages will change
-make nix_diff
+make hm_diff
 
-# Update Nix packages and Home Manager
-make nix_update
+# Update Home Manager packages and flake
+make hm_update
 
 # Commit flake.lock changes after update
-make nix_commit
+make hm_commit
 
 # List installed packages
-make nix_list
+make hm_list
 
 # Rollback to previous generation
-make nix_rollback
+make hm_rollback
 
 # Clean old generations
-make nix_clean
+make hm_clean
 ```
 
 ### System Updates (macOS)
@@ -96,16 +96,16 @@ make tkill
 - **`.chezmoi.toml.tmpl`**: Main chezmoi configuration with user prompts and data templating
 - **`Makefile.tmpl`**: Templated Makefile with all management commands
 - **`private_dot_config/`**: Configuration files for various applications
-  - **`nix/`**: Nix and Home Manager configuration
-    - `flake.nix.tmpl`: Nix flake definition
+  - **`home-manager-flake/`**: Home Manager flake configuration
+    - `flake.nix.tmpl`: Home Manager flake definition
     - `home.nix.tmpl`: Main Home Manager configuration
     - `packages.nix.tmpl`: Package definitions
     - `programs/`: Modular program configurations (zsh, vim, etc.)
 
-### Nix Configuration
+### Home Manager Configuration
 
-The Nix setup is modularized:
-- `flake.nix` defines the flake inputs and outputs
+The Home Manager flake setup is modularized:
+- `flake.nix` defines the Home Manager flake inputs and outputs
 - `home.nix` imports modular program configurations
 - `packages.nix` contains all package definitions organized by category
 - `programs/` directory contains individual program configurations
@@ -138,8 +138,8 @@ External repositories are managed via `.chezmoiexternal.yaml.tmpl`:
 2. **Configure**: Edit templates in the source directory
 3. **Test**: Use `chezmoi diff` to preview changes
 4. **Apply**: Use `chezmoi apply` to deploy changes
-5. **Update Packages**: Use `make nix_update` for Nix packages
-6. **Commit**: Use `make nix_commit` to commit flake.lock changes
+5. **Update Packages**: Use `make hm_update` for Home Manager packages
+6. **Commit**: Use `make hm_commit` to commit flake.lock changes
 
 ## Platform Support
 
@@ -150,7 +150,7 @@ External repositories are managed via `.chezmoiexternal.yaml.tmpl`:
 ## Key Features
 
 - Cross-platform dotfile management
-- Declarative package management with Nix
+- Declarative package management with Home Manager
 - Encrypted secrets with age and 1Password
 - Automated backups with Borgmatic
 - Multiple editor configurations (Vim, Emacs distributions)
