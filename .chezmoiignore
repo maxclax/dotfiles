@@ -27,8 +27,6 @@ Library/Application\ Support/lazygit/config.yml
 .claude/
 .config/nvim
 .config/borgmatic.d
-.aider.conf.yml.tmpl
-.authinfo.tmpl
 {{ end }}
 
 key.txt.age
