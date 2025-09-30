@@ -1,0 +1,68 @@
+# -*- mode: nix; -*-
+{ pkgs, ... }:
+
+{
+  # Zsh Configuration with improvements
+  programs.zsh = {
+    enable = true;
+    enableCompletion = true;
+    autosuggestion.enable = true;
+    syntaxHighlighting.enable = true;
+
+    # History configuration
+    history = {
+      size = 10000;
+      save = 10000;
+      share = true;
+      ignoreDups = true;
+      ignoreSpace = true;
+      expireDuplicatesFirst = true;
+    };
+
+    # Better completion
+    completionInit = "autoload -Uz compinit && compinit -C";
+
+    oh-my-zsh = {
+      enable = true;
+      theme = "robbyrussell";
+      plugins = [
+        "brew"
+        "git"
+        "podman"
+        "poetry"
+        "kubectl"
+        "kubectx"
+        "chezmoi"
+        "colored-man-pages"  # Colorized man pages
+        "command-not-found"  # Suggests packages when command not found
+        "sudo"              # Double ESC to add sudo
+        "history"           # Better history commands
+{{- if eq .chezmoi.os "darwin" }}
+        "macos"             # macOS specific commands
+{{- end }}
+      ];
+    };
+
+    shellAliases = {
+      # Original aliases
+      reload-zsh = "source ~/.zshrc";
+      edit-zsh = "nvim ~/.zshrc";
+    };
+
+    initContent = ''
+      # completion using arrow keys (based on history)
+      bindkey '^[[A' history-search-backward
+      bindkey '^[[B' history-search-forward
+
+      # Source file if it exists and have a size greater than zero
+      [[ -s ~/.config/shell/exports.sh ]] && source ~/.config/shell/exports.sh
+      [[ -s ~/.config/shell/aliases.sh ]] && source ~/.config/shell/aliases.sh
+      [[ -s ~/.config/shell/sourcing.sh ]] && source ~/.config/shell/sourcing.sh
+
+      # Source additional configurations from .zshrc.local
+      if [ -f ~/.zshrc.local ]; then
+        source ~/.zshrc.local
+      fi
+    '';
+  };
+}

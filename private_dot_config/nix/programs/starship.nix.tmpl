@@ -1,0 +1,137 @@
+# -*- mode: nix; -*-
+{ pkgs, ... }:
+
+{
+  # Starship Configuration
+  programs.starship = {
+    enable = true;
+
+    settings = {
+      add_newline = true;
+      format = "$all$line_break$directory$character";
+      command_timeout = 5000;
+      palette = "gruvbox_dark";
+
+      # Directory substitutions with chezmoi variables
+      directory.substitutions = {
+        "{{ .workspace }}" = "workspace";
+        "{{ .workspace_extra }}" = "workspace_extra";
+        "{{ .resources }}" = "resources";
+        "{{ .playground }}" = "playground";
+      };
+
+      # Username configuration
+      username = {
+        style_user = "bg:color_orange fg:color_fg0";
+        style_root = "bg:color_orange fg:color_fg0";
+        format = "[](color_orange)$user ($style) ]";
+        disabled = true;
+        show_always = true;
+        aliases = { "a" = "b"; };
+      };
+
+      # Time configuration
+      time = {
+        disabled = false;
+        style = "bg:color_bg1";
+        format = "[[ $time ](fg:color_fg0 bg:color_bg1)]($style)";
+        time_format = "%T";
+        utc_time_offset = "+2";
+      };
+
+      # Cloud providers
+      gcloud.disabled = true;
+
+      aws = {
+        format = "[$symbol(profile: \"$profile\" )(\\(region: $region\\) )]($style)";
+        disabled = true;
+        style = "bold blue";
+        symbol = " ";
+      };
+
+      # Git configuration
+      git_branch = {
+        format = "on [$symbol$branch(:$remote_branch)]($style)";
+      };
+
+      git_status = {
+        format = "([\\[$all_status$ahead_behind\\]]($style) ) ";
+        untracked = "?$\{count}";
+        ahead = "⇡$\{count}";
+        staged = "[++\\($count\\)](green)";
+        modified = "!$\{count}";
+      };
+
+      # Language and tool configurations
+      golang = {
+        format = "[ ](bold cyan)";
+      };
+
+      # Python and UV configuration
+      python = {
+        format = "[(\($virtualenv\) )]($style)";
+        style = "yellow bold";
+        python_binary = ["python3" "python"];
+        detect_extensions = ["py"];
+        detect_files = ["requirements.txt" "pyproject.toml" ".python-version" "Pipfile" "tox.ini"];
+        detect_folders = [".venv"];
+      };
+
+      # Node.js and Vue.js configuration
+      nodejs = {
+        format = "[$symbol($version )]($style)";
+        symbol = " ";
+        style = "green bold";
+        detect_extensions = ["js" "mjs" "cjs" "ts" "vue"];
+        detect_files = ["package.json" ".nvmrc" ".node-version" "vue.config.js" "nuxt.config.js"];
+        detect_folders = ["node_modules"];
+      };
+
+      # Vite and Vue.js configuration
+      custom.vite = {
+        command = "vite --version 2>/dev/null | head -1 || echo ''";
+        when = "[ -f vite.config.js ] || [ -f vite.config.ts ] || grep -q '\"vite\"' package.json 2>/dev/null";
+        format = "[⚡ $output]($style)";
+        style = "yellow bold";
+        shell = ["bash" "--noprofile" "--norc"];
+      };
+
+      custom.vue = {
+        command = "echo $(grep -o '\"vue\":[[:space:]]*\"[^\"]*\"' package.json 2>/dev/null | grep -o '[0-9]\\+\\.[0-9]\\+\\.[0-9]\\+' || echo '')";
+        when = "grep -q '\"vue\"' package.json 2>/dev/null";
+        format = "[󰡄 v$output]($style)";
+        style = "green bold";
+        shell = ["bash" "--noprofile" "--norc"];
+      };
+
+      kubernetes = {
+        symbol = "☸ ";
+        disabled = false;
+        format = "[$symbol$context( \\($namespace\\))]($style) ";
+      };
+
+      docker_context.disabled = true;
+
+      # Command duration
+      cmd_duration = {
+        min_time = 2000;  # Show duration for commands taking 2+ seconds
+        format = "[$duration]($style) ";
+        style = "yellow bold";
+      };
+
+      # Gruvbox Dark color palette
+      palettes.gruvbox_dark = {
+        color_fg0 = "#fbf1c7";
+        color_bg1 = "#3c3836";
+        color_bg3 = "#665c54";
+        color_blue = "#458588";
+        color_aqua = "#689d6a";
+        color_green = "#98971a";
+        color_orange = "#d65d0e";
+        color_purple = "#b16286";
+        color_red = "#cc241d";
+        color_yellow = "#d79921";
+      };
+    };
+  };
+}

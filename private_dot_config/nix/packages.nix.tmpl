@@ -1,0 +1,189 @@
+# -*- mode: nix; -*-
+{ pkgs, ... }:
+
+{
+  # The home.packages option allows you to install Nix packages into your environment
+  home.packages = with pkgs; [
+    # Core System & CLI Tools
+    age                    # Encryption with GPG keys
+    atuin                  # Magical shell history
+    bandwhich              # Network utilization display
+    bat                    # Cat clone with syntax highlighting
+    btop                   # Resource monitor
+    chezmoi                # Manage dotfiles across machines
+    curl                   # Transfer data with URLs
+    direnv                 # Environment switcher for shell
+    duf                    # Disk Usage/Free Utility
+    eza                    # Modern replacement for 'ls'
+    fd                     # Simple, fast, user-friendly 'find'
+    fzf                    # Command-line fuzzy finder
+    gh                     # GitHub command-line tool
+    git                    # Distributed version control
+    htop                   # Interactive process viewer
+    lazygit                # Simple terminal UI for Git
+    lsof                   # List open files
+    ncdu                   # Disk usage analyzer
+    neofetch               # System information tool
+    ripgrep                # Recursively searches directories
+    shellcheck             # Shell script static analysis
+    starship               # Cross-shell prompt
+    tmux                   # Terminal multiplexer
+    tree                   # Display directory tree
+    wget                   # Retrieve files from web
+    zoxide                 # A smarter cd command
+    zsh                    # Z shell
+
+    # ----------------------------------------------------------------------------
+    # Development machines
+    # ----------------------------------------------------------------------------
+{{- if eq .chezmoi.os "darwin" }}
+    # AI Development Tools
+    aider-chat
+    claude-code
+    codex
+    gemini-cli
+    ollama                 # Run large language models
+
+    # Advanced Development & Programming
+    _1password-cli         # 1Password CLI
+    borgbackup             # Deduplicating backup program
+    borgmatic              # BorgBackup wrapper
+    chafa                  # Image to terminal converter
+    cmake                  # Cross-platform build system
+    cmatrix                # Matrix digital rain effect
+    coreutils-prefixed     # GNU core utilities with 'g' prefix
+    cowsay                 # ASCII pictures of a cow with a message - TEST PACKAGE
+    ctop                   # Top-like interface for containers
+    discount               # Markdown C implementation
+    fontconfig             # Library for configuring fonts
+    gcc                    # GNU Compiler Collection
+    glances                # System monitoring tool
+    gnumake                # GNU make utility
+    graphviz               # Graph visualization software
+    gtrash                 # Trash can for command-line
+    hcloud                 # Hetzner Cloud CLI
+    hey                    # HTTP load generator
+    hugo                   # Fast static site generator
+    iftop                  # Display bandwidth usage
+    imagemagick            # Convert, edit, compose images
+    k6                     # Modern load testing tool
+    lazydocker             # Simple terminal UI for Docker
+    luarocks               # Package manager for Lua
+    neovim                 # Hyperextensible Vim-based editor
+    nixfmt                 # Nix code formatter
+    nmap                   # Network discovery and security
+    pay-respects           # Pay respects
+    pnpm                   # Fast, efficient package manager
+    ranger                 # Console file manager
+    ruff                   # Extremely fast Python linter
+    sl                     # Steam locomotive animation
+    slides                 # Terminal presentation tool
+    speedtest-cli          # Test internet bandwidth
+    stylelint              # Linter for CSS
+    tldr                   # Collaborative cheatsheets
+    tmuxinator             # Manage complex tmux sessions
+    tree-sitter            # Parser generator tool
+    trufflehog             # Find leaked credentials
+    uv                     # Fast Python package installer
+    vips                   # Fast image processing library
+    watch                  # Execute a program periodically
+
+    # Kubernetes & Cloud Development
+    k9s                    # Kubernetes CLI To Manage Clusters
+    kind                   # Kubernetes IN Docker
+    kubectl                # Kubernetes command-line tool
+    kubectx                # Switch between k8s contexts
+    kubernetes-helm        # Kubernetes package manager
+    linkerd                # Service mesh for Kubernetes
+    popeye                 # Kubernetes cluster sanitizer
+    stern                  # Multi pod log tailing
+    terraform              # Infrastructure as Code
+
+    # Language-specific packages for development
+    # Python
+    pipenv                 # Python dependency management
+    python3                # The Python programming language
+    python3Packages.editorconfig # EditorConfig for Python
+    python3Packages.isort  # Sort Python imports
+    python3Packages.ptpython # Advanced Python REPL
+    python3Packages.pytest # Python testing framework
+
+    # Node.js
+    nodePackages.cspell    # Spell checker for code
+    nodePackages.js-beautify # Beautifier for JavaScript
+    nodejs                 # JavaScript runtime
+
+    # Emacs
+    emacsPackages.editorconfig # EditorConfig for Emacs
+
+    # Development utilities
+    aspell                 # Spell checker
+    pgcli                  # Postgres CLI with autocompletion
+
+    # macOS-specific packages
+    dockutil               # Manage macOS Dock items
+    jankyborders           # Borders for macOS windows
+    mas                    # Mac App Store CLI
+    pngpaste               # Paste PNG into file
+{{- end }}
+
+    # ----------------------------------------------------------------------------
+    # Server/Headless machines (rp-, debian, ubuntu, centos)
+    # ----------------------------------------------------------------------------
+{{- if eq .chezmoi.os "linux" }}
+    asciinema
+    atop
+    bash
+    build-essential
+    ca-certificates
+    cmake
+    curl
+    fd-find
+    gcc
+    git-absorb
+    git-lfs
+    gnupg
+    gpg
+    jq
+    libfuse2
+    lsb-release
+    make
+    python3-pip
+	inetutils-telnet
+	inotify-tools
+	openssh-server
+	openvpn
+    trash-cli
+    units
+    zsh-autosuggestions
+    zsh-syntax-highlighting
+
+    fonts-firacode
+    fonts-jetbrains-mono
+
+    kubectl                # Kubernetes command-line tool
+    kubectx                # Switch between k8s contexts
+    kubernetes-helm        # Kubernetes package manager
+{{- end }}
+
+    # Conditional Packages
+{{- if .podmanEnabled }}
+    podman                 # Daemonless container engine
+    podman-compose         # Run docker-compose.yml
+{{- end }}
+{{- if .dockerEnabled }}
+    docker                 # Containerization platform
+    docker-compose         # Run multi-container applications
+{{- end }}
+{{- if .goEnabled }}
+    go                     # The Go programming language
+    gomodifytags           # Go tool to modify struct tags
+    gotests                # Go test generator
+    gore                   # Go REPL
+{{- end }}
+{{- if .rustEnabled }}
+    rustc                  # The Rust compiler
+    rustup                 # Rust toolchain installer
+{{- end }}
+  ];
+}

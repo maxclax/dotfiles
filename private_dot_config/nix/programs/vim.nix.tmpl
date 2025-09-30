@@ -1,0 +1,81 @@
+# -*- mode: nix; -*-
+{ pkgs, ... }:
+
+{
+  # Vim Configuration with plugins
+  programs.vim = {
+    enable = true;
+
+    plugins = with pkgs.vimPlugins; [
+      # Core plugins
+      vim-fugitive              # Git integration
+      vim-vinegar               # - to open netrw
+      vim-airline               # powerline
+      easymotion                # better move commands
+      vim-tmux-navigator        # better tmux integration
+      supertab                  # more powerful <tab>
+      goyo-vim                  # distraction-free writing
+      vim-dirvish               # less buggy netrw alternative
+      nerdtree                  # file explorer
+      typescript-vim            # typescript syntax
+      ack-vim                   # ack integration
+      vim-mundo                 # visualize the undo tree
+      tcomment_vim              # commenting helpers
+      vim-abolish               # change case on the fly
+      vim-repeat                # repeat everything
+      vim-surround              # better surround commands
+      vim-unimpaired            # pairs of helpful commands
+      vimwiki                   # personal wiki
+      ale                       # async syntax checker
+      ctrlp-vim                 # Ctrl+p to fuzzy search
+      fzf-vim                   # fzf integration
+
+      # Color schemes
+      papercolor-theme          # PaperColor theme
+      vim-colors-solarized      # Solarized theme
+      vim-colorschemes          # Collection of color schemes
+    ];
+
+    extraConfig = ''
+      " -*- mode: vimrc -*-"
+
+      " Load the rest of your configuration
+      source $HOME/.config/vim/settings/configs.vim
+      source $HOME/.config/vim/settings/functions.vim
+      source $HOME/.config/vim/settings/mappings.vim
+      source $HOME/.config/vim/settings/commands.vim
+
+      " Plugin configurations (from your plugins.vim)
+      let g:plug_timeout = 300
+
+      " nerdtree
+      let NERDTreeIgnore=['\.pyc$', '\~$']
+      let NERDTreeShowBookmarks=1
+      let NERDTreeHijackNetrw=0
+      let g:NERDTreeFileLines = 1
+
+      " CtrlP
+      let g:ctrlp_working_path_mode = 'ra'
+
+      " fzf
+      let $FZF_DEFAULT_COMMAND = 'list_all_files'
+      nnoremap <c-p> :FZF<cr>
+      set grepprg=rg\ --vimgrep\ --smart-case\ --follow
+
+      " vim-test
+      let test#strategy = "dispatch"
+
+      " ack -> ag
+      if executable('ag')
+        let g:ackprg = 'ag --vimgrep'
+      endif
+
+      " :Far -> ag
+      let g:far#source = 'ag'
+
+      " Mundo
+      let g:gundo_preview_bottom = 1
+      nnoremap <F5> :MundoToggle<cr>
+    '';
+  };
+}

@@ -1,0 +1,94 @@
+# -*- mode: nix; -*-
+{ pkgs, ... }:
+
+{
+  # Atuin Configuration
+  programs.atuin = {
+    enable = true;
+
+    settings = {
+      # Main settings
+      auto_sync = true;
+      sync_frequency = "5m";
+      search_mode = "fuzzy";
+      filter_mode = "global";
+      enter_accept = false;
+      show_preview = true;
+      style = "compact";
+      inline_height = 20;
+
+      # Better defaults
+      update_check = false;
+      secrets_filter = true;
+      workspaces = true;
+
+      # History filter (with chezmoi template)
+      history_filter = [
+        "^cd {{ .workspace_extra }}/www/.*"
+        ".*{{ .workspace_extra }}/www/.*"
+        "^secret-cmd"
+        "^innocuous-cmd .*--secret=.+"
+        # Common noise commands
+        "^ls$"
+        "^pwd$"
+        "^exit$"
+        "^clear$"
+        "^history$"
+      ];
+
+      # Stats configuration
+      stats = {
+        common_subcommands = [
+          "apt"
+          "cargo"
+          "chezmoi"
+          "composer"
+          "dnf"
+          "docker"
+          "git"
+          "go"
+          "home-manager"
+          "ip"
+          "kubectl"
+          "nix"
+          "nix-env"
+          "nmcli"
+          "npm"
+          "pecl"
+          "pnpm"
+          "podman"
+          "port"
+          "sudo"
+          "systemctl"
+          "tmux"
+          "yarn"
+        ];
+
+        # Ignore simple navigation commands from stats
+        ignored_commands = [
+          "cd"
+          "ls"
+          "pwd"
+          "exit"
+          "clear"
+        ];
+      };
+
+      # Sync configuration
+      sync = {
+        records = true;
+      };
+
+      # Preview configuration
+      preview = {
+        strategy = "auto";
+      };
+
+      # Daemon configuration for better performance
+      daemon = {
+        enabled = false;  # Set to true if you want background sync
+        sync_frequency = 300;
+      };
+    };
+  };
+}

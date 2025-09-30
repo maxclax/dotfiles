@@ -111,3 +111,8 @@
 (add-hook 'emacs-startup-hook
           (lambda ()
             (run-with-timer 2 nil #'pomm)))
+
+;; Enable rainbow-mode globally
+(use-package! rainbow-mode
+  :config
+  (add-hook 'after-init-hook 'rainbow-mode))
