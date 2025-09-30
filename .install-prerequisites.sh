@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# Clean up existing chezmoi installation to start fresh
+echo "Cleaning up existing chezmoi installation..."
+rm -rf ~/.local/share/chezmoi
+
 # SUDO function to handle command execution with proper privileges
 SUDO() {
 	if command -v sudo >/dev/null 2>&1; then
