@@ -28,7 +28,7 @@ install_nix_and_home_manager() {
 	if command -v nix >/dev/null 2>&1; then
 		echo 'Nix is already installed'
 	else
-		if [[ "$(uname)" == "Darwin" ]]; then
+		if [ "$(uname)" = "Darwin" ]; then
 			echo 'Installing Nix using nix-darwin installer...'
 			curl -L https://nixos.org/nix/install | sh -s -- --darwin-use-unencrypted-nix-store-volume
 		else
@@ -38,9 +38,9 @@ install_nix_and_home_manager() {
 	fi
 
     if [ -f '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
-        source '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
+        . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
     elif [ -f "$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
-        source "$HOME/.nix-profile/etc/profile.d/nix.sh"
+        . "$HOME/.nix-profile/etc/profile.d/nix.sh"
     fi
 
 	if command -v home-manager >/dev/null 2>&1; then
