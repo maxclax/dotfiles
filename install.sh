@@ -5,15 +5,15 @@ set -e
 echo "🚀 Starting complete dotfiles installation..."
 echo ""
 
-# Get script directory
-script_dir="$(cd -P -- "$(dirname -- "$(command -v -- "$0")")" && pwd -P)"
-
 # Step 1: Install prerequisites (Nix + Home Manager)
 echo "📋 Step 1: Installing prerequisites (Nix + Home Manager)..."
-if [ -f "${script_dir}/.install-prerequisites.sh" ]; then
-    bash "${script_dir}/.install-prerequisites.sh"
+echo "📥 Downloading prerequisites script..."
+if command -v curl >/dev/null 2>&1; then
+    curl -fsLS https://raw.githubusercontent.com/maxclax/dotfiles/main/.install-prerequisites.sh | bash
+elif command -v wget >/dev/null 2>&1; then
+    wget -qO- https://raw.githubusercontent.com/maxclax/dotfiles/main/.install-prerequisites.sh | bash
 else
-    echo "❌ Error: .install-prerequisites.sh not found in ${script_dir}"
+    echo "❌ Error: curl or wget required for installation"
     exit 1
 fi
 
