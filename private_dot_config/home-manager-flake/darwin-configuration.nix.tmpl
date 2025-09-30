@@ -1,0 +1,37 @@
+# -*- mode: nix; -*-
+{ config, pkgs, ... }:
+
+{
+  # Basic system configuration
+  system.stateVersion = 5;
+
+  # Enable nix experimental features
+  nix.settings.experimental-features = "nix-command flakes";
+
+  # Basic system packages (minimal for now)
+  environment.systemPackages = with pkgs; [
+    vim
+  ];
+
+  # User configuration
+  users.users."{{ .chezmoi.username }}" = {
+    name = "{{ .chezmoi.username }}";
+    home = "{{ .chezmoi.homeDir }}";
+  };
+
+  # Placeholder sections for future migration
+  # These will be populated when we migrate from shell scripts
+
+  # homebrew = {
+  #   enable = true;
+  #   # Homebrew packages will be migrated here
+  # };
+
+  # system.defaults = {
+  #   # macOS system defaults will be migrated here
+  # };
+
+  # fonts.packages = with pkgs; [
+  #   # Font packages will be migrated here
+  # ];
+}

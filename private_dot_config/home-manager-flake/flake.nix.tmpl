@@ -9,13 +9,46 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+{{- if eq .chezmoi.os "darwin" }}
+    nix-darwin = {
+      url = "github:LnL7/nix-darwin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+{{- end }}
   };
 
-  outputs = { nixpkgs, home-manager, ... }:
+  outputs = { nixpkgs, home-manager{{- if eq .chezmoi.os "darwin" }}, nix-darwin{{- end }}, ... }:
     let
       system = "{{- if eq .chezmoi.arch "arm64" }}aarch64{{- else }}{{ .chezmoi.arch }}{{- end }}-{{ .chezmoi.os }}";
       pkgs = nixpkgs.legacyPackages.${system};
     in {
+{{- if eq .chezmoi.os "darwin" }}
+      # nix-darwin configuration for macOS
+      darwinConfigurations."{{ .chezmoi.hostname }}" = nix-darwin.lib.darwinSystem {
+        inherit system;
+        modules = [
+          ./darwin-configuration.nix
+          home-manager.darwinModules.home-manager
+          {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.users."{{ .chezmoi.username }}" = import ./home.nix;
+            home-manager.extraSpecialArgs = {
+              inherit system;
+              chezmoi = {
+                os = "{{ .chezmoi.os }}";
+                arch = "{{ .chezmoi.arch }}";
+                hostname = "{{ .chezmoi.hostname }}";
+                username = "{{ .chezmoi.username }}";
+                homeDir = "{{ .chezmoi.homeDir }}";
+              };
+            };
+          }
+        ];
+      };
+{{- else }}
+      # Home Manager only configuration for Linux
       homeConfigurations."{{ .chezmoi.username }}" = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
 
@@ -34,5 +67,6 @@
           };
         };
       };
+{{- end }}
     };
 }
