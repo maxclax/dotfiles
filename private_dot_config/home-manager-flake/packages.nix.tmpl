@@ -12,27 +12,39 @@
     btop                   # Resource monitor
     chezmoi                # Manage dotfiles across machines
     curl                   # Transfer data with URLs
+    cmake                  # Cross-platform build system
     direnv                 # Environment switcher for shell
     duf                    # Disk Usage/Free Utility
+    gcc                    # GNU Compiler Collection
+    gnumake                # GNU make utility
     eza                    # Modern replacement for 'ls'
     fd                     # Simple, fast, user-friendly 'find'
     fzf                    # Command-line fuzzy finder
     gh                     # GitHub command-line tool
     git                    # Distributed version control
+    git-lfs
+    gtrash                 # Trash can for command-line
+    trash-cli
     htop                   # Interactive process viewer
     lazygit                # Simple terminal UI for Git
     lsof                   # List open files
     ncdu                   # Disk usage analyzer
     neofetch               # System information tool
     ripgrep                # Recursively searches directories
+    pipenv                 # Python dependency management
+    python3                # The Python programming language
     shellcheck             # Shell script static analysis
     starship               # Cross-shell prompt
     tmux                   # Terminal multiplexer
     tree                   # Display directory tree
+    telnet                 
     wget                   # Retrieve files from web
     zoxide                 # A smarter cd command
     zsh                    # Z shell
 
+    kubectl                # Kubernetes command-line tool
+    kubectx                # Switch between k8s contexts
+    kubernetes-helm        # Kubernetes package manager
     # ----------------------------------------------------------------------------
     # Development machines
     # ----------------------------------------------------------------------------
@@ -49,18 +61,14 @@
     borgbackup             # Deduplicating backup program
     borgmatic              # BorgBackup wrapper
     chafa                  # Image to terminal converter
-    cmake                  # Cross-platform build system
     cmatrix                # Matrix digital rain effect
     coreutils-prefixed     # GNU core utilities with 'g' prefix
     cowsay                 # ASCII pictures of a cow with a message - TEST PACKAGE
     ctop                   # Top-like interface for containers
     discount               # Markdown C implementation
     fontconfig             # Library for configuring fonts
-    gcc                    # GNU Compiler Collection
     glances                # System monitoring tool
-    gnumake                # GNU make utility
     graphviz               # Graph visualization software
-    gtrash                 # Trash can for command-line
     hcloud                 # Hetzner Cloud CLI
     hey                    # HTTP load generator
     hugo                   # Fast static site generator
@@ -91,9 +99,6 @@
     # Kubernetes & Cloud Development
     k9s                    # Kubernetes CLI To Manage Clusters
     kind                   # Kubernetes IN Docker
-    kubectl                # Kubernetes command-line tool
-    kubectx                # Switch between k8s contexts
-    kubernetes-helm        # Kubernetes package manager
     linkerd                # Service mesh for Kubernetes
     popeye                 # Kubernetes cluster sanitizer
     stern                  # Multi pod log tailing
@@ -101,8 +106,6 @@
 
     # Language-specific packages for development
     # Python
-    pipenv                 # Python dependency management
-    python3                # The Python programming language
     python3Packages.editorconfig # EditorConfig for Python
     python3Packages.isort  # Sort Python imports
     python3Packages.ptpython # Advanced Python REPL
@@ -134,36 +137,25 @@
     asciinema
     atop
     bash
-    build-essential
-    ca-certificates
-    cmake
-    curl
-    fd-find
-    gcc
+    pkg-config
+    cacert                 # ca-certificates equivalent
     git-absorb
-    git-lfs
     gnupg
     gpg
     jq
-    libfuse2
-    lsb-release
-    make
-    python3-pip
-	inetutils-telnet
-	inotify-tools
-	openssh-server
-	openvpn
-    trash-cli
+    fuse                   # libfuse2 equivalent
+    inotify-tools
+    openssh                # openssh-server equivalent
+    openvpn
     units
-    zsh-autosuggestions
-    zsh-syntax-highlighting
 
-    fonts-firacode
-    fonts-jetbrains-mono
-
-    kubectl                # Kubernetes command-line tool
-    kubectx                # Switch between k8s contexts
-    kubernetes-helm        # Kubernetes package manager
+    # Fonts
+    fira-code
+    fira-code-nerdfont
+    jetbrains-mono
+    font-awesome
+    noto-fonts
+    noto-fonts-emoji
 {{- end }}
 
     # Conditional Packages
