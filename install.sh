@@ -65,7 +65,12 @@ fi
 # Step 4: Set up Home Manager
 echo ""
 echo "📋 Step 4: Setting up Home Manager..."
-if home-manager switch --flake ~/.config/home-manager-flake; then
+echo "🔧 Enabling Nix experimental features..."
+
+# Enable experimental features for this session
+export NIX_CONFIG="experimental-features = nix-command flakes"
+
+if home-manager switch --flake ~/.config/home-manager-flake --extra-experimental-features "nix-command flakes"; then
     echo "✅ Home Manager setup complete!"
 else
     echo "❌ Error: Home Manager setup failed"
