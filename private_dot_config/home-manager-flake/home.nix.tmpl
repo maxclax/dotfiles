@@ -37,4 +37,7 @@
 
   # Nix configuration
   home.file.".config/nix/nix.conf".source = ./nix.conf;
+
+  # Enable desktop integration for GUI applications
+  targets.genericLinux.enable = true;
 }
