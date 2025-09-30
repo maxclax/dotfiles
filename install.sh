@@ -70,7 +70,7 @@ echo "🔧 Enabling Nix experimental features..."
 # Enable experimental features for this session
 export NIX_CONFIG="experimental-features = nix-command flakes"
 
-if home-manager switch --flake ~/.config/home-manager-flake --extra-experimental-features "nix-command flakes"; then
+if home-manager switch --flake ~/.config/home-manager-flake --extra-experimental-features "nix-command flakes" -b backup; then
     echo "✅ Home Manager setup complete!"
 else
     echo "❌ Error: Home Manager setup failed"
