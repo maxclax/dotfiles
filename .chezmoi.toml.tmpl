@@ -103,6 +103,7 @@ encryption = "age"
     osid = {{ $osID | quote }}
     unameArch = {{ output "uname" "-m" | trim | quote }}
     extraUser = {{ promptBoolOnce . "extraUser" "Extra user? True if all were instaled by main user" false }}
+    useOp = {{ $useOp }}
 
     workspace = {{ $workspace | quote }}
     workspace_extra = {{ $workspace_extra | quote }}

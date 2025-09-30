@@ -15,6 +15,7 @@ personal = false
 osid = "linux-debian"
 unameArch = "aarch64"
 extraUser = false
+useOp = false
 
 workspace = "USER_HOME/workspace"
 workspace_extra = "USER_HOME/workspace_extra"
