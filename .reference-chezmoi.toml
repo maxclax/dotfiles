@@ -49,13 +49,6 @@ goEnabled = false
 
 rustEnabled = false
 
-pythonEnabled = false
-pythonVersion = "3.13.1"
-
-ollamaPidFile = "/tmp/ollama.pid"
-ollamaPort = 11434
-ollamaModel = "llama3.2:latest"
-
 torproxyHost = "localhost"
 torproxyPortSocks5 = 9150
 torproxyPortDns = 8893

@@ -209,11 +209,6 @@ make env
 # Kill tmux session
 make tkill
 
-# Start Ollama AI server
-make ollama_start
-
-# Chat with Ollama
-make ollama_chat
 ```
 
 ### Atuin Shell History

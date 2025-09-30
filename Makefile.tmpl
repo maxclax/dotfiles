@@ -179,48 +179,6 @@ rm_none_images:
 k9s:
 	@k9s
 
-# Ollama
-
-# Function to kill process using the defined port
-ollama_kill_port:
-	@PORT_PID=$$(lsof -ti tcp:{{ .ollamaPort }}); \
-	if [ -n "$$PORT_PID" ]; then \
-		echo "Killing process on port {{ .ollamaPort }}..."; \
-		kill -9 $$PORT_PID; \
-	fi
-
-# Start ollama server in the background and save the PID
-ollama_start: ollama_kill_port
-	@echo "Starting ollama server..."
-	@ollama serve & echo $$! > {{ .ollamaPidFile }}
-	@sleep 2 # Give the server some time to start
-	@echo "Ollama server started with PID $$(cat {{ .ollamaPidFile }})"
-
-# Stop all ollama server processes, regardless of PID file
-ollama_stop:
-	@if pgrep -f "ollama" > /dev/null; then \
-		echo "Stopping all ollama server processes..."; \
-		pkill -f "ollama"; \
-		echo "All ollama server processes stopped."; \
-	else \
-		echo "No ollama server processes running."; \
-	fi
-	@rm -f {{ .ollamaPidFile }}
-
-# Pull the Ollama model and update it
-ollama_pull:
-	@echo "Pulling and updating Ollama model {{ .ollamaModel }}..."
-	@ollama pull {{ .ollamaModel }}
-
-# Chat with Ollama (ensure the server is running first)
-ollama_chat:
-	@if [ -f {{ .ollamaPidFile }} ]; then \
-		echo "Running model {{ .ollamaModel }}..."; \
-		ollama run {{ .ollamaModel }}; \
-	else \
-		echo "Ollama server is not running. Start it first."; \
-	fi
-
 # Tor
 proxy_start:
 	$(CONTAINER_ENGINE) run -d --restart=always --name torproxy -p 127.0.0.1:{{- .torproxyPortSocks5 -}}:9150/tcp -p 127.0.0.1:{{- .torproxyPortDns -}}:8853/udp peterdavehello/tor-socks-proxy:latest
