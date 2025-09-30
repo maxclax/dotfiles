@@ -46,7 +46,7 @@ fi
 # Step 3: Apply dotfiles using chezmoi via nix-shell
 echo "📋 Step 3: Applying dotfiles configuration..."
 nix-shell -p chezmoi --run "
-    chezmoi init --apply --source='${script_dir}' && \
+    chezmoi init --branch main --apply https://github.com/maxclax/dotfiles.git && \
     echo '✅ Dotfiles applied successfully!'
 "
 
