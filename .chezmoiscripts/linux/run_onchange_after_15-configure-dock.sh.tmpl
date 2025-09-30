@@ -1,0 +1,48 @@
+#!/bin/bash
+
+set -eufo pipefail
+
+# Linux Dock/Panel Configuration
+
+# Detect desktop environment
+if [ "$XDG_CURRENT_DESKTOP" = "GNOME" ] || [ "$DESKTOP_SESSION" = "gnome" ]; then
+	echo "Configuring GNOME dock..."
+
+	# Define favorite applications (add terminal, remove defaults)
+	FAVORITE_APPS="['org.gnome.Terminal.desktop', 'firefox.desktop', 'org.gnome.Nautilus.desktop', 'code.desktop']"
+
+	# Set favorite applications in GNOME dock
+	gsettings set org.gnome.shell favorite-apps "$FAVORITE_APPS"
+
+	echo "GNOME dock configured with terminal and essential apps"
+
+elif [ "$XDG_CURRENT_DESKTOP" = "KDE" ] || [ "$DESKTOP_SESSION" = "plasma" ]; then
+	echo "Configuring KDE panel..."
+
+	# KDE panel configuration is complex, keeping minimal
+	echo "KDE panel configuration would go here"
+	echo "Consider using System Settings > Task Switcher for manual configuration"
+
+elif command -v plank >/dev/null 2>&1; then
+	echo "Configuring Plank dock..."
+
+	# Elementary OS or systems with Plank
+	# Plank configuration goes in ~/.config/plank/dock1/launchers/
+	mkdir -p ~/.config/plank/dock1/launchers
+
+	# Add terminal launcher (if not exists)
+	if [ ! -f ~/.config/plank/dock1/launchers/gnome-terminal.dockitem ]; then
+		cat > ~/.config/plank/dock1/launchers/gnome-terminal.dockitem << EOF
+[PlankDockItemPreferences]
+Launcher=file:///usr/share/applications/gnome-terminal.desktop
+EOF
+	fi
+
+	echo "Plank dock configured with terminal launcher"
+
+else
+	echo "Unknown desktop environment or dock manager"
+	echo "Desktop: $XDG_CURRENT_DESKTOP"
+	echo "Session: $DESKTOP_SESSION"
+	echo "Manual dock configuration may be required"
+fi

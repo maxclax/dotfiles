@@ -32,7 +32,7 @@ dotfiles_update:
 hm_diff:
 	@echo "📋 Checking what will change..."
 {{- if eq .chezmoi.os "darwin" }}
-	cd ~/.config/home-manager-flake && darwin-rebuild build --flake ~/.config/home-manager-flake
+	cd ~/.config/home-manager-flake && sudo darwin-rebuild build --flake ~/.config/home-manager-flake
 	nix store diff-closures /run/current-system ~/.config/home-manager-flake/result
 {{- else }}
 	cd ~/.config/home-manager-flake && home-manager build --flake ~/.config/home-manager-flake
@@ -43,8 +43,8 @@ hm_update:
 	@echo "🔄 Updating flake..."
 	cd ~/.config/home-manager-flake && nix flake update
 {{- if eq .chezmoi.os "darwin" }}
-	@echo "🍎 Applying nix-darwin configuration..."
-	darwin-rebuild switch --flake ~/.config/home-manager-flake
+	@echo "🍎 Applying nix-darwin configuration (requires password)..."
+	sudo darwin-rebuild switch --flake ~/.config/home-manager-flake
 {{- else }}
 	@echo "🐧 Applying Home Manager configuration..."
 	home-manager switch --flake ~/.config/home-manager-flake
@@ -157,15 +157,8 @@ endif
 
 update_apps:
 ifeq ($(UNAME_S), Darwin)
-	@echo "Updating Home Manager..."
+	@echo "Updating nix-darwin (includes Homebrew and Mac App Store apps)..."
 	$(MAKE) hm_update
-
-	@echo "Updating Homebrew packages..."
-	brew outdated ; brew update ; brew upgrade --force ; brew upgrade --cask
-	brew cleanup --prune=all
-
-	@echo "Updating App Store applications..."
-	mas outdated ; mas upgrade
 else ifeq ($(UNAME_S), Linux)
 	@echo "Updating Home Manager..."
 	$(MAKE) hm_update

@@ -20,14 +20,6 @@ SUDO() {
 	fi
 }
 
-install_brew() {
-	if which brew >/dev/null 2>&1; then
-		echo 'Homebrew is already installed'
-	else
-		/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-	fi
-}
-
 install_nix_and_home_manager() {
 	if command -v nix >/dev/null 2>&1; then
 		echo 'Nix is already installed'
@@ -80,10 +72,6 @@ Darwin*)
 
 	echo "Installing prerequisites for macOS..."
 	install_nix_and_home_manager
-
-	install_brew
-	eval "$(/opt/homebrew/bin/brew shellenv)"
-	brew install --cask 1password
 
 	;;
 *)

@@ -1,5 +1,5 @@
 # -*- mode: nix; -*-
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   # Basic system configuration
@@ -7,6 +7,9 @@
 
   # Enable nix experimental features
   nix.settings.experimental-features = "nix-command flakes";
+
+  # Allow unfree packages
+  nixpkgs.config.allowUnfree = true;
 
   # Basic system packages (minimal for now)
   environment.systemPackages = with pkgs; [
@@ -19,19 +22,247 @@
     home = "{{ .chezmoi.homeDir }}";
   };
 
-  # Placeholder sections for future migration
-  # These will be populated when we migrate from shell scripts
+  # Set primary user for Homebrew and user preferences
+  system.primaryUser = "{{ .chezmoi.username }}";
 
-  # homebrew = {
-  #   enable = true;
-  #   # Homebrew packages will be migrated here
-  # };
+  # Homebrew configuration migrated from shell scripts
+  homebrew = {
+    enable = true;
+    onActivation = {
+      autoUpdate = true;
+      upgrade = true;
+      cleanup = "zap";
+    };
 
-  # system.defaults = {
-  #   # macOS system defaults will be migrated here
-  # };
+    taps = [
+      "nikitabobko/tap"
+    ];
 
-  # fonts.packages = with pkgs; [
-  #   # Font packages will be migrated here
-  # ];
+    brews = [
+      "snort"                       # Network intrusion detection system
+    ];
+
+    casks = [
+      "1Password"                    # Password manager and secure vault
+      "BetterTouchTool"             # Customize trackpad, mouse, keyboard shortcuts
+      "Vitamin-R"                   # Personal productivity tool with time boxing
+      "alacritty"                   # GPU-accelerated terminal emulator
+      "alfred"                      # Productivity app and launcher
+      "appcleaner"                  # Thoroughly uninstall unwanted apps
+      "balenaetcher"                # Flash OS images to SD cards & USB drives
+      "banktivity"                  # Personal finance and budget management
+      "bartender"                   # Organize and hide menu bar icons
+      "cardhop"                     # Contacts manager with natural language input
+      "chatbox"                     # Cross-platform desktop client for ChatGPT API
+      "chatgpt"                     # Official ChatGPT desktop app
+      "choosy"                      # Smart default browser selector
+      "cleanmymac"                  # System cleaner and optimization tool
+      "colorsnapper"                # Color picker and palette tool
+      "daisydisk"                   # Disk space analyzer with visual interface
+      "devonthink"                  # Document and information management
+      "emacs-app"                   # Emacs text editor for macOS
+      "espanso"                     # Cross-platform text expander
+      "fantastical"                 # Calendar and task management
+      "firefox"                     # Mozilla web browser
+      "flux-app"                    # Blue light filter for eye strain reduction
+      "focus"                       # Website and app blocker for productivity
+      "garmin-express"              # Garmin device management and updates
+      "ghostty"                     # Fast, feature-rich terminal emulator
+      "google-chrome"               # Google web browser
+      "hazel"                       # Automated file organization and management
+      "inSSIDer"                    # WiFi network scanner and analyzer
+      "keepassxc"                   # Cross-platform password manager
+      "keycastr"                    # Display keystrokes on screen for presentations
+      "kitty"                       # Fast, feature-rich terminal emulator
+      "libreoffice"                 # Free office suite (Writer, Calc, Impress)
+      "little-snitch"               # Network monitoring and firewall
+      "logseq"                      # Privacy-first, open-source knowledge base
+      "macfuse"                     # File system integration (for FUSE filesystems)
+      "monero-wallet"               # Official Monero cryptocurrency wallet
+      "mountain-duck"               # Mount cloud storage as local disk
+      "nikitabobko/tap/aerospace"   # Tiling window manager for macOS
+      "obsidian"                    # Knowledge management and note-taking
+      "oversight"                   # Monitor camera and microphone access
+      "pdf-expert"                  # PDF reader and editor
+      "podman-desktop"              # Container management GUI for Podman
+      "proton-drive"                # Encrypted cloud storage from Proton
+      "proton-mail-bridge"          # Bridge for using ProtonMail with email clients
+      "proton-pass"                 # Password manager from Proton
+      "protonvpn"                   # VPN service from Proton
+      "raspberry-pi-imager"         # Official Raspberry Pi image writer
+      "rescuetime"                  # Time tracking and productivity analytics
+      "send-to-kindle"              # Send documents to Kindle devices
+      "shadowsocksx"                # Secure proxy client
+      "spamsieve"                   # Spam filter for email applications
+      "spotify"                     # Music streaming service
+      "tor-browser"                 # Privacy-focused web browser using Tor network
+      "transmission"                # Lightweight BitTorrent client
+      "unite"                       # Turn websites into native Mac apps
+      "utm"                         # Virtual machine manager for macOS
+      "viber"                       # Messaging and calling app
+      "vlc"                         # Universal media player
+      "warp"                        # Modern terminal with AI and collaboration features
+      "wezterm"                     # GPU-accelerated cross-platform terminal
+      "whatsapp"                    # Messaging app
+      "wireshark-app"               # Network protocol analyzer
+      "zen"                         # Privacy-focused web browser
+      "zenmap"                      # Network discovery and security auditing GUI
+      "zoom"                        # Video conferencing and webinars
+    ];
+
+    masApps = {
+      "Airmail" = 918858936;           # Email client with modern interface
+      "Amphetamine" = 937984704;       # Keep Mac awake (prevent sleep)
+      "Brother Transfer Express" = 1627217996; # File transfer utility for Brother devices
+      "Cyberduck" = 409222199;         # FTP/SFTP client for file transfers
+      "Disk Speed Test" = 425264550;   # Measure disk read/write performance
+      "Drafts" = 1435957248;           # Quick text capture and automation
+      "IP Scanner Ultra" = 404167677;  # Network scanning and device discovery
+      "Irvue" = 1039633667;           # Unsplash wallpaper changer
+      "Kindle" = 302584613;           # Amazon Kindle e-book reader
+      "Medis" = 1579200037;           # Modern Redis GUI client
+      "MeetingBar" = 1532419400;      # Menu bar calendar with meeting info
+      "Numbers" = 409203825;          # Apple's spreadsheet application
+      "OmniFocus" = 1542143627;       # Task management and GTD system
+      "Pages" = 409201541;            # Apple's word processor
+      "Parcel" = 639968404;           # Package delivery tracking
+      "Pixelmator Pro" = 1289583905;  # Professional image editing
+      "RAR Extractor and Expander" = 1071663619; # Extract RAR archives
+      "SiteSucker" = 442168834;       # Download entire websites offline
+      "Telegram" = 747648890;         # Secure messaging app
+      "Vimlike" = 1584519802;         # Vim-style navigation for macOS
+      "Mate Translate" = 1005088137;  # Multi-language translator
+      "Jump Desktop" = 524141863;     # Remote desktop client (RDP/VNC)
+      "KeyboardMetrics" = 6737981817; # Track typing speed and accuracy
+    };
+  };
+
+  # macOS user-specific defaults using home-manager's built-in support
+  #
+  # VALIDATION BEST PRACTICES:
+  # 1. Test settings manually first: `defaults write com.apple.finder ShowStatusBar -bool true`
+  # 2. Check existing settings: `defaults read com.apple.finder`
+  # 3. Use `defaults domains` to see available domains
+  # 4. Invalid domains/keys will build but silently fail to apply
+  # 5. Some settings require logout/restart to take effect
+  # 6. Case sensitivity matters for both domains and keys
+  # 7. Not all `defaults` commands have targets.darwin.defaults equivalents
+  system.defaults = {
+    # Note: Keyboard and input settings moved to user-specific activation script
+    # to ensure they don't affect other users on the system
+
+    # Application-specific preferences
+    CustomUserPreferences = {
+      "com.apple.desktopservices" = {
+        # Prevent .DS_Store files on network and USB drives
+        DSDontWriteNetworkStores = true;
+        DSDontWriteUSBStores = true;
+      };
+
+      "com.apple.finder" = {
+        ShowExternalHardDrivesOnDesktop = true;
+        ShowHardDrivesOnDesktop = false;
+        ShowMountedServersOnDesktop = false;
+        ShowRemovableMediaOnDesktop = true;
+        _FXSortFoldersFirst = true;
+        # When performing a search, search the current folder by default
+        FXDefaultSearchScope = "SCcf";
+        DisableAllAnimations = true;
+        NewWindowTarget = "PfDe";
+        NewWindowTargetPath = "file://{{ .chezmoi.homeDir }}/Desktop/";
+        AppleShowAllExtensions = true;
+        FXEnableExtensionChangeWarning = false;
+        ShowStatusBar = true;
+        ShowPathbar = true;
+        WarnOnEmptyTrash = false;
+      };
+
+      "com.apple.dock" = {
+        autohide = true;
+        launchanim = false;
+        static-only = false;
+        show-recents = false;
+        show-process-indicators = true;
+        orientation = "bottom";
+        tilesize = 36;
+        minimize-to-application = true;
+        mineffect = "scale";
+        enable-window-tool = false;
+        magnification = false;
+        # Mission Control and Spaces behavior
+        # Disable automatic rearrangement of spaces based on most recent use
+        "mru-spaces" = false;
+        # Hot corners configuration
+        # Values correspond to specific macOS actions:
+        # 0: No-op (disabled)
+        # 2: Mission Control - shows all open windows and spaces
+        # 3: Application Windows - shows all windows of current app
+        # 4: Desktop - shows desktop by hiding all windows
+        # 5: Start Screen Saver
+        # 6: Disable Screen Saver
+        # 7: Dashboard (deprecated in newer macOS versions)
+        # 10: Put Display to Sleep
+        # 11: Launchpad - shows app launcher grid
+        # 12: Notification Center
+        # 13: Lock Screen - immediately locks the screen
+        # 14: Quick Note - opens Notes app for quick note-taking
+        "wvous-tl-corner" = 0; # Top-left: Mission Control (overview of all spaces)
+        "wvous-tr-corner" = 0; # Top-right: Desktop (show desktop)
+        "wvous-bl-corner" = 0; # Bottom-left: Lock Screen (security)
+        "wvous-br-corner" = 0; # Bottom-right: Quick Note (productivity)
+      };
+
+      "com.apple.ActivityMonitor" = {
+        OpenMainWindow = true;
+        IconType = 5;
+        SortColumn = "CPUUsage";
+        SortDirection = 0;
+      };
+
+      "com.apple.Safari" = {
+        # Privacy: don't send search queries to Apple
+        UniversalSearchEnabled = false;
+        SuppressSearchSuggestions = true;
+      };
+
+      "com.apple.AdLib" = {
+        allowApplePersonalizedAdvertising = false;
+      };
+
+      "com.apple.TimeMachine" = {
+        DoNotOfferNewDisksForBackup = true;
+      };
+
+      # Prevent Photos from opening automatically when devices are plugged in
+      "com.apple.ImageCapture" = {
+        disableHotPlug = true;
+      };
+
+      # Turn on app auto-update
+      "com.apple.commerce" = {
+        AutoUpdate = true;
+      };
+
+      # Accessibility settings
+      # Disable animation when switching screens or opening apps
+      "com.apple.universalaccess" = {
+        reduceMotion = true;
+      };
+
+      # Global user preferences (keyboard, mouse, input settings)
+      ".GlobalPreferences" = {
+        # Keyboard repeat settings
+        ApplePressAndHoldEnabled = false;
+        InitialKeyRepeat = 15;
+        KeyRepeat = 1;
+
+        # Mouse/trackpad settings
+        "com.apple.mouse.tapBehavior" = 1;
+        NSWindowShouldDragOnGesture = true;
+
+        # Spelling correction
+        NSAutomaticSpellingCorrectionEnabled = false;
+      };
+    };
+  };
 }

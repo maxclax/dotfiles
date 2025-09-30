@@ -29,8 +29,10 @@
   # Let Home Manager install and manage itself
   programs.home-manager.enable = true;
 
-  # Allow unfree packages
+{{- if eq .chezmoi.os "linux" }}
+  # Allow unfree packages (handled by nix-darwin on macOS)
   nixpkgs.config.allowUnfree = true;
+{{- end }}
 
   # Font configuration
   fonts.fontconfig.enable = true;
@@ -38,6 +40,8 @@
   # Nix configuration
   home.file.".config/nix/nix.conf".source = ./nix.conf;
 
-  # Enable desktop integration for GUI applications
+{{- if eq .chezmoi.os "linux" }}
+  # Enable desktop integration for GUI applications (Linux only)
   targets.genericLinux.enable = true;
+{{- end }}
 }
