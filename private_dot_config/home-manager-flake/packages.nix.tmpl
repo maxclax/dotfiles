@@ -11,40 +11,59 @@
     bat                    # Cat clone with syntax highlighting
     btop                   # Resource monitor
     chezmoi                # Manage dotfiles across machines
-    curl                   # Transfer data with URLs
     cmake                  # Cross-platform build system
+    curl                   # Transfer data with URLs
     direnv                 # Environment switcher for shell
     duf                    # Disk Usage/Free Utility
-    gcc                    # GNU Compiler Collection
-    gnumake                # GNU make utility
     eza                    # Modern replacement for 'ls'
     fd                     # Simple, fast, user-friendly 'find'
     fzf                    # Command-line fuzzy finder
+    gcc                    # GNU Compiler Collection
     gh                     # GitHub command-line tool
     git                    # Distributed version control
-    git-lfs
+    git-lfs                # Git Large File Storage
+    gnumake                # GNU make utility
     gtrash                 # Trash can for command-line
-    trash-cli
     htop                   # Interactive process viewer
+    inetutils              # Network utilities (ping, telnet, etc.)
+    kubectl                # Kubernetes command-line tool
+    kubectx                # Switch between k8s contexts
+    kubernetes-helm        # Kubernetes package manager
     lazygit                # Simple terminal UI for Git
     lsof                   # List open files
     ncdu                   # Disk usage analyzer
     neofetch               # System information tool
-    ripgrep                # Recursively searches directories
     pipenv                 # Python dependency management
     python3                # The Python programming language
+    ripgrep                # Recursively searches directories
     shellcheck             # Shell script static analysis
     starship               # Cross-shell prompt
     tmux                   # Terminal multiplexer
+    trash-cli              # Command line trash utility
     tree                   # Display directory tree
-    telnet                 
     wget                   # Retrieve files from web
     zoxide                 # A smarter cd command
     zsh                    # Z shell
 
-    kubectl                # Kubernetes command-line tool
-    kubectx                # Switch between k8s contexts
-    kubernetes-helm        # Kubernetes package manager
+    # Cross-platform packages useful on all systems
+    asciinema              # Terminal session recorder
+    bash                   # Bourne Again Shell
+    cacert                 # Certificate authorities
+    fuse                   # Filesystem in userspace
+    git-absorb             # Automatically absorb staged changes into commits
+    gnupg                  # GNU Privacy Guard
+    jq                     # Command-line JSON processor
+    openssh                # SSH client and server
+    openvpn                # Virtual Private Network client/server
+    pkg-config             # Package configuration helper
+    units                  # Unit conversion tool
+
+    # Common fonts for all systems
+    fira-code              # Monospaced font with programming ligatures
+    nerd-fonts.fira-code   # Fira Code with Nerd Font icons (new format)
+    jetbrains-mono         # JetBrains monospaced font
+    font-awesome           # Icon font and CSS toolkit
+
     # ----------------------------------------------------------------------------
     # Development machines
     # ----------------------------------------------------------------------------
@@ -134,28 +153,10 @@
     # Server/Headless machines (rp-, debian, ubuntu, centos)
     # ----------------------------------------------------------------------------
 {{- if eq .chezmoi.os "linux" }}
-    asciinema
-    atop
-    bash
-    pkg-config
-    cacert                 # ca-certificates equivalent
-    git-absorb
-    gnupg
-    gpg
-    jq
-    fuse                   # libfuse2 equivalent
-    inotify-tools
-    openssh                # openssh-server equivalent
-    openvpn
-    units
-
-    # Fonts
-    fira-code
-    fira-code-nerdfont
-    jetbrains-mono
-    font-awesome
-    noto-fonts
-    noto-fonts-emoji
+    # Linux-specific packages only
+    atop                   # Advanced system and process monitor
+    gpg                    # GNU Privacy Guard (alias)
+    inotify-tools          # Filesystem event monitoring
 {{- end }}
 
     # Conditional Packages
