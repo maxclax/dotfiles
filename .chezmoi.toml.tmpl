@@ -72,6 +72,8 @@
 {{- $borgEncryptionPassphrase := "" | quote -}}
 
 {{- $useOp := promptBoolOnce . "useOp" "Do you want to use 1Password CLI (op) for configuration?" true -}}
+{{- $gitAutoCommit := promptBoolOnce . "gitAutoCommit" "Enable automatic commits?" false -}}
+{{- $gitAutoPush := promptBoolOnce . "gitAutoPush" "Enable automatic push?" false -}}
 
 {{- if $useOp -}}
 {{-   $githubGpgsignEnabled = promptBoolOnce . "gitGithub.gpgsign.enabled" "Enable GPG signing for Git commits?" false  -}}
@@ -104,6 +106,8 @@ encryption = "age"
     unameArch = {{ output "uname" "-m" | trim | quote }}
     extraUser = {{ promptBoolOnce . "extraUser" "Extra user? True if all were instaled by main user" false }}
     useOp = {{ $useOp }}
+    gitAutoCommit = {{ $gitAutoCommit }}
+    gitAutoPush = {{ $gitAutoPush }}
 
     workspace = {{ $workspace | quote }}
     workspace_extra = {{ $workspace_extra | quote }}
@@ -160,5 +164,5 @@ encryption = "age"
 
 
 [git]
-  autoCommit = {{ promptBoolOnce . "gitAutoCommit" "Enable automatic commits?" false }}
-  autoPush = {{ promptBoolOnce . "gitAutoPush" "Enable automatic push?" false }}
+  autoCommit = {{ $gitAutoCommit }}
+  autoPush = {{ $gitAutoPush }}
