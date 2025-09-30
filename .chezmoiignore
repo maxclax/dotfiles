@@ -24,8 +24,11 @@ Library/Application\ Support/lazygit/config.yml
 {{ if or (not .personal) .ephemeral .headless }}
 .ssh/
 .logseq/
+.claude/
 .config/nvim
 .config/borgmatic.d
+.aider.conf.yml.tmpl
+.authinfo.tmpl
 {{ end }}
 
 key.txt.age
