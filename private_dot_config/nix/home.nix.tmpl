@@ -270,7 +270,7 @@
     '';
   };
 
-  # Bash Configuration (replaces dot_bashrc)
+  # Bash Configuration
   programs.bash = {
     enable = true;
 
@@ -284,7 +284,7 @@
     '';
   };
 
-  # Vim Configuration with plugins (replaces dot_vimrc and vim-plug)
+  # Vim Configuration with plugins
   programs.vim = {
     enable = true;
 
@@ -359,6 +359,374 @@
       let g:gundo_preview_bottom = 1
       nnoremap <F5> :MundoToggle<cr>
     '';
+  };
+
+  # Direnv Configuration
+  programs.direnv = {
+    enable = true;
+    nix-direnv.enable = true;
+
+    config = {
+      global = {
+        hide_env_diff = true;
+        load_dotenv = true;
+      };
+    };
+  };
+
+{{- if eq .chezmoi.os "darwin" }}
+  # Alacritty Configuration
+  programs.alacritty = {
+    enable = true;
+
+    settings = {
+      general = {
+        live_config_reload = true;
+        import = [
+          "~/.config/alacritty/themes/themes/tokyo-night.toml"
+        ];
+      };
+
+      env = {
+        TERM = "xterm-256color";
+      };
+
+      window = {
+        decorations = "buttonless";
+        dynamic_padding = false;
+        opacity = 0.9;
+        padding = {
+          x = 10;
+          y = 10;
+        };
+      };
+
+{{- if .fontsEnabled }}
+      font = {
+        size = 20.0;
+        normal = {
+          family = "Berkeley Mono";
+          style = "Regular";
+        };
+        bold = {
+          family = "Berkeley Mono";
+          style = "Heavy";
+        };
+        bold_italic = {
+          family = "Berkeley Mono";
+          style = "Heavy Italic";
+        };
+        italic = {
+          family = "Berkeley Mono";
+          style = "Medium Italic";
+        };
+      };
+{{- end }}
+
+      keyboard.bindings = [
+        {
+          key = "Return";
+          mods = "Shift";
+          chars = "\\u001b\\r";
+        }
+      ];
+    };
+  };
+{{- end }}
+
+  # Atuin Configuration
+  programs.atuin = {
+    enable = true;
+
+    settings = {
+      # Main settings
+      auto_sync = true;
+      sync_frequency = "5m";
+      search_mode = "fuzzy";
+      filter_mode = "global";
+      enter_accept = false;
+      show_preview = true;
+      style = "compact";
+      inline_height = 20;
+
+      # Better defaults
+      update_check = false;
+      secrets_filter = true;
+      workspaces = true;
+
+      # History filter (with chezmoi template)
+      history_filter = [
+        "^cd {{ .workspace_extra }}/www/.*"
+        ".*{{ .workspace_extra }}/www/.*"
+        "^secret-cmd"
+        "^innocuous-cmd .*--secret=.+"
+        # Common noise commands
+        "^ls$"
+        "^pwd$"
+        "^exit$"
+        "^clear$"
+        "^history$"
+      ];
+
+      # Stats configuration
+      stats = {
+        common_subcommands = [
+          "apt"
+          "cargo"
+          "chezmoi"
+          "composer"
+          "dnf"
+          "docker"
+          "git"
+          "go"
+          "home-manager"
+          "ip"
+          "kubectl"
+          "nix"
+          "nix-env"
+          "nmcli"
+          "npm"
+          "pecl"
+          "pnpm"
+          "podman"
+          "port"
+          "sudo"
+          "systemctl"
+          "tmux"
+          "yarn"
+        ];
+
+        # Ignore simple navigation commands from stats
+        ignored_commands = [
+          "cd"
+          "ls"
+          "pwd"
+          "exit"
+          "clear"
+        ];
+      };
+
+      # Sync configuration
+      sync = {
+        records = true;
+      };
+
+      # Preview configuration
+      preview = {
+        strategy = "auto";
+      };
+
+      # Daemon configuration for better performance
+      daemon = {
+        enabled = false;  # Set to true if you want background sync
+        sync_frequency = 300;
+      };
+    };
+  };
+
+{{- if eq .chezmoi.os "darwin" }}
+  # Ranger Configuration (file manager)
+  programs.ranger = {
+    enable = true;
+
+    settings = {
+      # Display settings
+      show_hidden = true;
+      preview_files = true;
+      preview_directories = true;
+      collapse_preview = false;
+      draw_borders = "both";
+
+      # UI improvements
+      column_ratios = "1,3,4";
+      hidden_filter = "^\\.|\\.(?:pyc|pyo|bak|swp)$|^lost\\+found$|^__(pycache)__$";
+      show_cursor = false;
+      wrap_scroll = true;
+
+      # Performance
+      preview_max_size = 0;
+      use_preview_script = true;
+
+      # Behavior
+      automatically_count_files = true;
+      open_all_images = true;
+      vcs_aware = true;
+      update_title = false;
+      shorten_title = 3;
+
+      # Sorting
+      sort = "natural";
+      sort_case_insensitive = true;
+      sort_directories_first = true;
+      sort_unicode = false;
+    };
+
+    extraConfig = ''
+      # Custom aliases
+      alias e    edit
+      alias q    quit
+      alias q!   quit!
+      alias qa   quitall
+      alias qa!  quitall!
+      alias qall quitall
+      alias setl setlocal
+      alias filter     scout -prts
+      alias find       scout -aets
+      alias mark       scout -mr
+      alias unmark     scout -Mr
+      alias search     scout -rs
+      alias search_inc scout -rts
+      alias travel     scout -aefklst
+
+      # Custom commands
+      map DD shell mv %s ~/.Trash
+      map dT shell trash-put %s
+      map <C-f> fzf_select
+      map <C-g> fzf_locate
+      map bg shell cp %s ~/Desktop
+      map mkd console mkdir%space
+      map sc shell du -sh %s
+      map V shell code %s
+      map vs shell code -r %s
+      map o shell open %s
+
+      # Better navigation
+      map gh cd ~
+      map gd cd ~/Downloads
+      map gD cd ~/Desktop
+      map gc cd ~/.config
+      map gw cd {{ .workspace }}
+      map ge cd {{ .workspace_extra }}
+      map gr cd {{ .resources }}
+      map gp cd {{ .playground }}
+
+      # Image preview for common formats
+      map i display_file
+
+      # Git integration
+      map gA shell git add %s
+      map gC shell git commit
+      map gS shell git status
+      map gP shell git push
+      map gL shell git log --oneline
+    '';
+
+    rifle = [
+      # Text files
+      { condition = "mime ^text, label editor"; command = "nvim -- \"$@\""; }
+      { condition = "mime ^text, label pager"; command = "bat -- \"$@\""; }
+
+      # Code files
+      { condition = "ext py"; command = "nvim -- \"$@\""; }
+      { condition = "ext js|ts|jsx|tsx|json|yaml|yml|toml"; command = "nvim -- \"$@\""; }
+      { condition = "ext nix|conf|config|cfg"; command = "nvim -- \"$@\""; }
+
+      # Documents
+      { condition = "ext pdf"; command = "open -- \"$@\""; }
+      { condition = "ext docx?|xlsx?|pptx?"; command = "open -- \"$@\""; }
+
+      # Media
+      { condition = "mime ^image"; command = "open -- \"$@\""; }
+      { condition = "mime ^video"; command = "open -- \"$@\""; }
+      { condition = "mime ^audio"; command = "open -- \"$@\""; }
+
+      # Archives
+      { condition = "ext zip|tar|gz|bz2|xz"; command = "aunpack -- \"$@\""; }
+
+      # Directories
+      { condition = "directory"; command = "ranger -- \"$@\""; }
+    ];
+  };
+{{- end }}
+
+  # Starship Configuration
+  programs.starship = {
+    enable = true;
+
+    settings = {
+      add_newline = false;
+      format = "$directory$character";
+      right_format = "$all";
+      command_timeout = 5000;
+      palette = "gruvbox_dark";
+
+      # Directory substitutions with chezmoi variables
+      directory.substitutions = {
+        "{{ .workspace }}" = "workspace";
+        "{{ .workspace_extra }}" = "workspace_extra";
+        "{{ .resources }}" = "resources";
+        "{{ .playground }}" = "playground";
+      };
+
+      # Username configuration
+      username = {
+        style_user = "bg:color_orange fg:color_fg0";
+        style_root = "bg:color_orange fg:color_fg0";
+        format = "[](color_orange)$user ($style) ]";
+        disabled = true;
+        show_always = true;
+        aliases = { "a" = "b"; };
+      };
+
+      # Time configuration
+      time = {
+        disabled = false;
+        style = "bg:color_bg1";
+        format = "[[  $time ](fg:color_fg0 bg:color_bg1)]($style)";
+        time_format = "%T";
+        utc_time_offset = "+2";
+      };
+
+      # Cloud providers
+      gcloud.disabled = true;
+
+      aws = {
+        format = "[$symbol(profile: \"$profile\" )(\\(region: $region\\) )]($style)";
+        disabled = true;
+        style = "bold blue";
+        symbol = " ";
+      };
+
+      # Git configuration
+      git_branch = {
+        format = "on [$symbol$branch(:$remote_branch)]($style)";
+      };
+
+      git_status = {
+        format = "([\\[$all_status$ahead_behind\\]]($style) ) ";
+        untracked = "?$\{count}";
+        ahead = "⇡$\{count}";
+        staged = "[++\\($count\\)](green)";
+        modified = "!$\{count}";
+      };
+
+      # Language and tool configurations
+      golang = {
+        format = "[ ](bold cyan)";
+      };
+
+      kubernetes = {
+        symbol = "☸ ";
+        disabled = false;
+        format = "[$symbol$context( \\($namespace\\))]($style) ";
+      };
+
+      docker_context.disabled = true;
+
+      # Gruvbox Dark color palette
+      palettes.gruvbox_dark = {
+        color_fg0 = "#fbf1c7";
+        color_bg1 = "#3c3836";
+        color_bg3 = "#665c54";
+        color_blue = "#458588";
+        color_aqua = "#689d6a";
+        color_green = "#98971a";
+        color_orange = "#d65d0e";
+        color_purple = "#b16286";
+        color_red = "#cc241d";
+        color_yellow = "#d79921";
+      };
+    };
   };
 
   # Let Home Manager install and manage itself
