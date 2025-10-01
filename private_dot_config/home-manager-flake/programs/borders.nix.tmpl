@@ -1,0 +1,29 @@
+# -*- mode: nix; -*-
+{ config, lib, pkgs, ... }:
+
+{
+  # Add jankyborders to system packages
+  home.packages = [ pkgs.jankyborders ];
+
+  # Create a LaunchAgent for jankyborders to start automatically
+  launchd.agents.jankyborders = {
+    enable = true;
+    config = {
+      ProgramArguments = [
+        "${pkgs.jankyborders}/bin/borders"
+        "style=square"
+        "hidpi=on"
+        "width=5.0"
+        "active_color=0xff00ff00"
+        "inactive_color=0xff2e2e2e"
+      ];
+      RunAtLoad = true;
+      KeepAlive = true;
+      StandardOutPath = "${config.home.homeDirectory}/.local/var/log/jankyborders.log";
+      StandardErrorPath = "${config.home.homeDirectory}/.local/var/log/jankyborders.log";
+    };
+  };
+
+  # Ensure log directory exists
+  home.file.".local/var/log/.keep".text = "";
+}

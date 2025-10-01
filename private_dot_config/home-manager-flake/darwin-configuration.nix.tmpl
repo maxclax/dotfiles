@@ -25,6 +25,24 @@
   # Set primary user for Homebrew and user preferences
   system.primaryUser = "{{ .chezmoi.username }}";
 
+  # System activation commands to restart processes after configuration changes
+  system.activationScripts.extraActivation.text = ''
+    # Kill and restart processes that need to reload system defaults
+    echo "Restarting system processes to apply configuration changes..."
+
+    # Restart processes as the primary user
+    sudo -u "{{ .chezmoi.username }}" killall Dock 2>/dev/null || true
+    sudo -u "{{ .chezmoi.username }}" killall Finder 2>/dev/null || true
+    sudo -u "{{ .chezmoi.username }}" killall SystemUIServer 2>/dev/null || true
+    sudo -u "{{ .chezmoi.username }}" killall ControlCenter 2>/dev/null || true
+    sudo -u "{{ .chezmoi.username }}" killall cfprefsd 2>/dev/null || true
+
+    # Wait a moment for processes to restart
+    sleep 2
+
+    echo "System processes restarted successfully."
+  '';
+
   # Homebrew configuration migrated from shell scripts
   homebrew = {
     enable = true;
@@ -55,6 +73,7 @@
       "cardhop"                     # Contacts manager with natural language input
       "chatbox"                     # Cross-platform desktop client for ChatGPT API
       "chatgpt"                     # Official ChatGPT desktop app
+      "claude"                      # Anthropic's AI assistant desktop app
       "choosy"                      # Smart default browser selector
       "cleanmymac"                  # System cleaner and optimization tool
       "colorsnapper"                # Color picker and palette tool
@@ -175,6 +194,10 @@
         ShowStatusBar = true;
         ShowPathbar = true;
         WarnOnEmptyTrash = false;
+        # Additional settings from original script
+        _FXShowPosixPathInTitle = true;
+        FXPreferredViewStyle = "Nlsv"; # List view
+        FXRemoveOldTrashItems = true; # Auto-remove trash after 30 days
       };
 
       "com.apple.dock" = {
@@ -183,15 +206,19 @@
         static-only = false;
         show-recents = false;
         show-process-indicators = true;
-        orientation = "bottom";
-        tilesize = 36;
+        orientation = "left";
+        tilesize = 45;
         minimize-to-application = true;
         mineffect = "scale";
         enable-window-tool = false;
-        magnification = false;
+        magnification = 20;
         # Mission Control and Spaces behavior
         # Disable automatic rearrangement of spaces based on most recent use
         "mru-spaces" = false;
+        # Gesture settings for Aerospace compatibility
+        showDesktopGestureEnabled = true;
+        showLaunchpadGestureEnabled = false;
+        showMissionControlGestureEnabled = true;
         # Hot corners configuration
         # Values correspond to specific macOS actions:
         # 0: No-op (disabled)
@@ -206,10 +233,10 @@
         # 12: Notification Center
         # 13: Lock Screen - immediately locks the screen
         # 14: Quick Note - opens Notes app for quick note-taking
-        "wvous-tl-corner" = 0; # Top-left: Mission Control (overview of all spaces)
-        "wvous-tr-corner" = 0; # Top-right: Desktop (show desktop)
-        "wvous-bl-corner" = 0; # Bottom-left: Lock Screen (security)
-        "wvous-br-corner" = 0; # Bottom-right: Quick Note (productivity)
+        "wvous-tl-corner" = 2; # Top-left
+        "wvous-tr-corner" = 3; # Top-right
+        "wvous-bl-corner" = 4; # Bottom-left
+        "wvous-br-corner" = 10; # Bottom-right
       };
 
       "com.apple.ActivityMonitor" = {
@@ -230,7 +257,7 @@
       };
 
       "com.apple.TimeMachine" = {
-        DoNotOfferNewDisksForBackup = true;
+        DoNotOfferNewDisksForBackup = false;
       };
 
       # Prevent Photos from opening automatically when devices are plugged in
@@ -249,19 +276,67 @@
         reduceMotion = true;
       };
 
+      # Window appearance settings
+      "com.apple.WindowManager" = {
+        # Disable rounded window corners (macOS 13+)
+        EnableStandardClickToShowDesktop = false;
+        GloballyEnabled = false;
+        HideDesktop = false;
+        StageManagerHideWidgets = false;
+        StandardHideDesktopIcons = false;
+        StandardHideWidgets = false;
+      };
+
+      # CoreDisplay settings for window appearance
+      "com.apple.CoreDisplay" = {
+        # Disable window corner rounding at the system level
+        CGDisableBacklightInterface = false;
+        # This setting controls window corner appearance
+        "displays.window-corner-radius" = 0;
+      };
+
       # Global user preferences (keyboard, mouse, input settings)
       ".GlobalPreferences" = {
         # Keyboard repeat settings
         ApplePressAndHoldEnabled = false;
         InitialKeyRepeat = 15;
-        KeyRepeat = 1;
+        KeyRepeat = 2; # Match original script value
 
         # Mouse/trackpad settings
         "com.apple.mouse.tapBehavior" = 1;
         NSWindowShouldDragOnGesture = true;
 
-        # Spelling correction
+        # Window management settings critical for Aerospace
+        AppleEnableSwipeNavigateWithScrolls = false;
+        AppleMiniaturizeOnDoubleClick = false;
+        CGDisableCursorLocationMagnification = false;
+
+        # Trackpad and input settings
+        "com.apple.swipescrolldirection" = false; # Disable natural scrolling
+        "com.apple.trackpad.forceClick" = false; # Disable force click
+        "com.apple.keyboard.fnState" = true; # Function keys as standard
+
+        # Keyboard navigation
+        AppleKeyboardUIMode = 2; # Enable full keyboard navigation
+
+        # Document and text settings
+        NSDocumentSaveNewDocumentsToCloud = false;
+        NSAutomaticCapitalizationEnabled = false;
+        NSAutomaticDashSubstitutionEnabled = false;
+        NSAutomaticInlinePredictionEnabled = false;
+        NSAutomaticPeriodSubstitutionEnabled = false;
+        NSAutomaticQuoteSubstitutionEnabled = false;
         NSAutomaticSpellingCorrectionEnabled = false;
+        NSAutomaticTextCorrectionEnabled = false;
+        WebAutomaticSpellingCorrectionEnabled = false;
+        NSUserDictionaryReplacementItems = [];
+
+        # Window appearance settings
+        # Disable window corner rounding globally
+        AppleWindowTabbingMode = "manual";
+        NSWindowResizeTime = 0.001;
+        # Try to disable window corner radius
+        "com.apple.WindowManager.StandardDesktopPolicy.DisableRoundedCorners" = true;
       };
     };
   };
