@@ -103,13 +103,13 @@
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
     alt-1 = 'workspace 1' # GTD (OmniFocus), Drafts, Logseq
     alt-2 = 'workspace 2' # Browser
-    alt-3 = 'workspace 3' # Media (Music, Netflix...)
-    alt-4 = 'workspace 4' # Communication
-    alt-5 = 'workspace 5' # AI
-    alt-6 = 'workspace 6' # Dev (env) = Alacrity
+    alt-3 = 'workspace 3' # Special apps or Media in Safari (Netflix...)
+    alt-4 = 'workspace 4' # Communication, Musics and Undifined apps
+    alt-5 = 'workspace 5' # AI GUI chats
+    alt-6 = 'workspace 6' # Dev (env)
     alt-7 = 'workspace 7' # Dev (Emacs F1)
     alt-8 = 'workspace 8' # Dev (Emacs F2)
-    alt-9 = 'workspace 9' # Dev (Emacs F3)
+    alt-9 = 'workspace 9' # AI CLI & Agents
     alt-0 = 'workspace 10' # Terminal
 
     # alt-a = 'workspace A'
@@ -208,6 +208,9 @@
     [[on-window-detected]]
     if.app-id = 'com.apple.Safari'
     run = "move-node-to-workspace 3"
+    [[on-window-detected]]
+    if.app-id = 'com.iggsoftware.banktivity'
+    run = "move-node-to-workspace 3"
 
     [[on-window-detected]]
     if.app-id = 'com.viber.osx'
@@ -226,18 +229,8 @@
     if.app-id = 'com.openai.chat'
     run = "move-node-to-workspace 5"
     [[on-window-detected]]
-    if.app-id = 'dev.warp.Warp-Stable'
-    run = "move-node-to-workspace 5"
-    [[on-window-detected]]
     if.app-id = 'com.anthropic.claudefordesktop'
     run = "move-node-to-workspace 5"
-
-    [[on-window-detected]]
-    if.app-id = 'org.alacritty'
-    run = "move-node-to-workspace 6"
-    [[on-window-detected]]
-    if.app-id = 'com.github.wez.wezterm'
-    run = "move-node-to-workspace 6"
 
     # F1
     [[on-window-detected]]
@@ -245,17 +238,30 @@
     run = "move-node-to-workspace 7"
 
     [[on-window-detected]]
-    if.app-id = 'com.mitchellh.ghostty'
-    run = "move-node-to-workspace 10"
+    if.app-id = 'org.alacritty'
+    run = "move-node-to-workspace 9"
     [[on-window-detected]]
-    if.app-id = 'com.googlecode.iterm2'
-    run = "move-node-to-workspace 10"
+    if.app-id = 'com.github.wez.wezterm'
+    run = "move-node-to-workspace 9"
     [[on-window-detected]]
     if.app-id = 'net.kovidgoyal.kitty'
+    run = "move-node-to-workspace 9"
+    [[on-window-detected]]
+    if.app-id = 'dev.warp.Warp-Stable'
+    run = "move-node-to-workspace 9"
+
+    [[on-window-detected]]
+    if.app-id = 'com.mitchellh.ghostty'
     run = "move-node-to-workspace 10"
 
     # ---------------------------------------------------------
 
+    [[on-window-detected]]
+    if.app-id = "com.noodlesoft.Hazel"
+    run = ["layout floating"]
+    [[on-window-detected]]
+    if.app-id = "com.apple.finder"
+    run = ["layout floating"]
     [[on-window-detected]]
     if.app-id = "com.1password.1password"
     run = ["layout floating"]
@@ -276,8 +282,13 @@
     # ---------------------------------------------------------
     # https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
     [workspace-to-monitor-force-assignment]
-    5 = '3' # AI
-    7 = 'main' # Emacs
+    1 = 'main'      # GTD (OmniFocus), Drafts, Logseq
+    2 = 'main'      # Browser
+    4 = 'secondary' # Communication, Musics and Undifined apps
+    5 = 'secondary' # AI GUI chats
+    7 = 'main'      # Dev (Emacs F1)
+    8 = 'secondary' # Dev (Emacs F2)
+    9 = 'secondary' # AI CLI & Agents
   '';
 
   # Ensure log directory exists
