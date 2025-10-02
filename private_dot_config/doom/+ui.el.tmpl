@@ -107,10 +107,10 @@
 (after! centered-window
   (setq cwm-centered-window-width 160))
 
-;; Auto-run pomm after Emacs starts
-(add-hook 'emacs-startup-hook
-          (lambda ()
-            (run-with-timer 2 nil #'pomm)))
+;; ;; Auto-run pomm after Emacs starts
+;; (add-hook 'emacs-startup-hook
+;;           (lambda ()
+;;             (run-with-timer 2 nil #'pomm)))
 
 ;; Enable rainbow-mode globally
 (use-package! rainbow-mode
