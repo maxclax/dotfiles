@@ -73,9 +73,9 @@
 
 # GitHub https authentication
 [credential "https://github.com"]
-  helper = !/opt/homebrew/bin/gh auth git-credential
+  helper = !{{ .chezmoi.homeDir }}/.local/state/nix/profiles/home-manager/home-path/bin/gh auth git-credential
 [credential "https://gist.github.com"]
-  helper = !/opt/homebrew/bin/gh auth git-credential
+  helper = !{{ .chezmoi.homeDir }}/.local/state/nix/profiles/home-manager/home-path/bin/gh auth git-credential
 
 {{ if .gitGithub.gpgsign.enabled }}
 [user]

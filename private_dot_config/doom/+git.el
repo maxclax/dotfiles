@@ -18,9 +18,9 @@
         git-commit-style-convention-checks nil
         magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1
         
-        ;; Speed up status buffer
-        magit-refresh-status-buffer nil
-        magit-refresh-verbose t
+        ;; Speed up status buffer but keep auto-refresh
+        magit-refresh-status-buffer t
+        magit-refresh-verbose nil
         
         ;; Reduce expensive operations
         magit-revision-show-gravatars nil
@@ -140,12 +140,8 @@
 ;; Additional Magit Performance Optimizations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Disable automatic refresh in magit buffers for better performance
+;; Additional performance tweaks without breaking auto-refresh
 (after! magit
-  ;; Disable auto-refresh of magit buffers
-  (remove-hook 'after-save-hook 'magit-after-save-refresh-status)
-  (remove-hook 'server-switch-hook 'magit-commit-diff--reset-timer)
-  
   ;; Speed up magit by reducing process calls
   (setq magit-process-popup-time 5  ; Show process buffer after 5 seconds
         magit-diff-refine-hunk nil  ; Don't highlight word-level changes
