@@ -9,7 +9,7 @@ if [ "$XDG_CURRENT_DESKTOP" = "GNOME" ] || [ "$DESKTOP_SESSION" = "gnome" ]; the
 	echo "Configuring GNOME dock..."
 
 	# Define favorite applications (add terminal, remove defaults)
-	FAVORITE_APPS="['org.gnome.Terminal.desktop', 'firefox.desktop', 'org.gnome.Nautilus.desktop', 'code.desktop']"
+	FAVORITE_APPS="['org.gnome.Terminal.desktop', 'firefox.desktop', 'org.gnome.Nautilus.desktop', 'code.desktop', 'chromium.desktop', 'org.keepassxc.KeePassXC.desktop']"
 
 	# Set favorite applications in GNOME dock
 	gsettings set org.gnome.shell favorite-apps "$FAVORITE_APPS"
