@@ -2,6 +2,7 @@
 { config, lib, pkgs, ... }:
 
 {
+{{- if eq .chezmoi.os "darwin" }}
   # Install Aerospace
   home.packages = [ pkgs.aerospace ];
 
@@ -21,4 +22,5 @@
 
   # Ensure log directory exists
   home.file.".local/var/log/.keep".text = "";
+{{- end }}
 }
