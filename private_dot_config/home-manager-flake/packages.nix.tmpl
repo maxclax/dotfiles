@@ -18,7 +18,6 @@
     eza                    # Modern replacement for 'ls'
     fd                     # Simple, fast, user-friendly 'find'
     fzf                    # Command-line fuzzy finder
-    gcc                    # GNU Compiler Collection
     gh                     # GitHub command-line tool
     git                    # Distributed version control
     git-lfs                # Git Large File Storage
@@ -62,6 +61,7 @@
     # Common fonts for all systems
     fira-code              # Monospaced font with programming ligatures
     nerd-fonts.fira-code   # Fira Code with Nerd Font icons (new format)
+    nerd-fonts.symbols-only # Symbols Nerd Font for Doom Emacs icons
     jetbrains-mono         # JetBrains monospaced font
     font-awesome           # Icon font and CSS toolkit
 
@@ -137,6 +137,8 @@
     nodejs                 # JavaScript runtime
 
     # Emacs
+    clang
+    coreutils              # Core utilities
     emacsPackages.editorconfig # EditorConfig for Emacs
 
     # Development utilities
@@ -155,6 +157,7 @@
     # ----------------------------------------------------------------------------
 {{- if eq .chezmoi.os "linux" }}
     # Linux-specific packages only
+    gcc                    # GNU Compiler Collection
     atop                   # Advanced system and process monitor
     inotify-tools          # Filesystem event monitoring
 
@@ -179,6 +182,7 @@
 {{- end }}
 {{- if .goEnabled }}
     go                     # The Go programming language
+    gopls                  # Go Language Server Protocol implementation
     gomodifytags           # Go tool to modify struct tags
     gotests                # Go test generator
     gore                   # Go REPL

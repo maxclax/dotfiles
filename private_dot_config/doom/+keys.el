@@ -61,15 +61,24 @@
 (map! :leader
       :prefix "p"
       "n" #'+default/yank-project-name
-      ;; Use the working method for SPC p t
-      :desc "Search project TODOs" "T" (lambda () (interactive)
+      "*" (+my/prefix-M-x "projectile-")
+      :desc "Update projectile list" "u" #'update-projectile-known-projects)
+
+;; Project TODOs - separate map block
+(map! :leader
+      :prefix "p"
+      (:prefix ("t" . "TODOs")
+       :desc "Search TODOs only" "t" (lambda () (interactive)
+                                       (if (projectile-project-p)
+                                           (consult-ripgrep (projectile-project-root) "TODO")
+                                         (message "Not in a project")))
+       :desc "Search all TODO types" "T" (lambda () (interactive)
                                             (if (projectile-project-p)
                                                 (consult-ripgrep (projectile-project-root) "TODO\\|HACK\\|TEMP\\|DONE\\|NOTE\\|DONT\\|DEBUG\\|FAIL\\|FIXME\\|XXX\\|XXXX")
                                               (message "Not in a project")))
-      ;; Keep the original broken one for debugging
-      :desc "Projec TODOs" "t" #'magit-todos-list
-      "*" (+my/prefix-M-x "projectile-")
-      :desc "Update projectile list" "u" #'update-projectile-known-projects)
+       :desc "Magit TODOs list" "l" #'magit-todos-list
+       :desc "Update magit TODOs" "u" #'magit-todos-update
+       :desc "Insert TODO comment" "i" #'hl-todo-insert))
 
 ;; Registers
 (map! :leader

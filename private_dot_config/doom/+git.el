@@ -99,24 +99,86 @@
   :after magit
   :config
   (magit-todos-mode 1)
-  (setq magit-todos-exclude-globs '("node_modules/**/*"
-                                   "static/**/*"
-                                   "build/**/*"
-                                   "dist/**/*"
-                                   "target/**/*"
-                                   ".git/**/*"
-                                   "vendor/**/*"
-                                   "venv/**/*"
-                                   ".venv/**/*"
-                                   "__pycache__/**/*"
-                                   "*.min.js"
-                                   "*.bundle.js"
-                                   "coverage/**/*"
-                                   ".next/**/*"
-                                   ".nuxt/**/*"
-                                   "public/assets/**/*")
-        magit-todos-max-items 20
-        magit-todos-update-delay 2.0))
+
+  ;; Performance optimizations for large projects
+  (setq magit-todos-update nil            ; Disable automatic updates to prevent performance issues
+        magit-todos-max-items 15          ; Limit displayed items for better performance
+        magit-todos-submodule-list nil    ; Don't scan submodules
+
+        ;; Comprehensive exclusion patterns for better performance
+        magit-todos-exclude-globs
+        '("node_modules/**/*"              ; JavaScript dependencies
+          "static/**/*"                    ; Static assets
+          "build/**/*"                     ; Build artifacts
+          "dist/**/*"                      ; Distribution files
+          "_dist/**/*"                      ; Distribution files
+          "target/**/*"                    ; Rust/Java build directory
+          ".git/**/*"                      ; Git internals
+          "vendor/**/*"                    ; Go/PHP dependencies
+          "venv/**/*"                      ; Python virtual environment
+          ".venv/**/*"                     ; Python virtual environment alt
+          "__pycache__/**/*"               ; Python cache
+          "*.min.js"                       ; Minified JavaScript
+          "*.bundle.js"                    ; Bundled JavaScript
+          "coverage/**/*"                  ; Test coverage
+          ".next/**/*"                     ; Next.js build
+          ".nuxt/**/*"                     ; Nuxt.js build
+          "public/assets/**/*"             ; Public assets
+          "assets/**/*"                    ; General assets
+          "*.log"                          ; Log files
+          "*.tmp"                          ; Temporary files
+          ".sass-cache/**/*"               ; Sass cache
+          "bower_components/**/*"          ; Bower components
+          "*.map"                          ; Source maps
+          ".nyc_output/**/*"               ; NYC coverage
+          "tmp/**/*"                       ; Temporary directory
+          "temp/**/*"                      ; Temporary directory alt
+          ".idea/**/*"                     ; IntelliJ IDEA
+          ".vscode/**/*"                   ; VS Code
+          "*.class"                        ; Java compiled classes
+          "*.jar"                          ; Java archives
+          "*.war"                          ; Java web archives
+          "*.pyc"                          ; Python compiled
+          "*.pyo"                          ; Python optimized
+          ".tox/**/*"                      ; Python tox
+          ".pytest_cache/**/*"             ; Pytest cache
+          "elm-stuff/**/*"                 ; Elm dependencies
+          ".stack-work/**/*"               ; Haskell Stack
+          "_build/**/*"                    ; OCaml/Erlang build
+          ".eunit/**/*"                    ; Erlang eunit
+          "deps/**/*"                      ; Erlang/Elixir dependencies
+          "_rel/**/*"                      ; Erlang releases
+          ".cargo/**/*"                    ; Rust cargo cache
+          "Cargo.lock"                     ; Rust lock file
+          "package-lock.json"              ; NPM lock file
+          "yarn.lock"                      ; Yarn lock file
+          "*.orig"                         ; Git merge backup files
+
+          ;; Django/Python specific
+          "migrations/**/*"                ; Django migrations
+          "staticfiles/**/*"               ; Django collected static
+          "media/**/*"                     ; Django media files
+          "locale/**/*"                    ; Django locale files
+          ".pytest_cache/**/*"             ; Pytest cache
+          ".coverage"                      ; Coverage data file
+          "htmlcov/**/*"                   ; Coverage HTML reports
+          "*.egg-info/**/*"                ; Python egg info
+          ".mypy_cache/**/*"               ; MyPy cache
+          ".ruff_cache/**/*"               ; Ruff cache
+
+          ;; Hugo/Static site generators
+          "HUGO/**/*"                      ; Hugo files
+          "_dist/**/*"                     ; Distribution directory
+          "public/**/*"                    ; Hugo public output
+          "resources/**/*"                 ; Hugo resources
+          ".hugo_build.lock"               ; Hugo build lock
+
+          ;; Additional build/cache directories
+          ".cache/**/*"                    ; General cache
+          ".parcel-cache/**/*"             ; Parcel cache
+          ".turbo/**/*"                    ; Turborepo cache
+          ".vercel/**/*"                   ; Vercel cache
+          )))
 
 ;; magit-todos uses hl-todo-keywords
 (custom-theme-set-faces! doom-theme
