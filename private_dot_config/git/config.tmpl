@@ -72,10 +72,12 @@
 	clean = git-lfs clean -- %f
 
 # GitHub https authentication
+{{- if lookPath "gh" }}
 [credential "https://github.com"]
   helper = !{{ output "which" "gh" | trim }} auth git-credential
 [credential "https://gist.github.com"]
   helper = !{{ output "which" "gh" | trim }} auth git-credential
+{{- end }}
 
 {{ if .gitGithub.gpgsign.enabled }}
 [user]
