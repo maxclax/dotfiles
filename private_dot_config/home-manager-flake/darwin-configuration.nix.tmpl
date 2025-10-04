@@ -18,7 +18,6 @@
     # Gui
     alacritty # GPU-accelerated terminal emulator
     aerospace # Lightweight window manager for macOS
-    espanso   # Text expander
   ];
 
   # User configuration
@@ -31,21 +30,7 @@
   system.primaryUser = "{{ .chezmoi.username }}";
 
   # LaunchDaemons for system services
-  launchd.daemons.espanso = {
-    serviceConfig = {
-      ProgramArguments = [
-        "/run/current-system/sw/bin/espanso"
-        "service"
-        "start"
-        "--unmanaged"
-      ];
-      RunAtLoad = true;
-      KeepAlive = true;
-      UserName = "{{ .chezmoi.username }}";
-      StandardOutPath = "/var/log/espanso.log";
-      StandardErrorPath = "/var/log/espanso.log";
-    };
-  };
+  # (espanso moved to Home Manager as user agent)
 
   # System activation commands to restart processes after configuration changes
   system.activationScripts.extraActivation.text = ''
@@ -318,7 +303,7 @@
         # Keyboard repeat settings
         ApplePressAndHoldEnabled = false;
         InitialKeyRepeat = 15;
-        KeyRepeat = 2; # Match original script value
+        KeyRepeat = 1; # Match original script value
 
         # Mouse/trackpad settings
         "com.apple.mouse.tapBehavior" = 1;
