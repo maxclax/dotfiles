@@ -14,6 +14,7 @@
   # Basic system packages (minimal for now)
   environment.systemPackages = with pkgs; [
     vim
+    aerospace
   ];
 
   # User configuration
@@ -60,7 +61,7 @@
     ];
 
     casks = [
-      "1Password"                    # Password manager and secure vault
+      "1Password"                   # Password manager and secure vault
       "Alacritty"                   # GPU-accelerated terminal emulator
       "BetterTouchTool"             # Customize trackpad, mouse, keyboard shortcuts
       "Vitamin-R"                   # Personal productivity tool with time boxing
