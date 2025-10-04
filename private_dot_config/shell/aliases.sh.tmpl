@@ -61,6 +61,16 @@ alias lp='lazypodman'
 alias pyclean='find . | grep -E "(__pycache__|\.pyc|\.pyo$)" | xargs rm -rvf'
 alias activate='source .venv/bin/activate'
 
+# Home Manager shortcuts (runs from ~/)
+alias hmu='make -C ~/ hm_update'          # Update Home Manager
+alias hmd='make -C ~/ hm_diff'            # Show what will change
+alias hmc='make -C ~/ hm_commit'          # Commit flake.lock changes
+alias hml='make -C ~/ hm_list'            # List installed packages
+
+# Chezmoi shortcuts
+alias cza='chezmoi apply'           # Apply dotfiles
+alias czd='chezmoi diff'            # Show changes
+ 
 # Colorize terminal
 # ---- Eza (better ls) -----
 alias ls="eza --icons=always --grid"
@@ -99,6 +109,7 @@ Darwin)
   ;;
 Linux)
   # commands for Linux go here
+
 
   ;;
 esac

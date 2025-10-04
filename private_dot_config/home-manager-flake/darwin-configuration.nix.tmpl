@@ -30,6 +30,23 @@
   # Set primary user for Homebrew and user preferences
   system.primaryUser = "{{ .chezmoi.username }}";
 
+  # LaunchDaemons for system services
+  launchd.daemons.espanso = {
+    serviceConfig = {
+      ProgramArguments = [
+        "/run/current-system/sw/bin/espanso"
+        "service"
+        "start"
+        "--unmanaged"
+      ];
+      RunAtLoad = true;
+      KeepAlive = true;
+      UserName = "{{ .chezmoi.username }}";
+      StandardOutPath = "/var/log/espanso.log";
+      StandardErrorPath = "/var/log/espanso.log";
+    };
+  };
+
   # System activation commands to restart processes after configuration changes
   system.activationScripts.extraActivation.text = ''
     # Kill and restart processes that need to reload system defaults
