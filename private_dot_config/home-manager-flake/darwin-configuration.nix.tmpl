@@ -13,8 +13,12 @@
 
   # Basic system packages (minimal for now)
   environment.systemPackages = with pkgs; [
-    vim
-    aerospace
+    vim       # Text editor
+
+    # Gui
+    alacritty # GPU-accelerated terminal emulator
+    aerospace # Lightweight window manager for macOS
+    espanso   # Text expander
   ];
 
   # User configuration
@@ -62,10 +66,8 @@
 
     casks = [
       "1Password"                   # Password manager and secure vault
-      "Alacritty"                   # GPU-accelerated terminal emulator
       "BetterTouchTool"             # Customize trackpad, mouse, keyboard shortcuts
       "Vitamin-R"                   # Personal productivity tool with time boxing
-      "alacritty"                   # GPU-accelerated terminal emulator
       "alfred"                      # Productivity app and launcher
       "appcleaner"                  # Thoroughly uninstall unwanted apps
       "balenaetcher"                # Flash OS images to SD cards & USB drives

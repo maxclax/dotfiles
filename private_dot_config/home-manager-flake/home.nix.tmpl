@@ -11,13 +11,12 @@
     ./programs/bash.nix          # Bash configuration
     ./programs/vim.nix           # Vim configuration
     ./programs/direnv.nix        # Direnv configuration
-    ./programs/alacritty.nix     # Alacritty configuration
     ./programs/atuin.nix         # Atuin configuration
     ./programs/starship.nix      # Starship configuration
     ./programs/ranger.nix        # Ranger configuration
 {{- if eq .chezmoi.os "darwin" }}
     ./programs/borders.nix       # Borders window management
-    ./programs/espanso.nix       # Espanso text expander
+    ./programs/espanso.nix       # Espanso service configuration
 {{- end }}
   ];
 
