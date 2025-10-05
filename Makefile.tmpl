@@ -31,7 +31,7 @@ dotfiles_update:
 
 hm_diff:
 	@echo "📋 Checking what will change..."
-{{- if eq .chezmoi.os "darwin" }}
+{{- if and (eq .chezmoi.os "darwin") (not .extraUser) }}
 	cd ~/.config/home-manager-flake && sudo darwin-rebuild build --flake ~/.config/home-manager-flake
 	nix store diff-closures /run/current-system ~/.config/home-manager-flake/result
 {{- else }}
@@ -42,11 +42,11 @@ hm_diff:
 hm_update:
 	@echo "🔄 Updating flake..."
 	cd ~/.config/home-manager-flake && nix flake update
-{{- if eq .chezmoi.os "darwin" }}
+{{- if and (eq .chezmoi.os "darwin") (not .extraUser) }}
 	@echo "🍎 Applying nix-darwin configuration (requires password)..."
 	sudo darwin-rebuild switch --flake ~/.config/home-manager-flake
 {{- else }}
-	@echo "🐧 Applying Home Manager configuration..."
+	@echo "👤 Applying Home Manager configuration (user-only)..."
 	home-manager switch --flake ~/.config/home-manager-flake
 {{- end }}
 	@echo "✅ Update complete! Run 'make hm_commit' to commit the changes"

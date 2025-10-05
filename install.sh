@@ -52,7 +52,7 @@ fi
 
 # Step 3: Apply dotfiles using chezmoi via nix-shell
 echo "📋 Step 3: Applying dotfiles configuration..."
-nix-shell -p chezmoi --run "
+nix-shell -p chezmoi git --run "
     chezmoi init --branch ${BRANCH} --apply ${GITHUB_URL} && \
     echo '✅ Dotfiles applied successfully!'
 "

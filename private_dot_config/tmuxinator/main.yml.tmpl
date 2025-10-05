@@ -19,8 +19,8 @@ windows:
   - dotfiles:
       layout: tiled
       panes:
-        - cd {{ .chezmoi.sourceDir }} ; vim .
+        - cd {{ .chezmoi.sourceDir }}
   - playground:
-    layout: tiled
-    panes:
-      - echo "cd {{ .jupyter }} or make k9s"
+      layout: tiled
+      panes:
+        - cd {{ .playground }}
