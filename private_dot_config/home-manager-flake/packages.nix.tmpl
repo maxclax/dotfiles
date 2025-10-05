@@ -43,7 +43,12 @@
     tree                   # Display directory tree
     wget                   # Retrieve files from web
     zoxide                 # A smarter cd command
+{{- if eq .shell "zsh" }}
     zsh                    # Z shell
+{{- end }}
+{{- if eq .shell "fish" }}
+    fish                   # Fish shell
+{{- end }}
 
     # Cross-platform packages useful on all systems
     asciinema              # Terminal session recorder

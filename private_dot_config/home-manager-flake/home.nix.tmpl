@@ -7,7 +7,12 @@
     ./packages.nix              # Package installations
 
     #########################################################
+{{- if eq .shell "zsh" }}
     ./programs/zsh.nix           # Zsh configuration
+{{- end }}
+{{- if eq .shell "fish" }}
+    ./programs/fish.nix          # Fish configuration
+{{- end }}
     ./programs/bash.nix          # Bash configuration
     ./programs/vim.nix           # Vim configuration
     ./programs/direnv.nix        # Direnv configuration

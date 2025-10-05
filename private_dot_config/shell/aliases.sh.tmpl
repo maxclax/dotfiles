@@ -70,6 +70,9 @@ alias hml='make -C ~/ hm_list'            # List installed packages
 # Chezmoi shortcuts
 alias cza='chezmoi apply'           # Apply dotfiles
 alias czd='chezmoi diff'            # Show changes
+
+# Shell reload - works for any shell
+alias reload-shell='exec $SHELL'   # Restart current shell
  
 # Colorize terminal
 # ---- Eza (better ls) -----
@@ -99,7 +102,13 @@ alias docker-compose=podman-compose
 {{ end }}
 
 # ---- pay-respects -----
-eval "$(pay-respects zsh --alias)"
+if [[ "$DOTFILES_SHELL" == "zsh" ]]; then
+    eval "$(pay-respects zsh --alias)"
+elif [[ "$DOTFILES_SHELL" == "bash" ]]; then
+    eval "$(pay-respects bash --alias)"
+elif [[ "$DOTFILES_SHELL" == "fish" ]]; then
+    eval "$(pay-respects fish --alias)"
+fi
 
 # Per-platform settings, will override the above commands
 case $(uname) in

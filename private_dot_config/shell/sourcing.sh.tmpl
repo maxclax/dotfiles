@@ -107,8 +107,10 @@ fi
 
 if [[ $shell == "zsh" ]]; then
 	source <(fzf --zsh)
-else
+elif [[ $shell == "bash" ]]; then
 	eval "$(fzf --bash)"
+elif [[ $shell == "fish" ]]; then
+	:
 fi
 
 # ----------------------------

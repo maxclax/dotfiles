@@ -1,0 +1,23 @@
+# -*- mode: nix; -*-
+{ pkgs, ... }:
+
+{
+  # Fish shell configuration
+  programs.fish = {
+    enable = true;
+
+    # Fish plugins - empty for now due to broken plugin sources
+    plugins = [ ];
+
+    # Shell aliases - fish-native versions to avoid bash translation issues
+    shellAliases = {
+      # Shell management
+      reload-shell = "source ~/.config/fish/config.fish";
+      edit-fish = "nvim ~/.config/fish/config.fish";
+    };
+
+    # Fish functions
+    functions = {};
+
+  };
+}

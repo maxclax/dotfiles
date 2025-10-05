@@ -61,6 +61,9 @@ if [ -n "${ZSH_VERSION}" ]; then
 elif [ -n "${BASH_VERSION}" ]; then
   shell="bash"
   export DOTFILES_DEBUG_SHELL_BASH="true"
+elif [ -n "${FISH_VERSION}" ]; then
+  shell="fish"
+  export DOTFILES_DEBUG_SHELL_FISH="true"
 else
   shell=""
 fi

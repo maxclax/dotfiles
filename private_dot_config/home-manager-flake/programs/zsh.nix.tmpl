@@ -28,6 +28,11 @@
     oh-my-zsh = {
       enable = true;
       theme = "robbyrussell";
+{{- if .extraUser }}
+      extraConfig = ''
+        ZSH_DISABLE_COMPFIX=true
+      '';
+{{- end }}
       plugins = [
         "brew"
         "git"
@@ -48,16 +53,11 @@
 
     shellAliases = {
       # Original aliases
-      reload-zsh = "source ~/.zshrc";
+      reload-shell = "source ~/.zshrc";
       edit-zsh = "nvim ~/.zshrc";
     };
 
     initContent = ''
-{{- if .extraUser }}
-      # Disable zsh completion security checks for extraUser installs
-      export ZSH_DISABLE_COMPFIX=true
-{{- end }}
-
       # completion using arrow keys (based on history)
       bindkey '^[[A' history-search-backward
       bindkey '^[[B' history-search-forward

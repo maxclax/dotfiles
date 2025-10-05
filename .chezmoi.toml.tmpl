@@ -23,6 +23,12 @@
   {{- $editor = promptChoiceOnce . "editor" "Which editor do you want to use as default" $choices -}}
 {{- end -}}
 
+{{- $shell := "zsh" -}}
+{{- if stdinIsATTY -}}
+  {{- $choices := list "zsh" "fish" -}}
+  {{- $shell = promptChoiceOnce . "shell" "Which shell do you want to use as default" $choices -}}
+{{- end -}}
+
 {{/* boolean feature tags */}}
 {{- $ephemeral := false -}}{{/* true if this machine is ephemeral, e.g. a cloud, VM or for short time */}}
 {{- $headless := false -}}{{/* true if this machine does not have a screen and keyboard */}}
@@ -111,6 +117,7 @@ encryption = "age"
     primary_cloud = {{ $primary_cloud | quote }}
     secondary_cloud = {{ $secondary_cloud | quote }}
     editor = {{ $editor | quote }}
+    shell = {{ $shell | quote }}
 
     borgThisMachine = {{ promptBoolOnce . "borgThisMachine" "Use Borgbackups on this machine?" false }}
     borgRepo = {{ $borgRepo }}
