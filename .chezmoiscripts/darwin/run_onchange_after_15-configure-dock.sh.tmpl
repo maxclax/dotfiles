@@ -2,6 +2,12 @@
 
 set -eufo pipefail
 
+# Skip dock configuration for extra users
+{{- if .extraUser }}
+echo "Skipping dock configuration for extraUser installation"
+exit 0
+{{- end }}
+
 trap 'killall Dock' EXIT
 
 declare -a remove_labels=(

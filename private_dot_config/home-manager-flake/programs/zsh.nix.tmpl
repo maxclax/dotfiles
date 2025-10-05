@@ -19,22 +19,11 @@
       expireDuplicatesFirst = true;
     };
 
-    # Better completion with insecure directory handling
-    completionInit = ''
-      autoload -Uz compinit
-      # Fix insecure directories and then run compinit
-      if [[ -n "''${ZSH_DISABLE_COMPFIX:-}" ]]; then
-        compinit -u
-      else
-        # Try to fix permissions on insecure directories
-        for dir in $(compaudit 2>/dev/null); do
-          if [[ -d "$dir" ]]; then
-            chmod go-w "$dir" 2>/dev/null || true
-          fi
-        done
-        compinit
-      fi
-    '';
+{{- if .extraUser }}
+    completionInit = "autoload -Uz compinit && compinit -u";
+{{- else }}
+    completionInit = "autoload -Uz compinit && compinit -C";
+{{- end }}
 
     oh-my-zsh = {
       enable = true;
@@ -64,6 +53,11 @@
     };
 
     initContent = ''
+{{- if .extraUser }}
+      # Disable zsh completion security checks for extraUser installs
+      export ZSH_DISABLE_COMPFIX=true
+{{- end }}
+
       # completion using arrow keys (based on history)
       bindkey '^[[A' history-search-backward
       bindkey '^[[B' history-search-forward
