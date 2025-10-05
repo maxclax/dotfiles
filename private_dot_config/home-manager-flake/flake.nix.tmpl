@@ -10,6 +10,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+{{- if eq .chezmoi.os "linux" }}
+    zen-browser = {
+      url = "github:0xc000022070/zen-browser-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+{{- end }}
+
 {{- if and (eq .chezmoi.os "darwin") (not .extraUser) }}
     nix-darwin = {
       url = "github:LnL7/nix-darwin";
@@ -18,7 +25,7 @@
 {{- end }}
   };
 
-  outputs = { nixpkgs, home-manager{{- if and (eq .chezmoi.os "darwin") (not .extraUser) }}, nix-darwin{{- end }}, ... }:
+  outputs = { nixpkgs, home-manager{{- if eq .chezmoi.os "linux" }}, zen-browser{{- end }}{{- if and (eq .chezmoi.os "darwin") (not .extraUser) }}, nix-darwin{{- end }}, ... }:
     let
       system = "{{- if eq .chezmoi.arch "arm64" }}aarch64{{- else }}{{ .chezmoi.arch }}{{- end }}-{{ .chezmoi.os }}";
       pkgs = nixpkgs.legacyPackages.${system};
@@ -54,10 +61,16 @@
 
         modules = [
           ./home.nix
+{{- if eq .chezmoi.os "linux" }}
+          zen-browser.homeManagerModules.default
+{{- end }}
         ];
 
         extraSpecialArgs = {
           inherit system;
+{{- if eq .chezmoi.os "linux" }}
+          zen-browser = zen-browser;
+{{- end }}
           chezmoi = {
             os = "{{ .chezmoi.os }}";
             arch = "{{ .chezmoi.arch }}";

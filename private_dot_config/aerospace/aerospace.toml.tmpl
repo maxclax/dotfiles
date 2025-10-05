@@ -209,14 +209,15 @@ run = "move-node-to-workspace 5"
 if.app-id = 'com.anthropic.claudefordesktop'
 run = "move-node-to-workspace 5"
 
+[[on-window-detected]]
+if.app-id = 'org.alacritty'
+run = "move-node-to-workspace 6"
+
 # F1
 [[on-window-detected]]
 if.app-id = "org.gnu.Emacs"
 run = "move-node-to-workspace 7"
 
-[[on-window-detected]]
-if.app-id = 'org.alacritty'
-run = "move-node-to-workspace 9"
 [[on-window-detected]]
 if.app-id = 'com.github.wez.wezterm'
 run = "move-node-to-workspace 9"

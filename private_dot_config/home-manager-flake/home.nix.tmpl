@@ -46,5 +46,13 @@
 {{- if eq .chezmoi.os "linux" }}
   # Enable desktop integration for GUI applications (Linux only)
   targets.genericLinux.enable = true;
+
+  # Zen Browser configuration (Linux only)
+  programs.zen-browser = {
+    enable = true;
+    # Available options: beta, twilight, twilight-official
+    # beta = latest beta version with newest features
+    variant = "beta";
+  };
 {{- end }}
 }
