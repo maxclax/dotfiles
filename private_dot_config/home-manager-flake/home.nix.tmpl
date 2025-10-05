@@ -32,8 +32,8 @@
   # Let Home Manager install and manage itself
   programs.home-manager.enable = true;
 
-{{- if eq .chezmoi.os "linux" }}
-  # Allow unfree packages (handled by nix-darwin on macOS)
+{{- if or (eq .chezmoi.os "linux") .extraUser }}
+  # Allow unfree packages (handled by nix-darwin when extraUser is false)
   nixpkgs.config.allowUnfree = true;
 {{- end }}
 
