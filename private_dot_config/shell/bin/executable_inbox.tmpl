@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+
+# inbox - Quickly move files to inbox
+# Usage: inbox file1 file2 dir1 ...
+
+set -euo pipefail
+
+INBOX_DIR="{{ .primary_cloud }}/0-Inbox"
+
+usage() {
+    echo "Usage: $(basename "$0") <file1> [file2] [dir1] ..."
+    echo "       $(basename "$0") -l    (list inbox contents)"
+    echo "       $(basename "$0") -o    (open inbox)"
+}
+
+list_inbox() {
+    echo "📥 Inbox contents:"
+    ls -la "$INBOX_DIR" 2>/dev/null || echo "Inbox is empty or doesn't exist"
+}
+
+open_inbox() {
+    if command -v open >/dev/null 2>&1; then
+        open "$INBOX_DIR"
+    elif command -v xdg-open >/dev/null 2>&1; then
+        xdg-open "$INBOX_DIR"
+    else
+        echo "Inbox location: $INBOX_DIR"
+    fi
+}
+
+main() {
+    # Create inbox if it doesn't exist
+    mkdir -p "$INBOX_DIR"
+
+    case "${1:-}" in
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        -l|--list)
+            list_inbox
+            exit 0
+            ;;
+        -o|--open)
+            open_inbox
+            exit 0
+            ;;
+        "")
+            usage
+            exit 1
+            ;;
+    esac
+
+    # Move files to inbox
+    for file in "$@"; do
+        if [[ ! -e "$file" ]]; then
+            echo "❌ File not found: $file"
+            continue
+        fi
+
+        basename_file="$(basename "$file")"
+        dest="$INBOX_DIR/$basename_file"
+
+        # Handle name conflicts by adding number
+        counter=1
+        while [[ -e "$dest" ]]; do
+            name="${basename_file%.*}"
+            ext="${basename_file##*.}"
+            if [[ "$name" == "$ext" ]]; then
+                dest="$INBOX_DIR/${basename_file}_${counter}"
+            else
+                dest="$INBOX_DIR/${name}_${counter}.${ext}"
+            fi
+            ((counter++))
+        done
+
+        if mv "$file" "$dest"; then
+            echo "✅ $file → inbox"
+        else
+            echo "❌ Failed: $file"
+        fi
+    done
+}
+
+main "$@"

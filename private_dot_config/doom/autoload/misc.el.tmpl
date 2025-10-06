@@ -92,7 +92,7 @@ If prefix ARG is set, prompt for a directory to search from."
 (defun update-projectile-known-projects ()
   (interactive)
   (require 'magit)
-  (setq magit-repository-directories '(("~/.local/git/" . 0) ({{ .workspace_extra | quote }} . 0)))
+  (setq magit-repository-directories '(("~/.local/git/" . 0) ({{ .primary_cloud | quote }} . 0) ({{ .workspace_extra | quote }} . 0)))
 
   ;; Workspace folder - use unlimited depth (0) to find nested repos
   (let ((workspace-dir {{ .workspace | quote }}))

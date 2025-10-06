@@ -1,8 +1,49 @@
 {{ if .borgThisMachine }}
-source_directories:
+source_directorikkes:
   - {{ printf "%s/Documents" .chezmoi.homeDir | quote }}
   - {{ printf "%s/Desktop" .chezmoi.homeDir | quote }}
+  - {{ .primary_cloud | quote }}
 #  - {{ printf "%s/Downloads" .chezmoi.homeDir | quote }}
+
+exclude_patterns:
+  # System files
+  - "*.DS_Store"
+  - "*._.DS_Store"
+  - ".Spotlight-V100"
+  - ".Trashes"
+  - ".fseventsd"
+  - ".TemporaryItems"
+  - ".DocumentRevisions-V100"
+  - ".AppleDouble"
+  - ".AppleDB"
+  - ".AppleDesktop"
+  - "Network Trash Folder"
+  - "Temporary Items"
+  - ".apdisk"
+  # Cache and temporary files
+  - "*/node_modules"
+  - "*/.git"
+  - "*/.svn"
+  - "*/.hg"
+  - "*/target"
+  - "*/build"
+  - "*/dist"
+  - "*/.cache"
+  - "*/.tmp"
+  - "*/tmp"
+  - "*/__pycache__"
+  - "*.pyc"
+  - "*.pyo"
+  - "*.log"
+  - "*.swp"
+  - "*.swo"
+  - "*~"
+  - ".#*"
+  # Large media files (optional - uncomment if needed)
+  # - "*.iso"
+  # - "*.dmg"
+  # - "*.ova"
+  # - "*.vmdk"
 
 local_path: borg
 repositories:

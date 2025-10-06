@@ -12,20 +12,94 @@
   (pomm-mode-line-mode))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Org
+;; Org + PARA
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Logseq variant
+(after! org
+  ;; PARA for projects, tasks, files
+  (setq org-directory {{ .primary_cloud | quote }})
+  
+  ;; Scan PARA for org files (for agenda)
+  (setq org-agenda-files
+        (list (concat {{ .primary_cloud | quote }} "/0-Inbox/")
+              (concat {{ .primary_cloud | quote }} "/1-Projects/")
+              (concat {{ .primary_cloud | quote }} "/2-Areas/")))
+  
+  ;; Quick captures go here
+  (setq org-default-notes-file (concat {{ .primary_cloud | quote }} "/0-Inbox/inbox.org"))
+
+  ;; Capture templates for PARA
+  (setq org-capture-templates
+        '(("t" "Todo" entry (file+headline org-default-notes-file "Tasks")
+           "* TODO %?\n  %i\n  %a")
+          ("n" "Note" entry (file+headline org-default-notes-file "Notes")
+           "* %?\n  %i\n  %a")
+          ("p" "Project" entry (file (lambda () (concat {{ .primary_cloud | quote }} "/1-Projects/" (read-string "Project name: ") ".org")))
+           "* TODO %?\n  %i\n  %a")
+          ("a" "Area" entry (file (lambda () (concat {{ .primary_cloud | quote }} "/2-Areas/" (read-string "Area name: ") ".org")))
+           "* %?\n  %i\n  %a")
+          ("r" "Resource" entry (file (lambda () (concat {{ .primary_cloud | quote }} "/3-Resources/" (read-string "Resource name: ") ".org")))
+           "* %?\n  %i\n  %a")))
+
+  ;; TODO keywords
+  (setq org-todo-keywords
+        '((sequence "TODO(t)" "NEXT(n)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")))
+
+  ;; Startup settings
+  (setq org-startup-folded 'content)
+  (setq org-startup-indented t))
+
+;; ============================================
+;; org-roam + PKM/Logseq
+;; ============================================
+
 (use-package! org-roam
   :custom
+  ;; Point to Logseq's directory
   (org-roam-directory
    (expand-file-name "~/Library/Mobile Documents/iCloud~com~logseq~logseq/Documents/Org"))
+  
+  ;; Logseq's journal structure
   (org-roam-dailies-directory "journals/")
+  
+  ;; Capture templates (Logseq compatible)
   (org-roam-capture-templates
    '(("d" "default" plain
       "%?" :target
       (file+head "pages/${slug}.org" "#+title: ${title}\n")
-      :unnarrowed t))))
+      :unnarrowed t)))
+  
+  :config
+  ;; Auto-sync database
+  (org-roam-db-autosync-mode))
+
+;; ============================================
+;; Keybindings
+;; ============================================
+
+(map! :leader
+      (:prefix ("P" . "PARA")
+       :desc "Find file in PARA" "f" #'(lambda () (interactive)
+                                          (let ((default-directory {{ .primary_cloud | quote }}))
+                                            (+default/find-file-under-here)))
+       :desc "Open PARA" "P" #'(lambda () (interactive) (dirvish {{ .primary_cloud | quote }}))
+       :desc "Open inbox" "i" #'(lambda () (interactive) (dirvish (concat {{ .primary_cloud | quote }} "/0-Inbox/")))
+       :desc "Open projects" "p" #'(lambda () (interactive) (dirvish (concat {{ .primary_cloud | quote }} "/1-Projects/")))
+       :desc "Open areas" "a" #'(lambda () (interactive) (dirvish (concat {{ .primary_cloud | quote }} "/2-Areas/")))
+       :desc "Open resources" "r" #'(lambda () (interactive) (dirvish (concat {{ .primary_cloud | quote }} "/3-Resources/")))
+       :desc "Open archive" "A" #'(lambda () (interactive) (dirvish (concat {{ .primary_cloud | quote }} "/4-Archive/")))
+       :desc "Agenda" "c" #'org-agenda)
+      
+      ;; Org-roam (PKM/Logseq)
+      ;; These are already mapped by Doom to SPC n r
+      ;; Just documenting what they do:
+      ;; SPC n r f  → Find/create note in Logseq
+      ;; SPC n r i  → Insert link to note
+      ;; SPC n r g  → Graph view
+      ;; SPC n r d d → Today's journal (Logseq)
+      )
+
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

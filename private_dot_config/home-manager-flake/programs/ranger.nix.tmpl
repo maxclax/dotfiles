@@ -75,17 +75,19 @@
       map gw cd {{ .workspace }}
       map ge cd {{ .workspace_extra }}
       map gr cd {{ .resources }}
-      map gp cd {{ .playground }}
+      map gp cd {{ .primary_cloud }}
+      map gi cd {{ .primary_cloud }}/0-Inbox
+      map gP cd {{ .playground }}
 
       # Image preview for common formats
       map i display_file
 
       # Git integration
-      map gA shell git add %s
-      map gC shell git commit
-      map gS shell git status
-      map gP shell git push
-      map gL shell git log --oneline
+      map ggA shell git add %s
+      map ggC shell git commit
+      map ggS shell git status
+      map ggP shell git push
+      map ggL shell git log --oneline
     '';
 
     rifle = [

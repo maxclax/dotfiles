@@ -34,6 +34,25 @@
 
   # System activation commands to restart processes after configuration changes
   system.activationScripts.extraActivation.text = ''
+    # Create iCloud symlink for cross-platform access
+    echo "Setting up iCloud symlink..."
+
+    ICLOUD_SOURCE="{{ .chezmoi.homeDir }}/Library/Mobile Documents/com~apple~CloudDocs"
+    ICLOUD_SYMLINK="{{ .chezmoi.homeDir }}/icloud"
+
+    if [[ -d "$ICLOUD_SOURCE" && ! -L "$ICLOUD_SYMLINK" ]]; then
+      if [[ ! -e "$ICLOUD_SYMLINK" ]]; then
+        echo "Creating iCloud symlink: $ICLOUD_SYMLINK -> $ICLOUD_SOURCE"
+        sudo -u "{{ .chezmoi.username }}" ln -s "$ICLOUD_SOURCE" "$ICLOUD_SYMLINK"
+      else
+        echo "Warning: $ICLOUD_SYMLINK exists but is not a symlink"
+      fi
+    elif [[ -L "$ICLOUD_SYMLINK" ]]; then
+      echo "iCloud symlink already exists"
+    else
+      echo "iCloud Drive not found at $ICLOUD_SOURCE"
+    fi
+
     # Kill and restart processes that need to reload system defaults
     echo "Restarting system processes to apply configuration changes..."
 
