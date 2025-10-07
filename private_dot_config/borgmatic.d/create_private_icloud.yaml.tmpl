@@ -1,9 +1,6 @@
 {{ if .borgThisMachine }}
-source_directorikkes:
-  - {{ printf "%s/Documents" .chezmoi.homeDir | quote }}
-  - {{ printf "%s/Desktop" .chezmoi.homeDir | quote }}
+source_directories:
   - {{ .primary_cloud | quote }}
-#  - {{ printf "%s/Downloads" .chezmoi.homeDir | quote }}
 
 exclude_patterns:
   # System files

@@ -14,21 +14,19 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Org + PARA
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+  
 (after! org
   ;; PARA for projects, tasks, files
   (setq org-directory {{ .primary_cloud | quote }})
-  
-  ;; Scan PARA for org files (for agenda)
-  (setq org-agenda-files
-        (list (concat {{ .primary_cloud | quote }} "/0-Inbox/")
-              (concat {{ .primary_cloud | quote }} "/1-Projects/")
-              (concat {{ .primary_cloud | quote }} "/2-Areas/")))
-  
-  ;; Quick captures go here
-  (setq org-default-notes-file (concat {{ .primary_cloud | quote }} "/0-Inbox/inbox.org"))
+  (setq org-agenda-file-regexp "\\`[^.].*\\.org\\'") ;; Exclude files starting with "."
+  (setq org-agenda-files (directory-files-recursively org-directory "\\.org$"))
 
-  ;; Capture templates for PARA
+  (setq org-ellipsis " ▼ ")
+  (setq org-bullets-bullet-list '("#"))
+  (setq org-hide-emphasis-markers t)
+  (setq org-babel-python-command "python3")
+
+  (setq org-default-notes-file (concat {{ .primary_cloud | quote }} "/0-Inbox/inbox.org"))
   (setq org-capture-templates
         '(("t" "Todo" entry (file+headline org-default-notes-file "Tasks")
            "* TODO %?\n  %i\n  %a")
@@ -45,6 +43,9 @@
   (setq org-todo-keywords
         '((sequence "TODO(t)" "NEXT(n)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")))
 
+  (defvar org-default-time "9:00"
+    "The default time for deadlines.")
+
   ;; Startup settings
   (setq org-startup-folded 'content)
   (setq org-startup-indented t))
@@ -55,28 +56,28 @@
 
 (use-package! org-roam
   :custom
-  ;; Point to Logseq's directory
   (org-roam-directory
    (expand-file-name "~/Library/Mobile Documents/iCloud~com~logseq~logseq/Documents/Org"))
-  
-  ;; Logseq's journal structure
+  (org-roam-file-exclude-regexp
+   '("logseq/" "assets/" "whiteboards/"))
   (org-roam-dailies-directory "journals/")
-  
-  ;; Capture templates (Logseq compatible)
   (org-roam-capture-templates
    '(("d" "default" plain
       "%?" :target
-      (file+head "pages/${slug}.org" "#+title: ${title}\n")
+      (file+head "pages/${slug}.org"
+                 "---\ntitle: ${title}\n---\n\n")
       :unnarrowed t)))
-  
+  (org-roam-dailies-capture-templates
+   '(("d" "default" entry
+      "* %?"
+      :target (file+head "%<%Y_%m_%d>.org"
+                         "---\ntitle: %<%Y-%m-%d>\n---\n\n"))))
   :config
-  ;; Auto-sync database
   (org-roam-db-autosync-mode))
 
 ;; ============================================
 ;; Keybindings
 ;; ============================================
-
 (map! :leader
       (:prefix ("P" . "PARA")
        :desc "Find file in PARA" "f" #'(lambda () (interactive)
@@ -88,16 +89,7 @@
        :desc "Open areas" "a" #'(lambda () (interactive) (dirvish (concat {{ .primary_cloud | quote }} "/2-Areas/")))
        :desc "Open resources" "r" #'(lambda () (interactive) (dirvish (concat {{ .primary_cloud | quote }} "/3-Resources/")))
        :desc "Open archive" "A" #'(lambda () (interactive) (dirvish (concat {{ .primary_cloud | quote }} "/4-Archive/")))
-       :desc "Agenda" "c" #'org-agenda)
-      
-      ;; Org-roam (PKM/Logseq)
-      ;; These are already mapped by Doom to SPC n r
-      ;; Just documenting what they do:
-      ;; SPC n r f  → Find/create note in Logseq
-      ;; SPC n r i  → Insert link to note
-      ;; SPC n r g  → Graph view
-      ;; SPC n r d d → Today's journal (Logseq)
-      )
+       :desc "Agenda" "c" #'org-agenda))
 
 
 

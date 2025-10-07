@@ -100,12 +100,7 @@
   :config
   (magit-todos-mode 1)
 
-  ;; Performance optimizations for large projects
-  (setq magit-todos-update nil            ; Disable automatic updates to prevent performance issues
-        magit-todos-max-items 15          ; Limit displayed items for better performance
-        magit-todos-submodule-list nil    ; Don't scan submodules
-
-        ;; Comprehensive exclusion patterns for better performance
+  (setq magit-todos-max-items 15          ; Limit displayed items for better performance
         magit-todos-exclude-globs
         '("node_modules/**/*"              ; JavaScript dependencies
           "static/**/*"                    ; Static assets
@@ -154,7 +149,6 @@
           "yarn.lock"                      ; Yarn lock file
           "*.orig"                         ; Git merge backup files
 
-          ;; Django/Python specific
           "migrations/**/*"                ; Django migrations
           "staticfiles/**/*"               ; Django collected static
           "media/**/*"                     ; Django media files
@@ -165,15 +159,11 @@
           "*.egg-info/**/*"                ; Python egg info
           ".mypy_cache/**/*"               ; MyPy cache
           ".ruff_cache/**/*"               ; Ruff cache
-
-          ;; Hugo/Static site generators
           "HUGO/**/*"                      ; Hugo files
           "_dist/**/*"                     ; Distribution directory
           "public/**/*"                    ; Hugo public output
           "resources/**/*"                 ; Hugo resources
           ".hugo_build.lock"               ; Hugo build lock
-
-          ;; Additional build/cache directories
           ".cache/**/*"                    ; General cache
           ".parcel-cache/**/*"             ; Parcel cache
           ".turbo/**/*"                    ; Turborepo cache
@@ -197,22 +187,3 @@
           ("FIXME" . ,(doom-color 'red))
           ("XXX"   . ,(doom-color 'blue))
           ("XXXX"  . ,(doom-color 'blue)))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Additional Magit Performance Optimizations
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Additional performance tweaks without breaking auto-refresh
-(after! magit
-  ;; Speed up magit by reducing process calls
-  (setq magit-process-popup-time 5  ; Show process buffer after 5 seconds
-        magit-diff-refine-hunk nil  ; Don't highlight word-level changes
-        magit-revision-insert-related-refs nil)) ; Don't insert related refs
-
-;; Optimize git performance for magit
-(setenv "GIT_PAGER" "")  ; Disable git pager
-
-;; Keybinding to manually refresh when needed
-(map! :after magit
-      :map magit-mode-map
-      "g r" #'magit-refresh)
