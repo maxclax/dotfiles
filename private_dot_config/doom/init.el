@@ -170,7 +170,6 @@
        (nix +tree-sitter)               ; I hereby declare "nix geht mehr!"
        ;;ocaml             ; an objective camel
        (org                             ; organize your plain life in plain text
-        +roam
         +dragndrop                      ; drag & drop files/images into org buffers
         +pandoc                         ; export-with-pandoc support
         +present)                       ; using org-mode for presentations

@@ -202,30 +202,12 @@
   (claude-code-ide-emacs-tools-setup)
   (setq claude-code-ide-terminal-backend 'eat))
 
-(use-package! aidermacs
-  :config
-  (setq aidermacs-auto-accept-architect nil)
-  ;; (setq aidermacs-backend 'vterm)
-  :custom
-  (aidermacs-default-chat-mode 'architect)
-  (aidermacs-default-model "sonnet"))
-
-(use-package! aider
-  :config
-  ;; For latest claude sonnet model
-  (setq aider-args '("--model" "sonnet" "--no-auto-accept-architect" "--no-auto-commits"))
-  (aider-magit-setup-transients) ;; add aider magit function to magit menu
-  ;; auto revert buffer
-  (global-auto-revert-mode 1)
-  (auto-revert-mode 1)
-  (require 'aider-doom))
-
 (use-package! gptel
   :config
   (require 'gptel-integrations)
   (require 'gptel-org)
   (setq gptel-model 'gpt-4.1 ;; gpt-4.5, gemini-2.5-pro, claude-sonnet-4, claude-4-opus
-        gptel-default-mode 'org-mode
+        ;; gptel-default-mode 'org-mode
         gptel-use-curl t
         gptel-use-tools t
         gptel-confirm-tool-calls 'always
@@ -301,13 +283,9 @@
      ("fetch" . (:command "uvx" :args ("mcp-server-fetch")))
      ("filesystem" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-filesystem", (getenv "HOME"), "{{ .workspace }}", "{{ .workspace_extra }}")))
      ("nixos" . (:command "uvx" :args ("mcp-nixos")))
-     ("airbnb" . (:command "npx" :args ("-y" "@openbnb/mcp-server-airbnb")))
-     ("duckduckgo" . (:command "uvx" :args ("duckduckgo-mcp-server")))
      ("sequential-thinking" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-sequential-thinking")))
      ("playwright" . (:command "npx" :args ("-y" "@playwright/mcp@latest")))
      ("context7" . (:command "npx" :args ("-y" "@upstash/context7-mcp") :env (:DEFAULT_MINIMUM_TOKENS "6000")))
-     ("postgres" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-postgres" "postgresql://127.0.0.1/postgres?user=postgres&password=postgres")))
-     ;; ("everything" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-everything")))
      )
    )
 

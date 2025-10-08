@@ -50,49 +50,6 @@
   (setq org-startup-folded 'content)
   (setq org-startup-indented t))
 
-;; ============================================
-;; org-roam + PKM/Logseq
-;; ============================================
-
-(use-package! org-roam
-  :custom
-  (org-roam-directory
-   (expand-file-name "~/Library/Mobile Documents/iCloud~com~logseq~logseq/Documents/Org"))
-  (org-roam-file-exclude-regexp
-   '("logseq/" "assets/" "whiteboards/"))
-  (org-roam-dailies-directory "journals/")
-  (org-roam-capture-templates
-   '(("d" "default" plain
-      "%?" :target
-      (file+head "pages/${slug}.org"
-                 "---\ntitle: ${title}\n---\n\n")
-      :unnarrowed t)))
-  (org-roam-dailies-capture-templates
-   '(("d" "default" entry
-      "* %?"
-      :target (file+head "%<%Y_%m_%d>.org"
-                         "---\ntitle: %<%Y-%m-%d>\n---\n\n"))))
-  :config
-  (org-roam-db-autosync-mode))
-
-;; ============================================
-;; Keybindings
-;; ============================================
-(map! :leader
-      (:prefix ("P" . "PARA")
-       :desc "Find file in PARA" "f" #'(lambda () (interactive)
-                                          (let ((default-directory {{ .primary_cloud | quote }}))
-                                            (+default/find-file-under-here)))
-       :desc "Open PARA" "P" #'(lambda () (interactive) (dirvish {{ .primary_cloud | quote }}))
-       :desc "Open inbox" "i" #'(lambda () (interactive) (dirvish (concat {{ .primary_cloud | quote }} "/0-Inbox/")))
-       :desc "Open projects" "p" #'(lambda () (interactive) (dirvish (concat {{ .primary_cloud | quote }} "/1-Projects/")))
-       :desc "Open areas" "a" #'(lambda () (interactive) (dirvish (concat {{ .primary_cloud | quote }} "/2-Areas/")))
-       :desc "Open resources" "r" #'(lambda () (interactive) (dirvish (concat {{ .primary_cloud | quote }} "/3-Resources/")))
-       :desc "Open archive" "A" #'(lambda () (interactive) (dirvish (concat {{ .primary_cloud | quote }} "/4-Archive/")))
-       :desc "Agenda" "c" #'org-agenda))
-
-
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; MARKDOWN

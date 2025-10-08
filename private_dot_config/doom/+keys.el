@@ -107,8 +107,6 @@
       :prefix "l"
       "t" #' hl-todo-insert ;; Add a TODO comment
       ("x" #'align-regexp
-       :desc "Aidermacs" "a" #'aidermacs-transient-menu
-       :desc "Aider" "A" #'aider-transient-menu
        (:prefix ("p" . "Process Management")
                 "p" #'prodigy
                 "l" #'list-processes)
