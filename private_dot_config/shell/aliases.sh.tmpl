@@ -15,6 +15,7 @@ alias jupyter='cd {{ .jupyter }}'
 alias playground='cd {{ .playground  }}'
 
 alias r='ranger .'
+alias br='broot'
 alias ll='eza --long --header --group-directories-first --git --group --all --color=auto'
 alias tree='tree -C'
 alias t="tree -C -L 2"
@@ -94,6 +95,22 @@ alias wget='wget --no-hsts'
 
 # Set NeoVim as vim by default
 alias vim='nvim'
+
+# Network diagnostics
+alias mtr='sudo mtr'                    # MTR with sudo
+alias myip='curl -s ipinfo.io/ip'       # Get public IP
+alias ports='sudo lsof -i -P -n | grep LISTEN'  # List open ports
+
+# Pueue job queue management
+alias pq='pueue'                        # Base command
+alias pqa='pueue add'                   # Quick add job
+alias pqs='pueue status'                # Check status
+alias pql='pueue log'                   # View logs
+alias pqc='pueue clean'                 # Clean finished jobs
+alias pqk='pueue kill'                  # Kill job
+alias pqp='pueue pause'                 # Pause job
+alias pqr='pueue restart'               # Restart job
+alias pqd='pueued'                      # Start daemon
 
 {{ if eq .containerEngine "podman" }} 
 # ---- Podman -----
