@@ -18,18 +18,13 @@
 
 
 ;; AI
-(package! aidermacs)
-(package! aider :recipe (:host github :repo "tninja/aider.el" ))
 (package! copilot)
-(package! mcp)
-(package! gptel :recipe (:nonrecursive t))
-(package! monet
-  :recipe (:host github :repo "stevemolitor/monet"))
-(package! claude-code
-  :recipe (:host github :repo "stevemolitor/claude-code.el"
-           :files ("*.el")))
 (package! claude-code-ide
   :recipe (:host github :repo "manzaltu/claude-code-ide.el"))
+(package! mcp)
+(package! gptel :recipe (:nonrecursive t))
+(package! aidermacs)
+(package! aider :recipe (:host github :repo "tninja/aider.el" ))
 
 ;; text
 (package! adoc-mode)
@@ -60,6 +55,7 @@
 (package! consult-todo)
 (package! restclient)
 (package! vimrc-mode)
+(package! eat)         ; Terminal emulator package
 
 ;; programming
 (package! jinja2-mode)

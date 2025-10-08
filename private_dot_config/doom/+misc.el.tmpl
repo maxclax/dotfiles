@@ -191,39 +191,21 @@
 ;; AI
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
 (set-evil-initial-state!
   '(comint-mode)
   'insert)
 
 (add-hook! 'comint-mode-hook #'visual-line-mode)
 
-(use-package! monet
-  :defer t)
-
-(use-package! claude-code
-  :after monet
-  :bind-keymap ("C-c c" . claude-code-command-map)
-  :bind (:repeat-map my-claude-code-map
-         ("M" . claude-code-cycle-mode))
-  :config
-  (add-hook 'claude-code-process-environment-functions
-            #'monet-start-server-function)
-  (monet-mode 1)
-  (claude-code-mode 1))
-
-(after! claude-code
-  (setq claude-code-terminal-backend 'vterm))
-
 (use-package! claude-code-ide
   :config
-  (claude-code-ide-emacs-tools-setup)) ; Optionally enable Emacs MCP tools
-
+  (claude-code-ide-emacs-tools-setup)
+  (setq claude-code-ide-terminal-backend 'eat))
 
 (use-package! aidermacs
   :config
   (setq aidermacs-auto-accept-architect nil)
-  (setq aidermacs-backend 'vterm)
+  ;; (setq aidermacs-backend 'vterm)
   :custom
   (aidermacs-default-chat-mode 'architect)
   (aidermacs-default-model "sonnet"))
@@ -258,7 +240,7 @@
 
   (gptel-make-deepseek "gptel.DeepSeek" :stream t)
   (gptel-make-anthropic "gptel.Claude" :stream t)
-  (gptel-make-gemini "gptel.Gemini" :stream t))
+  (gptel-make-gemini "gptel.Gemini" :stream nil))
 
 ;; AI Commit Message Generator
 (defun +my/smart-commit ()

@@ -113,9 +113,7 @@
                 "p" #'prodigy
                 "l" #'list-processes)
        (:prefix ("c" . "Claude")
-                "a" #'ai-code-menu
-                "c" #'claude-code-transient
-                "C" #'claude-code-ide-menu)
+                "c" #'claude-code-ide-menu)
        (:prefix ("g" . "GPTel & Git AI")
                 "g" #'gptel
                 "a" #'gptel-add

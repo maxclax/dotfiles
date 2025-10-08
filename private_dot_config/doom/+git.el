@@ -100,7 +100,9 @@
   :config
   (magit-todos-mode 1)
 
-  (setq magit-todos-max-items 15          ; Limit displayed items for better performance
+  (setq magit-todos-max-items 5           ; Drastically limit items for performance
+        magit-todos-update nil            ; Don't auto-update during magit operations
+        magit-todos-depth 2               ; Limit directory traversal depth
         magit-todos-exclude-globs
         '("node_modules/**/*"              ; JavaScript dependencies
           "static/**/*"                    ; Static assets
