@@ -48,7 +48,7 @@ repositories:
 
 encryption_passcommand: op read "op://Private/chezmoi-data/borg-encryption-passphrase"
 compression: "lz4"
-archive_name_format: "{hostname}-icloud-{now:%Y-%m-%d-%H%M%S}"
+archive_name_format: "{hostname}-primary_cloud-{now:%Y-%m-%d-%H%M%S}"
 
 # Retention settings
 keep_daily: 7
@@ -77,13 +77,13 @@ pushover:
     token: {{ onepasswordRead "op://Private/chezmoi-data/pushover-token" }}
     user: {{ onepasswordRead "op://Private/chezmoi-data/pushover-user-key" }}
     start: 
-        title: "🔄 Borg Backup Started: icloud"
+        title: "🔄 Borg Backup Started: primary_cloud"
         message: "Starting backup on {{ .hostname }}"
         priority: -1
         html: True
         ttl: 30
     fail: 
-        title: "❌ Borg Backup Failed: icloud"
+        title: "❌ Borg Backup Failed: primary_cloud"
         message: "Backup failed on {{ .hostname }}. Check logs for details."
         priority: 2
         html: True
@@ -91,7 +91,7 @@ pushover:
         expire: 3600
         retry: 60
     finish: 
-        title: "✅ Borg Backup Complete: icloud"
+        title: "✅ Borg Backup Complete: primary_cloud"
         message: "Successfully backed up on {{ .hostname }}"
         priority: 0
         html: True
