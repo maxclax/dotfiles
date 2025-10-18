@@ -53,6 +53,44 @@
       echo "iCloud Drive not found at $ICLOUD_SOURCE"
     fi
 
+{{- if .primary_cloud }}
+    # Create primary cloud symlink
+    PRIMARY_CLOUD_SOURCE="{{ .primary_cloud }}"
+    PRIMARY_CLOUD_SYMLINK="{{ .chezmoi.homeDir }}/$(basename "{{ .primary_cloud }}")"
+
+    if [[ -d "$PRIMARY_CLOUD_SOURCE" && ! -L "$PRIMARY_CLOUD_SYMLINK" ]]; then
+      if [[ ! -e "$PRIMARY_CLOUD_SYMLINK" ]]; then
+        echo "Creating primary cloud symlink: $PRIMARY_CLOUD_SYMLINK -> $PRIMARY_CLOUD_SOURCE"
+        sudo -u "{{ .chezmoi.username }}" ln -s "$PRIMARY_CLOUD_SOURCE" "$PRIMARY_CLOUD_SYMLINK"
+      else
+        echo "Warning: $PRIMARY_CLOUD_SYMLINK exists but is not a symlink"
+      fi
+    elif [[ -L "$PRIMARY_CLOUD_SYMLINK" ]]; then
+      echo "Primary cloud symlink already exists"
+    else
+      echo "Primary cloud not found at $PRIMARY_CLOUD_SOURCE"
+    fi
+{{- end }}
+
+{{- if .secondary_cloud }}
+    # Create secondary cloud symlink
+    SECONDARY_CLOUD_SOURCE="{{ .secondary_cloud }}"
+    SECONDARY_CLOUD_SYMLINK="{{ .chezmoi.homeDir }}/$(basename "{{ .secondary_cloud }}")"
+
+    if [[ -d "$SECONDARY_CLOUD_SOURCE" && ! -L "$SECONDARY_CLOUD_SYMLINK" ]]; then
+      if [[ ! -e "$SECONDARY_CLOUD_SYMLINK" ]]; then
+        echo "Creating secondary cloud symlink: $SECONDARY_CLOUD_SYMLINK -> $SECONDARY_CLOUD_SOURCE"
+        sudo -u "{{ .chezmoi.username }}" ln -s "$SECONDARY_CLOUD_SOURCE" "$SECONDARY_CLOUD_SYMLINK"
+      else
+        echo "Warning: $SECONDARY_CLOUD_SYMLINK exists but is not a symlink"
+      fi
+    elif [[ -L "$SECONDARY_CLOUD_SYMLINK" ]]; then
+      echo "Secondary cloud symlink already exists"
+    else
+      echo "Secondary cloud not found at $SECONDARY_CLOUD_SOURCE"
+    fi
+{{- end }}
+
     # Kill and restart processes that need to reload system defaults
     echo "Restarting system processes to apply configuration changes..."
 
