@@ -4,8 +4,14 @@ set -eufo pipefail
 
 # Linux Dock/Panel Configuration
 
+# Skip if not in a desktop environment
+if [ -z "${XDG_CURRENT_DESKTOP:-}" ] && [ -z "${DESKTOP_SESSION:-}" ]; then
+	echo "No desktop environment detected, skipping dock configuration"
+	exit 0
+fi
+
 # Detect desktop environment
-if [ "$XDG_CURRENT_DESKTOP" = "GNOME" ] || [ "$DESKTOP_SESSION" = "gnome" ]; then
+if [ "${XDG_CURRENT_DESKTOP:-}" = "GNOME" ] || [ "${DESKTOP_SESSION:-}" = "gnome" ]; then
 	echo "Configuring GNOME dock..."
 
 	# Define favorite applications (add terminal, remove defaults)
@@ -16,7 +22,7 @@ if [ "$XDG_CURRENT_DESKTOP" = "GNOME" ] || [ "$DESKTOP_SESSION" = "gnome" ]; the
 
 	echo "GNOME dock configured with terminal and essential apps"
 
-elif [ "$XDG_CURRENT_DESKTOP" = "KDE" ] || [ "$DESKTOP_SESSION" = "plasma" ]; then
+elif [ "${XDG_CURRENT_DESKTOP:-}" = "KDE" ] || [ "${DESKTOP_SESSION:-}" = "plasma" ]; then
 	echo "Configuring KDE panel..."
 
 	# KDE panel configuration is complex, keeping minimal
@@ -42,7 +48,7 @@ EOF
 
 else
 	echo "Unknown desktop environment or dock manager"
-	echo "Desktop: $XDG_CURRENT_DESKTOP"
-	echo "Session: $DESKTOP_SESSION"
+	echo "Desktop: ${XDG_CURRENT_DESKTOP:-none}"
+	echo "Session: ${DESKTOP_SESSION:-none}"
 	echo "Manual dock configuration may be required"
 fi

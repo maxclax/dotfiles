@@ -65,7 +65,12 @@ gitGithub.gpgsign.enabled = false
 gitGithub.gpgsign.signingKey = ""
 gitGithub.gpgsign.program = ""
 
-
 [git]
 autoCommit = false
 autoPush = false
+
+[interpreters.sh]
+command = "sh"
+
+[interpreters.bash]
+command = "bash"

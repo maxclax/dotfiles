@@ -87,9 +87,6 @@
   ;; Hide dotfiles (files starting with .) but keep directories
   (setq dired-omit-files "^\\.[^.].*")  ; Hide .file but keep .. and .
 
-  ;; Enable dired-omit-mode by default
-  (add-hook 'dired-mode-hook #'dired-omit-mode)
-
   ;; Custom function to only hide dot-files, not dot-directories
   (defun my/dired-omit-dotfiles-not-dirs ()
     "Omit dotfiles but not dot-directories."
