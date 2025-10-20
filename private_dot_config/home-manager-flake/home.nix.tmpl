@@ -56,14 +56,14 @@
   };
 {{- end }}
 
-{{- if or .ephemeral (eq .chezmoi.os "linux") }}
+{{- if or .ephemeral (eq .chezmoi.os "linux") .nixosContainer }}
   # Prevent package conflicts in NixOS/containers only
   home.activation = {
     preActivation = ''
       # Remove specific conflicting packages to prevent conflicts
       if command -v nix-env >/dev/null 2>&1; then
         echo "Checking for specific package conflicts..."
-        for pkg in man-db openssh wget curl git bash coreutils; do
+        for pkg in man-db openssh wget curl git bash bash-interactive coreutils; do
           if nix-env -q 2>/dev/null | grep -q "^$pkg"; then
             echo "Removing conflicting package: $pkg"
             nix-env -e "$pkg" 2>/dev/null || true
