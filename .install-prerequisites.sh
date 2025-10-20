@@ -43,7 +43,7 @@ install_nix_and_home_manager() {
 	if [ "$(uname)" = "Linux" ]; then
 		echo 'Checking for package conflicts...'
 		if command -v nix-env >/dev/null 2>&1; then
-			nix-env -q 2>/dev/null | grep -E "^(man-db|home-manager)" | while read pkg; do
+			nix-env -q 2>/dev/null | grep -E "^(man-db|home-manager|wget)" | while read pkg; do
 				echo "Removing conflicting package: $pkg"
 				nix-env -e "$pkg" 2>/dev/null || true
 			done

@@ -49,9 +49,9 @@
       # Remove conflicting packages that might be installed via nix-env
       if command -v nix-env >/dev/null 2>&1; then
         echo "Checking for package conflicts..."
-        nix-env -q | grep -E "^(man-db|home-manager)" | while read pkg; do
+        nix-env -q 2>/dev/null | grep -E "^(man-db|home-manager|wget|curl|git|bash|coreutils)" | while read pkg; do
           echo "Removing conflicting package: $pkg"
-          nix-env -e "$pkg" || true
+          nix-env -e "$pkg" 2>/dev/null || true
         done
       fi
     '';
