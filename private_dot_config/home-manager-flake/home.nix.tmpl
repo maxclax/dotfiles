@@ -59,8 +59,14 @@
   };
 {{- end }}
 
-{{- if or .ephemeral (eq .chezmoi.os "linux") .nixosContainer }}
-  # Prevent package conflicts in NixOS/containers only
+{{- if .nixosContainer }}
+  # NixOS Container specific settings to prevent conflicts
+  programs.bash.enable = false;
+
+  # Use allowBroken to handle package conflicts
+  nixpkgs.config.allowBroken = true;
+
+  # Prevent package conflicts in NixOS containers
   home.activation = {
     preActivation = ''
       # Remove specific conflicting packages to prevent conflicts

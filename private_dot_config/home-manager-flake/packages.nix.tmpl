@@ -53,10 +53,10 @@
     trash-cli              # Command line trash utility
     tree                   # Display directory tree
     zoxide                 # A smarter cd command
-{{- if eq .shell "zsh" }}
+{{- if and (eq .shell "zsh") (not .nixosContainer) }}
     zsh                    # Z shell
 {{- end }}
-{{- if eq .shell "fish" }}
+{{- if and (eq .shell "fish") (not .nixosContainer) }}
     fish                   # Fish shell
 {{- end }}
 

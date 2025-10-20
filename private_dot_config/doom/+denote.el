@@ -39,15 +39,8 @@
                 "\\(?4:__[[:alnum:][:nonascii:]-]*\\)?"
                 "\\.\\(?5:org\\|md\\|txt\\)$"))
 
-  ;; Custom front matter for PARA
-  (setq denote-org-front-matter
-        "#+title:      %1$s
-#+date:       %2$s
-#+filetags:   %3$s
-#+identifier: %4$s
-#+created:    %5$s
-#+para:       %6$s
-\n")
+  ;; Use default front matter (don't override)
+  ;; denote provides the right number of arguments automatically
 
   ;; Template for different PARA categories
   (defun my/denote-para-template (category)
@@ -66,10 +59,12 @@
      (list (completing-read "PARA Category: "
                            '("inbox" "project" "area" "resource" "archive"))
            (read-string "Note title: ")))
-    (let ((keywords (list category)))
+    (let ((keywords (list category))
+          (denote-directory (expand-file-name "~/PARA")))
       (denote title keywords)
       (when (derived-mode-p 'org-mode)
         (goto-char (point-max))
+        (insert "\n")
         (insert (my/denote-para-template category))))))
 
 (use-package! denote-explore
