@@ -13,7 +13,9 @@
 {{- if eq .shell "fish" }}
     ./programs/fish.nix          # Fish configuration
 {{- end }}
+{{- if not .nixosContainer }}
     ./programs/bash.nix          # Bash configuration
+{{- end }}
     ./programs/vim.nix           # Vim configuration
     ./programs/direnv.nix        # Direnv configuration
     ./programs/atuin.nix         # Atuin configuration

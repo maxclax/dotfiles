@@ -1,5 +1,8 @@
 # -*- mode: makefile; -*-
 
+# Suppress directory change messages
+MAKEFLAGS += --no-print-directory
+
 # Detect the OS
 UNAME_S := $(shell uname -s)
 UNAME_M := $(shell uname -m)
