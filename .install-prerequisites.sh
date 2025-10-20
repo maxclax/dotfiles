@@ -39,6 +39,17 @@ install_nix_and_home_manager() {
         . "$HOME/.nix-profile/etc/profile.d/nix.sh"
     fi
 
+	# Remove potential conflicting packages before Home Manager installation (Linux only)
+	if [ "$(uname)" = "Linux" ]; then
+		echo 'Checking for package conflicts...'
+		if command -v nix-env >/dev/null 2>&1; then
+			nix-env -q 2>/dev/null | grep -E "^(man-db|home-manager)" | while read pkg; do
+				echo "Removing conflicting package: $pkg"
+				nix-env -e "$pkg" 2>/dev/null || true
+			done
+		fi
+	fi
+
 	if command -v home-manager >/dev/null 2>&1; then
 		echo 'Home Manager is already installed'
 	else
