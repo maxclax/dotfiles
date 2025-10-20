@@ -43,9 +43,8 @@
 {{- if or (eq .chezmoi.os "linux") .extraUser }}
   # Allow unfree packages (handled by nix-darwin when extraUser is false)
   nixpkgs.config.allowUnfree = true;
-{{- end }}
 
-  # Set package priorities to avoid conflicts
+  # Set package priorities to avoid conflicts (Linux only)
   nixpkgs.config.packageOverrides = pkgs: {
     # Lower priority for packages that might conflict with system
     openssh = pkgs.lib.lowPrio pkgs.openssh;
@@ -53,6 +52,7 @@
     curl = pkgs.lib.lowPrio pkgs.curl;
     git = pkgs.lib.lowPrio pkgs.git;
   };
+{{- end }}
 
 {{- if or .ephemeral (eq .chezmoi.os "linux") }}
   # Prevent package conflicts in NixOS/containers only
