@@ -39,5 +39,13 @@ copy_on_select yes
 # File drop support
 open_url_with default
 
+# Enable drag and drop for files/screenshots
+action_alias paste_image paste_from_clipboard
+map ctrl+shift+v paste_image
+
+# Allow dropping files into terminal
+action_alias drag_drop launch --stdin-source=@screen_scrollback --type=clipboard
+map f1 drag_drop
+
 # Claude terminal setup
 map shift+enter send_text normal,application \x1b\r

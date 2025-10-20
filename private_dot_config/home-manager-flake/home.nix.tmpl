@@ -42,6 +42,22 @@
   nixpkgs.config.allowUnfree = true;
 {{- end }}
 
+{{- if or .ephemeral (eq .chezmoi.os "linux") }}
+  # Prevent package conflicts in NixOS/containers only
+  home.activation = {
+    preActivation = ''
+      # Remove conflicting packages that might be installed via nix-env
+      if command -v nix-env >/dev/null 2>&1; then
+        echo "Checking for package conflicts..."
+        nix-env -q | grep -E "^(man-db|home-manager)" | while read pkg; do
+          echo "Removing conflicting package: $pkg"
+          nix-env -e "$pkg" || true
+        done
+      fi
+    '';
+  };
+{{- end }}
+
   # Font configuration
   fonts.fontconfig.enable = true;
 

@@ -80,9 +80,30 @@
     (ignore-errors (apply orig-fn args)))
   (advice-add 'nav-flash-show :around #'+advice/nav-flash-show))
 
+(after! dired
+  ;; Enable dired-omit-mode to hide dotfiles but keep directories
+  (require 'dired-x)
+
+  ;; Hide dotfiles (files starting with .) but keep directories
+  (setq dired-omit-files "^\\.[^.].*")  ; Hide .file but keep .. and .
+
+  ;; Enable dired-omit-mode by default
+  (add-hook 'dired-mode-hook #'dired-omit-mode)
+
+  ;; Custom function to only hide dot-files, not dot-directories
+  (defun my/dired-omit-dotfiles-not-dirs ()
+    "Omit dotfiles but not dot-directories."
+    (setq-local dired-omit-files
+                (concat dired-omit-files "\\|^\\.[^./].*[^/]$")))
+
+  (add-hook 'dired-mode-hook #'my/dired-omit-dotfiles-not-dirs))
+
 (after! dirvish
+  ;; Enable dirvish globally for all dired buffers
+  (dirvish-override-dired-mode)
+
   (setq dirvish-attributes
-        '(vc-state file-size nerd-icons collapse subtree-state file-time))
+        '(vc-state file-size nerd-icons collapse file-time))
   (setq dirvish-quick-access-entries
         `(("h" "~/" "Home")
           ("c" "~/.config" "config")
@@ -105,9 +126,9 @@
   (when (executable-find "lla")
     (dirvish-define-preview lla (file)
       "Use `lla' to generate directory preview."
-      :require ("lla")         ; tell Dirvish to check if we have the executable
-      (when (file-directory-p file)     ; we only interest in directories here
-        `(shell . ("lla" "-l" "--icons" ,file))))
+      :require ("lla")
+      (when (file-directory-p file)
+        `(shell . ("lla" "--icons" ,file))))
 
     (add-to-list 'dirvish-preview-dispatchers 'lla))
 
