@@ -45,52 +45,6 @@
 {{- if or (eq .chezmoi.os "linux") .extraUser }}
   # Allow unfree packages (handled by nix-darwin when extraUser is false)
   nixpkgs.config.allowUnfree = true;
-
-  # Set package priorities to avoid conflicts (Linux only)
-  nixpkgs.config.packageOverrides = pkgs: {
-    # Lower priority for packages that might conflict with system
-    openssh = pkgs.lib.lowPrio pkgs.openssh;
-    wget = pkgs.lib.lowPrio pkgs.wget;
-    curl = pkgs.lib.lowPrio pkgs.curl;
-    git = pkgs.lib.lowPrio pkgs.git;
-{{- if not .nixosContainer }}
-    bash = pkgs.lib.lowPrio pkgs.bash;
-{{- end }}
-  };
-{{- end }}
-
-{{- if .nixosContainer }}
-  # NixOS Container specific settings to prevent conflicts
-  programs.bash.enable = false;
-
-  # Use allowBroken to handle package conflicts
-  nixpkgs.config.allowBroken = true;
-
-  # Handle package collisions in containers
-  home.enableNixpkgsReleaseCheck = false;
-
-  # Use prioritised packages to resolve conflicts
-  nixpkgs.overlays = [
-    (final: prev: {
-      bash = prev.lib.lowPrio prev.bash;
-    })
-  ];
-
-  # Prevent package conflicts in NixOS containers
-  home.activation = {
-    preActivation = ''
-      # Remove specific conflicting packages to prevent conflicts
-      if command -v nix-env >/dev/null 2>&1; then
-        echo "Checking for specific package conflicts..."
-        for pkg in man-db openssh wget curl git bash bash-interactive coreutils; do
-          if nix-env -q 2>/dev/null | grep -q "^$pkg"; then
-            echo "Removing conflicting package: $pkg"
-            nix-env -e "$pkg" 2>/dev/null || true
-          fi
-        done
-      fi
-    '';
-  };
 {{- end }}
 
   # Font configuration
