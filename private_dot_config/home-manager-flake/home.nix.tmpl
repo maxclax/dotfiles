@@ -53,6 +53,9 @@
     wget = pkgs.lib.lowPrio pkgs.wget;
     curl = pkgs.lib.lowPrio pkgs.curl;
     git = pkgs.lib.lowPrio pkgs.git;
+{{- if not .nixosContainer }}
+    bash = pkgs.lib.lowPrio pkgs.bash;
+{{- end }}
   };
 {{- end }}
 
