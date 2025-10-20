@@ -56,16 +56,23 @@
 
     # Cross-platform packages useful on all systems
     asciinema              # Terminal session recorder
-    bash                   # Bourne Again Shell
     cacert                 # Certificate authorities
     fuse                   # Filesystem in userspace
     git-absorb             # Automatically absorb staged changes into commits
     gnupg                  # GNU Privacy Guard
     jq                     # Command-line JSON processor
-    openssh                # SSH client and server
     openvpn                # Virtual Private Network client/server
     pkg-config             # Package configuration helper
     units                  # Unit conversion tool
+
+{{- if not .nixosContainer }}
+    # Packages that conflict with NixOS container system packages
+    bash                   # Bourne Again Shell
+    curl                   # Transfer data with URLs
+    git                    # Distributed version control
+    openssh                # SSH client and server
+    wget                   # Retrieve files from web
+{{- end }}
 
     # Common fonts for all systems
     fira-code              # Monospaced font with programming ligatures

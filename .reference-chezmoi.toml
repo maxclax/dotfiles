@@ -13,6 +13,7 @@ headless = true
 hostname = "hostname"
 personal = false
 osid = "linux-debian"
+nixosContainer = false
 unameArch = "aarch64"
 extraUser = false
 useOp = false

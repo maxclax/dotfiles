@@ -33,6 +33,7 @@
 {{- $ephemeral := false -}}{{/* true if this machine is ephemeral, e.g. a cloud, VM or for short time */}}
 {{- $headless := false -}}{{/* true if this machine does not have a screen and keyboard */}}
 {{- $personal :=  false -}}{{/* true if this machine should have personal secrets */}}
+{{- $nixosContainer := false -}}{{/* true if running in nixos/nix container with pre-installed packages */}}
 {{- "" -}}
 
 {{- $osID := .chezmoi.os -}}
@@ -42,6 +43,17 @@
 
 {{- if eq .chezmoi.os "windows" -}}
 {{-   $ephemeral = true -}}
+{{- end -}}
+
+{{/* Detect NixOS container environment (specifically nixos/nix image) */}}
+{{- if and (eq .chezmoi.os "linux") (stat "/nix/store") -}}
+{{-   if and (not (stat "/etc/NIXOS")) (stat "/etc/nix/nix.conf") -}}
+{{-     if output "sh" "-c" "test -d /nix/var/nix/profiles/system && echo true || echo false" | eq "true" -}}
+{{-       $nixosContainer = true -}}
+{{-       $ephemeral = true -}}
+{{-       $headless = true -}}
+{{-     end -}}
+{{-   end -}}
 {{- end -}}
 
 {{- $hostname := .chezmoi.hostname -}}
@@ -103,6 +115,7 @@ encryption = "age"
     hostname = {{ $hostname | quote }}
     personal = {{ $personal }}
     osid = {{ $osID | quote }}
+    nixosContainer = {{ $nixosContainer }}
     unameArch = {{ output "uname" "-m" | trim | quote }}
     extraUser = {{ promptBoolOnce . "extraUser" "Extra user? True if all were instaled by main user" false }}
     useOp = {{ $useOp }}
