@@ -68,12 +68,14 @@
   # Enable desktop integration for GUI applications (Linux only)
   targets.genericLinux.enable = true;
 
-  # Zen Browser configuration (Linux only)
+{{ if not .ephemeral -}}
+  # Zen Browser configuration (Linux desktop only, not containers)
   programs.zen-browser = {
     enable = true;
     # Available options: beta, twilight, twilight-official
     # beta = latest beta version with newest features
     variant = "beta";
   };
+{{- end }}
 {{- end }}
 }
