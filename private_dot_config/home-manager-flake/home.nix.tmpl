@@ -66,6 +66,16 @@
   # Use allowBroken to handle package conflicts
   nixpkgs.config.allowBroken = true;
 
+  # Handle package collisions in containers
+  home.enableNixpkgsReleaseCheck = false;
+
+  # Use prioritised packages to resolve conflicts
+  nixpkgs.overlays = [
+    (final: prev: {
+      bash = prev.lib.lowPrio prev.bash;
+    })
+  ];
+
   # Prevent package conflicts in NixOS containers
   home.activation = {
     preActivation = ''
