@@ -58,10 +58,15 @@
   # Prevent package conflicts in NixOS/containers only
   home.activation = {
     preActivation = ''
-      # Remove all user-installed packages to prevent conflicts
+      # Remove specific conflicting packages to prevent conflicts
       if command -v nix-env >/dev/null 2>&1; then
-        echo "Removing all user-installed packages to prevent conflicts..."
-        nix-env --uninstall '*' 2>/dev/null || true
+        echo "Checking for specific package conflicts..."
+        for pkg in man-db openssh wget curl git bash coreutils; do
+          if nix-env -q 2>/dev/null | grep -q "^$pkg"; then
+            echo "Removing conflicting package: $pkg"
+            nix-env -e "$pkg" 2>/dev/null || true
+          fi
+        done
       fi
     '';
   };

@@ -39,12 +39,17 @@ install_nix_and_home_manager() {
         . "$HOME/.nix-profile/etc/profile.d/nix.sh"
     fi
 
-	# Remove ALL user-installed packages before Home Manager installation (Linux only)
+	# Remove specific conflicting packages before Home Manager installation (Linux only)
 	if [ "$(uname)" = "Linux" ]; then
-		echo 'Removing all user-installed packages to prevent conflicts...'
+		echo 'Checking for specific package conflicts...'
 		if command -v nix-env >/dev/null 2>&1; then
-			# Remove all packages installed in user environment
-			nix-env --uninstall '*' 2>/dev/null || true
+			# Only remove packages that are known to conflict with home-manager-path
+			for pkg in man-db openssh wget curl git bash coreutils; do
+				if nix-env -q 2>/dev/null | grep -q "^$pkg"; then
+					echo "Removing conflicting package: $pkg"
+					nix-env -e "$pkg" 2>/dev/null || true
+				fi
+			done
 		fi
 	fi
 
