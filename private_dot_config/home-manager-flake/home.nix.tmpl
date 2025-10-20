@@ -58,23 +58,22 @@
   programs.bash.enable = false;
 
   # Handle package conflicts in containers
-  home.activation.removeConflicts = {
-    before = ["installPackages"];
-    after = ["writeBoundary"];
-    data = ''
-      # Remove conflicting packages before Home Manager installs
-      if command -v nix-env >/dev/null 2>&1; then
-        echo "🔧 Removing conflicting packages in container..."
-        for pkg in bash-interactive git-minimal coreutils-full findutils gnugrep gnutar gzip; do
-          if nix-env -q 2>/dev/null | grep -q "^$pkg"; then
-            echo "  Removing: $pkg"
-            nix-env -e "$pkg" 2>/dev/null || true
-          fi
-        done
-        echo "✅ Conflicts resolved"
-      fi
-    '';
-  };
+  home.activation.removeConflicts = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    # Remove conflicting packages before Home Manager installs
+    if command -v nix-env >/dev/null 2>&1; then
+      echo "🔧 Removing conflicting packages in container..."
+      echo "Found packages: $(nix-env -q)"
+      for pkg in bash-interactive git-minimal coreutils-full findutils gnugrep gnutar gzip nss-cacert iana-etc less which; do
+        if nix-env -q 2>/dev/null | grep -q "^$pkg"; then
+          echo "  Removing: $pkg"
+          nix-env -e "$pkg" 2>/dev/null || true
+        fi
+      done
+      echo "✅ Conflicts resolved - remaining: $(nix-env -q)"
+    else
+      echo "❌ nix-env not found"
+    fi
+  '';
 {{- else if eq .chezmoi.os "linux" }}
   # Enable desktop integration for GUI applications (Linux only)
   targets.genericLinux.enable = true;
