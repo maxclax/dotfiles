@@ -59,8 +59,19 @@
      (list (completing-read "PARA Category: "
                            '("inbox" "project" "area" "resource" "archive"))
            (read-string "Note title: ")))
-    (let ((keywords (list category))
-          (denote-directory (expand-file-name "~/PARA")))
+    (let* ((keywords (list category))
+           (para-subdir (pcase category
+                         ("inbox" "0-Inbox")
+                         ("project" "1-Projects")
+                         ("area" "2-Areas")
+                         ("resource" "3-Resources")
+                         ("archive" "4-Archive")
+                         (_ "0-Inbox")))
+           (target-dir (expand-file-name para-subdir "~/PARA"))
+           (denote-directory target-dir))
+      ;; Ensure the target directory exists
+      (unless (file-exists-p target-dir)
+        (make-directory target-dir t))
       (denote title keywords)
       (when (derived-mode-p 'org-mode)
         (goto-char (point-max))
