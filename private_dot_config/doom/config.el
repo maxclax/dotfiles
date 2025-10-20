@@ -8,6 +8,7 @@
 (load! "+prog")
 (load! "+ui")
 (load! "+keys")
+(load! "+denote")
 
 ;; Autoload all files from the modules directory
 (let ((modules-dir (expand-file-name "helpers" doom-user-dir)))

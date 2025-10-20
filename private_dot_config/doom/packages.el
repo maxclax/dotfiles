@@ -33,6 +33,11 @@
 (package! nov)      ; EPUB reader
 (package! djvu)     ; DjVu document viewer
 
+;; denote - note-taking system
+(package! denote)
+(package! denote-explore)
+(package! consult-notes)
+
 ;; misc
 (package! makefile-executor)
 (package! circadian)
