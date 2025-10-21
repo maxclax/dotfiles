@@ -47,8 +47,8 @@
 
 {{/* Detect NixOS container environment (specifically nixos/nix image) */}}
 {{- if and (eq .chezmoi.os "linux") (stat "/nix/store") -}}
-{{-   if and (not (stat "/etc/NIXOS")) (stat "/etc/nix/nix.conf") -}}
-{{-     if output "sh" "-c" "test -d /nix/var/nix/profiles/system && echo true || echo false" | eq "true" -}}
+{{-   if and (not (stat "/etc/NIXOS")) (not (stat "/etc/os-release")) -}}
+{{-     if output "sh" "-c" "test -d /nix/var/nix/profiles && echo true || echo false" | eq "true" -}}
 {{-       $nixosContainer = true -}}
 {{-       $ephemeral = true -}}
 {{-       $headless = true -}}
