@@ -45,14 +45,13 @@
 {{-   $ephemeral = true -}}
 {{- end -}}
 
-{{/* Detect NixOS container environment (specifically nixos/nix image) */}}
+{{/* Detect environment with pre-installed nix-env packages that conflict with Home Manager */}}
 {{- if and (eq .chezmoi.os "linux") (stat "/nix/store") -}}
-{{-   if and (not (stat "/etc/NIXOS")) (not (stat "/etc/os-release")) -}}
-{{-     if output "sh" "-c" "test -d /nix/var/nix/profiles && echo true || echo false" | eq "true" -}}
-{{-       $nixosContainer = true -}}
-{{-       $ephemeral = true -}}
-{{-       $headless = true -}}
-{{-     end -}}
+{{-   $hasConflictingPackages := output "sh" "-c" "nix-env -q 2>/dev/null | grep -E '^(bash-interactive|git-minimal|coreutils-full)' | wc -l" | trim -}}
+{{-   if and (not (stat "/etc/NIXOS")) (gt ($hasConflictingPackages | int) 0) -}}
+{{-     $nixosContainer = true -}}
+{{-     $ephemeral = true -}}
+{{-     $headless = true -}}
 {{-   end -}}
 {{- end -}}
 
