@@ -52,10 +52,21 @@ fi
 
 # Step 3: Apply dotfiles using chezmoi via nix-shell
 echo "📋 Step 3: Applying dotfiles configuration..."
-nix-shell -p chezmoi git --run "
-    chezmoi init --branch ${BRANCH} --apply ${GITHUB_URL} && \
-    echo '✅ Dotfiles applied successfully!'
-"
+
+# Check if chezmoi config already exists (container case)
+if [ -f ~/.config/chezmoi/chezmoi.toml ]; then
+    echo "🔧 Using existing chezmoi configuration..."
+    nix-shell -p chezmoi git --run "
+        chezmoi apply && \
+        echo '✅ Dotfiles applied successfully!'
+    "
+else
+    echo "🔧 Initializing new chezmoi configuration..."
+    nix-shell -p chezmoi git --run "
+        chezmoi init --branch ${BRANCH} --apply ${GITHUB_URL} && \
+        echo '✅ Dotfiles applied successfully!'
+    "
+fi
 
 if [ $? -ne 0 ]; then
     echo "❌ Error: Failed to apply dotfiles"
