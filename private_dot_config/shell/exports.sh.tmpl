@@ -81,8 +81,17 @@ elif [ -f /home/linuxbrew/.linuxbrew/bin/brew ]; then
   eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
   brew_prefix="$(brew --prefix)"
 else
-  if ! grep -q "alpine" /etc/os-release && ! grep -q "debian" /etc/os-release; then
+  # Check if we're in a container environment or if os-release exists before reading it
+  if [ -f /etc/os-release ]; then
+    if ! grep -q "alpine" /etc/os-release && ! grep -q "debian" /etc/os-release; then
+      echo "Please install Homebrew and the Brewfile."
+    fi
+  {{- if .nixosContainer }}
+  # Skip Homebrew message in NixOS containers
+  {{- else }}
+  else
     echo "Please install Homebrew and the Brewfile."
+  {{- end }}
   fi
   brew_prefix=""
 fi
@@ -163,13 +172,26 @@ add_to_path prepend "$HOME/.local/state/nix/profiles/home-manager/home-path/bin"
 # ============================================================================
 # Platform-Specific Configuration
 # ============================================================================
+# Use chezmoi OS detection if uname is not available (container environments)
+{{- if .nixosContainer }}
+case "{{ .chezmoi.os }}" in
+{{- else }}
 case $(uname) in
+{{- end }}
+{{- if .nixosContainer }}
+darwin)
+{{- else }}
 Darwin)
+{{- end }}
   # commands for macOS go here
 
   ;;
 
+{{- if .nixosContainer }}
+linux)
+{{- else }}
 Linux)
+{{- end }}
   # commands for Linux go here
   add_to_path append "$PATH:/snap/bin"
 

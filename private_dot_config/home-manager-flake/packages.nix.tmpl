@@ -4,6 +4,16 @@
 {
   # The home.packages option allows you to install Nix packages into your environment
   home.packages = with pkgs; [
+    # Essential Unix utilities needed for shell functionality
+    coreutils              # Essential Unix utilities (mkdir, mv, etc.)
+    findutils              # Find utilities (find, xargs)
+    gnugrep                # GNU grep
+    gawk                   # GNU awk
+    gnused                 # GNU sed
+    util-linux             # System utilities (uname, etc.)
+    libiconv               # Character encoding conversion (iconv)
+    nix-search-cli         # Nix package search CLI (for pay-respects)
+
 {{- if not .nixosContainer }}
     # Packages that conflict with NixOS container system packages
     bash                   # Bourne Again Shell
