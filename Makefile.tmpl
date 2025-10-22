@@ -234,7 +234,7 @@ torproxy_ports:
 	lsof -i :{{ .torproxyPortSocks5 }}
 	lsof -i :{{ .torproxyPortDns }}
 
-torproxy_check:
+ip_check:
 	@echo "ALL_PROXY: ${ALL_PROXY}"
 	@echo "HTTP_PROXY: ${HTTP_PROXY}"
 	@echo "HTTPS_PROXY: ${HTTPS_PROXY}"
