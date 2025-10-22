@@ -224,11 +224,11 @@ k9s:
 	@k9s
 
 # Tor
-proxy_start:
-	$(CONTAINER_ENGINE) run -d --restart=always --name torproxy -p 127.0.0.1:{{- .torproxyPortSocks5 -}}:9150/tcp -p 127.0.0.1:{{- .torproxyPortDns -}}:8853/udp peterdavehello/tor-socks-proxy:latest
+torproxy_start:
+	$(CONTAINER_ENGINE) run -d --restart=always --name torproxy -p 127.0.0.1:{{ .torproxyPortSocks5 }}:9150/tcp -p 127.0.0.1:{{ .torproxyPortDns }}:8853/udp peterdavehello/tor-socks-proxy:latest
 
 torproxy_start_without_dns:
-	$(CONTAINER_ENGINE) run -d --restart=always --name torproxy -p 127.0.0.1:{{- .torproxyPortSocks5 -}}:9150/tcp peterdavehello/tor-socks-proxy:latest
+	$(CONTAINER_ENGINE) run -d --restart=always --name torproxy -p 127.0.0.1:{{ .torproxyPortSocks5 }}:9150/tcp peterdavehello/tor-socks-proxy:latest
 
 torproxy_stop:
 	$(CONTAINER_ENGINE) stop torproxy
@@ -241,8 +241,8 @@ torproxy_ip_change:
 	$(CONTAINER_ENGINE) restart torproxy
 
 torproxy_ports:
-	lsof -i :{{- .torproxyPortSocks5 -}}
-	lsof -i :{{- .torproxyPortDns -}}
+	lsof -i :{{ .torproxyPortSocks5 }}
+	lsof -i :{{ .torproxyPortDns }}
 
 torproxy_check:
 	@echo "ALL_PROXY: ${ALL_PROXY}"
@@ -252,7 +252,7 @@ torproxy_check:
 	@echo "DNS_PROXY: ${DNS_PROXY}"
 
 	curl https://ipinfo.tw/ip
-	curl --socks5-hostname {{ .torproxyHost }}:{{- .torproxyPortSocks5 -}} https://check.torproject.org/api/ip
+	curl --socks5-hostname {{ .torproxyHost }}:{{ .torproxyPortSocks5 }} https://check.torproject.org/api/ip
 
 ##############################
 
