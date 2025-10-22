@@ -11,7 +11,6 @@
     gawk                   # GNU awk
     gnused                 # GNU sed
     util-linux             # System utilities (uname, etc.)
-    libiconv               # Character encoding conversion (iconv)
     nix-search-cli         # Nix package search CLI (for pay-respects)
 
 {{- if not .nixosContainer }}
@@ -188,6 +187,7 @@
 {{- if eq .chezmoi.os "linux" }}
     # Linux-specific packages only
     gcc                    # GNU Compiler Collection
+    glibc                  # GNU C Library (provides iconv command)
     atop                   # Advanced system and process monitor
     inotify-tools          # Filesystem event monitoring
 
