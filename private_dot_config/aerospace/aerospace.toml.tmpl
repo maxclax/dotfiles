@@ -78,10 +78,10 @@ alt-shift-space = 'layout floating tiling' # in i3
 alt-f = 'fullscreen' # in i3
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
-alt-1 = 'workspace 1' # GTD (OmniFocus), Drafts, Logseq
-alt-2 = 'workspace 2' # Browser
-alt-3 = 'workspace 3' # Special apps or Media in Safari (Netflix...)
-alt-4 = 'workspace 4' # Communication, Musics and Undifined apps
+alt-1 = 'workspace 1' # GTD (OmniFocus), Drafts, 
+alt-2 = 'workspace 2' # Logseq, Obsidian
+alt-3 = 'workspace 3' # Browser
+alt-4 = 'workspace 4' # Media in Safari (Netflix...), Communication, Musics and Undifined apps
 alt-5 = 'workspace 5' # AI GUI chats
 alt-6 = 'workspace 6' # Dev (env)
 alt-7 = 'workspace 7' # Dev (Emacs F1)
@@ -163,25 +163,29 @@ alt-r = 'mode resize' # in i3
 if.app-id = 'com.omnigroup.OmniFocus4'
 run = "move-node-to-workspace 1"
 [[on-window-detected]]
-if.app-id = 'com.electron.logseq'
-run = "move-node-to-workspace 1"
-[[on-window-detected]]
 if.app-id = 'com.agiletortoise.Drafts-OSX'
 run = "move-node-to-workspace 1"
 
 [[on-window-detected]]
-if.app-id = 'company.thebrowser.Browser'
+if.app-id = 'com.electron.logseq'
 run = "move-node-to-workspace 2"
 [[on-window-detected]]
-if.app-id = 'org.mozilla.firefoxdeveloperedition'
-run = "move-node-to-workspace 2"
-[[on-window-detected]]
-if.app-id = 'org.mozilla.firefox'
-run = "move-node-to-workspace 2"
-[[on-window-detected]]
-if.app-id = "app.zen-browser.zen"
+if.app-id = 'md.obsidian'
 run = "move-node-to-workspace 2"
 
+[[on-window-detected]]
+if.app-id = 'company.thebrowser.Browser'
+run = "move-node-to-workspace 3"
+[[on-window-detected]]
+if.app-id = 'org.mozilla.firefoxdeveloperedition'
+run = "move-node-to-workspace 3"
+[[on-window-detected]]
+if.app-id = 'org.mozilla.firefox'
+run = "move-node-to-workspace 3"
+[[on-window-detected]]
+if.app-id = "app.zen-browser.zen"
+run = "move-node-to-workspace 3"
+# -----
 [[on-window-detected]]
 if.app-id = 'com.apple.Safari'
 run = "move-node-to-workspace 3"
@@ -259,17 +263,17 @@ run = ["layout floating"]
 if.app-id = "com.runningwithcrayons.Alfred-Preferences"
 run = ["layout floating"]
 
-# [[on-window-detected]]
-# if.app-name-regex-substring = '^.*$'
-# run = 'move-node-to-workspace 4'
+[[on-window-detected]]
+if.app-name-regex-substring = '^.*$'
+run = 'move-node-to-workspace 4'
 
 # ---------------------------------------------------------
 # https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
 [workspace-to-monitor-force-assignment]
-# 1 = 'main'      # GTD (OmniFocus), Drafts, Logseq
-# 2 = 'main'      # Browser
-# 3 = ''          # Special apps or Media in Safari (Netflix...)
-4 = 'secondary'   # Communication, Musics and Undifined apps
+# 1 = 'main'      # GTD (OmniFocus), Drafts
+# 2 = 'main'      # Logseq, Obsidian
+# 3 = 'main'      # Browser
+4 = 'secondary'   # Media in Safari (Netflix...), Communication, Musics and Undifined apps
 5 = 'secondary'   # AI GUI chats
 6 = 'secondary'   # Dev (env)
 7 = 'main'        # Dev (Emacs F1)
