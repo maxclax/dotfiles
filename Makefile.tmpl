@@ -235,11 +235,11 @@ torproxy_ports:
 	lsof -i :{{ .torproxyPortDns }}
 
 torproxy_check:
-	# @echo "ALL_PROXY: ${ALL_PROXY}"
-	# @echo "HTTP_PROXY: ${HTTP_PROXY}"
-	# @echo "HTTPS_PROXY: ${HTTPS_PROXY}"
-	# @echo "NO_PROXY: ${NO_PROXY}"
-	# @echo "DNS_PROXY: ${DNS_PROXY}"
+	@echo "ALL_PROXY: ${ALL_PROXY}"
+	@echo "HTTP_PROXY: ${HTTP_PROXY}"
+	@echo "HTTPS_PROXY: ${HTTPS_PROXY}"
+	@echo "NO_PROXY: ${NO_PROXY}"
+	@echo "DNS_PROXY: ${DNS_PROXY}"
 
 	curl https://ipinfo.io
 	curl https://check.torproject.org/api/ip
