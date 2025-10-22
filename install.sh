@@ -56,10 +56,15 @@ echo "📋 Step 3: Applying dotfiles configuration..."
 # Check if chezmoi config already exists (container case)
 if [ -f ~/.config/chezmoi/chezmoi.toml ]; then
     echo "🔧 Using existing chezmoi configuration..."
+    # Backup existing config
+    cp ~/.config/chezmoi/chezmoi.toml /tmp/chezmoi-backup.toml
     nix-shell -p chezmoi git --run "
-        chezmoi apply && \
+        chezmoi init --branch ${BRANCH} --apply ${GITHUB_URL} && \
         echo '✅ Dotfiles applied successfully!'
     "
+    # Restore original config
+    cp /tmp/chezmoi-backup.toml ~/.config/chezmoi/chezmoi.toml
+    rm /tmp/chezmoi-backup.toml
 else
     echo "🔧 Initializing new chezmoi configuration..."
     nix-shell -p chezmoi git --run "
