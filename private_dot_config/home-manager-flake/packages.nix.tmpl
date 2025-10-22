@@ -190,11 +190,11 @@
     glibc                  # GNU C Library (provides iconv command)
     atop                   # Advanced system and process monitor
     inotify-tools          # Filesystem event monitoring
+    keepassxc              # Password manager
 
 {{ if not .ephemeral -}}
     # GUI
     i3                     # Tiling window manager
-    keepassxc              # Password manager
     appimage-run           # For running AppImages
     protonvpn-gui          # Proton VPN GUI client
 {{- end }}
