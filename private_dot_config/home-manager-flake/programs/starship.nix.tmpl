@@ -14,10 +14,18 @@
 
       # Directory substitutions with chezmoi variables
       directory.substitutions = {
+        {{- if ne .workspace "" }}
         "{{ .workspace }}" = "workspace";
+        {{- end }}
+        {{- if ne .workspace_extra "" }}
         "{{ .workspace_extra }}" = "workspace_extra";
+        {{- end }}
+        {{- if ne .resources "" }}
         "{{ .resources }}" = "resources";
+        {{- end }}
+        {{- if ne .playground "" }}
         "{{ .playground }}" = "playground";
+        {{- end }}
       };
 
       # Username configuration

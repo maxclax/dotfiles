@@ -83,16 +83,6 @@ hm_clean:
 
 ########################################
 
-extra_exports:
-	@echo "To export API keys to your current shell, run this command:"
-	@echo ""
-	@echo "    source ~/extra-exports.sh"
-	@echo ""
-	@echo "NOTE: You must run this command directly in your terminal, not through make,"
-	@echo "      because environment variables can't be exported from a Makefile to your shell."
-
-########################################
-
 # Determine the container engine (docker or podman)
 CONTAINER_ENGINE := {{ .containerEngine }}
 
