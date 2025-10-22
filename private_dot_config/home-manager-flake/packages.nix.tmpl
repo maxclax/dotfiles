@@ -13,14 +13,10 @@
     util-linux             # System utilities (uname, etc.)
     git                    # Git (required by oh-my-zsh)
     nix-search-cli         # Nix package search CLI (for pay-respects)
-
-{{- if not .nixosContainer }}
-    # Packages that conflict with NixOS container system packages
     bash                   # Bourne Again Shell
     curl                   # Transfer data with URLs
     openssh                # SSH client and server
     wget                   # Retrieve files from web
-{{- end }}
 
     # Core System & CLI Tools
     age                    # Encryption with GPG keys
