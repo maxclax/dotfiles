@@ -251,7 +251,7 @@ torproxy_check:
 	@echo "NO_PROXY: ${NO_PROXY}"
 	@echo "DNS_PROXY: ${DNS_PROXY}"
 
-	curl https://ipinfo.tw/ip
+	curl https://check.torproject.org/api/ip
 	curl --socks5-hostname {{ .torproxyHost }}:{{ .torproxyPortSocks5 }} https://check.torproject.org/api/ip
 
 ##############################
