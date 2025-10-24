@@ -78,8 +78,8 @@ alt-shift-space = 'layout floating tiling' # in i3
 alt-f = 'fullscreen' # in i3
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
-alt-1 = 'workspace 1' # GTD (OmniFocus), Drafts, 
-alt-2 = 'workspace 2' # Logseq, Obsidian
+alt-1 = 'workspace 1' # GTD (OmniFocus), Drafts, Loqseq
+alt-2 = 'workspace 2' # Obsidian
 alt-3 = 'workspace 3' # Browser
 alt-4 = 'workspace 4' # Media in Safari (Netflix...), Communication, Musics and Undifined apps
 alt-5 = 'workspace 5' # AI GUI chats
@@ -165,10 +165,10 @@ run = "move-node-to-workspace 1"
 [[on-window-detected]]
 if.app-id = 'com.agiletortoise.Drafts-OSX'
 run = "move-node-to-workspace 1"
-
 [[on-window-detected]]
 if.app-id = 'com.electron.logseq'
-run = "move-node-to-workspace 2"
+run = "move-node-to-workspace 1"
+
 [[on-window-detected]]
 if.app-id = 'md.obsidian'
 run = "move-node-to-workspace 2"
@@ -270,8 +270,8 @@ run = 'move-node-to-workspace 4'
 # ---------------------------------------------------------
 # https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
 [workspace-to-monitor-force-assignment]
-# 1 = 'main'      # GTD (OmniFocus), Drafts
-# 2 = 'main'      # Logseq, Obsidian
+# 1 = 'main'      # GTD (OmniFocus), Drafts, Logseq
+2 = 'secondary'   # Obsidian
 # 3 = 'main'      # Browser
 4 = 'secondary'   # Media in Safari (Netflix...), Communication, Musics and Undifined apps
 5 = 'secondary'   # AI GUI chats
