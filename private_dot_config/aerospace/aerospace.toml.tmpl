@@ -81,11 +81,11 @@ alt-f = 'fullscreen' # in i3
 alt-1 = 'workspace 1' # GTD (OmniFocus), Drafts, Loqseq
 alt-2 = 'workspace 2' # Obsidian
 alt-3 = 'workspace 3' # Browser
-alt-4 = 'workspace 4' # Media in Safari (Netflix...), Communication, Musics and Undifined apps
+alt-4 = 'workspace 4' # Free special 
 alt-5 = 'workspace 5' # AI GUI chats
 alt-6 = 'workspace 6' # Dev (env)
 alt-7 = 'workspace 7' # Dev (Emacs F1)
-alt-8 = 'workspace 8' # Dev (Emacs F2)
+alt-8 = 'workspace 8' # Media in Safari (Netflix...), Communication, Musics and Undifined apps
 alt-9 = 'workspace 9' # AI CLI & Agents
 alt-0 = 'workspace 10' # Terminal
 
@@ -185,23 +185,6 @@ run = "move-node-to-workspace 3"
 [[on-window-detected]]
 if.app-id = "app.zen-browser.zen"
 run = "move-node-to-workspace 3"
-# -----
-[[on-window-detected]]
-if.app-id = 'com.apple.Safari'
-run = "move-node-to-workspace 3"
-[[on-window-detected]]
-if.app-id = 'com.iggsoftware.banktivity'
-run = "move-node-to-workspace 3"
-
-[[on-window-detected]]
-if.app-id = 'com.viber.osx'
-run = "move-node-to-workspace 4"
-[[on-window-detected]]
-if.app-id = 'it.bloop.airmail2'
-run = "move-node-to-workspace 4"
-[[on-window-detected]]
-if.app-id = 'ru.keepcoder.Telegram'
-run = "move-node-to-workspace 4"
 
 [[on-window-detected]]
 if.app-id = 'xyz.chatboxapp.app'
@@ -223,6 +206,13 @@ if.app-id = "org.gnu.Emacs"
 run = "move-node-to-workspace 7"
 
 [[on-window-detected]]
+if.app-id = 'com.apple.Safari'
+run = "move-node-to-workspace 8"
+[[on-window-detected]]
+if.app-id = 'com.iggsoftware.banktivity'
+run = "move-node-to-workspace 8"
+
+[[on-window-detected]]
 if.app-id = 'com.github.wez.wezterm'
 run = "move-node-to-workspace 9"
 [[on-window-detected]]
@@ -238,34 +228,17 @@ run = "move-node-to-workspace 10"
 
 # ---------------------------------------------------------
 
-[[on-window-detected]]
-if.app-id = "com.rescuetime.RescueTime"
-run = ["layout floating"]
-[[on-window-detected]]
-if.app-id = "com.noodlesoft.Hazel"
-run = ["layout floating"]
-[[on-window-detected]]
-if.app-id = "com.apple.systempreferences"
-run = ["layout floating"]
-[[on-window-detected]]
-if.app-id = "com.apple.finder"
-run = ["layout floating"]
-[[on-window-detected]]
-if.app-id = "com.1password.1password"
-run = ["layout floating"]
-[[on-window-detected]]
-if.app-id = "com.daisydiskapp.DaisyDiskStandAlone"
-run = ["layout floating"]
-[[on-window-detected]]
-if.app-id = "com.macpaw.CleanMyMac5"
-run = ["layout floating"]
-[[on-window-detected]]
-if.app-id = "com.runningwithcrayons.Alfred-Preferences"
-run = ["layout floating"]
+[[on-window-detected]] if.app-id = "com.rescuetime.RescueTime" run = ["layout floating"] [[on-window-detected]]
+if.app-id = "com.noodlesoft.Hazel" run = ["layout floating"] [[on-window-detected]] if.app-id =
+"com.apple.systempreferences" run = ["layout floating"] [[on-window-detected]] if.app-id = "com.apple.finder" run =
+["layout floating"] [[on-window-detected]] if.app-id = "com.1password.1password" run = ["layout floating"]
+[[on-window-detected]] if.app-id = "com.daisydiskapp.DaisyDiskStandAlone" run = ["layout floating"]
+[[on-window-detected]] if.app-id = "com.macpaw.CleanMyMac5" run = ["layout floating"] [[on-window-detected]] if.app-id =
+"com.runningwithcrayons.Alfred-Preferences" run = ["layout floating"]
 
 [[on-window-detected]]
 if.app-name-regex-substring = '^.*$'
-run = 'move-node-to-workspace 4'
+run = 'move-node-to-workspace 8'
 
 # ---------------------------------------------------------
 # https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
@@ -273,10 +246,10 @@ run = 'move-node-to-workspace 4'
 # 1 = 'main'      # GTD (OmniFocus), Drafts, Logseq
 2 = 'secondary'   # Obsidian
 # 3 = 'main'      # Browser
-4 = 'secondary'   # Media in Safari (Netflix...), Communication, Musics and Undifined apps
+# 4 = 'main'   # Free special
 5 = 'secondary'   # AI GUI chats
 6 = 'secondary'   # Dev (env)
 7 = 'main'        # Dev (Emacs F1)
-8 = 'secondary'   # Dev (Emacs F2)
+8 = 'secondary'   # Media in Safari (Netflix...), Communication, Musics and Undifined apps
 9 = 'secondary'   # AI CLI & Agents
 # 0 = 'main'      # Terminal
