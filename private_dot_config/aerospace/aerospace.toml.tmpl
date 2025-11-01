@@ -186,6 +186,11 @@ run = "move-node-to-workspace 3"
 if.app-id = "app.zen-browser.zen"
 run = "move-node-to-workspace 3"
 
+# Special apps
+[[on-window-detected]]
+if.app-id = 'com.iggsoftware.banktivity'
+run = "move-node-to-workspace 4"
+
 [[on-window-detected]]
 if.app-id = 'xyz.chatboxapp.app'
 run = "move-node-to-workspace 5"
@@ -194,6 +199,9 @@ if.app-id = 'com.openai.chat'
 run = "move-node-to-workspace 5"
 [[on-window-detected]]
 if.app-id = 'com.anthropic.claudefordesktop'
+run = "move-node-to-workspace 5"
+[[on-window-detected]]
+if.app-id = 'net.publicspace.dist.vitaminr4'
 run = "move-node-to-workspace 5"
 
 [[on-window-detected]]
@@ -204,13 +212,6 @@ run = "move-node-to-workspace 6"
 [[on-window-detected]]
 if.app-id = "org.gnu.Emacs"
 run = "move-node-to-workspace 7"
-
-[[on-window-detected]]
-if.app-id = 'com.apple.Safari'
-run = "move-node-to-workspace 8"
-[[on-window-detected]]
-if.app-id = 'com.iggsoftware.banktivity'
-run = "move-node-to-workspace 8"
 
 [[on-window-detected]]
 if.app-id = 'com.github.wez.wezterm'
@@ -228,13 +229,30 @@ run = "move-node-to-workspace 10"
 
 # ---------------------------------------------------------
 
-[[on-window-detected]] if.app-id = "com.rescuetime.RescueTime" run = ["layout floating"] [[on-window-detected]]
-if.app-id = "com.noodlesoft.Hazel" run = ["layout floating"] [[on-window-detected]] if.app-id =
-"com.apple.systempreferences" run = ["layout floating"] [[on-window-detected]] if.app-id = "com.apple.finder" run =
-["layout floating"] [[on-window-detected]] if.app-id = "com.1password.1password" run = ["layout floating"]
-[[on-window-detected]] if.app-id = "com.daisydiskapp.DaisyDiskStandAlone" run = ["layout floating"]
-[[on-window-detected]] if.app-id = "com.macpaw.CleanMyMac5" run = ["layout floating"] [[on-window-detected]] if.app-id =
-"com.runningwithcrayons.Alfred-Preferences" run = ["layout floating"]
+[[on-window-detected]]
+if.app-id = "com.rescuetime.RescueTime"
+run = ["layout floating"]
+[[on-window-detected]]
+if.app-id = "com.noodlesoft.Hazel"
+run = ["layout floating"]
+[[on-window-detected]]
+if.app-id = "com.apple.systempreferences"
+run = ["layout floating"]
+[[on-window-detected]]
+if.app-id = "com.apple.finder"
+run = ["layout floating"]
+[[on-window-detected]]
+if.app-id = "com.1password.1password"
+run = ["layout floating"]
+[[on-window-detected]]
+if.app-id = "com.daisydiskapp.DaisyDiskStandAlone"
+run = ["layout floating"]
+[[on-window-detected]]
+if.app-id = "com.macpaw.CleanMyMac5"
+run = ["layout floating"]
+[[on-window-detected]]
+if.app-id = "com.runningwithcrayons.Alfred-Preferences"
+run = ["layout floating"]
 
 [[on-window-detected]]
 if.app-name-regex-substring = '^.*$'
