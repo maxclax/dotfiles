@@ -84,64 +84,47 @@ If prefix ARG is set, prompt for a directory to search from."
            ((modulep! :completion helm) #'+helm/project-search-from-cwd)
            (#'rgrep)))))
 
+
 ;;;###autoload
-(defvar +my/repo-root-list '({{ .chezmoi.sourceDir | quote }}  ) "personal repo root to scan git projects")
-(defvar +my/user-custom-repos '("~/.config/chezmoi/"))
+(defvar +my/repo-root-list '({{ .chezmoi.sourceDir | quote }} "~/.config/chezmoi/") "personal repo root to scan git projects")
 
 ;;;###autoload
 (defun update-projectile-known-projects ()
   (interactive)
   (require 'magit)
-  (setq magit-repository-directories '(("~/.local/git/" . 0) ({{ .primary_cloud | quote }} . 0)))
+  (setq magit-repository-directories '())
 
-  ;; Helper function to scan workspace directories
-  (defun scan-workspace (workspace-dir)
+  ;; Note: repo-root-list directories will be added manually later
+
+  ;; Add ~/.local/git/ with all .git directories inside (unlimited depth)
+  (cl-callf2 append '(("~/.local/git/" . 0)) magit-repository-directories)
+
+  ;; Add workspace directories with recursive git search (depth 3)
+  (dolist (workspace-dir (list {{ .workspace | quote }} {{ .workspace_extra | quote }}))
     (when (file-directory-p workspace-dir)
-      (dolist (dir (directory-files workspace-dir t))
-        (when (and
-               (file-readable-p dir)
-               (not (string-equal ".." (substring dir -2)))
-               (not (string-equal "." (substring dir -1))))
-          (appendq! magit-repository-directories `((,dir . 0)))))))
-
-  ;; Workspace folder - use unlimited depth (0) to find nested repos
-  (scan-workspace {{ .workspace | quote }})
-
-  ;; Workspace extra folder - same scanning logic
-  (scan-workspace {{ .workspace_extra | quote }})
+      (cl-callf2 append `((,workspace-dir . 3)) magit-repository-directories)))
 
   (let (magit-repos
         magit-abs-repos
         (home (expand-file-name "~")))
-    ;; append magit repos at root with depth 1
-    (dolist (root +my/repo-root-list)
-      (setq magit-abs-repos (append magit-abs-repos (magit-list-repos-1 root 1))))
-    
-    ;; Get all repos from magit directories (now with unlimited depth)
-    (setq magit-abs-repos (append magit-abs-repos (magit-list-repos)))
-    
-    ;; Also find git submodules and .dir-locals.el projects manually
-    (let ((workspace-dir {{ .workspace | quote }}))
-      (when (file-directory-p workspace-dir)
-        (let ((output (shell-command-to-string 
-                       (format "find '%s' \\( -name '.git' -o -name '.dir-locals.el' \\) 2>/dev/null | xargs -I {} dirname {}" workspace-dir))))
-          (when (not (string-empty-p output))
-            (dolist (project-dir (split-string output "\n" t))
-              (when (file-directory-p project-dir)
-                (push project-dir magit-abs-repos)))))))
 
-    ;; convert abs path to relative path (HOME) and remove duplicates
+    ;; Get all repos from magit directories
+    (setq magit-abs-repos (magit-list-repos))
+
+    ;; Always add directories from +my/repo-root-list as projects (even without .git)
+    (dolist (root +my/repo-root-list)
+      (when (and (file-directory-p root)
+                 (not (member root magit-abs-repos)))
+        (push root magit-abs-repos)))
+
+    ;; Convert abs path to relative path (HOME) and remove duplicates
     (dolist (repo magit-abs-repos)
       (when repo
         (if (string-prefix-p (expand-file-name "~") repo)
             (push (concat "~/" (file-relative-name repo "~")) magit-repos)
           (push repo magit-repos))))
-    
-    (setq projectile-known-projects (delete-dups magit-repos))
-    (dolist (repo +my/user-custom-repos)
-      (when (file-directory-p repo)
-        (push repo projectile-known-projects)))
-    
+
+    (setq projectile-known-projects (seq-uniq magit-repos))
     (message "Found %d projects" (length projectile-known-projects))))
 
 ;;;###autoload
