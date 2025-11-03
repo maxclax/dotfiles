@@ -18,9 +18,19 @@
         :desc "List project error" "P" #'flymake-show-project-diagnostics
         :desc "Verify setup"    "v" #'flymake-running-backends))
 
+;; Disable flymake by default - runs after Doom's flymake configuration
+(after! flymake
+  (remove-hook 'prog-mode-hook #'flymake-mode)
+  (remove-hook 'text-mode-hook #'flymake-mode)
+  ;; Add our own hook to ensure flymake stays disabled by default
+  ;; Flymake can still be manually enabled via SPC t f (doom/toggle-flymake)
+  (add-hook 'prog-mode-hook (lambda () (flymake-mode -1)))
+  (add-hook 'text-mode-hook (lambda () (flymake-mode -1))))
+
 (use-package flymake-cspell
   :when (executable-find "cspell")
   :hook (prog-mode . flymake-cspell-setup))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Cspell

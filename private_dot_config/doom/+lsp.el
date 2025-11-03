@@ -52,11 +52,21 @@
   (setq lsp-log-io nil
         lsp-file-watch-threshold 4000
         lsp-headerline-breadcrumb-enable t
-        lsp-headerline-breadcrumb-icons-enable nil
-        lsp-headerline-breadcrumb-segments '(file symbols)
+        lsp-headerline-breadcrumb-icons-enable nil           ; Enable icons for better visual
+        lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols)  ; Show more context
         lsp-imenu-index-symbol-kinds '(File Module Namespace Package Class Method Enum Interface
-                                       Function Variable Constant Struct Event Operator TypeParameter)
-        )
+                                       Function Variable Constant Struct Event Operator TypeParameter))
+
+  ;; Improve breadcrumb appearance
+  (setq lsp-headerline-breadcrumb-enable-symbol-numbers nil
+        lsp-headerline-breadcrumb-enable-diagnostics nil)
+
+  ;; Custom breadcrumb faces for better visibility
+  (custom-set-faces!
+   '(lsp-headerline-breadcrumb-symbols-face :foreground "#7c7c75" :weight bold)
+   '(lsp-headerline-breadcrumb-path-face :foreground "#51afef")
+   '(lsp-headerline-breadcrumb-separator-face :foreground "#5B6268"))
+
   (dolist (dir '("[/\\\\]\\.ccls-cache\\'"
                  "[/\\\\]\\.mypy_cache\\'"
                  "[/\\\\]\\.pytest_cache\\'"
