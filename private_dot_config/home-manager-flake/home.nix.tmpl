@@ -63,7 +63,6 @@
       before = ["installPackages"];
       after = ["writeBoundary"];
       data = ''
-        echo "🔧 DEBUG: nixosContainer activation script running..."
         # Remove conflicting packages before Home Manager installs
         if command -v nix-env >/dev/null 2>&1; then
           echo "🔧 Removing conflicting packages in container..."

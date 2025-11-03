@@ -74,7 +74,7 @@
                                          (message "Not in a project")))
        :desc "Search all TODO types" "T" (lambda () (interactive)
                                             (if (projectile-project-p)
-                                                (consult-ripgrep (projectile-project-root) "TODO\\|HACK\\|TEMP\\|DONE\\|NOTE\\|DONT\\|DEBUG\\|FAIL\\|FIXME\\|XXX\\|XXXX")
+                                                (consult-ripgrep (projectile-project-root) "TODO\\|HACK\\|TEMP\\|DONE\\|NOTE\\|DONT\\|DEBUG\\|FAIL\\|FIXME")
                                               (message "Not in a project")))
        :desc "Magit TODOs list" "l" #'magit-todos-list
        :desc "Update magit TODOs" "u" #'magit-todos-update

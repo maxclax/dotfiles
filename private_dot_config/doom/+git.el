@@ -186,6 +186,4 @@
           ("DONT"  . ,(doom-color 'red))
           ("DEBUG"  . ,(doom-color 'red))
           ("FAIL"  . ,(doom-color 'red))
-          ("FIXME" . ,(doom-color 'red))
-          ("XXX"   . ,(doom-color 'blue))
-          ("XXXX"  . ,(doom-color 'blue)))))
+          ("FIXME" . ,(doom-color 'red)))))
