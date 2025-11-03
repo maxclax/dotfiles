@@ -111,6 +111,20 @@ If prefix ARG is set, prompt for a directory to search from."
     ;; Get all repos from magit directories
     (setq magit-abs-repos (magit-list-repos))
 
+    ;; Add projects with .git files (submodules/worktrees) that magit might miss
+    (defun find-git-files-recursive (dir depth)
+      (when (and (file-directory-p dir) (> depth 0))
+        (dolist (item (directory-files dir t "^[^.]"))
+          (when (file-directory-p item)
+            (when (file-regular-p (expand-file-name ".git" item))
+              (unless (member item magit-abs-repos)
+                (push item magit-abs-repos)))
+            (find-git-files-recursive item (1- depth))))))
+
+    (dolist (workspace-dir (list {{ .workspace | quote }} {{ .workspace_extra | quote }}))
+      (when (file-directory-p workspace-dir)
+        (find-git-files-recursive workspace-dir 4)))
+
     ;; Always add directories from +my/repo-root-list as projects (even without .git)
     (dolist (root +my/repo-root-list)
       (when (and (file-directory-p root)
@@ -124,7 +138,8 @@ If prefix ARG is set, prompt for a directory to search from."
             (push (concat "~/" (file-relative-name repo "~")) magit-repos)
           (push repo magit-repos))))
 
-    (setq projectile-known-projects (seq-uniq magit-repos))
+    ;; Remove exact duplicates but keep nested projects (parent + submodule)
+    (setq projectile-known-projects (delete-dups magit-repos))
     (message "Found %d projects" (length projectile-known-projects))))
 
 ;;;###autoload
