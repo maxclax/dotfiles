@@ -159,6 +159,8 @@ alt-r = 'mode resize' # in i3
 
 # ---------------------------------------------------------
 
+# ---------------------------------------------------------
+
 [[on-window-detected]]
 if.app-id = 'com.omnigroup.OmniFocus4'
 run = "move-node-to-workspace 1"
@@ -200,9 +202,6 @@ run = "move-node-to-workspace 5"
 [[on-window-detected]]
 if.app-id = 'com.anthropic.claudefordesktop'
 run = "move-node-to-workspace 5"
-[[on-window-detected]]
-if.app-id = 'net.publicspace.dist.vitaminr4'
-run = "move-node-to-workspace 5"
 
 [[on-window-detected]]
 if.app-id = 'org.alacritty'
@@ -213,6 +212,7 @@ run = "move-node-to-workspace 6"
 if.app-id = "org.gnu.Emacs"
 run = "move-node-to-workspace 7"
 
+
 [[on-window-detected]]
 if.app-id = 'com.github.wez.wezterm'
 run = "move-node-to-workspace 9"
@@ -222,6 +222,9 @@ run = "move-node-to-workspace 9"
 [[on-window-detected]]
 if.app-id = 'dev.warp.Warp-Stable'
 run = "move-node-to-workspace 9"
+[[on-window-detected]]
+if.app-id = 'net.publicspace.dist.vitaminr4'
+run = ["layout tiling", "move-node-to-workspace 9"]
 
 [[on-window-detected]]
 if.app-id = 'com.mitchellh.ghostty'
@@ -229,9 +232,6 @@ run = "move-node-to-workspace 10"
 
 # ---------------------------------------------------------
 
-[[on-window-detected]]
-if.app-id = "com.rescuetime.RescueTime"
-run = ["layout floating"]
 [[on-window-detected]]
 if.app-id = "com.noodlesoft.Hazel"
 run = ["layout floating"]
@@ -246,9 +246,6 @@ if.app-id = "com.1password.1password"
 run = ["layout floating"]
 [[on-window-detected]]
 if.app-id = "com.daisydiskapp.DaisyDiskStandAlone"
-run = ["layout floating"]
-[[on-window-detected]]
-if.app-id = "com.macpaw.CleanMyMac5"
 run = ["layout floating"]
 [[on-window-detected]]
 if.app-id = "com.runningwithcrayons.Alfred-Preferences"

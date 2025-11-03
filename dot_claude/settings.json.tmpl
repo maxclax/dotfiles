@@ -1,3 +1,4 @@
+# -*- mode: json; -*-
 {
   "permissions": {
     "allow": [],
@@ -5,7 +6,12 @@
       "Bash(curl:*)",
       "Read(./.env)",
       "Read(./.env.*)",
-      "Read(./secrets/**)"
+      "Read(./secrets/**)",
+      "Read(**/kubeconfig)",
+      "Read(**/kubeconfig.*)",
+      "Read(**/.kube/config)",
+      "Read(**/values/**)",
+      "Read({{ .workspace_extra | quote }}/**)"
     ]
   },
   "env": {},
