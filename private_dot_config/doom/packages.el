@@ -59,6 +59,7 @@
 (package! restclient)
 (package! vimrc-mode)
 (package! eat)         ; Terminal emulator package
+(package! vdiff)
 
 ;; programming
 (package! jinja2-mode)
