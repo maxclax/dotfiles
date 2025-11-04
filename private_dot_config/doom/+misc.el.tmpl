@@ -240,7 +240,39 @@
 
   (gptel-make-deepseek "gptel.DeepSeek" :stream t)
   (gptel-make-anthropic "gptel.Claude" :stream t)
-  (gptel-make-gemini "gptel.Gemini" :stream nil))
+  (gptel-make-gemini "gptel.Gemini" :stream nil)
+
+  ;; Ollama configuration for local models like Qwen
+  (gptel-make-ollama "Ollama"
+    :host "localhost:11434"
+    :stream t
+    :models '(qwen2.5-coder:14b qwen2.5-coder:7b qwen2:7b qwen:latest mistral:latest llama3.1:latest)))
+
+;; Helper functions to switch between different AI backends
+(with-eval-after-load 'gptel
+  (defun my/gptel-use-ollama-qwen ()
+    "Switch gptel to use Ollama Qwen model."
+    (interactive)
+    (setq gptel-model 'qwen2.5-coder:14b
+          gptel-backend (gptel-make-ollama "Ollama"
+                       :host "localhost:11434"
+                       :stream t
+                       :models '(qwen2.5-coder:14b qwen2.5-coder:7b qwen2:7b qwen:latest mistral:latest llama3.1:latest)))
+    (message "Switched to Ollama Qwen model"))
+
+  (defun my/gptel-use-openai ()
+    "Switch gptel to use OpenAI model."
+    (interactive)
+    (setq gptel-model 'gpt-4.1
+          gptel-backend (gptel-make-gh-copilot "gptel.Copilot" :stream t))
+    (message "Switched to OpenAI model"))
+
+  (defun my/gptel-use-anthropic ()
+    "Switch gptel to use Anthropic model."
+    (interactive)
+    (setq gptel-model 'claude-sonnet-4-20250514
+          gptel-backend (gptel-make-anthropic "gptel.Claude" :stream t))
+    (message "Switched to Anthropic model")))
 
 ;; AI Commit Message Generator
 (defun +my/smart-commit ()
