@@ -110,8 +110,6 @@
        (:prefix ("p" . "Process Management")
                 "p" #'prodigy
                 "l" #'list-processes)
-       (:prefix ("c" . "Claude")
-                "c" #'claude-code-ide-menu)
        (:prefix ("g" . "GPTel & Git AI")
                 "g" #'gptel
                 "a" #'gptel-add

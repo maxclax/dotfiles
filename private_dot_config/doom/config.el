@@ -35,6 +35,12 @@
 ;; Delete the selection when pasting
 (delete-selection-mode 1)
 
+;; Remap Cmd+C and Cmd+V to copy/paste in GUI Emacs
+;; Note: s- is remapped to M- in +keys.el, so we use M- here
+(when (display-graphic-p)
+  (global-set-key (kbd "M-c") 'kill-ring-save) ; Cmd+C (remapped to Meta)
+  (global-set-key (kbd "M-v") 'yank))          ; Cmd+V (remapped to Meta)
+
 ;; disable risky local variables warning
 (advice-add 'risky-local-variable-p :override #'ignore)
 

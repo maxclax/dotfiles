@@ -170,6 +170,19 @@ add_to_path prepend "$HOME/.nix-profile/bin"
 add_to_path prepend "$HOME/.local/state/nix/profiles/home-manager/home-path/bin"
 
 # ============================================================================
+# AI Development Tools Configuration
+# ============================================================================
+# Ollama configuration for M4 Mac with 24GB RAM
+export OLLAMA_NUM_PARALLEL=2                    # Optimal for M4 Mac with dual model serving
+export OLLAMA_MAX_LOADED_MODELS=1               # Keep 1 model in memory for optimal performance
+export OLLAMA_FLASH_ATTENTION=1                 # Enable flash attention for better performance
+export OLLAMA_KV_CACHE_TYPE=f16                 # Use f16 for KV cache to save memory
+export OLLAMA_NUM_GPU=1                         # Use Metal GPU acceleration
+export OLLAMA_RUNNER_MAX_TOKENS=32768           # Maximum token limit for extended context
+export OLLAMA_RUNNER_TEMPERATURE=0.1            # Lower temperature for coding tasks
+export OLLAMA_HOST="0.0.0.0:11434"              # Allow network access for agent use
+
+# ============================================================================
 # Platform-Specific Configuration
 # ============================================================================
 # Use chezmoi OS detection if uname is not available (container environments)

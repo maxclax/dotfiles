@@ -215,11 +215,6 @@
 
 (add-hook! 'comint-mode-hook #'visual-line-mode)
 
-(use-package! claude-code-ide
-  :config
-  (claude-code-ide-emacs-tools-setup)
-  (setq claude-code-ide-terminal-backend 'eat))
-
 (use-package! gptel
   :config
   (require 'gptel-integrations)
@@ -232,10 +227,7 @@
         gptel-confirm-tool-calls 'always
         gptel-include-tool-results 'auto
         gptel--system-message (concat gptel--system-message " Make sure to use English language.")
-        gptel-backend (gptel-make-ollama "Ollama"
-                     :host "localhost:11434"
-                     :stream t
-                     :models '(qwen2.5-coder:14b qwen2.5-coder:7b qwen2:7b qwen:latest mistral:latest llama3.1:latest)))
+        gptel-backend (gptel-make-gh-copilot "gptel.Copilot" :stream t))
 
   ;; Keep other backends available for switching
   (setq gptel-gh-copilot-model "claude-sonnet-4")

@@ -21,8 +21,6 @@
 (package! mcp)
 (package! copilot)
 (package! gptel :recipe (:nonrecursive t))
-(package! claude-code-ide
-  :recipe (:host github :repo "manzaltu/claude-code-ide.el"))
 
 ;; text
 (package! adoc-mode)
@@ -54,7 +52,6 @@
 (package! imenu-list)
 (package! tmux-pane)
 (package! gt)
-(package! simpleclip)  ; Better clipboard integration
 (package! consult-todo)
 (package! restclient)
 (package! vimrc-mode)

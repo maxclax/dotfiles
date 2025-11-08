@@ -89,7 +89,7 @@ alt-8 = 'workspace 8' # Media in Safari (Netflix...), Communication, Musics and 
 alt-9 = 'workspace 9' # AI CLI & Agents
 alt-0 = 'workspace 10' # Terminal
 
-# alt-a = 'workspace A'
+alt-a = 'workspace A'
 # alt-b = 'workspace B'
 # alt-c = 'workspace C'
 # alt-d = 'workspace D'
@@ -124,7 +124,7 @@ alt-shift-8 = 'move-node-to-workspace 8'
 alt-shift-9 = 'move-node-to-workspace 9'
 alt-shift-0 = 'move-node-to-workspace 10'
 
-# alt-shift-a = 'move-node-to-workspace A'
+alt-shift-a = 'move-node-to-workspace A'
 # alt-shift-b = 'move-node-to-workspace B'
 # alt-shift-c = 'move-node-to-workspace C'
 # alt-shift-d = 'move-node-to-workspace D'
@@ -170,9 +170,6 @@ run = "move-node-to-workspace 1"
 [[on-window-detected]]
 if.app-id = 'com.electron.logseq'
 run = "move-node-to-workspace 1"
-[[on-window-detected]]
-if.app-id = 'net.publicspace.dist.vitaminr4'
-run = ["layout tiling", "move-node-to-workspace 1"]
 
 [[on-window-detected]]
 if.app-id = 'md.obsidian'
@@ -252,19 +249,37 @@ if.app-id = "com.runningwithcrayons.Alfred-Preferences"
 run = ["layout floating"]
 
 [[on-window-detected]]
+if.app-id = 'net.publicspace.dist.vitaminr4'
+run = ["layout tiling", "move-node-to-workspace A"]
+
+[[on-window-detected]]
 if.app-name-regex-substring = '^.*$'
 run = 'move-node-to-workspace 8'
 
 # ---------------------------------------------------------
 # https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
+#[workspace-to-monitor-force-assignment]
+## 1 = 'main'      # GTD (OmniFocus), Drafts, Logseq
+#2 = '2'   # Obsidian
+## 3 = 'main'      # Browser
+## 4 = 'main'   # Free special
+#5 = '2'   # AI GUI chats
+#6 = '2'   # Dev (env)
+#7 = 'main'        # Dev (Emacs F1)
+#8 = '2'   # Media in Safari (Netflix...), Communication, Musics and Undifined apps
+#9 = '2'   # AI CLI & Agents
+## 0 = 'main'      # terminal
+#A = '1'      # Extras
+
 [workspace-to-monitor-force-assignment]
 # 1 = 'main'      # GTD (OmniFocus), Drafts, Logseq
-2 = '2'   # Obsidian
+2 = '3'   # Obsidian
 # 3 = 'main'      # Browser
 # 4 = 'main'   # Free special
-5 = '2'   # AI GUI chats
-6 = '2'   # Dev (env)
+5 = '3'   # AI GUI chats
+6 = '3'   # Dev (env)
 7 = 'main'        # Dev (Emacs F1)
-8 = '2'   # Media in Safari (Netflix...), Communication, Musics and Undifined apps
-9 = '2'   # AI CLI & Agents
-# 0 = 'main'      # Terminal
+8 = '3'   # Media in Safari (Netflix...), Communication, Musics and Undifined apps
+9 = '3'   # AI CLI & Agents
+# 0 = 'main'      # terminal
+A = '1'      # Extras
