@@ -1,0 +1,94 @@
+##########################################################
+# Sample .aider.conf.yml
+# This file lists *all* the valid configuration entries.
+# Place in your home dir, or at the root of your git repo.
+##########################################################
+
+# Note: You can only put OpenAI and Anthropic API keys in the YAML
+# config file. Keys for all APIs can be stored in a .env file
+# https://aider.chat/docs/config/dotenv.html
+
+##########
+# options:
+
+## show this help message and exit
+#help: xxx
+
+#############
+# Main model:
+
+## Specify the model to use for the main chat
+model: sonnet
+
+## Specify a weaker/faster model for simple tasks
+weak-model: haiku
+
+## Alternative models that can be used with --model switch
+# available models: sonnet, haiku, gemini, deepseek, z-pu-35, z-pu-70
+
+########################
+# API Keys and settings:
+
+## Specify the OpenAI API key
+openai-api-key: {{ onepasswordRead "op://Personal/OpenAI/tokens/emacs" }}
+
+## Specify the Anthropic API key
+anthropic-api-key: {{ onepasswordRead "op://Personal/Anthropic/tokens/emacs" }}
+
+## Set an API key for a provider (eg: --api-key provider=<key> sets PROVIDER_API_KEY=<key>)
+api-key:
+  - gemini={{ onepasswordRead "op://Personal/Gemini/tokens/emacs" }}
+  - deepseek={{ onepasswordRead "op://Personal/DeepSeek/tokens/emacs" }}
+  - z-pu={{ onepasswordRead "op://Personal/z.ai/tokens/emacs" }}
+
+
+###############
+# Git settings:
+
+## Enable/disable looking for a git repo (default: True)
+git: true
+
+## Enable/disable adding .aider* to .gitignore (default: True)
+gitignore: true
+
+## Use VI editing mode in the terminal (default: False)
+vim: false
+
+## Enable architect mode for planning and design discussions (default: False)
+architect: true
+
+## Enable/disable auto-commits (default: True)
+auto-commits: false
+
+## Enable/disable dirty commits (default: True)
+dirty-commits: false
+
+## Show diffs when committing changes (default: False)
+show-diffs: false
+
+# ## Enable/disable pretty printing of diffs (default: True)
+pretty: true
+
+# ## Enable streaming responses (default: True)
+stream: true
+
+# ## Enable/disable showing model info on startup (default: False)
+# show-model-warnings: true
+
+# ## Set the edit format (default: diff)
+# edit-format: diff
+
+# ## Enable/disable map refresh (default: auto)
+# map-refresh: auto
+
+# ## Enable/disable showing repository map (default: auto)
+# show-repo-map: true
+
+# ## Set maximum number of tokens for repository map (default: 1024)
+map-tokens: 4096
+
+## Set the maximum context window size (default: auto)
+max-chat-history-tokens: 32768
+
+# ## Enable/disable voice mode (if you have audio setup)
+# voice-language: en

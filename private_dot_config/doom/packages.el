@@ -21,6 +21,8 @@
 (package! mcp)
 (package! copilot)
 (package! gptel :recipe (:nonrecursive t))
+(package! aidermacs)
+(package! aider :recipe (:host github :repo "tninja/aider.el" ))
 
 ;; text
 (package! adoc-mode)

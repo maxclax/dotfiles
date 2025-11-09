@@ -215,6 +215,32 @@
 
 (add-hook! 'comint-mode-hook #'visual-line-mode)
 
+(use-package! aidermacs
+  :config
+  (setq aidermacs-auto-accept-architect nil)
+  (setq aidermacs-backend 'vterm)
+  ;; Set environment for local Ollama
+  (setenv "OLLAMA_API_BASE" "http://127.0.0.1:11434")
+  ;; Configure for local ollama model
+  (add-to-list 'aidermacs-extra-args "--model")
+  (add-to-list 'aidermacs-extra-args "ollama_chat/qwen2.5-coder:14b")
+  (add-to-list 'aidermacs-extra-args "--no-auto-commits")
+  (add-to-list 'aidermacs-extra-args "--cache-prompts")
+  :custom
+  (aidermacs-default-chat-mode 'architect)
+  (aidermacs-auto-commits nil))
+
+(use-package! aider
+  :config
+  ;; Set environment for local Ollama
+  (setenv "OLLAMA_API_BASE" "http://127.0.0.1:11434")
+  ;; Set default model to local ollama qwen2.5-coder:14b (note: ollama_chat/ prefix)
+  (setq aider-args '("--model" "ollama_chat/qwen2.5-coder:14b" "--no-auto-accept-architect" "--no-auto-commits" "--cache-prompts"))
+  (aider-magit-setup-transients) ;; add aider magit function to magit menu
+  ;; auto revert buffer
+  (global-auto-revert-mode 1)
+  (auto-revert-mode 1))
+
 (use-package! gptel
   :config
   (require 'gptel-integrations)
