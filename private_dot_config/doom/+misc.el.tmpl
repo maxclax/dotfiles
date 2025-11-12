@@ -310,12 +310,16 @@
                            "- Use format: type: description (no scope unless needed)\n"
                            "- Keep under 50 characters\n"
                            "- Use imperative mood (Add, Fix, Update, etc.)\n"
-                           "- Be specific and clear\n\n"
+                           "- Be specific and clear\n"
+                           "- Output ONLY the commit message, no quotes or explanation\n"
+                           "- Do not wrap the response in any formatting\n\n"
                            "Staged changes to analyze:\n" diff)))
         (gptel-request prompt
                        :callback (lambda (response info)
                                    (when response
                                      (let ((msg (string-trim response)))
+                                       ;; Remove any surrounding quotes if present
+                                       (setq msg (replace-regexp-in-string "^[\"']\\|[\"']$" "" msg))
                                        (kill-new msg)
                                        (message "✅ Generated: %s" msg)
                                        ;; Try to insert into active commit buffer

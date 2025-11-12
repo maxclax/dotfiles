@@ -17,9 +17,12 @@
   
 (after! org
   ;; PARA for projects, tasks, files
-  (setq org-directory {{ .primary_cloud | quote }})
+  (setq org-directory (list {{ .primary_cloud | quote }} {{ .workspace | quote }} {{ .workspace_extra | quote }}))
   (setq org-agenda-file-regexp "\\`[^.].*\\.org\\'") ;; Exclude files starting with "."
-  (setq org-agenda-files (directory-files-recursively org-directory "\\.org$"))
+  (setq org-agenda-files 
+      (append (directory-files-recursively {{ .primary_cloud | quote }} "\\.org$")
+              (directory-files-recursively {{ .workspace | quote }} "\\.org$")
+              (directory-files-recursively {{ .workspace_extra | quote }} "\\.org$")))
 
   (setq org-ellipsis " ▼ ")
   (setq org-bullets-bullet-list '("#"))
@@ -48,8 +51,15 @@
 
   ;; Startup settings
   (setq org-startup-folded 'content)
-  (setq org-startup-indented t))
+  (setq org-startup-indented t)
+  (setq org-insert-heading-respect-content t)
+  (setq org-blank-before-new-entry '((heading . nil)
+                                     (plain-list-item . nil)))
 
+  ;; Disable hide-leading-stars to show all asterisks and fix visibility
+  (setq org-hide-leading-stars nil))
+
+  
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; MARKDOWN
