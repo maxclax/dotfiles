@@ -30,8 +30,11 @@
 (package! pomm)
 (package! symbol-overlay)
 (package! org-appear)
+(package! literate-calc-mode)
 (package! nov)      ; EPUB reader
 (package! djvu)     ; DjVu document viewer
+(package! elfeed)   ; RSS reader
+(package! elfeed-org) ; Org-mode integration for elfeed
 
 ;; denote - note-taking system
 (package! denote)

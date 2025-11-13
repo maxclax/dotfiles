@@ -24,11 +24,6 @@
               (directory-files-recursively {{ .workspace | quote }} "\\.org$")
               (directory-files-recursively {{ .workspace_extra | quote }} "\\.org$")))
 
-  (setq org-ellipsis " ▼ ")
-  (setq org-bullets-bullet-list '("#"))
-  (setq org-hide-emphasis-markers t)
-  (setq org-babel-python-command "python3")
-
   (setq org-default-notes-file (concat {{ .primary_cloud | quote }} "/0-Inbox/inbox.org"))
   (setq org-capture-templates
         '(("t" "Todo" entry (file+headline org-default-notes-file "Tasks")
@@ -42,9 +37,44 @@
           ("r" "Resource" entry (file (lambda () (concat {{ .primary_cloud | quote }} "/3-Resources/" (read-string "Resource name: ") ".org")))
            "* %?\n  %i\n  %a")))
 
-  ;; TODO keywords
+  (setq org-log-repeat 'time)
   (setq org-todo-keywords
-        '((sequence "TODO(t)" "NEXT(n)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")))
+        '((sequence "TODO(t)" "NEXT(n)" "REPEAT(r)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")))
+
+  (setq org-todo-keyword-faces
+        '(("TODO" . (:foreground "#ff6c6b" :weight bold))
+          ("NEXT" . (:foreground "#51afef" :weight bold))
+          ("REPEAT" . (:foreground "#98be65" :weight bold))
+          ("WAITING" . (:foreground "#ecbe7b" :weight bold))
+          ("DONE" . (:foreground "#5B6268" :weight normal))
+          ("CANCELLED" . (:foreground "#5B6268" :weight normal))))
+
+  ;; Org agenda focus functions
+  (defun org-focus-primary()
+    "Set focus on primary cloud files."
+    (interactive)
+    (setq org-agenda-files
+          (directory-files-recursively {{ .primary_cloud | quote }} "\\.org$")))
+
+  (defun org-focus-workspace()
+    "Set focus on workspace files."
+    (interactive)
+    (setq org-agenda-files
+          (directory-files-recursively {{ .workspace | quote }} "\\.org$")))
+
+  (defun org-focus-workspace-extra()
+    "Set focus on extra workspace files."
+    (interactive)
+    (setq org-agenda-files
+          (directory-files-recursively {{ .workspace_extra | quote }} "\\.org$")))
+
+  (defun org-focus-all()
+    "Set focus on all org files."
+    (interactive)
+    (setq org-agenda-files
+          (append (directory-files-recursively {{ .primary_cloud | quote }} "\\.org$")
+                  (directory-files-recursively {{ .workspace | quote }} "\\.org$")
+                  (directory-files-recursively {{ .workspace_extra | quote }} "\\.org$"))))
 
   (defvar org-default-time "9:00"
     "The default time for deadlines.")
@@ -54,10 +84,62 @@
   (setq org-startup-indented t)
   (setq org-insert-heading-respect-content t)
   (setq org-blank-before-new-entry '((heading . nil)
-                                     (plain-list-item . nil)))
+                                     (plain-list-item . nil))))
 
-  ;; Disable hide-leading-stars to show all asterisks and fix visibility
-  (setq org-hide-leading-stars nil))
+
+(use-package! literate-calc-mode
+  :hook (org-mode . literate-calc-minor-mode)
+  :config
+  (setq literate-calc-mode-inhibit-line-functions
+        '(org-table-p org-src-block-p)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; NEWSTICKER - RSS Feed Reader
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Configure Newsticker immediately
+(setq newsticker-url-list '(
+  ("Emacs Rocks" "https://emacsrocks.com/atom.xml")
+  ("Planet Emacslife" "https://planet.emacslife.com/atom.xml")
+  ("Ruslan's Tech Blog" "https://codelearn.me/feed.xml")))
+
+;; Custom function to close Newsticker buffers
+(defun my/close-newsticker ()
+  "Kill all tree-view related buffers."
+  (ignore-errors
+    (kill-buffer "*Newsticker List*"))
+  (ignore-errors
+    (kill-buffer "*Newsticker Item*"))
+  (ignore-errors
+    (kill-buffer "*Newsticker Tree*")))
+
+(use-package! newsticker
+  :defer t
+  :config
+  ;; Advice to automatically close buffers when quitting Newsticker
+  (advice-add 'newsticker-treeview-quit :after 'my/close-newsticker))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ELFEED - Alternative RSS Feed Reader
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package! elfeed
+  :defer t
+  :config
+  ;; Feed configuration - same feeds as Newsticker for comparison
+  (setq elfeed-feeds
+        '("https://emacsrocks.com/atom.xml"
+          "https://planet.emacslife.com/atom.xml"
+          "https://www.reddit.com/r/emacs.rss"
+          "https://www.reddit.com/r/orgmode.rss"
+          "https://codelearn.me/feed.xml"))
+
+  ;; Configure some useful settings
+  (setq elfeed-db-directory (expand-file-name "elfeed" doom-cache-dir))
+  (setq elfeed-search-filter "@1-week-ago +unread")
+  (setq elfeed-use-curl t)
+  (setq elfeed-curl-extra-arguments '("--insecure")))
+
 
   
 

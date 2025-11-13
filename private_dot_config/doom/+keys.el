@@ -128,7 +128,12 @@
         :desc "podman machine stop" "P" (lambda () (interactive) (compile "cd ~/ && podman machine stop"))
         :desc "make backup_create" "b" (lambda () (interactive) (compile "cd ~/ && make backup_create"))
         :desc "make update_macos" "u" (lambda () (interactive) (compile "cd ~/ && make update_apps && make update_macos"))
-        :desc "chezmoi apply" "c" (lambda () (interactive) (compile "cd ~/ && chezmoi apply --force")))))
+        :desc "chezmoi apply" "c" (lambda () (interactive) (compile "cd ~/ && chezmoi apply --force")))
+       (:prefix ("r" . "RSS Reader")
+        :desc "Newsticker" "n" #'newsticker-show-news
+        :desc "Newsticker get all" "u" #'newsticker-get-all-news
+        :desc "Elfeed" "e" #'elfeed
+        :desc "Elfeed get all" "U" #'elfeed-update)))
 
 ;; Magit AI helpers
 (map! :leader
@@ -145,3 +150,13 @@
       "l" #'avy-goto-line
       "b" #'avy-pop-mark
       "t" #'yas-describe-tables)
+
+;; Org agenda focus keys
+(map! :after org-agenda
+      :map org-agenda-mode-map
+      :localleader
+      (:prefix ("f" . "focus")
+       :desc "Focus on primary cloud" "p" #'org-focus-primary
+       :desc "Focus on workspace" "w" #'org-focus-workspace
+       :desc "Focus on extra workspace" "e" #'org-focus-workspace-extra
+       :desc "Focus on all org files" "a" #'org-focus-all))
