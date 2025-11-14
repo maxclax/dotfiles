@@ -24,30 +24,46 @@
               (directory-files-recursively {{ .workspace | quote }} "\\.org$")
               (directory-files-recursively {{ .workspace_extra | quote }} "\\.org$")))
 
-  (setq org-default-notes-file (concat {{ .primary_cloud | quote }} "/0-Inbox/inbox.org"))
+  (setq org-default-notes-file (concat {{ .primary_cloud | quote }} "/\!org/inbox.org"))
   (setq org-capture-templates
-        '(("t" "Todo" entry (file+headline org-default-notes-file "Tasks")
+        '(("t" "INBOX: Todo" entry (file+headline org-default-notes-file "Tasks")
            "* TODO %?\n  %i\n  %a")
-          ("n" "Note" entry (file+headline org-default-notes-file "Notes")
-           "* %?\n  %i\n  %a")
-          ("p" "Project" entry (file (lambda () (concat {{ .primary_cloud | quote }} "/1-Projects/" (read-string "Project name: ") ".org")))
-           "* TODO %?\n  %i\n  %a")
-          ("a" "Area" entry (file (lambda () (concat {{ .primary_cloud | quote }} "/2-Areas/" (read-string "Area name: ") ".org")))
-           "* %?\n  %i\n  %a")
-          ("r" "Resource" entry (file (lambda () (concat {{ .primary_cloud | quote }} "/3-Resources/" (read-string "Resource name: ") ".org")))
-           "* %?\n  %i\n  %a")))
+          ("n" "INBOX: Note" entry (file+headline org-default-notes-file "Notes")
+           "* NOTE %?\n  %i\n  %a")
+          ("s" "INBOX: Shopping" entry (file+headline org-default-notes-file "Shopping")
+           "* TODO %? :shopping:\n  %i\n  %a")
+          ("P" "PROJECT: ROADMAP" entry (file (lambda ()
+                                               (if (projectile-project-p)
+                                                   (concat (projectile-project-root) "ROADMAP.org")
+                                                 (error "Not in a projectile project"))))
+           "* TODO %?\n  %i\n  %a")))
 
   (setq org-log-repeat 'time)
   (setq org-todo-keywords
-        '((sequence "TODO(t)" "NEXT(n)" "REPEAT(r)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")))
+        '((sequence "TODO(t)" "NEXT(n)" "REPEAT(r)" "WAITING(w)" "DELEGATED(D)" "|" "DONE(d)" "CANCELLED(c)" "FORWARDED(f)")))
 
-  (setq org-todo-keyword-faces
-        '(("TODO" . (:foreground "#ff6c6b" :weight bold))
-          ("NEXT" . (:foreground "#51afef" :weight bold))
-          ("REPEAT" . (:foreground "#98be65" :weight bold))
-          ("WAITING" . (:foreground "#ecbe7b" :weight bold))
-          ("DONE" . (:foreground "#5B6268" :weight normal))
-          ("CANCELLED" . (:foreground "#5B6268" :weight normal))))
+  ;; Enable habit tracking
+  (require 'org-habit)
+  (add-to-list 'org-modules 'org-habit)
+  (setq org-habit-graph-column 60)
+  (setq org-habit-show-habits-only-for-today t)
+
+  ;; Calendar and scheduling configuration
+  (setq calendar-week-start-day 1)                    ; Start calendar with Monday
+  (setq org-agenda-start-on-weekday 1)               ; Start agenda week with Monday
+  (setq org-read-date-prefer-future 'time)           ; Prefer future times when scheduling
+  (setq org-read-date-force-compatible-dates nil)    ; Allow flexible date input
+  (setq org-agenda-span 'week)                       ; Show week view by default
+  (setq org-agenda-start-day nil)                    ; Start agenda with today
+  (setq org-agenda-show-all-dates t)                 ; Show all days even if empty
+
+  ;; Today navigation and highlighting
+  (setq org-agenda-today-indicator "🔸")             ; Custom today marker
+  (setq org-agenda-include-diary nil)                ; Don't include diary
+  (setq org-agenda-skip-scheduled-if-deadline-is-shown t)  ; Avoid duplicate entries
+
+  ;; Fast date selection
+  (setq org-popup-calendar-for-date-selection t)     ; Show popup calendar for date selection
 
   ;; Org agenda focus functions
   (defun org-focus-primary()
@@ -77,14 +93,7 @@
                   (directory-files-recursively {{ .workspace_extra | quote }} "\\.org$"))))
 
   (defvar org-default-time "9:00"
-    "The default time for deadlines.")
-
-  ;; Startup settings
-  (setq org-startup-folded 'content)
-  (setq org-startup-indented t)
-  (setq org-insert-heading-respect-content t)
-  (setq org-blank-before-new-entry '((heading . nil)
-                                     (plain-list-item . nil))))
+    "The default time for deadlines."))
 
 
 (use-package! literate-calc-mode

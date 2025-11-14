@@ -1,5 +1,30 @@
 # CLAUDE.md
 
+=========================================================================================================
+
+## Claude Code Instructions
+
+**IMPORTANT: Always check ROADMAP.org file first** based on the project context:
+
+### Workflow:
+2. **Read the appropriate ROADMAP.org** to understand priorities and context
+3. **Update task statuses** as you progress:
+   - Change `TODO` to `NEXT` when starting work
+   - Mark as `DONE` when completed and manually add CLOSED timestamp like:
+     ```
+     * DONE [#A] Task name
+       CLOSED: [2025-01-11 Sat 14:30]
+     ```
+   - Move completed items under "Recently Completed" section
+   - Add new tasks as they arise during development
+
+### Priority System:
+- `[#A]` = High priority (work on first)
+- `[#B]` = Medium priority
+- `[#C]` = Low priority
+
+=========================================================================================================
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Repository Overview

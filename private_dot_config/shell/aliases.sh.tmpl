@@ -30,6 +30,18 @@ alias killemacs='emacsclient -e "(kill-emacs)"'
 # Emacs commands for different distributions
 alias doom={{ .chezmoi.homeDir }}/.config/emacs/bin/doom
 
+# GUI Emacs launchers for different distributions (non-blocking)
+alias emacs-default='emacs &'
+{{ if or (eq .emacsType "Doom") .emacsLoadAllDistros -}}
+alias emacs-doom='emacs --init-directory={{ .chezmoi.homeDir }}/.config/emacs &'
+{{- end }}
+{{ if or (eq .emacsType "prelude") .emacsLoadAllDistros -}}
+alias emacs-prelude='emacs --init-directory={{ .chezmoi.homeDir }}/.config/preludeemacs.d &'
+{{- end }}
+{{ if or (eq .emacsType "purcell") .emacsLoadAllDistros -}}
+alias emacs-purcell='emacs --init-directory={{ .chezmoi.homeDir }}/.config/purcellemacs.d &'
+{{- end }}
+
 # Emacs server commands for different distributions
 alias emacs-server-doom='emacs --daemon --init-directory={{ .chezmoi.homeDir }}/.config/emacs'
 alias emacs-server-prelude='emacs --daemon --init-directory={{ .chezmoi.homeDir }}/.config/preludeemacs.d'
@@ -42,7 +54,7 @@ alias emacs-server='emacs-server-doom'
 {{- else if eq .emacsType "prelude" }}
 alias emacs-server='emacs-server-prelude'
 {{- else if eq .emacsType "purcell" }}
-alias emacs-server='emacs-server-prelude'
+alias emacs-server='emacs-server-purcell'
 {{- else }}
 alias emacs-server='emacs-server-default'
 {{- end }}

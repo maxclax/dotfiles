@@ -1,0 +1,9 @@
+#+TITLE: ROADMAP
+#+STARTUP: showall
+
+* Tasks
+
+* Recently Completed
+
+** DONE [#A] I can have on system at same time doom emacs and other dists with my config
+   CLOSED: [2025-11-14 Thu 19:45]
