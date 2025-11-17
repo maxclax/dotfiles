@@ -1,0 +1,225 @@
+;;; lisp/init-org.el -*- mode: emacs-lisp; lexical-binding: t; -*-
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Org + PARA
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(after! org
+  ;; Enable org-depend for sequential tasks
+  (require 'org-depend)
+
+  ;; Auto-save after state changes
+  (advice-add 'org-agenda-todo :after
+              (lambda (&rest _)
+                (org-save-all-org-buffers)))
+
+  ;; Dim blocked tasks
+  (setq org-agenda-dim-blocked-tasks t)
+
+  ;; Hide DONE tasks from agenda
+  (setq org-agenda-skip-scheduled-if-done t
+        org-agenda-skip-deadline-if-done t
+        org-agenda-skip-timestamp-if-done t)
+
+  ;; Custom commands
+  (setq org-agenda-custom-commands
+        '(;; Default agenda (no DONE)
+          ("a" "Agenda" agenda "") 
+
+          ;; Show completed tasks
+          ("c" "Completed tasks"
+           ((tags "TODO=\"DONE\""
+                  ((org-agenda-overriding-header "✅ Completed Tasks")
+                   (org-agenda-sorting-strategy '(timestamp-down)))))
+           ((org-agenda-span 7)))  ; Last 7 days
+
+          ;; GTD Full Review
+          ("d" "Dasboard (GTD)"
+           ((agenda "" ((org-agenda-span 'day)
+                       (org-agenda-overriding-header "📅 Today")))
+            (tags-todo "INBOX"
+                  ((org-agenda-overriding-header "📥 Inbox - Process These")
+                   (org-tags-match-list-sublevels nil)))
+            (stuck ""
+                   ((org-agenda-overriding-header "🚫 Stuck Projects (no NEXT)")
+                    (org-agenda-tags-todo-honor-ignore-options t)
+                    (org-tags-match-list-sublevels t)))
+            (tags-todo "-INBOX/NEXT"
+                       ((org-agenda-overriding-header "⚡ Next Actions")
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (org-agenda-skip-entry-if 'scheduled 'deadline)))
+                        (org-tags-match-list-sublevels t)))
+            (tags-todo "-INBOX/PROJECT"
+                       ((org-agenda-overriding-header "📁 Active Projects")
+                        (org-tags-match-list-sublevels t)))
+            (tags-todo "-INBOX/-NEXT"
+                       ((org-agenda-overriding-header "🔍 Orphaned Tasks")
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (or (org-agenda-skip-subtree-if 'todo '("PROJECT" "HOLD" "WAITING" "DELEGATED"))
+                                (org-agenda-skip-subtree-if 'nottodo '("TODO")))))
+                        (org-tags-match-list-sublevels t)))
+            (tags-todo "/WAITING"
+                       ((org-agenda-overriding-header "⏳ Waiting For")))
+            (tags-todo "/DELEGATED"
+                       ((org-agenda-overriding-header "👥 Delegated")))
+            (tags-todo "-INBOX/HOLD"
+                       ((org-agenda-overriding-header "⏸️ On Hold")))))))
+
+  ;; PARA for projects, tasks, files
+  (setq org-directory (list {{ .primary_cloud | quote }} {{ .workspace | quote }} {{ .workspace_extra | quote }}))
+  (setq org-agenda-file-regexp "\\`[^.].*\\.org\\'") ;; Exclude files starting with "."
+  (setq org-agenda-files
+      (append (directory-files-recursively {{ .primary_cloud | quote }} "\\.org$")
+              (directory-files-recursively {{ .workspace | quote }} "\\.org$")
+              (directory-files-recursively {{ .workspace_extra | quote }} "\\.org$")))
+
+  (setq org-default-notes-file (concat {{ .primary_cloud | quote }} "/\!org/inbox.org"))
+  (setq org-capture-templates
+        '(("t" "INBOX: Todo" entry (file+headline org-default-notes-file "Tasks")
+           "* TODO %?\n%U\n  %i\n  %a" :clock-resume t)
+          ("n" "INBOX: Note" entry (file+headline org-default-notes-file "Notes")
+           "* %? :NOTE:\n%U\n  %i\n  %a" :clock-resume t)
+          ("s" "INBOX: Shopping" entry (file+headline org-default-notes-file "Shopping")
+           "* TODO %? :shopping:\n%U\n  %i\n  %a")
+          ("S" "INBOX: Selling" entry (file+headline org-default-notes-file "Selling")
+           "* TODO %? :selling:\n%U\n  %i\n  %a")
+          ("p" "INBOX: Project" entry (file+headline org-default-notes-file "Projects")
+           "* PROJECT %?\n%U\n  %i\n  %a")
+          ("P" "PROJECT: ROADMAP" entry (file (lambda ()
+                                               (if (projectile-project-p)
+                                                   (concat (projectile-project-root) "ROADMAP.org")
+                                                 (error "Not in a projectile project"))))
+           "* TODO %?\n%U\n  %i\n  %a")))
+
+  (setq org-log-repeat 'time)
+  ;; GTD-style TODO keywords with PROJECT state
+  (setq org-todo-keywords
+        '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!/!)")
+          (sequence "PROJECT(p)" "|" "DONE(d!/!)" "CANCELLED(c@/!)")
+          (sequence "WAITING(w@/!)" "DELEGATED(D!)" "HOLD(h)" "|" "CANCELLED(c@/!)")))
+
+  ;; Stuck projects detection (projects without NEXT actions)
+  (setq org-stuck-projects '("-INBOX/PROJECT" ("NEXT")))
+
+  ;; TODO keyword faces
+  (setq org-todo-keyword-faces
+        '(("NEXT" :inherit warning)
+          ("PROJECT" :inherit font-lock-string-face)
+          ("WAITING" :inherit font-lock-keyword-face)
+          ("HOLD" :inherit font-lock-comment-face)))
+
+  ;; Enable habit tracking
+  (require 'org-habit)
+  (add-to-list 'org-modules 'org-habit)
+  (setq org-habit-graph-column 14)
+  (setq org-habit-show-habits-only-for-today t)
+
+  ;; Calendar and scheduling configuration
+  (setq calendar-week-start-day 1)                    ; Start calendar with Monday
+  (setq org-agenda-start-on-weekday 1)               ; Start agenda week with Monday
+  (setq org-read-date-prefer-future 'time)           ; Prefer future times when scheduling
+  (setq org-read-date-force-compatible-dates nil)    ; Allow flexible date input
+  (setq org-agenda-span 'week)                       ; Show week view by default
+  (setq org-agenda-start-day nil)                    ; Start agenda with today
+  (setq org-agenda-show-all-dates t)                 ; Show all days even if empty
+
+  ;; Today navigation and highlighting
+  (setq org-agenda-today-indicator "🔸")             ; Custom today marker
+  (setq org-agenda-include-diary nil)                ; Don't include diary
+  (setq org-agenda-skip-scheduled-if-deadline-is-shown t)  ; Avoid duplicate entries
+
+  ;; Fast date selection
+  (setq org-popup-calendar-for-date-selection t)     ; Show popup calendar for date selection
+
+  ;; Enhanced refiling system - explicitly include denote directory
+  (setq org-refile-targets
+        `((nil :maxlevel . 5)
+          (org-agenda-files :maxlevel . 5)
+          (,(directory-files-recursively (expand-file-name "!org/denote" {{ .primary_cloud | quote }}) "\\.org$") :maxlevel . 5)))
+  (setq org-refile-use-outline-path t)
+  (setq org-outline-path-complete-in-steps nil)
+  (setq org-refile-allow-creating-parent-nodes 'confirm)
+
+  ;; Exclude DONE state tasks from refile targets
+  (defun my/verify-refile-target ()
+    "Exclude todo keywords with a done state from refile targets."
+    (not (member (nth 2 (org-heading-components)) org-done-keywords)))
+  (setq org-refile-target-verify-function 'my/verify-refile-target)
+
+  ;; Auto-save after refile
+  (advice-add 'org-refile :after (lambda (&rest _) (org-save-all-org-buffers)))
+
+  ;; Clock tracking configuration
+  (setq org-clock-persist t)
+  (setq org-clock-in-resume t)
+  (setq org-clock-into-drawer t)
+  (setq org-log-into-drawer t)
+  (setq org-clock-out-remove-zero-time-clocks t)
+  (setq org-time-clocksum-format
+        '(:hours "%d" :require-hours t :minutes ":%02d" :require-minutes t))
+
+  ;; Archive configuration - use dedicated archive directory
+  (setq org-archive-location "archive/%s_archive::")
+  (setq org-archive-save-context-info '(time file ltags itags todo category olpath))
+
+  ;; Archive all DONE items in directory
+  (defun org-archive-all-done-in-directory (directory)
+    "Archive all DONE items in all org files in DIRECTORY."
+    (interactive "DDirectory: ")
+    (let ((org-files (directory-files-recursively directory "\\.org$")))
+      (dolist (file org-files)
+        (with-current-buffer (find-file-noselect file)
+          (org-archive-all-done)
+          (save-buffer)))))
+
+  ;; Archive all DONE items in current org-agenda-files
+  (defun org-archive-all-done-in-agenda-files ()
+    "Archive all DONE items in all org-agenda-files."
+    (interactive)
+    (dolist (file org-agenda-files)
+      (when (file-exists-p file)
+        (with-current-buffer (find-file-noselect file)
+          (org-archive-all-done)
+          (save-buffer)))))
+
+  ;; Org agenda focus functions
+  (defun org-focus-primary()
+    "Set focus on primary cloud files."
+    (interactive)
+    (setq org-agenda-files
+          (directory-files-recursively {{ .primary_cloud | quote }} "\\.org$")))
+
+  (defun org-focus-workspace()
+    "Set focus on workspace files."
+    (interactive)
+    (setq org-agenda-files
+          (directory-files-recursively {{ .workspace | quote }} "\\.org$")))
+
+  (defun org-focus-workspace-extra()
+    "Set focus on extra workspace files."
+    (interactive)
+    (setq org-agenda-files
+          (directory-files-recursively {{ .workspace_extra | quote }} "\\.org$")))
+
+  (defun org-focus-all()
+    "Set focus on all org files."
+    (interactive)
+    (setq org-agenda-files
+          (append (directory-files-recursively {{ .primary_cloud | quote }} "\\.org$")
+                  (directory-files-recursively {{ .workspace | quote }} "\\.org$")
+                  (directory-files-recursively {{ .workspace_extra | quote }} "\\.org$"))))
+
+  ;; Org-attach configuration
+  (setq org-attach-id-dir (expand-file-name "!org/.attach/" {{ .primary_cloud | quote }}))
+  (setq org-attach-dir-relative t)
+  (setq org-attach-use-inheritance t)
+  (setq org-attach-auto-tag "attach")
+
+  ;; Create attach directory if it doesn't exist
+  (unless (file-exists-p org-attach-id-dir)
+    (make-directory org-attach-id-dir t))
+
+  (defvar org-default-time "8:00"
+    "The default time for deadlines."))

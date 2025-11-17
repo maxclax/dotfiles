@@ -1,0 +1,182 @@
+;;; +denote.el -*- mode: emacs-lisp; lexical-binding: t; -*-
+
+;;; Commentary:
+;; Denote configuration integrated with PARA method
+;; - Projects: Active projects with deadlines
+;; - Areas: Ongoing responsibilities
+;; - Resources: Topics of ongoing interest
+;; - Archive: Inactive items
+
+;;; Code:
+
+(use-package! denote
+  :config
+  ;; Dedicated denote directory
+  (setq denote-directory (expand-file-name "!org/denote" {{ .primary_cloud | quote }}))
+
+  ;; General purpose keywords with lifecycle management
+  (setq denote-known-keywords
+        '("reference" "project" "meeting" "finance" "work" "personal" "idea" "draft" "archive" "completed"))
+
+  ;; Sort keywords for consistency
+  (setq denote-sort-keywords t)
+
+  ;; File type defaults
+  (setq denote-file-type 'org)
+
+  ;; Template for different note types
+  (defun my/denote-template (type)
+    "Insert template based on TYPE."
+    (pcase type
+      ("project" "* Project Overview\n** Goals\n** Tasks\n** Resources\n** Timeline\n")
+      ("meeting" "* Meeting Notes\n** Attendees\n** Agenda\n** Action Items\n** Decisions\n")
+      ("reference" "* Summary\n** Key Points\n** Related Topics\n** Source\n")
+      ("finance" "* Financial Details\n** Summary\n** Key Numbers\n** Calculations\n")
+      (_ "* Notes\n")))
+
+  ;; Custom function to create typed notes
+  (defun my/denote-create-typed-note (type title)
+    "Create a denote note with TYPE and TITLE."
+    (interactive
+     (list (completing-read "Note type: "
+                           '("reference" "project" "meeting" "finance" "work" "personal" "idea" "draft"))
+           (read-string "Note title: ")))
+    (let ((keywords (list type)))
+      (denote title keywords)
+      (when (derived-mode-p 'org-mode)
+        (goto-char (point-max))
+        (insert "\n")
+        (insert (my/denote-template type)))))
+
+  ;; Create denote directory if it doesn't exist
+  (unless (file-exists-p denote-directory)
+    (make-directory denote-directory t))
+
+  ;; Override denote directory function to only search in denote directory
+  (defun my/denote-directory-files (&optional regexp)
+    "Return list of denote files from denote directory, optionally filtered by REGEXP."
+    (when (file-exists-p denote-directory)
+      (denote-directory-files regexp)))
+
+  ;; Set denote to use our custom function
+  (setq denote-directory-files-function #'my/denote-directory-files)
+
+  ;; Custom function to check if a file has a specific keyword
+  (defun denote-file-has-keyword-p (file keyword)
+    "Return non-nil if FILE has KEYWORD in its denote keywords.
+KEYWORD should be a string. FILE should be a full file path."
+    (when-let ((keywords (denote-extract-keywords-from-path file)))
+      (member keyword keywords))))
+
+(use-package! denote-explore
+  :after denote
+  :config
+  ;; Network visualization for note connections
+  (setq denote-explore-network-filename "denote-network.html")
+  (setq denote-explore-network-directory denote-directory))
+
+(use-package! consult-notes
+  :config
+  ;; Integration with consult for fast note access
+  (setq consult-notes-file-dir-sources
+        `(("Denote Notes" ?d ,denote-directory)))
+
+  ;; Enable live preview
+  (consult-notes-org-headings-mode 1))
+
+;; Key bindings for denote workflow
+(map! :leader
+      (:prefix ("n d" . "denote")
+       :desc "Create typed note" "t" #'my/denote-create-typed-note
+       :desc "Find note" "f" #'denote-open-or-create
+       :desc "Create note" "n" #'denote
+       :desc "Link to note" "l" #'denote-link
+       :desc "Backlinks" "b" #'denote-find-backlink
+       :desc "Rename file" "r" #'denote-rename-file
+       :desc "Keywords" "k" #'denote-keywords-add
+       :desc "Remove keywords" "K" #'denote-keywords-remove
+       :desc "Link to heading" "h" #'denote-org-extras-link-to-heading
+       :desc "Search notes" "s" #'consult-notes
+       :desc "Search in notes" "S" #'consult-notes-search-in-all-notes
+       :desc "Explore network" "e" #'denote-explore-network))
+
+;; Lifecycle management functions
+(defun my/denote-complete-project ()
+  "Mark current denote project as completed."
+  (interactive)
+  (when (denote-file-is-note-p (buffer-file-name))
+    (let ((completion-date (format-time-string "%Y-%m")))
+      ;; Remove 'project' keyword
+      (denote-keywords-remove '("project"))
+      ;; Add 'archive' and 'completed' keywords
+      (denote-keywords-add '("archive" "completed"))
+      ;; Add completion date to front matter
+      (save-excursion
+        (goto-char (point-min))
+        (when (re-search-forward "^#\\+filetags:" nil t)
+          (end-of-line)
+          (insert (format "\n#+date_completed: %s" completion-date))))
+      ;; Update title to show completion
+      (save-excursion
+        (goto-char (point-min))
+        (when (re-search-forward "^#\\+title:\\s-*\\(.*\\)" nil t)
+          (let ((current-title (match-string 1)))
+            (unless (string-match "(Completed" current-title)
+              (replace-match (format "%s (Completed %s)" current-title completion-date) nil nil nil 1)))))
+      (message "Project marked as completed"))))
+
+(defun my/denote-archive-note ()
+  "Archive current denote note (change project to archive keyword)."
+  (interactive)
+  (when (denote-file-is-note-p (buffer-file-name))
+    (denote-keywords-remove '("project" "idea" "draft"))
+    (denote-keywords-add '("archive"))
+    (message "Note archived")))
+
+(defun my/denote-find-active-projects ()
+  "Find all active project notes."
+  (interactive)
+  (let ((files (my/denote-directory-files))
+        (project-files '()))
+    (dolist (file files)
+      (when (denote-file-has-keyword-p file "project")
+        (push file project-files)))
+    (if project-files
+        (find-file (completing-read "Open project: " project-files nil t))
+      (message "No active projects found"))))
+
+(defun my/denote-find-completed-projects ()
+  "Find all completed project notes."
+  (interactive)
+  (let ((files (my/denote-directory-files))
+        (completed-files '()))
+    (dolist (file files)
+      (when (denote-file-has-keyword-p file "completed")
+        (push file completed-files)))
+    (if completed-files
+        (find-file (completing-read "Open completed project: " completed-files nil t))
+      (message "No completed projects found"))))
+
+(defun my/denote-find-archived ()
+  "Find all archived notes."
+  (interactive)
+  (let ((files (my/denote-directory-files))
+        (archived-files '()))
+    (dolist (file files)
+      (when (denote-file-has-keyword-p file "archive")
+        (push file archived-files)))
+    (if archived-files
+        (find-file (completing-read "Open archived note: " archived-files nil t))
+      (message "No archived notes found"))))
+
+;; Additional key bindings for lifecycle management
+(map! :leader
+      (:prefix ("n d" . "denote")
+       :desc "Complete project" "C" #'my/denote-complete-project
+       :desc "Archive note" "A" #'my/denote-archive-note
+       :desc "Find active projects" "p" #'my/denote-find-active-projects
+       :desc "Find completed projects" "P" #'my/denote-find-completed-projects
+       :desc "Find archived notes" "a" #'my/denote-find-archived))
+
+(provide '+denote)
+;;; +denote.el ends here

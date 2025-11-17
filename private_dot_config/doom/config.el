@@ -2,13 +2,14 @@
 
 ;; Load all configuration modules from the root directory
 (load! "+os")
-(load! "+git")
+(load! "lisp/init-git.el")
+(load! "lisp/init-org.el")
 (load! "+misc")
 (load! "+text")
 (load! "+prog")
 (load! "+ui")
 (load! "+keys")
-(load! "+denote")
+(load! "lisp/init-denote")
 
 ;; Autoload all files from the modules directory
 (let ((modules-dir (expand-file-name "helpers" doom-user-dir)))
@@ -18,8 +19,8 @@
 
 ;; Conditional LSP configuration
 (cond
- ((modulep! :tools lsp +eglot) (load! "+eglot"))
- ((modulep! :tools lsp) (load! "+lsp")))
+ ((modulep! :tools lsp +eglot) (load! "lisp/init-eglot.el"))
+ ((modulep! :tools lsp) (load! "lisp/init-lsp.el")))
 
 (setq bookmark-default-file "~/.config/doom/bookmarks")
 
