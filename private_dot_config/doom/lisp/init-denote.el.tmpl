@@ -96,8 +96,8 @@ KEYWORD should be a string. FILE should be a full file path."
   ;; Date selection interface (use org-read-date for better UX)
   (setq denote-date-prompt-use-org-read-date t)
 
-  ;; Title format for journal entries
-  (setq denote-journal-title-format 'day-date-month-year)
+  ;; Title format for journal entries - simple date format
+  (setq denote-journal-title-format "%Y-%m-%d")
 
   ;; Auto-save journal entries
   (setq denote-journal-auto-save-buffer t)

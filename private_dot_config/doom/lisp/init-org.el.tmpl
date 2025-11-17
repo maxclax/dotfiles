@@ -191,23 +191,32 @@
   ;; Fast date selection
   (setq org-popup-calendar-for-date-selection t)     ; Show popup calendar for date selection
 
-  ;; Simple clean display for denote titles in agenda
+  ;; Universal clean display for all denote titles in agenda
   (defun my/clean-denote-title-for-agenda ()
-    "Show clean denote titles in agenda."
-    (when (and (buffer-file-name)
-               (string-match-p "journal" (buffer-file-name)))
+    "Show clean denote titles for all agenda items with bold formatting."
+    (when (buffer-file-name)
       (let* ((file (file-name-nondirectory (buffer-file-name)))
-             (clean-title (if (string-match "^[0-9T]+--\\([^_]+\\)__" file)
-                             (replace-regexp-in-string "-" " " (match-string 1 file))
-                           file)))
-        (format "📝 %s" (capitalize clean-title)))))
+             (is-denote (string-match "^[0-9T]+--\\([^_]+\\)__" file))
+             (is-journal (string-match-p "journal" (buffer-file-name))))
+        (cond
+         ;; Denote journal files
+         ((and is-denote is-journal)
+          (let ((clean-title (replace-regexp-in-string "-" " " (match-string 1 file))))
+            (format "📝 *%s*: " (capitalize clean-title))))
+         ;; Other denote files
+         (is-denote
+          (let ((clean-title (replace-regexp-in-string "-" " " (match-string 1 file))))
+            (format "📄 *%s*: " (capitalize clean-title))))
+         ;; Non-denote files - show just filename without extension
+         (t
+          (format "📋 *%s*: " (file-name-sans-extension file)))))))
 
-  ;; Set prefix format for cleaner journal display
+  ;; Set prefix format for cleaner display across all agenda views
   (setq org-agenda-prefix-format
         '((agenda . " %i %-12:c%?-12t% s")
           (todo . " %i %(my/clean-denote-title-for-agenda)")
-          (tags . " %i %-12:c")
-          (search . " %i %-12:c")))
+          (tags . " %i %(my/clean-denote-title-for-agenda)")
+          (search . " %i %(my/clean-denote-title-for-agenda)")))
 
   ;; Enhanced refiling system - explicitly include denote directory
   (setq org-refile-targets
