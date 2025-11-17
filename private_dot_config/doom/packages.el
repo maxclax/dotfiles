@@ -30,6 +30,7 @@
 (package! pomm)
 (package! symbol-overlay)
 (package! org-appear)
+(package! org-super-agenda)
 (package! literate-calc-mode)
 (package! nov)      ; EPUB reader
 (package! djvu)     ; DjVu document viewer
@@ -38,6 +39,7 @@
 
 ;; denote - note-taking system
 (package! denote)
+(package! denote-journal)
 (package! denote-explore)
 (package! consult-notes)
 

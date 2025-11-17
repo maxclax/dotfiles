@@ -16,7 +16,7 @@
 
   ;; General purpose keywords with lifecycle management
   (setq denote-known-keywords
-        '("reference" "project" "meeting" "finance" "work" "personal" "idea" "draft" "archive" "completed"))
+        '("reference" "project" "meeting" "finance" "work" "personal" "idea" "draft" "archive" "completed" "journal"))
 
   ;; Sort keywords for consistency
   (setq denote-sort-keywords t)
@@ -83,6 +83,105 @@ KEYWORD should be a string. FILE should be a full file path."
 
   ;; Enable live preview
   (consult-notes-org-headings-mode 1))
+
+(use-package! denote-journal
+  :after denote
+  :config
+  ;; Dedicated journal subdirectory
+  (setq denote-journal-directory (expand-file-name "journal" denote-directory))
+
+  ;; Journal entry keyword
+  (setq denote-journal-keyword "journal")
+
+  ;; Date selection interface (use org-read-date for better UX)
+  (setq denote-date-prompt-use-org-read-date t)
+
+  ;; Title format for journal entries
+  (setq denote-journal-title-format 'day-date-month-year)
+
+  ;; Auto-save journal entries
+  (setq denote-journal-auto-save-buffer t)
+
+  ;; Create journal directory if it doesn't exist
+  (unless (file-exists-p denote-journal-directory)
+    (make-directory denote-journal-directory t))
+
+  ;; Global template system for org-mode and denote
+  (setq my/templates-directory (expand-file-name "!org/templates" {{ .primary_cloud | quote }}))
+
+  ;; Create templates directory if it doesn't exist
+  (unless (file-exists-p my/templates-directory)
+    (make-directory my/templates-directory t))
+
+  ;; Global template insertion function
+  (defun my/insert-template (template-name)
+    "Insert template by name from global templates directory."
+    (interactive
+     (list (completing-read "Template: "
+                           (mapcar #'file-name-sans-extension
+                                  (directory-files my/templates-directory nil "\\.org$")))))
+    (let ((template-file (expand-file-name (concat template-name ".org") my/templates-directory)))
+      (when (file-exists-p template-file)
+        (insert-file-contents template-file)
+        (message "Inserted template: %s" template-name))))
+
+  ;; Template insertion at point
+  (defun my/insert-template-at-point (template-name)
+    "Insert template at current point without moving cursor."
+    (interactive
+     (list (completing-read "Template: "
+                           (mapcar #'file-name-sans-extension
+                                  (directory-files my/templates-directory nil "\\.org$")))))
+    (let ((template-file (expand-file-name (concat template-name ".org") my/templates-directory)))
+      (when (file-exists-p template-file)
+        (save-excursion
+          (insert-file-contents template-file))
+        (message "Inserted template: %s" template-name))))
+
+  ;; List available templates
+  (defun my/list-templates ()
+    "List all available templates."
+    (interactive)
+    (let ((templates (mapcar #'file-name-sans-extension
+                            (directory-files my/templates-directory nil "\\.org$"))))
+      (if templates
+          (message "Available templates: %s" (string-join templates ", "))
+        (message "No templates found in %s" my/templates-directory))))
+
+  ;; Open templates directory
+  (defun my/open-templates-directory ()
+    "Open the templates directory in dired."
+    (interactive)
+    (dired my/templates-directory))
+
+  ;; Automatic journal template insertion (optional)
+  (defun my/denote-journal-insert-template ()
+    "Insert journal template from template file if it exists."
+    (when (and (derived-mode-p 'org-mode)
+               (buffer-file-name)
+               (string-match-p "journal" (buffer-file-name))
+               (not buffer-read-only))
+      (let ((template-file (expand-file-name "journal.org" my/templates-directory)))
+        (when (and (file-exists-p template-file)
+                   (= (buffer-size) 0))  ; Only insert if buffer is empty
+          (condition-case err
+              (progn
+                (goto-char (point-max))
+                (insert-file-contents template-file))
+            (error
+             (message "Error inserting journal template: %s" (error-message-string err))))))))
+
+  ;; Use find-file-hook instead of denote-journal specific hook
+  (add-hook 'find-file-hook #'my/denote-journal-insert-template)
+
+  ;; Remove problematic advice and use simpler approach
+  (advice-remove 'denote-journal-new-entry #'my/denote-journal-advice)
+  (advice-remove 'denote-journal-new-or-existing-entry #'my/denote-journal-advice)
+
+  ;; Enable calendar integration
+  (require 'calendar)
+  (add-hook 'calendar-today-visible-hook #'denote-journal-calendar-mark-dates)
+  (add-hook 'calendar-today-invisible-hook #'denote-journal-calendar-mark-dates))
 
 ;; Key bindings for denote workflow
 (map! :leader
@@ -177,6 +276,28 @@ KEYWORD should be a string. FILE should be a full file path."
        :desc "Find active projects" "p" #'my/denote-find-active-projects
        :desc "Find completed projects" "P" #'my/denote-find-completed-projects
        :desc "Find archived notes" "a" #'my/denote-find-archived))
+
+;; Global template key bindings
+(map! :leader
+      (:prefix ("i t" . "templates")
+       :desc "Insert template" "i" #'my/insert-template
+       :desc "Insert at point" "p" #'my/insert-template-at-point
+       :desc "List templates" "l" #'my/list-templates
+       :desc "Open templates dir" "d" #'my/open-templates-directory))
+
+;; Journal key bindings - using only denote-journal functions
+(map! :leader
+      (:prefix ("n j" . "journal")
+       ;; Primary journal commands (single daily entry)
+       :desc "Today's journal" "j" #'denote-journal-new-or-existing-entry
+       :desc "New journal entry" "n" #'denote-journal-new-entry
+       :desc "Link to journal" "l" #'denote-journal-link-or-create-entry
+       ;; Calendar integration
+       :desc "Open calendar" "c" #'calendar
+       :desc "Journal from calendar" "C" #'denote-journal-calendar-new-or-existing
+       :desc "Find entry from calendar" "f" #'denote-journal-calendar-find-file
+       ;; Template shortcuts
+       :desc "Insert template" "t" #'my/insert-template))
 
 (provide '+denote)
 ;;; +denote.el ends here

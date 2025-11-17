@@ -33,10 +33,16 @@
                    (org-agenda-sorting-strategy '(timestamp-down)))))
            ((org-agenda-span 7)))  ; Last 7 days
 
-          ;; GTD Full Review
-          ("d" "Dasboard (GTD)"
+          ;; GTD Full Review with Journal Integration
+          ("d" "Dashboard (GTD)"
            ((agenda "" ((org-agenda-span 'day)
                        (org-agenda-overriding-header "📅 Today")))
+            (todo "TODO"
+                  ((org-agenda-overriding-header "📝 Journal Tasks & Outcomes")
+                   (org-agenda-files (directory-files-recursively
+                                     (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\\.org$"))
+                   (org-agenda-sorting-strategy '(timestamp-down))
+                   (org-agenda-max-entries 5)))
             (tags-todo "INBOX"
                   ((org-agenda-overriding-header "📥 Inbox - Process These")
                    (org-tags-match-list-sublevels nil)))
@@ -65,7 +71,37 @@
             (tags-todo "/DELEGATED"
                        ((org-agenda-overriding-header "👥 Delegated")))
             (tags-todo "-INBOX/HOLD"
-                       ((org-agenda-overriding-header "⏸️ On Hold")))))))
+                       ((org-agenda-overriding-header "⏸️ On Hold")))))
+
+          ;; Journal Dashboard
+          ("j" "Journal Dashboard"
+           ((agenda "" ((org-agenda-span 'day)
+                       (org-agenda-overriding-header "📅 Today's Schedule")
+                       (org-agenda-files (directory-files-recursively
+                                         (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\\.org$"))))
+            (todo "TODO"
+                  ((org-agenda-overriding-header "📝 Journal Tasks & Outcomes")
+                   (org-agenda-files (directory-files-recursively
+                                     (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\\.org$"))
+                   (org-agenda-sorting-strategy '(timestamp-down))))
+            (tags "+journal"
+                  ((org-agenda-overriding-header "📔 Recent Journal Entries")
+                   (org-agenda-files (directory-files-recursively
+                                     (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\\.org$"))
+                   (org-agenda-sorting-strategy '(timestamp-down))
+                   (org-agenda-max-entries 7)))))
+
+          ;; Journal Review
+          ("J" "Journal Review"
+           ((tags "+journal"
+                  ((org-agenda-overriding-header "📖 All Journal Entries")
+                   (org-agenda-files (directory-files-recursively
+                                     (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\\.org$"))
+                   (org-agenda-sorting-strategy '(timestamp-down))))
+            (search ""
+                    ((org-agenda-overriding-header "🔍 Search Journal Content")
+                     (org-agenda-files (directory-files-recursively
+                                       (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\.org$"))))))))
 
   ;; PARA for projects, tasks, files
   (setq org-directory (list {{ .primary_cloud | quote }} {{ .workspace | quote }} {{ .workspace_extra | quote }}))
@@ -73,7 +109,9 @@
   (setq org-agenda-files
       (append (directory-files-recursively {{ .primary_cloud | quote }} "\\.org$")
               (directory-files-recursively {{ .workspace | quote }} "\\.org$")
-              (directory-files-recursively {{ .workspace_extra | quote }} "\\.org$")))
+              (directory-files-recursively {{ .workspace_extra | quote }} "\\.org$")
+              ;; Include journal files in agenda
+              (directory-files-recursively (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\\.org$")))
 
   (setq org-default-notes-file (concat {{ .primary_cloud | quote }} "/\!org/inbox.org"))
   (setq org-capture-templates
@@ -91,7 +129,27 @@
                                                (if (projectile-project-p)
                                                    (concat (projectile-project-root) "ROADMAP.org")
                                                  (error "Not in a projectile project"))))
-           "* TODO %?\n%U\n  %i\n  %a")))
+           "* TODO %?\n%U\n  %i\n  %a")
+          ;; Journal capture templates
+          ("j" "Journal quick entry" entry (function my/journal-capture-target)
+           "** %?\n%U\n  %i\n  %a" :clock-resume t)
+          ("o" "Journal outcome" entry (function my/journal-capture-target)
+           "- [ ] %?\n" :clock-resume t)
+          ("r" "Journal reflection" entry (function my/journal-capture-target)
+           "** Reflection\n%?\n%U\n" :clock-resume t)))
+
+  ;; Helper function for journal capture
+  (defun my/journal-capture-target ()
+    "Return today's journal file or create it."
+    (let* ((today (format-time-string "%Y%m%dT%H%M%S"))
+           (title (format "Daily Log %s" (format-time-string "%Y-%m-%d")))
+           (journal-dir (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}))
+           (today-file (car (directory-files journal-dir t (format-time-string "%Y-%m-%d")))))
+      (or today-file
+          (expand-file-name (format "%s--%s__journal.org"
+                                   today
+                                   (denote--slug-hyphenate title))
+                           journal-dir))))
 
   (setq org-log-repeat 'time)
   ;; GTD-style TODO keywords with PROJECT state
@@ -132,6 +190,24 @@
 
   ;; Fast date selection
   (setq org-popup-calendar-for-date-selection t)     ; Show popup calendar for date selection
+
+  ;; Simple clean display for denote titles in agenda
+  (defun my/clean-denote-title-for-agenda ()
+    "Show clean denote titles in agenda."
+    (when (and (buffer-file-name)
+               (string-match-p "journal" (buffer-file-name)))
+      (let* ((file (file-name-nondirectory (buffer-file-name)))
+             (clean-title (if (string-match "^[0-9T]+--\\([^_]+\\)__" file)
+                             (replace-regexp-in-string "-" " " (match-string 1 file))
+                           file)))
+        (format "📝 %s" (capitalize clean-title)))))
+
+  ;; Set prefix format for cleaner journal display
+  (setq org-agenda-prefix-format
+        '((agenda . " %i %-12:c%?-12t% s")
+          (todo . " %i %(my/clean-denote-title-for-agenda)")
+          (tags . " %i %-12:c")
+          (search . " %i %-12:c")))
 
   ;; Enhanced refiling system - explicitly include denote directory
   (setq org-refile-targets
@@ -223,3 +299,6 @@
 
   (defvar org-default-time "8:00"
     "The default time for deadlines."))
+
+(provide 'init-org)
+;;; init-org.el ends here
