@@ -44,6 +44,16 @@
   refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
 {{ end }}
 
+{{ if or (eq .emacsType "ews") .emacsLoadAllDistros }}
+".config/emacs-writing-studio":
+  type: "git-repo"
+  url: "https://github.com/pprevos/emacs-writing-studio.git"
+  args:
+    - "--depth=1"  
+  exact: true
+  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
+{{ end }}
+
 {{ if or (eq .emacsType "prelude") .emacsLoadAllDistros }}
 ".config/preludeemacs.d":
   type: "git-repo"

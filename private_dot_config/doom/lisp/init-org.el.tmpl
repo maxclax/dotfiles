@@ -13,17 +13,30 @@
               (lambda (&rest _)
                 (org-save-all-org-buffers)))
 
-  ;; Reset checkboxes when any TODO is marked DONE
-  (defun my/reset-checkboxes-on-done ()
-    "Reset all checkboxes in any task when marked DONE."
-    (when (string= (org-get-todo-state) "DONE")
+  ;; Reset checkboxes and subtasks when repeating task is marked DONE
+  (defun my/reset-repeating-task ()
+    "Reset checkboxes and subtasks in repeating tasks when marked DONE."
+    (when (and (string= (org-get-todo-state) "DONE")
+               (org-get-repeat))  ; Check if this is a repeating task
+      (message "Resetting repeating task and subtasks...")
       (save-excursion
         (org-back-to-heading t)
         (let ((end (save-excursion (org-end-of-subtree t))))
+          ;; Reset checkboxes
           (while (re-search-forward "^[ \t]*- \\[X\\]" end t)
-            (replace-match "- [ ]" nil nil))))))
+            (replace-match "- [ ]" nil nil)
+            (message "Reset checkbox"))
+          ;; Reset subtasks back to TODO
+          (goto-char (point))
+          (org-map-entries
+           (lambda ()
+             (when (and (string= (org-get-todo-state) "DONE")
+                        (> (org-current-level) 1))  ; Only subtasks
+               (org-todo "TODO")
+               (message "Reset subtask: %s" (org-get-heading t t))))
+           nil 'tree)))))
 
-  (add-hook 'org-after-todo-state-change-hook #'my/reset-checkboxes-on-done)
+  (add-hook 'org-after-todo-state-change-hook #'my/reset-repeating-task)
 
   ;; Dim blocked tasks
   (setq org-agenda-dim-blocked-tasks t)
@@ -85,7 +98,11 @@
                         (org-agenda-skip-function
                          '(lambda ()
                             (or (org-agenda-skip-subtree-if 'todo '("PROJECT" "HOLD" "WAITING" "DELEGATED"))
-                                (org-agenda-skip-subtree-if 'nottodo '("TODO")))))
+                                (org-agenda-skip-subtree-if 'nottodo '("TODO"))
+                                ;; Skip tasks with scheduled/deadline dates or repeating
+                                (org-agenda-skip-entry-if 'scheduled 'deadline 'timestamp)
+                                ;; Skip tasks with any tags
+                                (when (org-get-tags-at) (point-max)))))
                         (org-tags-match-list-sublevels t)))
             (tags-todo "/WAITING"
                        ((org-agenda-overriding-header "⏳ Waiting For")))
@@ -144,7 +161,16 @@
                    (org-agenda-sorting-strategy '(property-up))))
             (tags "REVIEW_PERIOD={.+}"
                   ((org-agenda-overriding-header "📅 All Review Items")
-                   (org-agenda-sorting-strategy '(property-up))))))))
+                   (org-agenda-sorting-strategy '(property-up))))))
+
+          ;; GTD Focus View (inspired by EWS)
+          ("g" "GTD Focus"
+           ((agenda "" ((org-agenda-overriding-header "📅 Next 3 Days:")
+                       (org-agenda-span 3)
+                       (org-agenda-start-on-weekday nil)))
+            (todo "NEXT" ((org-agenda-overriding-header "⚡ Next Actions:")))
+            (todo "WAITING" ((org-agenda-overriding-header "⏳ Waiting For:")))
+            (todo "PROJECT" ((org-agenda-overriding-header "📁 Active Projects:")))))))
 
   ;; PARA for projects, tasks, files
   (setq org-directory (list {{ .primary_cloud | quote }} {{ .workspace | quote }} {{ .workspace_extra | quote }}))
@@ -301,6 +327,15 @@
   (setq org-clock-into-drawer t)
   (setq org-log-into-drawer t)
   (setq org-clock-out-remove-zero-time-clocks t)
+
+  ;; Disable logbook for subtasks by advising org-log functions
+  (defun my/no-log-for-subtasks (orig-fun &rest args)
+    "Don't log state changes for subtasks (level 3+)."
+    (unless (and (org-at-heading-p)
+                 (>= (org-current-level) 3))  ; Skip logging for level 3+ headings
+      (apply orig-fun args)))
+
+  (advice-add 'org-add-log-note :around #'my/no-log-for-subtasks)
   (setq org-time-clocksum-format
         '(:hours "%d" :require-hours t :minutes ":%02d" :require-minutes t))
 

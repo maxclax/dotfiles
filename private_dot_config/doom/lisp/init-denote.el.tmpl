@@ -14,9 +14,11 @@
   ;; Dedicated denote directory
   (setq denote-directory (expand-file-name "!org/denote" {{ .primary_cloud | quote }}))
 
-  ;; General purpose keywords with lifecycle management
+  ;; PARA Method + Lifecycle keywords (inspired by EWS)
   (setq denote-known-keywords
-        '("reference" "project" "meeting" "finance" "work" "personal" "idea" "draft" "archive" "completed" "journal"))
+        '("projects" "areas" "resources" "archives"
+          "reference" "meeting" "finance" "work" "personal"
+          "idea" "draft" "completed" "journal"))
 
   ;; Sort keywords for consistency
   (setq denote-sort-keywords t)
@@ -339,6 +341,33 @@ KEYWORD should be a string. FILE should be a full file path."
         (find-file (completing-read "Open archived note: " archived-files nil t))
       (message "No archived notes found"))))
 
+  ;; PARA Method Functions (inspired by EWS)
+  (defvar my/para-keywords '("projects" "areas" "resources" "archives")
+    "PARA method keywords for denote.")
+
+  (defun my/denote-assign-para ()
+    "Assign PARA category to current denote note."
+    (interactive)
+    (when (denote-file-is-note-p (buffer-file-name))
+      (let ((para-choice (completing-read "PARA Category: " my/para-keywords)))
+        ;; Remove existing PARA keywords
+        (denote-keywords-remove my/para-keywords)
+        ;; Add new PARA keyword
+        (denote-keywords-add (list para-choice))
+        (message "Note categorized as: %s" para-choice))))
+
+  (defun my/denote-find-para (category)
+    "Find all notes in a PARA category."
+    (interactive (list (completing-read "PARA Category: " my/para-keywords)))
+    (let ((files (my/denote-directory-files))
+          (para-files '()))
+      (dolist (file files)
+        (when (denote-file-has-keyword-p file category)
+          (push file para-files)))
+      (if para-files
+          (find-file (completing-read (format "Open %s note: " category) para-files nil t))
+        (message "No notes found in %s category" category))))
+
 ;; Additional key bindings for lifecycle management
 (map! :leader
       (:prefix ("n d" . "denote")
@@ -346,7 +375,10 @@ KEYWORD should be a string. FILE should be a full file path."
        :desc "Archive note" "A" #'my/denote-archive-note
        :desc "Find active projects" "p" #'my/denote-find-active-projects
        :desc "Find completed projects" "P" #'my/denote-find-completed-projects
-       :desc "Find archived notes" "a" #'my/denote-find-archived))
+       :desc "Find archived notes" "a" #'my/denote-find-archived
+       ;; PARA method
+       :desc "Assign PARA category" "=" #'my/denote-assign-para
+       :desc "Find PARA notes" "/" #'my/denote-find-para))
 
 ;; Global template key bindings
 (map! :leader
