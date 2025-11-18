@@ -13,6 +13,18 @@
               (lambda (&rest _)
                 (org-save-all-org-buffers)))
 
+  ;; Reset checkboxes when any TODO is marked DONE
+  (defun my/reset-checkboxes-on-done ()
+    "Reset all checkboxes in any task when marked DONE."
+    (when (string= (org-get-todo-state) "DONE")
+      (save-excursion
+        (org-back-to-heading t)
+        (let ((end (save-excursion (org-end-of-subtree t))))
+          (while (re-search-forward "^[ \t]*- \\[X\\]" end t)
+            (replace-match "- [ ]" nil nil))))))
+
+  (add-hook 'org-after-todo-state-change-hook #'my/reset-checkboxes-on-done)
+
   ;; Dim blocked tasks
   (setq org-agenda-dim-blocked-tasks t)
 
@@ -20,6 +32,14 @@
   (setq org-agenda-skip-scheduled-if-done t
         org-agenda-skip-deadline-if-done t
         org-agenda-skip-timestamp-if-done t)
+
+  ;; Show TODO subtasks as individual agenda items
+  (setq org-agenda-todo-list-sublevels t)
+  (setq org-tags-match-list-sublevels t)
+
+  ;; Show subtasks of scheduled items in agenda
+  (setq org-agenda-show-inherited-tags nil)
+  (setq org-agenda-use-tag-inheritance nil)
 
   ;; Custom commands
   (setq org-agenda-custom-commands
@@ -36,7 +56,8 @@
           ;; GTD Full Review with Journal Integration
           ("d" "Dashboard (GTD)"
            ((agenda "" ((org-agenda-span 'day)
-                       (org-agenda-overriding-header "📅 Today")))
+                       (org-agenda-overriding-header "📅 Today")
+                       (org-agenda-todo-list-sublevels t)))
             (todo "TODO"
                   ((org-agenda-overriding-header "🏆 Daily Outcomes & Journal Tasks")
                    (org-agenda-files (directory-files-recursively
@@ -101,7 +122,29 @@
             (search ""
                     ((org-agenda-overriding-header "🔍 Search Journal Content")
                      (org-agenda-files (directory-files-recursively
-                                       (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\.org$"))))))))
+                                       (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\.org$"))))))
+
+          ;; Daily Review Breakdown
+          ("r" "Daily Review Tasks"
+           ((todo "TODO"
+                  ((org-agenda-overriding-header "📋 Daily Review Checklist")
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let ((parent-heading (save-excursion
+                                              (org-up-heading-safe)
+                                              (when (org-at-heading-p)
+                                                (org-get-heading t t)))))
+                         (unless (and parent-heading (string-match-p "Daily Review" parent-heading))
+                           (org-agenda-skip-entry-if 'regexp ".*")))))))))
+
+          ;; Review Dashboard
+          ("R" "Review Dashboard"
+           ((tags-todo "NEXT_REVIEW<=\"<today>\""
+                  ((org-agenda-overriding-header "📋 Items Due for Review")
+                   (org-agenda-sorting-strategy '(property-up))))
+            (tags "REVIEW_PERIOD={.+}"
+                  ((org-agenda-overriding-header "📅 All Review Items")
+                   (org-agenda-sorting-strategy '(property-up))))))))
 
   ;; PARA for projects, tasks, files
   (setq org-directory (list {{ .primary_cloud | quote }} {{ .workspace | quote }} {{ .workspace_extra | quote }}))
@@ -115,16 +158,12 @@
 
   (setq org-default-notes-file (concat {{ .primary_cloud | quote }} "/\!org/inbox.org"))
   (setq org-capture-templates
-        '(("t" "INBOX: Todo" entry (file+headline org-default-notes-file "Tasks")
+        '(;; Clean capture templates (no timestamps, links, or content)
+          ("t" "INBOX: Todo (clean)" entry (file+headline org-default-notes-file "Tasks")
+           "* TODO %?")
+          ;; Full context capture templates
+          ("c" "INBOX: Todo (full)" entry (file+headline org-default-notes-file "Tasks")
            "* TODO %?\n%U\n  %i\n  %a" :clock-resume t)
-          ("n" "INBOX: Note" entry (file+headline org-default-notes-file "Notes")
-           "* %? :NOTE:\n%U\n  %i\n  %a" :clock-resume t)
-          ("s" "INBOX: Shopping" entry (file+headline org-default-notes-file "Shopping")
-           "* TODO %? :shopping:\n%U\n  %i\n  %a")
-          ("S" "INBOX: Selling" entry (file+headline org-default-notes-file "Selling")
-           "* TODO %? :selling:\n%U\n  %i\n  %a")
-          ("p" "INBOX: Project" entry (file+headline org-default-notes-file "Projects")
-           "* PROJECT %?\n%U\n  %i\n  %a")
           ("P" "PROJECT: ROADMAP" entry (file (lambda ()
                                                (if (projectile-project-p)
                                                    (concat (projectile-project-root) "ROADMAP.org")
@@ -224,11 +263,25 @@
           (tags . " %i %(my/clean-denote-title-for-agenda)")
           (search . " %i %(my/clean-denote-title-for-agenda)")))
 
-  ;; Enhanced refiling system - explicitly include denote directory
+  ;; Enable multiline agenda items to show full task content
+  (setq org-agenda-tags-column -80)
+  (setq org-agenda-window-setup 'current-window)
+  (setq org-agenda-restore-windows-after-quit t)
+
+  ;; Allow longer lines and wrap text
+  (add-hook 'org-agenda-mode-hook
+            (lambda ()
+              (setq truncate-lines nil)
+              (setq word-wrap t)))
+
+  ;; Enhanced refiling system - include all available org directories
   (setq org-refile-targets
         `((nil :maxlevel . 5)
           (org-agenda-files :maxlevel . 5)
-          (,(directory-files-recursively (expand-file-name "!org/denote" {{ .primary_cloud | quote }}) "\\.org$") :maxlevel . 5)))
+          (,(directory-files-recursively (expand-file-name "!org/denote" {{ .primary_cloud | quote }}) "\\.org$") :maxlevel . 5)
+          ,@(when (file-exists-p {{ .workspace_extra | quote }})
+              `((,(directory-files-recursively {{ .workspace_extra | quote }} "\\.org$") :maxlevel . 5)))))
+
   (setq org-refile-use-outline-path t)
   (setq org-outline-path-complete-in-steps nil)
   (setq org-refile-allow-creating-parent-nodes 'confirm)
@@ -275,6 +328,67 @@
           (org-archive-all-done)
           (save-buffer)))))
 
+  ;; Weekly Outcomes Overview (for Friday Reflection reference)
+  (defun my/weekly-outcomes-overview ()
+    "Show weekly outcomes overview in side window for Friday reflection."
+    (interactive)
+    (let* ((today (current-time))
+           (start-of-week (time-subtract today (seconds-to-time (* (calendar-day-of-week (calendar-current-date)) 86400))))
+           (journal-files (directory-files-recursively
+                          (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\\.org$"))
+           (buffer-name "*Weekly Outcomes*"))
+
+      ;; Create or switch to outcomes buffer
+      (with-current-buffer (get-buffer-create buffer-name)
+        (erase-buffer)
+        (org-mode)
+
+        ;; Insert header
+        (insert "* Weekly Outcomes - " (format-time-string "%Y-%m-%d" start-of-week) "\n\n")
+
+        ;; Process each journal file from this week
+        (dolist (file journal-files)
+          (when (file-readable-p file)
+            (let ((file-date (file-attribute-modification-time (file-attributes file))))
+              (when (time-less-p start-of-week file-date)
+                (with-temp-buffer
+                  (insert-file-contents file)
+                  (goto-char (point-min))
+
+                  ;; Extract date from filename
+                  (let ((date-from-file (if (string-match "\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\)" file)
+                                           (match-string 1 file)
+                                         "Unknown")))
+
+                    ;; Find Daily Outcomes section
+                    (when (re-search-forward "Daily Outcomes" nil t)
+                      (with-current-buffer buffer-name
+                        (insert "** " date-from-file "\n"))
+
+                      ;; Extract outcomes
+                      (let ((outcomes-found nil))
+                        (while (re-search-forward "^\\*\\*\\* \\(TODO\\|DONE\\) \\(.+\\)$" nil t)
+                          (let ((status (match-string 1))
+                                (outcome (match-string 2)))
+                            (setq outcomes-found t)
+                            (with-current-buffer buffer-name
+                              (insert (format "- [%s] %s\n"
+                                            (if (string= status "DONE") "X" " ")
+                                            outcome)))))
+
+                        (unless outcomes-found
+                          (with-current-buffer buffer-name
+                            (insert "- No outcomes this day\n")))
+
+                        (with-current-buffer buffer-name
+                          (insert "\n")))))))))
+
+        ;; Open in side window
+        (display-buffer-in-side-window
+         (current-buffer)
+         '((side . right) (window-width . 80)))
+        (message "Weekly outcomes overview opened. Use in parallel with your journal Friday reflection.")))))
+
   ;; Org agenda focus functions
   (defun org-focus-primary()
     "Set focus on primary cloud files."
@@ -302,18 +416,80 @@
                   (directory-files-recursively {{ .workspace | quote }} "\\.org$")
                   (directory-files-recursively {{ .workspace_extra | quote }} "\\.org$"))))
 
-  ;; Org-attach configuration
+  ;; Dynamic org-attach configuration based on file location
+  (defun my/get-attach-dir ()
+    "Get attachment directory based on current file location."
+    (if (and (buffer-file-name)
+             (string-match-p {{ .workspace_extra | quote }} (buffer-file-name)))
+        ;; File is in extra workspace - use extra attach dir
+        (expand-file-name "!org/.attach/" {{ .workspace_extra | quote }})
+      ;; Default to primary attach dir
+      (expand-file-name "!org/.attach/" {{ .primary_cloud | quote }})))
+
+  (defun my/set-attach-dir ()
+    "Set org-attach-id-dir based on current buffer location."
+    (setq org-attach-id-dir (my/get-attach-dir))
+    ;; Create attach directory if it doesn't exist
+    (unless (file-exists-p org-attach-id-dir)
+      (make-directory org-attach-id-dir t)))
+
+  ;; Set initial attach directory
   (setq org-attach-id-dir (expand-file-name "!org/.attach/" {{ .primary_cloud | quote }}))
   (setq org-attach-dir-relative t)
   (setq org-attach-use-inheritance t)
   (setq org-attach-auto-tag "attach")
 
-  ;; Create attach directory if it doesn't exist
+  ;; Update attach directory when switching buffers
+  (add-hook 'org-mode-hook #'my/set-attach-dir)
+  (add-hook 'find-file-hook #'my/set-attach-dir)
+
+  ;; Create primary attach directory if it doesn't exist
   (unless (file-exists-p org-attach-id-dir)
     (make-directory org-attach-id-dir t))
 
   (defvar org-default-time "8:00"
-    "The default time for deadlines."))
+    "The default time for deadlines.")
+
+  ;; Add weekly outcomes overview to global keybinding
+  (global-set-key (kbd "C-c f") #'my/weekly-outcomes-overview)
+
+  ;; Simple automated review system
+  (defun my/set-review-period (period)
+    "Quickly set review period for current heading."
+    (interactive
+     (list (completing-read "Review period: "
+                           '("daily" "weekly" "monthly" "quarterly"))))
+    (org-set-property "REVIEW_PERIOD" period)
+    (let ((days (pcase period
+                  ("daily" 1)
+                  ("weekly" 7)
+                  ("monthly" 30)
+                  ("quarterly" 90))))
+      (org-set-property "NEXT_REVIEW"
+                       (format-time-string "%Y-%m-%d"
+                                         (time-add (current-time) (days-to-time days))))
+      (message "Review set to %s" period)))
+
+  (defun my/mark-reviewed ()
+    "Mark current item as reviewed and calculate next review date."
+    (interactive)
+    (let ((period (org-entry-get nil "REVIEW_PERIOD")))
+      (if period
+          (let ((days (pcase period
+                        ("daily" 1)
+                        ("weekly" 7)
+                        ("monthly" 30)
+                        ("quarterly" 90))))
+            (org-set-property "LAST_REVIEW" (format-time-string "%Y-%m-%d"))
+            (org-set-property "NEXT_REVIEW"
+                             (format-time-string "%Y-%m-%d"
+                                               (time-add (current-time) (days-to-time days))))
+            (message "Marked as reviewed. Next review: %s days" days))
+        (message "No review period set. Use C-c r p first."))))
+
+  ;; Simple keybindings
+  (global-set-key (kbd "C-c r p") #'my/set-review-period)
+  (global-set-key (kbd "C-c r m") #'my/mark-reviewed))
 
 (provide 'init-org)
 ;;; init-org.el ends here

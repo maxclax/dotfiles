@@ -69,14 +69,54 @@
   (unless (file-exists-p denote-directory)
     (make-directory denote-directory t))
 
-  ;; Override denote directory function to only search in denote directory
+  ;; Override denote directory function to search in multiple directories
   (defun my/denote-directory-files (&optional regexp)
-    "Return list of denote files from denote directory, optionally filtered by REGEXP."
-    (when (file-exists-p denote-directory)
-      (denote-directory-files regexp)))
+    "Return list of denote files from all available denote directories, optionally filtered by REGEXP."
+    (let ((files '())
+          (dirs (list denote-directory)))
+      ;; Add extra workspace denote directory if it exists (SSD mounted)
+      (let ((extra-denote-dir (expand-file-name "!org/denote" {{ .workspace_extra | quote }})))
+        (when (file-exists-p extra-denote-dir)
+          (push extra-denote-dir dirs)))
+      ;; Collect files from all available directories
+      (dolist (dir dirs)
+        (when (file-exists-p dir)
+          (setq files (append files (directory-files-recursively dir "\\.org$")))))
+      ;; Filter by regexp if provided
+      (if regexp
+          (seq-filter (lambda (file) (string-match-p regexp file)) files)
+        files)))
 
   ;; Set denote to use our custom function
   (setq denote-directory-files-function #'my/denote-directory-files)
+
+  ;; Function to create note in extra workspace when needed
+  (defun my/denote-create-in-extra (title keywords)
+    "Create denote note in extra workspace (occasionally)."
+    (interactive
+     (list (read-string "Title: ")
+           (denote-keywords-prompt)))
+    (let ((extra-denote-dir (expand-file-name "!org/denote" {{ .workspace_extra | quote }})))
+      (if (file-exists-p extra-denote-dir)
+          (let ((denote-directory extra-denote-dir))
+            (denote title keywords)
+            (message "Created note in extra workspace"))
+        (message "Extra workspace not mounted. Use regular denote command."))))
+
+  ;; Function to create journal in extra workspace
+  (defun my/denote-journal-extra ()
+    "Create or open journal entry in extra workspace."
+    (interactive)
+    (let ((extra-denote-dir (expand-file-name "!org/denote" {{ .workspace_extra | quote }})))
+      (if (file-exists-p extra-denote-dir)
+          (let ((denote-directory extra-denote-dir)
+                (denote-journal-directory (expand-file-name "journal" extra-denote-dir)))
+            ;; Create journal directory if it doesn't exist
+            (unless (file-exists-p denote-journal-directory)
+              (make-directory denote-journal-directory t))
+            (denote-journal-new-or-existing-entry)
+            (message "Created/opened journal in extra workspace"))
+        (message "Extra workspace not mounted. Use regular journal command."))))
 
   ;; Custom function to check if a file has a specific keyword
   (defun denote-file-has-keyword-p (file keyword)
@@ -94,9 +134,43 @@ KEYWORD should be a string. FILE should be a full file path."
 
 (use-package! consult-notes
   :config
-  ;; Integration with consult for fast note access
-  (setq consult-notes-file-dir-sources
-        `(("Denote Notes" ?d ,denote-directory)))
+  ;; Dynamic function to get all available denote directories
+  (defun my/get-consult-notes-sources ()
+    "Get consult-notes sources for all available denote directories."
+    (let ((sources `(("Denote Primary" ?d ,denote-directory))))
+      (let ((extra-denote-dir (expand-file-name "!org/denote" {{ .workspace_extra | quote }})))
+        (when (file-exists-p extra-denote-dir)
+          (push `("Denote Extra" ?x ,extra-denote-dir) sources)))
+      (reverse sources)))
+
+  ;; Override consult-notes to always use fresh sources
+  (advice-add 'consult-notes :before
+              (lambda (&rest _)
+                (setq consult-notes-file-dir-sources (my/get-consult-notes-sources))))
+
+  ;; Set initial sources
+  (setq consult-notes-file-dir-sources (my/get-consult-notes-sources))
+
+  ;; Manual refresh function
+  (defun my/refresh-consult-notes-sources ()
+    "Refresh consult-notes sources to include mounted directories."
+    (interactive)
+    (setq consult-notes-file-dir-sources (my/get-consult-notes-sources))
+    (message "Refreshed consult-notes sources: %d sources" (length consult-notes-file-dir-sources)))
+
+  ;; Debug function to check what's happening
+  (defun my/debug-denote-dirs ()
+    "Debug denote directory configuration."
+    (interactive)
+    (let ((extra-denote-dir (expand-file-name "!org/denote" {{ .workspace_extra | quote }})))
+      (message "Primary denote dir: %s (exists: %s)"
+               denote-directory (file-exists-p denote-directory))
+      (message "Extra denote dir: %s (exists: %s)"
+               extra-denote-dir (file-exists-p extra-denote-dir))
+      (message "Consult-notes sources: %s"
+               (mapcar #'car consult-notes-file-dir-sources))
+      (message "Denote files found: %d"
+               (length (my/denote-directory-files)))))
 
   ;; Enable live preview
   (consult-notes-org-headings-mode 1))
@@ -142,29 +216,6 @@ KEYWORD should be a string. FILE should be a full file path."
         (insert-file-contents template-file)
         (message "Inserted template: %s" template-name))))
 
-  ;; Template insertion at point
-  (defun my/insert-template-at-point (template-name)
-    "Insert template at current point without moving cursor."
-    (interactive
-     (list (completing-read "Template: "
-                           (mapcar #'file-name-sans-extension
-                                  (directory-files my/templates-directory nil "\\.org$")))))
-    (let ((template-file (expand-file-name (concat template-name ".org") my/templates-directory)))
-      (when (file-exists-p template-file)
-        (save-excursion
-          (insert-file-contents template-file))
-        (message "Inserted template: %s" template-name))))
-
-  ;; List available templates
-  (defun my/list-templates ()
-    "List all available templates."
-    (interactive)
-    (let ((templates (mapcar #'file-name-sans-extension
-                            (directory-files my/templates-directory nil "\\.org$"))))
-      (if templates
-          (message "Available templates: %s" (string-join templates ", "))
-        (message "No templates found in %s" my/templates-directory))))
-
   ;; Open templates directory
   (defun my/open-templates-directory ()
     "Open the templates directory in dired."
@@ -206,6 +257,7 @@ KEYWORD should be a string. FILE should be a full file path."
        :desc "Create typed note" "t" #'my/denote-create-typed-note
        :desc "Find note" "f" #'denote-open-or-create
        :desc "Create note" "n" #'denote
+       :desc "Create note in extra" "N" #'my/denote-create-in-extra
        :desc "Link to note" "l" #'denote-link
        :desc "Backlinks" "b" #'denote-find-backlink
        :desc "Rename file" "r" #'denote-rename-file
@@ -214,6 +266,8 @@ KEYWORD should be a string. FILE should be a full file path."
        :desc "Link to heading" "h" #'denote-org-extras-link-to-heading
        :desc "Search notes" "s" #'consult-notes
        :desc "Search in notes" "S" #'consult-notes-search-in-all-notes
+       :desc "Refresh search sources" "R" #'my/refresh-consult-notes-sources
+       :desc "Debug directories" "D" #'my/debug-denote-dirs
        :desc "Explore network" "e" #'denote-explore-network))
 
 ;; Lifecycle management functions
@@ -298,8 +352,6 @@ KEYWORD should be a string. FILE should be a full file path."
 (map! :leader
       (:prefix ("i t" . "templates")
        :desc "Insert template" "i" #'my/insert-template
-       :desc "Insert at point" "p" #'my/insert-template-at-point
-       :desc "List templates" "l" #'my/list-templates
        :desc "Open templates dir" "d" #'my/open-templates-directory))
 
 ;; Journal key bindings - using only denote-journal functions
@@ -308,6 +360,7 @@ KEYWORD should be a string. FILE should be a full file path."
        ;; Primary journal commands (single daily entry)
        :desc "Today's journal" "j" #'denote-journal-new-or-existing-entry
        :desc "New journal entry" "n" #'denote-journal-new-entry
+       :desc "Journal in extra" "J" #'my/denote-journal-extra
        :desc "Link to journal" "l" #'denote-journal-link-or-create-entry
        ;; Calendar integration
        :desc "Open calendar" "c" #'calendar
