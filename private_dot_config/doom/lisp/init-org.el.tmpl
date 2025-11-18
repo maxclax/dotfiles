@@ -38,7 +38,7 @@
            ((agenda "" ((org-agenda-span 'day)
                        (org-agenda-overriding-header "📅 Today")))
             (todo "TODO"
-                  ((org-agenda-overriding-header "📝 Journal Tasks & Outcomes")
+                  ((org-agenda-overriding-header "🏆 Daily Outcomes & Journal Tasks")
                    (org-agenda-files (directory-files-recursively
                                      (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\\.org$"))
                    (org-agenda-sorting-strategy '(timestamp-down))
@@ -196,15 +196,21 @@
     "Show clean denote titles for all agenda items with bold formatting."
     (when (buffer-file-name)
       (let* ((file (file-name-nondirectory (buffer-file-name)))
-             (is-denote (string-match "^[0-9T]+--\\([^_]+\\)__" file))
-             (is-journal (string-match-p "journal" (buffer-file-name))))
+             (is-journal (string-match-p "journal" (buffer-file-name)))
+             (is-outcome (save-excursion
+                          (org-back-to-heading t)
+                          (let ((outline-path (org-get-outline-path t)))
+                            (cl-some (lambda (heading) (string-match-p "Daily Outcomes" heading)) outline-path)))))
         (cond
-         ;; Denote journal files
-         ((and is-denote is-journal)
-          (let ((clean-title (replace-regexp-in-string "-" " " (match-string 1 file))))
-            (format "📝 *%s*: " (capitalize clean-title))))
+         ;; Denote journal files - extract date from filename
+         (is-journal
+          (let* ((title-part (if (string-match "^[0-9T]+--\\([^_]+\\)__" file)
+                                 (match-string 1 file)
+                                 (file-name-sans-extension file)))
+                 (icon (if is-outcome "🏆" "📝")))
+            (format "%s *%s*: " icon title-part)))
          ;; Other denote files
-         (is-denote
+         ((string-match "^[0-9T]+--\\([^_]+\\)__" file)
           (let ((clean-title (replace-regexp-in-string "-" " " (match-string 1 file))))
             (format "📄 *%s*: " (capitalize clean-title))))
          ;; Non-denote files - show just filename without extension

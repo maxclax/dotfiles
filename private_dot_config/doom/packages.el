@@ -41,6 +41,13 @@
 (package! denote)
 (package! denote-journal)
 (package! denote-explore)
+(package! denote-silo)
+(package! denote-markdown)
+(package! denote-org)
+(package! denote-sequence)
+(package! denote-menu)
+(package! consult-denote)
+(package! citar-denote)
 (package! consult-notes)
 
 ;; misc

@@ -34,7 +34,7 @@
       ("finance" "* Financial Details\n** Summary\n** Key Numbers\n** Calculations\n")
       (_ "* Notes\n")))
 
-  ;; Custom function to create typed notes
+  ;; Custom function to create typed notes with template choice
   (defun my/denote-create-typed-note (type title)
     "Create a denote note with TYPE and TITLE."
     (interactive
@@ -44,9 +44,26 @@
     (let ((keywords (list type)))
       (denote title keywords)
       (when (derived-mode-p 'org-mode)
-        (goto-char (point-max))
-        (insert "\n")
-        (insert (my/denote-template type)))))
+        (let* ((template-choice (completing-read "Template: "
+                                               '("none" "built-in" "file") nil t "none"))
+               (template-file (expand-file-name (concat type ".org") my/templates-directory)))
+          (cond
+           ((string= template-choice "file")
+            (if (file-exists-p template-file)
+                (progn
+                  (goto-char (point-max))
+                  (insert "\n")
+                  (insert-file-contents template-file))
+              (message "No file template found for %s, using built-in" type)
+              (goto-char (point-max))
+              (insert "\n")
+              (insert (my/denote-template type))))
+           ((string= template-choice "built-in")
+            (goto-char (point-max))
+            (insert "\n")
+            (insert (my/denote-template type)))
+           ;; "none" - do nothing, leave empty
+           )))))
 
   ;; Create denote directory if it doesn't exist
   (unless (file-exists-p denote-directory)
