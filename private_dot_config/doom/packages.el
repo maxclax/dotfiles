@@ -47,8 +47,10 @@
 (package! denote-sequence)
 (package! denote-menu)
 (package! consult-denote)
+(package! citar)
 (package! citar-denote)
 (package! consult-notes)
+
 
 ;; misc
 (package! makefile-executor)

@@ -23,6 +23,12 @@
   ;; Sort keywords for consistency
   (setq denote-sort-keywords t)
 
+  ;; Rename buffer mode and link face
+  (setq denote-rename-buffer-mode t)
+
+  ;; Dired integration
+  (add-hook 'dired-mode-hook #'denote-dired-mode)
+
   ;; File type defaults
   (setq denote-file-type 'org)
 
@@ -253,6 +259,30 @@ KEYWORD should be a string. FILE should be a full file path."
   (add-hook 'calendar-today-visible-hook #'denote-journal-calendar-mark-dates)
   (add-hook 'calendar-today-invisible-hook #'denote-journal-calendar-mark-dates))
 
+;; Additional denote packages
+(use-package! denote-org
+  :after denote)
+
+(use-package! denote-sequence
+  :after denote)
+
+(use-package! denote-explore
+  :after denote)
+
+;; Consult-Notes for easy access to notes
+(use-package! consult-notes
+  :after (denote consult)
+  :config
+  (setq consult-notes-denote-display-keywords-indicator "_")
+  (consult-notes-denote-mode))
+
+;; Citar-Denote to manage literature notes
+(use-package! citar-denote
+  :after (denote citar)
+  :config
+  (setq citar-open-always-create-notes t)
+  (citar-denote-mode))
+
 ;; Key bindings for denote workflow
 (map! :leader
       (:prefix ("n d" . "denote")
@@ -268,9 +298,42 @@ KEYWORD should be a string. FILE should be a full file path."
        :desc "Link to heading" "h" #'denote-org-extras-link-to-heading
        :desc "Search notes" "s" #'consult-notes
        :desc "Search in notes" "S" #'consult-notes-search-in-all-notes
-       :desc "Refresh search sources" "R" #'my/refresh-consult-notes-sources
        :desc "Debug directories" "D" #'my/debug-denote-dirs
-       :desc "Explore network" "e" #'denote-explore-network))
+       :desc "Explore network" "e" #'denote-explore-network
+       :desc "Refresh search sources" "g" #'my/refresh-consult-notes-sources
+       ;; Additional denote functions
+       :desc "Date" "T" #'denote-date
+       :desc "Link or create" "i" #'denote-link-or-create
+       :desc "Find link" "L" #'denote-find-link
+       :desc "Rename keywords" "m" #'denote-rename-file-keywords
+       :desc "Rename using front matter" "M" #'denote-rename-file-using-front-matter
+       ;; Explore functions
+       (:prefix ("x" . "explore")
+        :desc "Count notes" "c" #'denote-explore-count-notes
+        :desc "Count keywords" "C" #'denote-explore-count-keywords
+        :desc "Barchart keywords" "b" #'denote-explore-barchart-keywords
+        :desc "Barchart filetypes" "e" #'denote-explore-barchart-filetypes
+        :desc "Random note" "r" #'denote-explore-random-note
+        :desc "Random link" "l" #'denote-explore-random-link
+        :desc "Random keyword" "k" #'denote-explore-random-keyword
+        :desc "Random regex" "x" #'denote-explore-random-regex
+        :desc "Duplicate notes" "d" #'denote-explore-identify-duplicate-notes
+        :desc "Zero keywords" "z" #'denote-explore-zero-keywords
+        :desc "Single keywords" "s" #'denote-explore-single-keywords
+        :desc "Sort keywords" "o" #'denote-explore-sort-keywords
+        :desc "Rename keyword" "w" #'denote-explore-rename-keyword
+        :desc "Network" "n" #'denote-explore-network
+        :desc "Network regenerate" "v" #'denote-explore-network-regenerate
+        :desc "Barchart degree" "D" #'denote-explore-barchart-degree)
+       ;; Citar-denote functions
+       (:prefix ("c" . "citar")
+        :desc "Create citation note" "c" #'citar-create-note
+        :desc "Open note" "n" #'citar-denote-open-note
+        :desc "No cite" "x" #'citar-denote-nocite
+        :desc "Add citekey" "k" #'citar-denote-add-citekey
+        :desc "Remove citekey" "K" #'citar-denote-remove-citekey
+        :desc "DWIM" "d" #'citar-denote-dwim
+        :desc "Open reference" "e" #'citar-denote-open-reference-entry)))
 
 ;; Lifecycle management functions
 (defun my/denote-complete-project ()
