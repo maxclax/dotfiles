@@ -149,20 +149,6 @@
         (run-with-timer 2 nil #'+my/smart-commit))
     (message "❌ No staged changes found")))
 
-(use-package! mcp
-  :after gptel
-  :custom
-  (mcp-hub-servers
-   `(("git" . (:command "uvx" :args ("mcp-server-git")))
-     ("fetch" . (:command "uvx" :args ("mcp-server-fetch")))
-     ("filesystem" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-filesystem", (getenv "HOME"), {{ .workspace | quote }}, {{ .workspace_extra | quote }})))
-     ("nixos" . (:command "uvx" :args ("mcp-nixos")))
-     ("sequential-thinking" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-sequential-thinking")))
-     ("playwright" . (:command "npx" :args ("-y" "@playwright/mcp@latest")))
-     ("context7" . (:command "npx" :args ("-y" "@upstash/context7-mcp") :env (:DEFAULT_MINIMUM_TOKENS "6000")))
-     ))
-  :config (require 'mcp-hub))
-
 (use-package! copilot
   :hook (prog-mode . copilot-mode)
   :bind (:map copilot-completion-map

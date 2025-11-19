@@ -19,7 +19,6 @@
 
 
 ;; AI → lisp/init-ai.el
-(package! mcp)
 (package! copilot)
 (package! gptel :recipe (:nonrecursive t))
 (package! aidermacs)

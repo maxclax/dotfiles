@@ -222,8 +222,6 @@
         :desc "GPTel rewrite" "r" #'gptel-rewrite
         :desc "GPTel send" "s" #'gptel-send
         :desc "GPTel menu" "m" #'gptel-menu
-        :desc "MCP hub" "M" #'mcp-hub
-        :desc "MCP start server" "S" #'mcp-hub-start-server
         :desc "GPTel tools" "t" #'gptel-tools
         :desc "GPTel add file" "f" #'gptel-add-file
         :desc "Use Ollama Qwen" "q" #'my/gptel-use-ollama-qwen
