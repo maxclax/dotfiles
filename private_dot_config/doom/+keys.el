@@ -51,6 +51,16 @@
       :desc "Dirvish" "j" #'dirvish-dwim)
 
 
+;; 
+(map! :leader
+      :prefix "g"
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      ;; GIT/MAGIT KEYBINDINGS - extends existing "g" git prefix
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      (:prefix ("c" . "Create")
+       :desc "Generate AI Commit Message" "A" #'+my/smart-commit
+       :desc "Commit with AI Message" "a" #'+my/commit-with-ai))
+
 ;; Open
 (map! :leader
       :prefix "o"
@@ -80,6 +90,87 @@
        :desc "Update magit TODOs" "u" #'magit-todos-update
        :desc "Insert TODO comment" "i" #'hl-todo-insert))
 
+;; Main denote keybindings
+(map! :leader
+      :prefix "n"
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      ;; DENOTE KEYBINDINGS (from init-denote.el)
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      (:prefix ("d" . "denote")
+       :desc "Create typed note" "t" #'my/denote-create-typed-note
+       :desc "Find note" "f" #'denote-open-or-create
+       :desc "Create note" "n" #'denote
+       :desc "Create note in extra" "N" #'my/denote-create-in-extra
+       :desc "Link to note" "l" #'denote-link
+       :desc "Backlinks" "b" #'denote-find-backlink
+       :desc "Rename file" "r" #'denote-rename-file
+       :desc "Keywords" "k" #'denote-keywords-add
+       :desc "Remove keywords" "K" #'denote-keywords-remove
+       :desc "Link to heading" "h" #'denote-org-extras-link-to-heading
+       :desc "Search notes" "s" #'consult-notes
+       :desc "Search in notes" "S" #'consult-notes-search-in-all-notes
+       :desc "Debug directories" "D" #'my/debug-denote-dirs
+       :desc "Explore network" "e" #'denote-explore-network
+       :desc "Refresh search sources" "g" #'my/refresh-consult-notes-sources
+        
+       ;; Lifecycle management
+       :desc "Complete project" "C" #'my/denote-complete-project
+       :desc "Archive note" "A" #'my/denote-archive-note
+       :desc "Find active projects" "p" #'my/denote-find-active-projects
+       :desc "Find completed projects" "P" #'my/denote-find-completed-projects
+       :desc "Find archived notes" "a" #'my/denote-find-archived
+
+       ;; Additional denote functions
+       :desc "Date" "T" #'denote-date
+       :desc "Link or create" "i" #'denote-link-or-create
+       :desc "Find link" "L" #'denote-find-link
+       :desc "Rename keywords" "m" #'denote-rename-file-keywords
+       :desc "Rename using front matter" "M" #'denote-rename-file-using-front-matter
+
+       ;; PARA method
+       :desc "Assign PARA category" "=" #'my/denote-assign-para
+       :desc "Find PARA notes" "/" #'my/denote-find-para
+
+       ;; Explore functions
+       (:prefix ("x" . "explore")
+        :desc "Count notes" "c" #'denote-explore-count-notes
+        :desc "Count keywords" "C" #'denote-explore-count-keywords
+        :desc "Barchart keywords" "b" #'denote-explore-barchart-keywords
+        :desc "Barchart filetypes" "e" #'denote-explore-barchart-filetypes
+        :desc "Random note" "r" #'denote-explore-random-note
+        :desc "Random link" "l" #'denote-explore-random-link
+        :desc "Random keyword" "k" #'denote-explore-random-keyword
+        :desc "Random regex" "x" #'denote-explore-random-regex
+        :desc "Duplicate notes" "d" #'denote-explore-identify-duplicate-notes
+        :desc "Zero keywords" "z" #'denote-explore-zero-keywords
+        :desc "Single keywords" "s" #'denote-explore-single-keywords
+        :desc "Sort keywords" "o" #'denote-explore-sort-keywords
+        :desc "Rename keyword" "w" #'denote-explore-rename-keyword
+        :desc "Network" "n" #'denote-explore-network
+        :desc "Network regenerate" "v" #'denote-explore-network-regenerate
+        :desc "Barchart degree" "D" #'denote-explore-barchart-degree)
+
+       ;; Citar-denote functions
+       (:prefix ("c" . "citar")
+        :desc "Create citation note" "c" #'citar-create-note
+        :desc "Open note" "n" #'citar-denote-open-note
+        :desc "No cite" "x" #'citar-denote-nocite
+        :desc "Add citekey" "k" #'citar-denote-add-citekey
+        :desc "Remove citekey" "K" #'citar-denote-remove-citekey
+        :desc "DWIM" "d" #'citar-denote-dwim
+        :desc "Open reference" "e" #'citar-denote-open-reference-entry))
+
+      ;; Journal keybindings
+      (:prefix ("j" . "journal")
+       :desc "Today's journal" "j" #'denote-journal-new-or-existing-entry
+       :desc "New journal entry" "n" #'denote-journal-new-entry
+       :desc "Journal in extra" "J" #'my/denote-journal-extra
+       :desc "Link to journal" "l" #'denote-journal-link-or-create-entry
+       :desc "Open calendar" "c" #'calendar
+       :desc "Journal from calendar" "C" #'denote-journal-calendar-new-or-existing
+       :desc "Find entry from calendar" "f" #'denote-journal-calendar-find-file
+       :desc "Insert template" "t" #'my/insert-template))
+
 ;; Registers
 (map! :leader
       (:prefix ("r" . "registers")
@@ -95,53 +186,62 @@
        :desc "Increment register" "+"               #'increment-register
        :desc "Point to register" "SPC"              #'point-to-register))
 
-;; Toogles
+;; Toggles
 (map! :leader
       :prefix "t"
-      :desc "Pomm-third timer" "T" #'pomm-third-time
-      :desc "Pomm-third" "t"       #'pomm
+       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+       ;; TIMING KEYBINDINGS (from init-timing.el)
+       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      (:prefix ("t" . "timing")
+       :desc "Start timer" "s" #'my/pomm-start
+       :desc "Stop timer" "S" #'my/pomm-stop
+       :desc "Pause/Resume timer" "p" #'my/pomm-pause
+       :desc "Quick start timer" "q" #'my/pomm-quick-start
+       :desc "Pomm interface" "i" #'pomm
+       :desc "Reset timer" "r" #'pomm-reset)
       "k"                          #'keycast-header-line-mode
       "K"                          #'keycast-log-mode)
 
+;; Tools
 (map! :leader
       :prefix "l"
       "t" #' hl-todo-insert ;; Add a TODO comment
       ("x" #'align-regexp
+
+        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        ;; AI KEYBINDINGS (from init-ai.el)
+        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        (:prefix ("a" . "AI")
+        :desc "GPTel" "g" #'gptel
+        :desc "GPTel add" "a" #'gptel-add
+        :desc "GPTel rewrite" "r" #'gptel-rewrite
+        :desc "GPTel send" "s" #'gptel-send
+        :desc "GPTel menu" "m" #'gptel-menu
+        :desc "MCP hub" "M" #'mcp-hub
+        :desc "MCP start server" "S" #'mcp-hub-start-server
+        :desc "GPTel tools" "t" #'gptel-tools
+        :desc "GPTel add file" "f" #'gptel-add-file
+        :desc "Use Ollama Qwen" "q" #'my/gptel-use-ollama-qwen
+        :desc "Use OpenAI" "o" #'my/gptel-use-openai
+        :desc "Use Anthropic" "A" #'my/gptel-use-anthropic)
+
        (:prefix ("p" . "Process Management")
                 "p" #'prodigy
                 "l" #'list-processes)
-       (:prefix ("g" . "GPTel & Git AI")
-                "g" #'gptel
-                "a" #'gptel-add
-                "r" #'gptel-rewrite
-                "s" #'gptel-send
-                "m" #'gptel-menu
-                "M" #'mcp-hub
-                "S" #'mcp-hub-start-server
-                "t" #'gptel-tools
-                "f" #'gptel-add-file
-                "q" #'my/gptel-use-ollama-qwen
-                "o" #'my/gptel-use-openai
-                "A" #'my/gptel-use-anthropic)
+
        (:prefix ("s" . "Shell Commands")
         :desc "podman machine start" "p" (lambda () (interactive) (compile "cd ~/ && podman machine start"))
         :desc "podman machine stop" "P" (lambda () (interactive) (compile "cd ~/ && podman machine stop"))
         :desc "make backup_create" "b" (lambda () (interactive) (compile "cd ~/ && make backup_create"))
         :desc "make update_macos" "u" (lambda () (interactive) (compile "cd ~/ && make update_apps && make update_macos"))
         :desc "chezmoi apply" "c" (lambda () (interactive) (compile "cd ~/ && chezmoi apply --force")))
+
        (:prefix ("r" . "RSS Reader")
         :desc "Newsticker" "n" #'newsticker-show-news
         :desc "Newsticker get all" "u" #'newsticker-get-all-news
         :desc "Elfeed" "e" #'elfeed
         :desc "Elfeed get all" "U" #'elfeed-update)))
 
-;; Magit AI helpers
-(map! :leader
-      :prefix "g"
-      (:prefix ("c" . "Create")
-       ;; AI Git helper
-       :desc "Generate AI Commit Message" "A" #'+my/smart-commit
-       :desc "Commit with AI Message" "a" #'+my/commit-with-ai))
 
 ;; Jumps
 (map! :leader
@@ -150,6 +250,30 @@
       "l" #'avy-goto-line
       "b" #'avy-pop-mark
       "t" #'yas-describe-tables)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ORG-MODE LOCAL KEYBINDINGS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Timing - Org-mode local keybindings
+(map! :map org-mode-map
+      :localleader
+      :desc "Start Pomm" "p" #'my/pomm-start
+      :desc "Stop Pomm" "P" #'my/pomm-stop)
+
+;; Enhanced org-clock keybindings
+(map! :map org-mode-map
+      :localleader
+      (:prefix ("c" . "clock")
+       :desc "Clock in" "i" #'org-clock-in
+       :desc "Clock out" "o" #'org-clock-out
+       :desc "Clock in last" "l" #'my/clock-in-last
+       :desc "Clock goto" "g" #'org-clock-goto
+       :desc "Clock cancel" "c" #'org-clock-cancel
+       :desc "Daily report" "d" #'my/daily-time-report
+       :desc "Weekly report" "w" #'my/weekly-time-report
+       :desc "Clock report" "r" #'org-clock-report))
 
 ;; Org agenda focus keys
 (map! :after org-agenda
@@ -160,3 +284,11 @@
        :desc "Focus on workspace" "w" #'org-focus-workspace
        :desc "Focus on extra workspace" "e" #'org-focus-workspace-extra
        :desc "Focus on all org files" "a" #'org-focus-all))
+
+;; Org review keybindings (global)
+(global-set-key (kbd "C-c r p") #'my/set-review-period)
+(global-set-key (kbd "C-c r m") #'my/mark-reviewed)
+(global-set-key (kbd "C-c f") #'my/weekly-outcomes-overview)
+
+
+

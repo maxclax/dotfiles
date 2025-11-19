@@ -9,6 +9,8 @@
 
 ;;; Code:
 
+;; Packages: denote ecosystem + citar-denote integration
+
 (use-package! denote
   :config
   ;; Dedicated denote directory
@@ -283,58 +285,6 @@ KEYWORD should be a string. FILE should be a full file path."
   (setq citar-open-always-create-notes t)
   (citar-denote-mode))
 
-;; Key bindings for denote workflow
-(map! :leader
-      (:prefix ("n d" . "denote")
-       :desc "Create typed note" "t" #'my/denote-create-typed-note
-       :desc "Find note" "f" #'denote-open-or-create
-       :desc "Create note" "n" #'denote
-       :desc "Create note in extra" "N" #'my/denote-create-in-extra
-       :desc "Link to note" "l" #'denote-link
-       :desc "Backlinks" "b" #'denote-find-backlink
-       :desc "Rename file" "r" #'denote-rename-file
-       :desc "Keywords" "k" #'denote-keywords-add
-       :desc "Remove keywords" "K" #'denote-keywords-remove
-       :desc "Link to heading" "h" #'denote-org-extras-link-to-heading
-       :desc "Search notes" "s" #'consult-notes
-       :desc "Search in notes" "S" #'consult-notes-search-in-all-notes
-       :desc "Debug directories" "D" #'my/debug-denote-dirs
-       :desc "Explore network" "e" #'denote-explore-network
-       :desc "Refresh search sources" "g" #'my/refresh-consult-notes-sources
-       ;; Additional denote functions
-       :desc "Date" "T" #'denote-date
-       :desc "Link or create" "i" #'denote-link-or-create
-       :desc "Find link" "L" #'denote-find-link
-       :desc "Rename keywords" "m" #'denote-rename-file-keywords
-       :desc "Rename using front matter" "M" #'denote-rename-file-using-front-matter
-       ;; Explore functions
-       (:prefix ("x" . "explore")
-        :desc "Count notes" "c" #'denote-explore-count-notes
-        :desc "Count keywords" "C" #'denote-explore-count-keywords
-        :desc "Barchart keywords" "b" #'denote-explore-barchart-keywords
-        :desc "Barchart filetypes" "e" #'denote-explore-barchart-filetypes
-        :desc "Random note" "r" #'denote-explore-random-note
-        :desc "Random link" "l" #'denote-explore-random-link
-        :desc "Random keyword" "k" #'denote-explore-random-keyword
-        :desc "Random regex" "x" #'denote-explore-random-regex
-        :desc "Duplicate notes" "d" #'denote-explore-identify-duplicate-notes
-        :desc "Zero keywords" "z" #'denote-explore-zero-keywords
-        :desc "Single keywords" "s" #'denote-explore-single-keywords
-        :desc "Sort keywords" "o" #'denote-explore-sort-keywords
-        :desc "Rename keyword" "w" #'denote-explore-rename-keyword
-        :desc "Network" "n" #'denote-explore-network
-        :desc "Network regenerate" "v" #'denote-explore-network-regenerate
-        :desc "Barchart degree" "D" #'denote-explore-barchart-degree)
-       ;; Citar-denote functions
-       (:prefix ("c" . "citar")
-        :desc "Create citation note" "c" #'citar-create-note
-        :desc "Open note" "n" #'citar-denote-open-note
-        :desc "No cite" "x" #'citar-denote-nocite
-        :desc "Add citekey" "k" #'citar-denote-add-citekey
-        :desc "Remove citekey" "K" #'citar-denote-remove-citekey
-        :desc "DWIM" "d" #'citar-denote-dwim
-        :desc "Open reference" "e" #'citar-denote-open-reference-entry)))
-
 ;; Lifecycle management functions
 (defun my/denote-complete-project ()
   "Mark current denote project as completed."
@@ -431,38 +381,5 @@ KEYWORD should be a string. FILE should be a full file path."
           (find-file (completing-read (format "Open %s note: " category) para-files nil t))
         (message "No notes found in %s category" category))))
 
-;; Additional key bindings for lifecycle management
-(map! :leader
-      (:prefix ("n d" . "denote")
-       :desc "Complete project" "C" #'my/denote-complete-project
-       :desc "Archive note" "A" #'my/denote-archive-note
-       :desc "Find active projects" "p" #'my/denote-find-active-projects
-       :desc "Find completed projects" "P" #'my/denote-find-completed-projects
-       :desc "Find archived notes" "a" #'my/denote-find-archived
-       ;; PARA method
-       :desc "Assign PARA category" "=" #'my/denote-assign-para
-       :desc "Find PARA notes" "/" #'my/denote-find-para))
-
-;; Global template key bindings
-(map! :leader
-      (:prefix ("i t" . "templates")
-       :desc "Insert template" "i" #'my/insert-template
-       :desc "Open templates dir" "d" #'my/open-templates-directory))
-
-;; Journal key bindings - using only denote-journal functions
-(map! :leader
-      (:prefix ("n j" . "journal")
-       ;; Primary journal commands (single daily entry)
-       :desc "Today's journal" "j" #'denote-journal-new-or-existing-entry
-       :desc "New journal entry" "n" #'denote-journal-new-entry
-       :desc "Journal in extra" "J" #'my/denote-journal-extra
-       :desc "Link to journal" "l" #'denote-journal-link-or-create-entry
-       ;; Calendar integration
-       :desc "Open calendar" "c" #'calendar
-       :desc "Journal from calendar" "C" #'denote-journal-calendar-new-or-existing
-       :desc "Find entry from calendar" "f" #'denote-journal-calendar-find-file
-       ;; Template shortcuts
-       :desc "Insert template" "t" #'my/insert-template))
-
-(provide '+denote)
-;;; +denote.el ends here
+(provide 'init-denote)
+;;; init-denote.el ends here

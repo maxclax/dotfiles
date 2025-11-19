@@ -1,9 +1,12 @@
 ;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
 
-;; Load all configuration modules from the root directory
+;; Load all configuration modules
 (load! "+os")
 (load! "lisp/init-git.el")
 (load! "lisp/init-org.el")
+(load! "lisp/init-timing.el")
+(load! "lisp/init-bibliography.el")
+(load! "lisp/init-ai.el")
 (load! "+misc")
 (load! "+text")
 (load! "+prog")

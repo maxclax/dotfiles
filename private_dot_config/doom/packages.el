@@ -17,27 +17,15 @@
                    pyimport)
 
 
-;; AI
+
+;; AI → lisp/init-ai.el
 (package! mcp)
 (package! copilot)
 (package! gptel :recipe (:nonrecursive t))
 (package! aidermacs)
-(package! aider :recipe (:host github :repo "tninja/aider.el" ))
+(package! aider :recipe (:host github :repo "tninja/aider.el"))
 
-;; text
-(package! adoc-mode)
-(package! tldr)
-(package! pomm)
-(package! symbol-overlay)
-(package! org-appear)
-(package! org-super-agenda)
-(package! literate-calc-mode)
-(package! nov)      ; EPUB reader
-(package! djvu)     ; DjVu document viewer
-(package! elfeed)   ; RSS reader
-(package! elfeed-org) ; Org-mode integration for elfeed
-
-;; denote - note-taking system
+;; denote - note-taking system → lisp/init-denote.el
 (package! denote)
 (package! denote-journal)
 (package! denote-explore)
@@ -47,9 +35,30 @@
 (package! denote-sequence)
 (package! denote-menu)
 (package! consult-denote)
-(package! citar)
 (package! citar-denote)
 (package! consult-notes)
+
+;; bibliography management → lisp/init-bibliography.el
+(package! citar)
+(package! biblio)
+
+;; org enhancements → lisp/init-org.el
+(package! org-appear)
+(package! org-super-agenda)
+
+;; timing → lisp/init-timing.el
+(package! pomm)
+
+;; text
+(package! adoc-mode)
+(package! tldr)
+(package! symbol-overlay)
+(package! literate-calc-mode)
+(package! nov)      ; EPUB reader
+(package! djvu)     ; DjVu document viewer
+(package! elfeed)   ; RSS reader
+(package! elfeed-org) ; Org-mode integration for elfeed
+
 
 
 ;; misc

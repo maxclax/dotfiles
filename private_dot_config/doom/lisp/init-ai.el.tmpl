@@ -1,0 +1,198 @@
+;;; init-ai.el -*- mode: emacs-lisp; lexical-binding: t; -*-
+
+;;; Commentary:
+;; AI and code assistance configuration
+
+;;; Code:
+
+;; Packages: mcp, copilot, gptel, aidermacs, aider
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; AI CONFIGURATION
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(set-evil-initial-state!
+  '(comint-mode)
+  'insert)
+
+(add-hook! 'comint-mode-hook #'visual-line-mode)
+
+(use-package! aidermacs
+  :config
+  (setq aidermacs-auto-accept-architect nil)
+  (setq aidermacs-backend 'vterm)
+  ;; Set environment for local Ollama
+  (setenv "OLLAMA_API_BASE" "http://127.0.0.1:11434")
+  ;; Configure for local ollama model
+  (add-to-list 'aidermacs-extra-args "--model")
+  (add-to-list 'aidermacs-extra-args "ollama_chat/qwen2.5-coder:14b")
+  (add-to-list 'aidermacs-extra-args "--no-auto-commits")
+  (add-to-list 'aidermacs-extra-args "--cache-prompts")
+  :custom
+  (aidermacs-default-chat-mode 'architect)
+  (aidermacs-auto-commits nil))
+
+(use-package! aider
+  :config
+  ;; Set environment for local Ollama
+  (setenv "OLLAMA_API_BASE" "http://127.0.0.1:11434")
+  ;; Set default model to local ollama qwen2.5-coder:14b
+  (setq aider-args '("--model" "ollama_chat/qwen2.5-coder:14b" "--no-auto-accept-architect" "--no-auto-commits" "--cache-prompts"))
+  (aider-magit-setup-transients) ;; add aider magit function to magit menu
+  ;; auto revert buffer
+  (global-auto-revert-mode 1)
+  (auto-revert-mode 1))
+
+(use-package! gptel
+  :config
+  (require 'gptel-integrations)
+  (require 'gptel-org)
+  ;; Set Ollama as the default backend with Qwen model
+  (setq gptel-model 'qwen2.5-coder:14b
+        ;; gptel-default-mode 'org-mode
+        gptel-use-curl t
+        gptel-use-tools t
+        gptel-confirm-tool-calls 'always
+        gptel-include-tool-results 'auto
+        gptel--system-message (concat gptel--system-message " Make sure to use English language.")
+        gptel-backend (gptel-make-gh-copilot "gptel.Copilot" :stream t))
+
+  ;; Keep other backends available for switching
+  (setq gptel-gh-copilot-model "claude-sonnet-4")
+  (setq gptel-anthropic-model "claude-sonnet-4-20250514")
+  (setq gptel-gemini-model "gemini-2.0-flash-exp")
+  (setq gptel-deepseek-model "deepseek-pro")
+
+  (gptel-make-deepseek "gptel.DeepSeek" :stream t)
+  (gptel-make-anthropic "gptel.Claude" :stream t)
+  (gptel-make-gemini "gptel.Gemini" :stream nil)
+
+  ;; Also define the Ollama backend separately for switching
+  (gptel-make-ollama "Ollama"
+    :host "localhost:11434"
+    :stream t
+    :models '(qwen2.5-coder:14b qwen2.5-coder:7b qwen2:7b qwen:latest mistral:latest llama3.1:latest)))
+
+;; Helper functions to switch between different AI backends
+(with-eval-after-load 'gptel
+  (defun my/gptel-use-ollama-qwen ()
+    "Switch gptel to use Ollama Qwen model."
+    (interactive)
+    (setq gptel-model 'qwen2.5-coder:14b
+          gptel-backend (gptel-make-ollama "Ollama"
+                       :host "localhost:11434"
+                       :stream t
+                       :models '(qwen2.5-coder:14b qwen2.5-coder:7b qwen2:7b qwen:latest mistral:latest llama3.1:latest)))
+    (message "Switched to Ollama Qwen model"))
+
+  (defun my/gptel-use-openai ()
+    "Switch gptel to use OpenAI model."
+    (interactive)
+    (setq gptel-model 'gpt-4.1
+          gptel-backend (gptel-make-gh-copilot "gptel.Copilot" :stream t))
+    (message "Switched to OpenAI model"))
+
+  (defun my/gptel-use-anthropic ()
+    "Switch gptel to use Anthropic model."
+    (interactive)
+    (setq gptel-model 'claude-sonnet-4-20250514
+          gptel-backend (gptel-make-anthropic "gptel.Claude" :stream t))
+    (message "Switched to Anthropic model")))
+
+;; AI Commit Message Generator
+(defun +my/smart-commit ()
+  "Generate commit message using AI with your template."
+  (interactive)
+  (let ((diff (shell-command-to-string "git diff --cached")))
+    (if (string-empty-p (string-trim diff))
+        (message "No staged changes found")
+      (let ((prompt (concat "Generate a concise git commit message using conventional commits format.\n\n"
+                           "Available types: dev, docs, feat, fix, nit, perf, refactor, revert, test, tweak\n\n"
+                           "Rules:\n"
+                           "- Use format: type: description (no scope unless needed)\n"
+                           "- Keep under 50 characters\n"
+                           "- Use imperative mood (Add, Fix, Update, etc.)\n"
+                           "- Be specific and clear\n"
+                           "- Output ONLY the commit message, no quotes or explanation\n"
+                           "- Do not wrap the response in any formatting\n\n"
+                           "Staged changes to analyze:\n" diff)))
+        (gptel-request prompt
+                       :callback (lambda (response info)
+                                   (when response
+                                     (let ((msg (string-trim response)))
+                                       ;; Remove any surrounding quotes if present
+                                       (setq msg (replace-regexp-in-string "^[\"']\\|[\"']$" "" msg))
+                                       (kill-new msg)
+                                       (message "✅ Generated: %s" msg)
+                                       ;; Try to insert into active commit buffer
+                                       (when-let ((buffer (or (get-buffer "COMMIT_EDITMSG")
+                                                              (get-buffer "*vc-log*")
+                                                              (get-buffer "*magit-commit*"))))
+                                         (with-current-buffer buffer
+                                           (goto-char (point-min))
+                                           ;; Skip comment lines and find insertion point
+                                           (while (and (not (eobp)) (looking-at "^#"))
+                                             (forward-line 1))
+                                           ;; If we're still at a comment, go to very beginning
+                                           (when (looking-at "^#")
+                                             (goto-char (point-min)))
+                                           ;; Save insertion point
+                                           (let ((insert-point (point)))
+                                             ;; Insert the commit message
+                                             (insert msg "\n")
+                                             ;; Move cursor to end of inserted message
+                                             (goto-char (+ insert-point (length msg))))))))))))))
+
+(defun +my/commit-with-ai ()
+  "Start commit and auto-generate message."
+  (interactive)
+  (if (magit-anything-staged-p)
+      (progn
+        (magit-commit-create)
+        (message "⏳ Generating AI commit message...")
+        (run-with-timer 2 nil #'+my/smart-commit))
+    (message "❌ No staged changes found")))
+
+(use-package! mcp
+  :after gptel
+  :custom
+  (mcp-hub-servers
+   `(("git" . (:command "uvx" :args ("mcp-server-git")))
+     ("fetch" . (:command "uvx" :args ("mcp-server-fetch")))
+     ("filesystem" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-filesystem", (getenv "HOME"), {{ .workspace | quote }}, {{ .workspace_extra | quote }})))
+     ("nixos" . (:command "uvx" :args ("mcp-nixos")))
+     ("sequential-thinking" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-sequential-thinking")))
+     ("playwright" . (:command "npx" :args ("-y" "@playwright/mcp@latest")))
+     ("context7" . (:command "npx" :args ("-y" "@upstash/context7-mcp") :env (:DEFAULT_MINIMUM_TOKENS "6000")))
+     ))
+  :config (require 'mcp-hub))
+
+(use-package! copilot
+  :hook (prog-mode . copilot-mode)
+  :bind (:map copilot-completion-map
+              ("<tab>" . 'copilot-accept-completion)
+              ("TAB" . 'copilot-accept-completion)
+              ("C-TAB" . 'copilot-accept-completion-by-word)
+              ("C-<tab>" . 'copilot-accept-completion-by-word)
+              ("M-n" . 'copilot-next-completion)
+              ("M-p" . 'copilot-previous-completion))
+  :config
+  (setq copilot-max-char 500000)
+  (setq copilot-idle-delay 1)
+
+  ;; Ensure company-box is used to avoid overlay conflicts
+  (with-eval-after-load 'company
+    (delq 'company-preview-if-just-one-frontend company-frontends))
+
+  (add-to-list 'copilot-indentation-alist '(web-mode 2))
+  (add-to-list 'copilot-indentation-alist '(html-mode 2))
+  (add-to-list 'copilot-indentation-alist '(markdown-mode 2))
+  (add-to-list 'copilot-indentation-alist '(prog-mode 2))
+  (add-to-list 'copilot-indentation-alist '(org-mode 2))
+  (add-to-list 'copilot-indentation-alist '(text-mode 2))
+  (add-to-list 'copilot-indentation-alist '(closure-mode 2))
+  (add-to-list 'copilot-indentation-alist '(emacs-lisp-mode 2)))
+
+;; Provide ai module
+(provide 'init-ai)
+;;; init-ai.el ends here

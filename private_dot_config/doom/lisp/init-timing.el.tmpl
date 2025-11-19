@@ -1,0 +1,161 @@
+;;; init-timing.el -*- mode: emacs-lisp; lexical-binding: t; -*-
+
+;;; Commentary:
+;; Time tracking and pomodoro configuration
+;; - Pomm pomodoro timer integration with org-clock
+;; - Smart clock management for GTD workflow
+;; - Automatic session tracking
+
+;;; Code:
+
+;; Packages: pomm
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; POMM + ORG-CLOCK INTEGRATION
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package! pomm
+  :commands (pomm pomm-start pomm-stop)
+  :init
+  (setq pomm-work-period 25
+        pomm-short-break-period 5
+        pomm-long-break-period 15
+        pomm-number-of-periods 4)
+
+  :config
+  ;; Track if we started clock with pomm
+  (defvar my/pomm-with-clock nil)
+
+  ;; Smart start: pomm + clock
+  (defun my/pomm-start ()
+    "Start pomm and clock if on org heading"
+    (interactive)
+    (if (and (derived-mode-p 'org-mode)
+            (org-at-heading-p))
+        (progn
+          (org-clock-in)
+          (setq my/pomm-with-clock t)
+          (pomm-start)
+          (message "🍅 Pomm + Clock: %s" (org-get-heading t t t t)))
+      (progn
+        (setq my/pomm-with-clock nil)
+        (pomm-start)
+        (message "🍅 Pomm started"))))
+
+  ;; Smart stop
+  (defun my/pomm-stop ()
+    "Stop pomm and clock"
+    (interactive)
+    (pomm-stop)
+    (when (and my/pomm-with-clock (org-clock-is-active))
+      (org-clock-out))
+    (setq my/pomm-with-clock nil)
+    (message "✅ Stopped"))
+
+  ;; Smart pause/resume
+  (defun my/pomm-pause ()
+    "Pause/resume pomm and clock"
+    (interactive)
+    (if (pomm-running-p)
+        (progn
+          (pomm-pause)
+          (when (and my/pomm-with-clock (org-clock-is-active))
+            (org-clock-out))
+          (message "⏸️ Paused"))
+      (progn
+        (when (and my/pomm-with-clock (derived-mode-p 'org-mode) (org-at-heading-p))
+          (org-clock-in))
+        (pomm-start)
+        (message "▶️ Resumed"))))
+
+  ;; Quick start with custom duration
+  (defun my/pomm-quick-start (minutes)
+    "Start pomm with custom duration in MINUTES"
+    (interactive "nMinutes: ")
+    (let ((pomm-work-period minutes))
+      (my/pomm-start)))
+
+  ;; Auto clock-out on period end
+  (add-hook 'pomm-on-work-period-end-hook
+            (lambda ()
+              (when (and my/pomm-with-clock (org-clock-is-active))
+                (org-clock-out)
+                (setq my/pomm-with-clock nil))))
+
+  ;; Notifications
+  (add-hook 'pomm-on-work-period-end-hook
+            (lambda ()
+              (alert "✅ Focus session complete! Take a break."
+                     :title "Pomm")
+              (when my/pomm-with-clock
+                (message "Time logged: %s" (org-clock-get-clocked-time)))))
+
+  (add-hook 'pomm-on-break-period-end-hook
+            (lambda ()
+              (alert "☕ Break over! Ready to focus?"
+                     :title "Pomm")))
+
+  ;; Optional: auto-start next session
+  (defvar my/pomm-auto-continue nil
+    "If non-nil, automatically start next pomodoro after break.")
+
+  (when my/pomm-auto-continue
+    (add-hook 'pomm-on-break-period-end-hook
+              (lambda ()
+                (when (yes-or-no-p "Start next pomodoro? ")
+                  (my/pomm-start)))))
+
+)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ORG-CLOCK ENHANCEMENTS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(after! org
+  ;; Clock settings already configured in init-org.el
+  ;; Additional timing-specific functions
+
+  ;; Quick clock functions
+  (defun my/clock-in-last ()
+    "Clock into the last clocked item"
+    (interactive)
+    (org-clock-in '(4)))
+
+  (defun my/clock-out-and-archive ()
+    "Clock out and archive the current item if it's DONE"
+    (interactive)
+    (when (org-clock-is-active)
+      (org-clock-out))
+    (when (string= (org-get-todo-state) "DONE")
+      (org-archive-subtree)))
+
+  ;; Clock report helpers
+  (defun my/daily-time-report ()
+    "Show time report for today"
+    (interactive)
+    (org-clock-report nil nil nil nil '(:maxlevel 3 :scope agenda-with-archives :block today)))
+
+  (defun my/weekly-time-report ()
+    "Show time report for this week"
+    (interactive)
+    (org-clock-report nil nil nil nil '(:maxlevel 3 :scope agenda-with-archives :block thisweek)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; TIME TRACKING UTILITIES
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Display active clock in mode line
+(setq org-clock-clocked-in-display 'mode-line)
+
+;; Time tracking statistics
+(defun my/time-tracking-stats ()
+  "Show time tracking statistics"
+  (interactive)
+  (message "Time tracking stats: %s total today"
+           (org-duration-from-minutes
+            (org-clock-sum-today)))))
+
+;; Provide timing module
+(provide 'init-timing)
+;;; init-timing.el ends here

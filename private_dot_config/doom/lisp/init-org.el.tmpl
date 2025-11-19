@@ -1,5 +1,7 @@
 ;;; lisp/init-org.el -*- mode: emacs-lisp; lexical-binding: t; -*-
 
+;; Packages: org-appear, org-super-agenda
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Org + PARA
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -485,9 +487,6 @@
   (defvar org-default-time "8:00"
     "The default time for deadlines.")
 
-  ;; Add weekly outcomes overview to global keybinding
-  (global-set-key (kbd "C-c f") #'my/weekly-outcomes-overview)
-
   ;; Simple automated review system
   (defun my/set-review-period (period)
     "Quickly set review period for current heading."
@@ -520,11 +519,7 @@
                              (format-time-string "%Y-%m-%d"
                                                (time-add (current-time) (days-to-time days))))
             (message "Marked as reviewed. Next review: %s days" days))
-        (message "No review period set. Use C-c r p first."))))
-
-  ;; Simple keybindings
-  (global-set-key (kbd "C-c r p") #'my/set-review-period)
-  (global-set-key (kbd "C-c r m") #'my/mark-reviewed))
+        (message "No review period set. Use C-c r p first.")))))
 
 (provide 'init-org)
 ;;; init-org.el ends here
