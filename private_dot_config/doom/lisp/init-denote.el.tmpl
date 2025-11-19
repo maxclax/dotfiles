@@ -7,10 +7,6 @@
 ;; - Resources: Topics of ongoing interest
 ;; - Archive: Inactive items
 
-;;; Code:
-
-;; Packages: denote ecosystem + citar-denote integration
-
 (use-package! denote
   :config
   ;; Dedicated denote directory
@@ -381,5 +377,41 @@ KEYWORD should be a string. FILE should be a full file path."
           (find-file (completing-read (format "Open %s note: " category) para-files nil t))
         (message "No notes found in %s category" category))))
 
+;; Custom org link for today's journal
+(org-link-set-parameters "today-journal"
+                         :follow #'my/open-today-journal
+                         :export #'my/export-today-journal)
+
+(defun my/open-today-journal (path)
+  "Open today's denote journal entry."
+  (denote-journal-new-or-existing-entry))
+
+(defun my/export-today-journal (path desc format)
+  "Export today's journal link."
+  (cond
+   ((eq format 'html) (format "<a href=\"#\">%s</a>" (or desc "Today's Journal")))
+   ((eq format 'latex) (format "\\href{#}{%s}" (or desc "Today's Journal")))
+   (t (or desc "Today's Journal"))))
+
+;; Calendar integration for denote journal
+(defun my/calendar-open-journal ()
+  "Open or create journal entry for the date at point in calendar."
+  (interactive)
+  (let* ((date (calendar-cursor-to-date))
+         (year (calendar-extract-year date))
+         (month (calendar-extract-month date))
+         (day (calendar-extract-day date))
+         (date-string (format "%04d-%02d-%02d" year month day))
+         (journal-file (denote-journal--get-entry-by-date date-string)))
+    (if journal-file
+        (find-file journal-file)
+      (let ((denote-journal-date (encode-time 0 0 0 day month year)))
+        (denote-journal-calendar-new-or-existing date-string)))))
+
+;; Hook calendar to open journal on RET
+(add-hook 'calendar-mode-hook
+          (lambda ()
+            (define-key calendar-mode-map (kbd "RET") #'my/calendar-open-journal)
+            (define-key calendar-mode-map (kbd "<return>") #'my/calendar-open-journal)))
+
 (provide 'init-denote)
-;;; init-denote.el ends here

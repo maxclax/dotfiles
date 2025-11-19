@@ -67,6 +67,12 @@
       :desc "Open link" "x" #'link-hint-open-link
       :desc "Open link at point" "X" #'link-hint-open-link-at-point)
 
+(map! :leader
+      :prefix "i"
+      (:prefix ("t" . "templates")
+       :desc "Insert template" "i" #'my/insert-template
+       :desc "Open templates dir" "d" #'my/open-templates-directory))
+
 ;; Project
 (map! :leader
       :prefix "p"
@@ -193,11 +199,10 @@
        ;; TIMING KEYBINDINGS (from init-timing.el)
        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
       (:prefix ("t" . "timing")
-       :desc "Start timer" "s" #'my/pomm-start
-       :desc "Stop timer" "S" #'my/pomm-stop
-       :desc "Pause/Resume timer" "p" #'my/pomm-pause
-       :desc "Quick start timer" "q" #'my/pomm-quick-start
-       :desc "Pomm interface" "i" #'pomm
+       :desc "Start timer" "s" #'pomm-start
+       :desc "Stop timer" "S" #'pomm-stop
+       :desc "Pause/Resume timer" "p" #'pomm-pause
+       :desc "Pomm timer" "t" #'pomm
        :desc "Reset timer" "r" #'pomm-reset)
       "k"                          #'keycast-header-line-mode
       "K"                          #'keycast-log-mode)
