@@ -141,19 +141,6 @@
                      (org-agenda-files (directory-files-recursively
                                        (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\.org$"))))))
 
-          ;; Daily Review Breakdown
-          ("r" "Daily Review Tasks"
-           ((todo "TODO"
-                  ((org-agenda-overriding-header "📋 Daily Review Checklist")
-                   (org-agenda-skip-function
-                    '(lambda ()
-                       (let ((parent-heading (save-excursion
-                                              (org-up-heading-safe)
-                                              (when (org-at-heading-p)
-                                                (org-get-heading t t)))))
-                         (unless (and parent-heading (string-match-p "Daily Review" parent-heading))
-                           (org-agenda-skip-entry-if 'regexp ".*")))))))))
-
           ;; Review Dashboard
           ("R" "Review Dashboard"
            ((tags-todo "NEXT_REVIEW<=\"<today>\""
@@ -285,6 +272,8 @@
   (setq org-agenda-today-indicator "🔸")             ; Custom today marker
   (setq org-agenda-include-diary nil)                ; Don't include diary
   (setq org-agenda-skip-scheduled-if-deadline-is-shown t)  ; Avoid duplicate entries
+  (setq org-scheduled-past-days 365)                     ; Show past scheduled items for 365 days
+  (setq org-deadline-past-days 365)                      ; Show past deadline items for 365 days
 
   ;; Fast date selection
   (setq org-popup-calendar-for-date-selection t)     ; Show popup calendar for date selection
