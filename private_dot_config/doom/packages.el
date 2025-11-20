@@ -45,7 +45,8 @@
 (package! org-appear)
 (package! org-ql)
 (package! org-super-agenda)
-(package! calfw)   
+(package! org-download)
+(package! calfw)
 (package! calfw-org)
 
 ;; timing → lisp/init-timing.el

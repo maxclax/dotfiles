@@ -184,11 +184,13 @@
   (setq org-directory (list {{ .primary_cloud | quote }} {{ .workspace | quote }} {{ .workspace_extra | quote }}))
   (setq org-agenda-file-regexp "\\`[^.].*\\.org\\'") ;; Exclude files starting with "."
   (setq org-agenda-files
-      (append (directory-files-recursively {{ .primary_cloud | quote }} "\\.org$")
-              (directory-files-recursively {{ .workspace | quote }} "\\.org$")
-              (directory-files-recursively {{ .workspace_extra | quote }} "\\.org$")
-              ;; Include journal files in agenda
-              (directory-files-recursively (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\\.org$")))
+        (seq-filter (lambda (file)
+                      (not (string-match-p "/templates/" file)))
+                    (append (directory-files-recursively {{ .primary_cloud | quote }} "\\.org$")
+                            (directory-files-recursively {{ .workspace | quote }} "\\.org$")
+                            (directory-files-recursively {{ .workspace_extra | quote }} "\\.org$")
+                            ;; Include journal files in agenda
+                            (directory-files-recursively (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\\.org$"))))
 
   (setq org-default-notes-file (concat {{ .primary_cloud | quote }} "/\!org/inbox.org"))
   (setq org-capture-templates
@@ -269,11 +271,12 @@
   (setq org-agenda-show-all-dates t)                 ; Show all days even if empty
 
   ;; Today navigation and highlighting
-  (setq org-agenda-today-indicator "🔸")             ; Custom today marker
   (setq org-agenda-include-diary nil)                ; Don't include diary
   (setq org-agenda-skip-scheduled-if-deadline-is-shown t)  ; Avoid duplicate entries
+  (setq org-deadline-warning-days 0)
   (setq org-scheduled-past-days 365)                     ; Show past scheduled items for 365 days
   (setq org-deadline-past-days 365)                      ; Show past deadline items for 365 days
+  (setq org-scheduled-delay-days 365)                    ; Show overdue scheduled items for 365 days
 
   ;; Fast date selection
   (setq org-popup-calendar-for-date-selection t)     ; Show popup calendar for date selection
@@ -306,7 +309,7 @@
 
   ;; Set prefix format for cleaner display across all agenda views
   (setq org-agenda-prefix-format
-        '((agenda . " %i %-12:c%?-12t% s")
+        '((agenda . " %i %(my/clean-denote-title-for-agenda)%?-12t% s")
           (todo . " %i %(my/clean-denote-title-for-agenda)")
           (tags . " %i %(my/clean-denote-title-for-agenda)")
           (search . " %i %(my/clean-denote-title-for-agenda)")))
@@ -495,6 +498,8 @@
   (setq org-attach-dir-relative t)
   (setq org-attach-use-inheritance t)
   (setq org-attach-auto-tag "attach")
+  (setq org-attach-store-link-p t)        ; Store link when attaching
+
 
   ;; Update attach directory when switching buffers
   (add-hook 'org-mode-hook #'my/set-attach-dir)
