@@ -1,7 +1,0 @@
-# -*- mode: snippet -*-
-# name: Ukrainian Month
-# key: ukrm
-# group: ukrainian
-# --
-`(let ((month-num (string-to-number (substring yas-text 0))))
-   (nth (1- month-num) '("Січень" "Лютий" "Березень" "Квітень" "Травень" "Червень" "Липень" "Серпень" "Вересень" "Жовтень" "Листопад" "Грудень")))`

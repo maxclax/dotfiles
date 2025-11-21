@@ -25,7 +25,7 @@
 {{ end }}
 
 {{ if or (eq .emacsType "Doom") .emacsLoadAllDistros }}
-".config/emacs":
+".config/doomemacs":
   type: "git-repo"
   url: "https://github.com/doomemacs/doomemacs.git"
   args:
@@ -35,21 +35,11 @@
 {{ end }}
 
 {{ if or (eq .emacsType "purcell") .emacsLoadAllDistros }}
-".config/purcellemacs.d":
+".config/emacs":
   type: "git-repo"
-  url: "https://github.com/purcell/emacs.d.git"
+  url: "https://github.com/maxclax/emacs.d.git"
   args:
     - "--depth=1"
-  exact: true
-  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
-{{ end }}
-
-{{ if or (eq .emacsType "ews") .emacsLoadAllDistros }}
-".config/emacs-writing-studio":
-  type: "git-repo"
-  url: "https://github.com/pprevos/emacs-writing-studio.git"
-  args:
-    - "--depth=1"  
   exact: true
   refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
 {{ end }}
@@ -70,4 +60,5 @@
   url: "https://github.com/alacritty/alacritty-theme"
   exact: true
   refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
+
 {{ end }}
