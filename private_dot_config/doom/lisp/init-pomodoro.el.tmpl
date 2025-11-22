@@ -1,0 +1,20 @@
+;;; init-pomodoro.el -*- mode: emacs-lisp; lexical-binding: t; -*-
+
+;; Time tracking and pomodoro configuration
+
+(use-package! pomm
+  :defer t
+  :commands (pomm pomm-third-time)
+  :config
+  (setq pomm-work-period 30
+        pomm-long-break-period 25
+        pomm-short-break-period 5
+        alert-default-style (if IS-MAC 'osx-notifier 'libnotify)
+        pomm-audio-enabled t
+        ;; Disable automatic starts
+        pomm-auto-start nil
+        pomm-auto-break nil)
+  (pomm-mode-line-mode))
+
+
+(provide 'init-pomodoro)

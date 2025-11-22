@@ -1,0 +1,425 @@
+;;; +denote.el -*- mode: emacs-lisp; lexical-binding: t; -*-
+
+;;; Commentary:
+;; Denote configuration integrated with PARA method
+;; - Projects: Active projects with deadlines
+;; - Areas: Ongoing responsibilities
+;; - Resources: Topics of ongoing interest
+;; - Archive: Inactive items
+
+(use-package! denote
+  :config
+  ;; Dedicated denote directory
+  (setq denote-directory (expand-file-name "!org/denote" {{ .primary_cloud | quote }}))
+
+  ;; PARA Method + Lifecycle keywords (inspired by EWS)
+  (setq denote-known-keywords
+        '("projects" "areas" "resources" "archives"
+          "reference" "meeting" "finance" "work" "personal"
+          "idea" "draft" "completed" "journal"))
+
+  ;; Sort keywords for consistency
+  (setq denote-sort-keywords t)
+
+  ;; Rename buffer mode and link face
+  (setq denote-rename-buffer-mode t)
+
+  ;; Dired integration
+  (add-hook 'dired-mode-hook #'denote-dired-mode)
+
+  ;; File type defaults
+  (setq denote-file-type 'org)
+
+  ;; Template for different note types
+  (defun my/denote-template (type)
+    "Insert template based on TYPE."
+    (pcase type
+      ("project" "* Project Overview\n** Goals\n** Tasks\n** Resources\n** Timeline\n")
+      ("meeting" "* Meeting Notes\n** Attendees\n** Agenda\n** Action Items\n** Decisions\n")
+      ("reference" "* Summary\n** Key Points\n** Related Topics\n** Source\n")
+      ("finance" "* Financial Details\n** Summary\n** Key Numbers\n** Calculations\n")
+      (_ "* Notes\n")))
+
+  ;; Custom function to create typed notes with template choice
+  (defun my/denote-create-typed-note (type title)
+    "Create a denote note with TYPE and TITLE."
+    (interactive
+     (list (completing-read "Note type: "
+                           '("reference" "project" "meeting" "finance" "work" "personal" "idea" "draft"))
+           (read-string "Note title: ")))
+    (let ((keywords (list type)))
+      (denote title keywords)
+      (when (derived-mode-p 'org-mode)
+        (let* ((template-choice (completing-read "Template: "
+                                               '("none" "built-in" "file") nil t "none"))
+               (template-file (expand-file-name (concat type ".org") my/templates-directory)))
+          (cond
+           ((string= template-choice "file")
+            (if (file-exists-p template-file)
+                (progn
+                  (goto-char (point-max))
+                  (insert "\n")
+                  (insert-file-contents template-file))
+              (message "No file template found for %s, using built-in" type)
+              (goto-char (point-max))
+              (insert "\n")
+              (insert (my/denote-template type))))
+           ((string= template-choice "built-in")
+            (goto-char (point-max))
+            (insert "\n")
+            (insert (my/denote-template type)))
+           ;; "none" - do nothing, leave empty
+           )))))
+
+  ;; Create denote directory if it doesn't exist
+  (unless (file-exists-p denote-directory)
+    (make-directory denote-directory t))
+
+  ;; Override denote directory function to search in multiple directories
+  (defun my/denote-directory-files (&optional regexp)
+    "Return list of denote files from all available denote directories, optionally filtered by REGEXP."
+    (let ((files '())
+          (dirs (list denote-directory)))
+      ;; Add extra workspace denote directory if it exists (SSD mounted)
+      (let ((extra-denote-dir (expand-file-name "!org/denote" {{ .workspace_extra | quote }})))
+        (when (file-exists-p extra-denote-dir)
+          (push extra-denote-dir dirs)))
+      ;; Collect files from all available directories
+      (dolist (dir dirs)
+        (when (file-exists-p dir)
+          (setq files (append files (directory-files-recursively dir "\\.org$")))))
+      ;; Filter by regexp if provided
+      (if regexp
+          (seq-filter (lambda (file) (string-match-p regexp file)) files)
+        files)))
+
+  ;; Set denote to use our custom function
+  (setq denote-directory-files-function #'my/denote-directory-files)
+
+  ;; Function to create note in extra workspace when needed
+  (defun my/denote-create-in-extra (title keywords)
+    "Create denote note in extra workspace (occasionally)."
+    (interactive
+     (list (read-string "Title: ")
+           (denote-keywords-prompt)))
+    (let ((extra-denote-dir (expand-file-name "!org/denote" {{ .workspace_extra | quote }})))
+      (if (file-exists-p extra-denote-dir)
+          (let ((denote-directory extra-denote-dir))
+            (denote title keywords)
+            (message "Created note in extra workspace"))
+        (message "Extra workspace not mounted. Use regular denote command."))))
+
+  ;; Function to create journal in extra workspace
+  (defun my/denote-journal-extra ()
+    "Create or open journal entry in extra workspace."
+    (interactive)
+    (let ((extra-denote-dir (expand-file-name "!org/denote" {{ .workspace_extra | quote }})))
+      (if (file-exists-p extra-denote-dir)
+          (let ((denote-directory extra-denote-dir)
+                (denote-journal-directory (expand-file-name "journal" extra-denote-dir)))
+            ;; Create journal directory if it doesn't exist
+            (unless (file-exists-p denote-journal-directory)
+              (make-directory denote-journal-directory t))
+            (denote-journal-new-or-existing-entry)
+            (message "Created/opened journal in extra workspace"))
+        (message "Extra workspace not mounted. Use regular journal command."))))
+
+  ;; Custom function to check if a file has a specific keyword
+  (defun denote-file-has-keyword-p (file keyword)
+    "Return non-nil if FILE has KEYWORD in its denote keywords.
+KEYWORD should be a string. FILE should be a full file path."
+    (when-let ((keywords (denote-extract-keywords-from-path file)))
+      (member keyword keywords))))
+
+(use-package! denote-explore
+  :after denote
+  :config
+  ;; Network visualization for note connections
+  (setq denote-explore-network-filename "denote-network.html")
+  (setq denote-explore-network-directory denote-directory))
+
+(use-package! consult-notes
+  :config
+  ;; Dynamic function to get all available denote directories
+  (defun my/get-consult-notes-sources ()
+    "Get consult-notes sources for all available denote directories."
+    (let ((sources `(("Denote Primary" ?d ,denote-directory))))
+      (let ((extra-denote-dir (expand-file-name "!org/denote" {{ .workspace_extra | quote }})))
+        (when (file-exists-p extra-denote-dir)
+          (push `("Denote Extra" ?x ,extra-denote-dir) sources)))
+      (reverse sources)))
+
+  ;; Override consult-notes to always use fresh sources
+  (advice-add 'consult-notes :before
+              (lambda (&rest _)
+                (setq consult-notes-file-dir-sources (my/get-consult-notes-sources))))
+
+  ;; Set initial sources
+  (setq consult-notes-file-dir-sources (my/get-consult-notes-sources))
+
+  ;; Manual refresh function
+  (defun my/refresh-consult-notes-sources ()
+    "Refresh consult-notes sources to include mounted directories."
+    (interactive)
+    (setq consult-notes-file-dir-sources (my/get-consult-notes-sources))
+    (message "Refreshed consult-notes sources: %d sources" (length consult-notes-file-dir-sources)))
+
+  ;; Debug function to check what's happening
+  (defun my/debug-denote-dirs ()
+    "Debug denote directory configuration."
+    (interactive)
+    (let ((extra-denote-dir (expand-file-name "!org/denote" {{ .workspace_extra | quote }})))
+      (message "Primary denote dir: %s (exists: %s)"
+               denote-directory (file-exists-p denote-directory))
+      (message "Extra denote dir: %s (exists: %s)"
+               extra-denote-dir (file-exists-p extra-denote-dir))
+      (message "Consult-notes sources: %s"
+               (mapcar #'car consult-notes-file-dir-sources))
+      (message "Denote files found: %d"
+               (length (my/denote-directory-files)))))
+
+  ;; Enable live preview
+  (consult-notes-org-headings-mode 1))
+
+(use-package! denote-journal
+  :after denote
+  :config
+  ;; Dedicated journal subdirectory
+  (setq denote-journal-directory (expand-file-name "journal" denote-directory))
+
+  ;; Journal entry keyword
+  (setq denote-journal-keyword "journal")
+
+  ;; Date selection interface (use org-read-date for better UX)
+  (setq denote-date-prompt-use-org-read-date t)
+
+  ;; Title format for journal entries - simple date format
+  (setq denote-journal-title-format "%Y-%m-%d")
+
+  ;; Auto-save journal entries
+  (setq denote-journal-auto-save-buffer t)
+
+  ;; Create journal directory if it doesn't exist
+  (unless (file-exists-p denote-journal-directory)
+    (make-directory denote-journal-directory t))
+
+  ;; Global template system for org-mode and denote
+  (setq my/templates-directory (expand-file-name "!org/templates" {{ .primary_cloud | quote }}))
+
+  ;; Create templates directory if it doesn't exist
+  (unless (file-exists-p my/templates-directory)
+    (make-directory my/templates-directory t))
+
+  ;; Global template insertion function
+  (defun my/insert-template (template-name)
+    "Insert template by name from global templates directory."
+    (interactive
+     (list (completing-read "Template: "
+                           (mapcar #'file-name-sans-extension
+                                  (directory-files my/templates-directory nil "\\.org$")))))
+    (let ((template-file (expand-file-name (concat template-name ".org") my/templates-directory)))
+      (when (file-exists-p template-file)
+        (insert-file-contents template-file)
+        (message "Inserted template: %s" template-name))))
+
+  ;; Open templates directory
+  (defun my/open-templates-directory ()
+    "Open the templates directory in dired."
+    (interactive)
+    (dired my/templates-directory))
+
+  ;; Automatic journal template insertion (optional)
+  (defun my/denote-journal-insert-template ()
+    "Insert journal template from template file if it exists."
+    (when (and (derived-mode-p 'org-mode)
+               (buffer-file-name)
+               (string-match-p "journal" (buffer-file-name))
+               (not buffer-read-only))
+      (let ((template-file (expand-file-name "journal.org" my/templates-directory)))
+        (when (and (file-exists-p template-file)
+                   (= (buffer-size) 0))  ; Only insert if buffer is empty
+          (condition-case err
+              (progn
+                (goto-char (point-max))
+                (insert-file-contents template-file))
+            (error
+             (message "Error inserting journal template: %s" (error-message-string err))))))))
+
+  ;; Use find-file-hook instead of denote-journal specific hook
+  (add-hook 'find-file-hook #'my/denote-journal-insert-template)
+
+  ;; Remove problematic advice and use simpler approach
+  (advice-remove 'denote-journal-new-entry #'my/denote-journal-advice)
+  (advice-remove 'denote-journal-new-or-existing-entry #'my/denote-journal-advice)
+
+  ;; Enable calendar integration
+  (require 'calendar)
+  (add-hook 'calendar-today-visible-hook #'denote-journal-calendar-mark-dates)
+  (add-hook 'calendar-today-invisible-hook #'denote-journal-calendar-mark-dates))
+
+;; Additional denote packages
+(use-package! denote-org
+  :after denote)
+
+(use-package! denote-sequence
+  :after denote)
+
+(use-package! denote-explore
+  :after denote)
+
+;; Consult-Notes for easy access to notes
+(use-package! consult-notes
+  :after (denote consult)
+  :config
+  (setq consult-notes-denote-display-keywords-indicator "_")
+  (consult-notes-denote-mode))
+
+;; Citar-Denote to manage literature notes
+(use-package! citar-denote
+  :after (denote citar)
+  :config
+  (setq citar-open-always-create-notes t)
+  (citar-denote-mode))
+
+;; Lifecycle management functions
+(defun my/denote-complete-project ()
+  "Mark current denote project as completed."
+  (interactive)
+  (when (denote-file-is-note-p (buffer-file-name))
+    (let ((completion-date (format-time-string "%Y-%m")))
+      ;; Remove 'project' keyword
+      (denote-keywords-remove '("project"))
+      ;; Add 'archive' and 'completed' keywords
+      (denote-keywords-add '("archive" "completed"))
+      ;; Add completion date to front matter
+      (save-excursion
+        (goto-char (point-min))
+        (when (re-search-forward "^#\\+filetags:" nil t)
+          (end-of-line)
+          (insert (format "\n#+date_completed: %s" completion-date))))
+      ;; Update title to show completion
+      (save-excursion
+        (goto-char (point-min))
+        (when (re-search-forward "^#\\+title:\\s-*\\(.*\\)" nil t)
+          (let ((current-title (match-string 1)))
+            (unless (string-match "(Completed" current-title)
+              (replace-match (format "%s (Completed %s)" current-title completion-date) nil nil nil 1)))))
+      (message "Project marked as completed"))))
+
+(defun my/denote-archive-note ()
+  "Archive current denote note (change project to archive keyword)."
+  (interactive)
+  (when (denote-file-is-note-p (buffer-file-name))
+    (denote-keywords-remove '("project" "idea" "draft"))
+    (denote-keywords-add '("archive"))
+    (message "Note archived")))
+
+(defun my/denote-find-active-projects ()
+  "Find all active project notes."
+  (interactive)
+  (let ((files (my/denote-directory-files))
+        (project-files '()))
+    (dolist (file files)
+      (when (denote-file-has-keyword-p file "project")
+        (push file project-files)))
+    (if project-files
+        (find-file (completing-read "Open project: " project-files nil t))
+      (message "No active projects found"))))
+
+(defun my/denote-find-completed-projects ()
+  "Find all completed project notes."
+  (interactive)
+  (let ((files (my/denote-directory-files))
+        (completed-files '()))
+    (dolist (file files)
+      (when (denote-file-has-keyword-p file "completed")
+        (push file completed-files)))
+    (if completed-files
+        (find-file (completing-read "Open completed project: " completed-files nil t))
+      (message "No completed projects found"))))
+
+(defun my/denote-find-archived ()
+  "Find all archived notes."
+  (interactive)
+  (let ((files (my/denote-directory-files))
+        (archived-files '()))
+    (dolist (file files)
+      (when (denote-file-has-keyword-p file "archive")
+        (push file archived-files)))
+    (if archived-files
+        (find-file (completing-read "Open archived note: " archived-files nil t))
+      (message "No archived notes found"))))
+
+  ;; PARA Method Functions (inspired by EWS)
+  (defvar my/para-keywords '("projects" "areas" "resources" "archives")
+    "PARA method keywords for denote.")
+
+  (defun my/denote-assign-para ()
+    "Assign PARA category to current denote note."
+    (interactive)
+    (when (denote-file-is-note-p (buffer-file-name))
+      (let ((para-choice (completing-read "PARA Category: " my/para-keywords)))
+        ;; Remove existing PARA keywords
+        (denote-keywords-remove my/para-keywords)
+        ;; Add new PARA keyword
+        (denote-keywords-add (list para-choice))
+        (message "Note categorized as: %s" para-choice))))
+
+  (defun my/denote-find-para (category)
+    "Find all notes in a PARA category."
+    (interactive (list (completing-read "PARA Category: " my/para-keywords)))
+    (let ((files (my/denote-directory-files))
+          (para-files '()))
+      (dolist (file files)
+        (when (denote-file-has-keyword-p file category)
+          (push file para-files)))
+      (if para-files
+          (find-file (completing-read (format "Open %s note: " category) para-files nil t))
+        (message "No notes found in %s category" category))))
+
+;; Custom org link for today's journal
+(org-link-set-parameters "today-journal"
+                         :follow #'my/open-today-journal
+                         :export #'my/export-today-journal)
+
+(defun my/open-today-journal (path)
+  "Open today's denote journal entry."
+  (denote-journal-new-or-existing-entry))
+
+(defun my/export-today-journal (path desc format)
+  "Export today's journal link."
+  (cond
+   ((eq format 'html) (format "<a href=\"#\">%s</a>" (or desc "Today's Journal")))
+   ((eq format 'latex) (format "\\href{#}{%s}" (or desc "Today's Journal")))
+   (t (or desc "Today's Journal"))))
+
+;; Calendar integration for denote journal
+(defun my/calendar-open-journal ()
+  "Open or create journal entry for the date at point in calendar."
+  (interactive)
+  (let* ((date (calendar-cursor-to-date))
+         (year (calendar-extract-year date))
+         (month (calendar-extract-month date))
+         (day (calendar-extract-day date))
+         (target-date (encode-time 0 0 0 day month year))
+         (date-string (format-time-string "%Y-%m-%d" target-date)))
+    ;; Check if journal entry exists for this date
+    (let* ((journal-dir denote-journal-directory)
+           (journal-pattern (concat date-string ".*\\.org$"))
+           (existing-files (when (file-exists-p journal-dir)
+                            (directory-files journal-dir nil journal-pattern))))
+      (if existing-files
+          ;; Open existing journal entry
+          (find-file (expand-file-name (car existing-files) journal-dir))
+        ;; Create new journal entry for the specific date
+        (let ((denote-directory denote-journal-directory)
+              (title (format "Journal %s" date-string)))
+          (denote title (list denote-journal-keyword) 'org date-string))))))
+
+;; Hook calendar to open journal on RET
+(add-hook 'calendar-mode-hook
+          (lambda ()
+            (define-key calendar-mode-map (kbd "RET") #'my/calendar-open-journal)
+            (define-key calendar-mode-map (kbd "<return>") #'my/calendar-open-journal)))
+
+(provide 'init-denote)

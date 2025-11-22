@@ -30,6 +30,7 @@ declare -a remove_list=(
 	"$HOME/.doom.d"
 	"$HOME/.config/doom"
 	"$HOME/.config/emacs"
+	"$HOME/.config/emacs.d"
 	"$HOME/.local/bin/doom"
 	"$HOME/.config/emacs/straight"
 	"$HOME/.cache/doom"
@@ -37,6 +38,7 @@ declare -a remove_list=(
 	"$HOME/.emacs.d.bak"
 	"$HOME/.emacs.bak"
 	"$HOME/.config/preludeemacs.d"
+	"$HOME/.config/doomemacs"
 	"$HOME/.config/purcellemacs.d"
 )
 
@@ -50,20 +52,4 @@ done
 rm -rf /opt/homebrew/bin/emacs
 rm -rf /opt/homebrew/bin/emacs*
 
-echo "
-Cleanup complete!
-
-To ensure a completely clean environment:
-1. Close all terminal windows
-2. Start a new terminal session
-3. Start Emacs with: emacs
-
-To install vanilla Emacs:
-brew update && brew install emacs
-
-Or Emacs-Plus (recommended):
-brew tap d12frosted/emacs-plus
-brew install emacs-plus
-"
-
-echo "Script completed successfully!"
+echo "Cleanup complete!"

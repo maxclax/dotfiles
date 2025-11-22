@@ -1,55 +1,105 @@
-;; -*- no-byte-compile: t; -*-
-;;; $DOOMDIR/packages.el
+;; LSP-related packages
 
-;; To install a package:
-;;
-;;   1. Declare them here in a `package!' statement,
-;;   2. Run 'doom sync' in the shell,
-;;   3. Restart Emacs.
-;;
-;; Use 'C-h f package\!' to look up documentation for the `package!' macro.
+;; ;; disabled packages
+;; (disable-packages! solaire-mode
+;;                    osx-trash
+;;                    realgud
+;;                    realgud-trepan-ni
+;;                    ccls
+;;                    tide
+;;                    swiper
+;;                    forge
+;;                    code-review
+;;                    writegood-mode
+;;                    dired-x
+;;                    flymake-popon
+;;                    lsp-python-ms
+;;                    pyimport)
 
+;; =====================================================================
+;; AI ASSISTANCE & CODE COMPLETION
+;; =====================================================================
+;; AI tools and LLM integration for enhanced coding assistance
+;; → lisp/init-ai.el
 
-;; To install SOME-PACKAGE from MELPA, ELPA or emacsmirror:
-;; (package! some-package)
+(package! copilot)                    ; GitHub Copilot AI code completion
+(package! gptel :recipe (:nonrecursive t)) ; ChatGPT/LLM interface in Emacs
+(package! aidermacs)               ; AI coding assistant (disabled)
+(package! aider :recipe (:host github :repo "tninja/aider.el")) ; Alternative AI assistant
 
-;; To install a package directly from a remote git repo, you must specify a
-;; `:recipe'. You'll find documentation on what `:recipe' accepts here:
-;; https://github.com/radian-software/straight.el#the-recipe-format
-;; (package! another-package
-;;   :recipe (:host github :repo "username/repo"))
+;; =====================================================================
+;; NOTE-TAKING & KNOWLEDGE MANAGEMENT
+;; =====================================================================
+;; Comprehensive note-taking system with organization and search
+;; → lisp/init-denote.el
 
-;; If the package you are trying to install does not contain a PACKAGENAME.el
-;; file, or is located in a subdirectory of the repo, you'll need to specify
-;; `:files' in the `:recipe':
-;; (package! this-package
-;;   :recipe (:host github :repo "username/repo"
-;;            :files ("some-file.el" "src/lisp/*.el")))
+(package! denote)                     ; Simple and powerful note-taking system
+(package! denote-journal)             ; Journal entries integration with denote
+(package! denote-explore)             ; Explore and navigate between notes
+(package! denote-markdown)            ; Markdown support for denote
+(package! denote-org)                 ; Org-mode support for denote
+(package! denote-sequence)            ; Sequential note-taking workflows
+(package! denote-menu)                ; Menu interface for note operations
+(package! consult-denote)             ; Consult integration for fast note search
+(package! citar-denote)               ; Bibliography integration with denote
+(package! consult-notes)              ; General note searching with consult
 
-;; If you'd like to disable a package included with Doom, you can do so here
-;; with the `:disable' property:
-;; (package! builtin-package :disable t)
+;; =====================================================================
+;; BIBLIOGRAPHY & ACADEMIC TOOLS
+;; =====================================================================
+;; Research paper and citation management system
+;; → lisp/init-bibliography.el
 
-;; You can override the recipe of a built in package without having to specify
-;; all the properties for `:recipe'. These will inherit the rest of its recipe
-;; from Doom or MELPA/ELPA/Emacsmirror:
-;; (package! builtin-package :recipe (:nonrecursive t))
-;; (package! builtin-package-2 :recipe (:repo "myfork/package"))
+(package! citar)                   ; Citation management with Helm/Consult (disabled)
+(package! biblio)                  ; Academic paper lookup and management (disabled)
 
-;; Specify a `:branch' to install a package from a particular branch or tag.
-;; This is required for some packages whose default branch isn't 'master' (which
-;; our package manager can't deal with; see radian-software/straight.el#279)
-;; (package! builtin-package :recipe (:branch "develop"))
+;; =====================================================================
+;; ORG-MODE ENHANCEMENTS
+;; =====================================================================
+;; Extended functionality for Emacs Org-mode
+;; → lisp/init-org.el
 
-;; Use `:pin' to specify a particular commit to install.
-;; (package! builtin-package :pin "1a2b3c4d5e")
+(package! org-appear)                 ; Auto-hide/show markup in Org-mode
+(package! org-ql)                     ; Query language for Org-mode files
+(package! org-super-agenda)           ; Enhanced agenda views and grouping
+(package! org-download)               ; Drag-and-drop image/link insertion
 
+;; =====================================================================
+;; TIME MANAGEMENT & PRODUCTIVITY
+;; =====================================================================
+;; Time tracking and productivity enhancement tools
+;; → lisp/init-timing.el
 
-;; Doom's packages are pinned to a specific commit and updated from release to
-;; release. The `unpin!' macro allows you to unpin single packages...
-;; (unpin! pinned-package)
-;; ...or multiple packages
-;; (unpin! pinned-package another-pinned-package)
-;; ...Or *all* packages (NOT RECOMMENDED; will likely break things)
-;; (unpin! t)
-(package! denote)
+(package! pomm)                       ; Pomodoro timer and productivity tracker
+
+;; =====================================================================
+;; UI ENHANCEMENT & VISUAL TOOLS
+;; =====================================================================
+
+(package! circadian)                  ; Automatic theme switching (day/night modes)
+(package! beacon)                     ; Highlight cursor position after scrolling/jumping
+(package! keycast)                    ; Display current command/key sequence in mode line
+;;(package! all-the-icons-ibuffer)      ; Add file type icons to buffer list
+
+;; =====================================================================
+;; GIT INTEGRATION & VERSION CONTROL
+;; =====================================================================
+
+(package! git-link)                   ; Generate GitHub/GitLab URLs for current file/line
+(package! magit-delta)                ; Enhanced diff display using delta for magit
+
+;; =====================================================================
+;; PRODUCTIVITY & WORKFLOW AUTOMATION
+;; =====================================================================
+
+(package! makefile-executor)          ; Execute Makefile targets with ease
+(package! prodigy)                    ; Process management for development servers/services
+(package! format-all)                 ; Universal code formatter supporting many languages
+(package! consult-todo)               ; Browse and jump to TODO items using consult
+
+;; =====================================================================
+;; DEVELOPMENT TOOLS & TERMINAL
+;; =====================================================================
+
+(package! restclient)                 ; HTTP requests testing and API exploration
+(package! eat)                        ; Terminal emulator package for running shells

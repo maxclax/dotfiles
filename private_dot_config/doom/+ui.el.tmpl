@@ -1,0 +1,95 @@
+;;; +ui.el -*- mode: emacs-lisp; lexical-binding: t; -*-
+
+;; Set fallback theme
+(setq fancy-splash-image (concat doom-private-dir "assets/GNUEmacs.png"))
+
+(use-package! circadian
+              :config
+              (setq circadian-themes '(("5:00" . doom-one-light)
+                                       ("21:00" . doom-one)))
+
+              ;; Determine the correct initial theme based on current time
+              (let* ((hour-now (string-to-number (format-time-string "%H")))
+                     (minute-now (string-to-number (format-time-string "%M")))
+                     (time-now (+ (* hour-now 60) minute-now))
+                     (light-start (+ (* 5 60) 0))   ;; 5:00 in minutes
+                     (dark-start (+ (* 18 60) 30))) ;; 18:30 in minutes
+
+                ;; Set the initial theme based on current time
+                (setq doom-theme
+                      (if (and (>= time-now light-start)
+                               (< time-now dark-start))
+                          'doom-one-light ;; During day (5:00-18:30)
+                        'doom-one)))      ;; During night
+
+              ;; Setup circadian for automatic switching
+              (circadian-setup))
+
+;; highlighting after scrolling/jumping
+(beacon-mode 1)
+
+;; Perfect font + theme for emacsclient frames
+(setq display-line-numbers-type t)
+;; (setq display-line-numbers-type 'relative)
+;; Perfect font + theme for emacsclient frames (2025 version)
+(defun my/apply-gui-settings (&optional frame)
+  "Apply font and current theme to FRAME (or current frame)."
+  (when (display-graphic-p frame)
+    (when (bound-and-true-p circadian--current-theme)
+      (load-theme circadian--current-theme t))
+    (set-face-attribute 'default nil
+                        :font "Berkeley Mono Variable-18"
+                        :weight 'normal)))
+
+;; Apply on startup
+(my/apply-gui-settings)
+
+;; Apply to every new emacsclient frame
+(add-hook 'after-make-frame-functions #'my/apply-gui-settings)
+
+
+(setq-default fill-column 120
+              delete-trailing-lines t)
+
+
+(setq doom-modeline-height 30     ;; sets modeline height
+      doom-modeline-bar-width 5   ;; sets right bar width
+      doom-modeline-persp-name t  ;; adds perspective name to modeline
+      doom-modeline-persp-icon t) ;; adds folder icon next to persp name
+
+;; Enable rainbow-mode globally
+(use-package rainbow-mode
+  :ensure t
+  :hook ((prog-mode text-mode conf-mode) . rainbow-mode))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; LOG
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package! keycast
+  :config
+  ;; Enable keycast-header-line-mode by default
+  (keycast-header-line-mode 1)
+  ;; Optional: customize keycast appearance
+  (setq keycast-header-line-format "%2s%k%c%R")
+  ;; Show in header line instead of mode line for cleaner look
+  (setq keycast-insert-after 'mode-line-buffer-identification))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; COMPLETION
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; ── Corfu + childframe (your actual completion stack) ─────
+(after! corfu
+  (setq +corfu-want-ret-to-confirm "both")
+
+  ;; Make childframe prettier + faster
+  (setq corfu-popupinfo-delay '(0.5 . 0.5))  ; docs appear after 0.5s
+  (corfu-popupinfo-mode 1))
+
+(after! vertico-posframe
+  (setq vertico-posframe-border-width 3
+        vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
+        vertico-posframe-parameters '((left-fringe . 8)
+                                      (right-fringe . 8))))
