@@ -42,6 +42,18 @@
     };
 
     extraConfig = ''
+      # Emacs-style movement (add these lines)
+      map <C-f> move right=1
+      map <C-b> move left=1
+      map <M-f> move word_forward
+      map <M-b> move word_backward
+      map <C-a> move to=0
+      map <C-e> move to=-1
+      map <C-n> move down=1
+      map <C-p> move up=1
+      # map <C-d> delete
+      # map <C-k> cut line
+
       # Custom aliases
       alias e    edit
       alias q    quit
@@ -61,8 +73,6 @@
       # Custom commands
       map DD shell mv %s ~/.Trash
       map dT shell trash-put %s
-      map <C-f> fzf_select
-      map <C-g> fzf_locate
       map bg shell cp %s ~/Desktop
       map mkd console mkdir%space
       map sc shell du -sh %s
