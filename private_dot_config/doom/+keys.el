@@ -1,47 +1,18 @@
 ;; +keys.el -*- lexical-binding: t; -*-
 
-(when IS-MAC (setq mac-command-modifier 'meta
-                   mac-option-modifier  'alt))
+
+(when IS-MAC
+    (setq mac-option-modifier 'meta
+          mac-right-option-modifier 'meta
+          mac-command-modifier 'super))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; (map! :leader
-;;       :desc "Fix too many open files" "K" #'file-notify-rm-all-watches
-;;       :desc "Remove perspective by name"       "-" #'persp-remove-by-name)
-
 
 ;; ;; Buffers
 ;; (map! :leader
 ;;       :prefix "b"
-;;       :desc "Make buffer empty" "e" #'+my/erase-buffer-no-yank
-;;       :desc "Revert buffer" "r" #'revert-buffer-no-confirm
-;;       ;; :desc "Reload buffer" "R" #'reload-buffer-no-confirm
 ;;       :desc "Format-all buffer"      "f" #'format-all-buffer)
 
-
-;; ;; Code
-;; (map! :leader
-;;       :prefix "c"
-;;       :desc "Format-all buffer"      "f" #'format-all-buffer
-;;       "F" #'+my/untabify-buffer
-;;       :desc "Check grammar"          "g" #'langtool-check-buffer
-;;       :desc "Done Check grammar"     "G" #'langtool-check-done
-;;       (:when (modulep! :tools lsp +eglot)
-;;         :desc "Eglot organize imports"   "I" #'eglot-code-action-organize-imports
-;;         :desc "Eglot workspace restart"  "R" #'eglot-reconnect
-;;         :desc "Eglot quickfix" "q" #'eglot-code-action-quickfix
-;;         )
-;;       (:when (not (modulep! :tools lsp +eglot))
-;;         :desc "LSP organize imports"   "I" #'lsp-organize-imports
-;;         :desc "LSP workspace restart"  "R" #'lsp-workspace-restart
-;;         :desc "Treemacs references"    "D" #'lsp-treemacs-references))
-
-;; ;; Debug
-;; (map! :leader
-;;       (:prefix ("d" . "debug")
-;;        :desc "dape breakpoint toggle" "b" #'+my/dape-breakpoint-toggle
-;;        :desc "dape breakpoint remove all" "B" #'+my/dape-breakpoint-remove-all
-;;        ))
 
 
 ;; ;; Files

@@ -28,12 +28,12 @@ alias ec='emacsclient -c -n'  # GUI Emacs (non-blocking)
 alias killemacs='emacsclient -e "(kill-emacs)"'
 
 # Emacs commands for different distributions
-alias doom={{ .chezmoi.homeDir }}/.config/emacs/bin/doom
+alias doom={{ .chezmoi.homeDir }}/.config/doomemacs/bin/doom
 
 # GUI Emacs launchers for different distributions (non-blocking)
 alias emacs-default='emacs &'
 {{ if or (eq .emacsType "Doom") .emacsLoadAllDistros -}}
-alias emacs-doom='emacs --init-directory={{ .chezmoi.homeDir }}/.config/emacs &'
+alias emacs-doom='emacs --init-directory={{ .chezmoi.homeDir }}/.config/doomemacs &'
 {{- end }}
 {{ if or (eq .emacsType "prelude") .emacsLoadAllDistros -}}
 alias emacs-prelude='emacs --init-directory={{ .chezmoi.homeDir }}/.config/preludeemacs.d &'
@@ -43,7 +43,7 @@ alias emacs-purcell='emacs --init-directory={{ .chezmoi.homeDir }}/.config/purce
 {{- end }}
 
 # Emacs server commands for different distributions
-alias emacs-server-doom='emacs --daemon --init-directory={{ .chezmoi.homeDir }}/.config/emacs'
+alias emacs-server-doom='emacs --daemon --init-directory={{ .chezmoi.homeDir }}/.config/doomemacs'
 alias emacs-server-prelude='emacs --daemon --init-directory={{ .chezmoi.homeDir }}/.config/preludeemacs.d'
 alias emacs-server-purcell='emacs --daemon --init-directory={{ .chezmoi.homeDir }}/.config/purcellemacs.d'
 alias emacs-server-default='emacs --daemon'

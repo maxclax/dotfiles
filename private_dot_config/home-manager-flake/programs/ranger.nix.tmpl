@@ -103,30 +103,30 @@
       map ggL shell git log --oneline
     '';
 
-    rifle = [
-      # Text files
-      { condition = "mime ^text, label editor"; command = "nvim -- \"$@\""; }
-      { condition = "mime ^text, label pager"; command = "bat -- \"$@\""; }
+    # rifle = [
+    #   # Text files
+    #   { condition = "mime ^text, label editor"; command = "nvim -- \"$@\""; }
+    #   { condition = "mime ^text, label pager"; command = "bat -- \"$@\""; }
 
-      # Code files
-      { condition = "ext py"; command = "nvim -- \"$@\""; }
-      { condition = "ext js|ts|jsx|tsx|json|yaml|yml|toml"; command = "nvim -- \"$@\""; }
-      { condition = "ext nix|conf|config|cfg"; command = "nvim -- \"$@\""; }
+    #   # Code files
+    #   { condition = "ext py"; command = "nvim -- \"$@\""; }
+    #   { condition = "ext js|ts|jsx|tsx|json|yaml|yml|toml"; command = "nvim -- \"$@\""; }
+    #   { condition = "ext nix|conf|config|cfg"; command = "nvim -- \"$@\""; }
 
-      # Documents
-      { condition = "ext pdf"; command = "open -- \"$@\""; }
-      { condition = "ext docx?|xlsx?|pptx?"; command = "open -- \"$@\""; }
+    #   # Documents
+    #   { condition = "ext pdf"; command = "open -- \"$@\""; }
+    #   { condition = "ext docx?|xlsx?|pptx?"; command = "open -- \"$@\""; }
 
-      # Media
-      { condition = "mime ^image"; command = "open -- \"$@\""; }
-      { condition = "mime ^video"; command = "open -- \"$@\""; }
-      { condition = "mime ^audio"; command = "open -- \"$@\""; }
+    #   # Media
+    #   { condition = "mime ^image"; command = "open -- \"$@\""; }
+    #   { condition = "mime ^video"; command = "open -- \"$@\""; }
+    #   { condition = "mime ^audio"; command = "open -- \"$@\""; }
 
-      # Archives
-      { condition = "ext zip|tar|gz|bz2|xz"; command = "aunpack -- \"$@\""; }
+    #   # Archives
+    #   { condition = "ext zip|tar|gz|bz2|xz"; command = "aunpack -- \"$@\""; }
 
-      # Directories
-      { condition = "directory"; command = "ranger -- \"$@\""; }
-    ];
+    #   # Directories
+    #   { condition = "directory"; command = "ranger -- \"$@\""; }
+    # ];
   };
 }

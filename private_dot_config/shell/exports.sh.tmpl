@@ -128,7 +128,14 @@ export EDITOR="nvim"               # Default system editor
 {{ if eq .editor "emacsclient" }}
 export GIT_EDITOR="emacsclient -t"
 export EDITOR="emacsclient -t"
-export VISUAL="emacsclient -c"
+export ALTERNATE_EDITOR="emacs -nw"
+
+# Only use GUI (-c) when we are in an interactive terminal AND have a display
+if [[ -n "$DISPLAY" || -n "$WAYLAND_DISPLAY" ]] && [[ -t 1 ]]; then
+    export VISUAL="emacsclient -c"     # GUI only when it really works
+else
+    export VISUAL="$EDITOR"            # fall back to terminal version
+fi
 {{ end }}
 
 # ============================================================================
