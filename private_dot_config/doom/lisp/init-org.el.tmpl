@@ -76,7 +76,11 @@
                    (org-agenda-files (directory-files-recursively
                                      (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\\.org$"))
                    (org-agenda-sorting-strategy '(timestamp-down))
-                   (org-agenda-max-entries 5)))
+                   (org-agenda-max-entries 5)
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (when (member "someday" (org-get-tags))
+                         (or (outline-next-heading) (point-max)))))))
             (tags-todo "INBOX"
                   ((org-agenda-overriding-header "📥 Inbox - Process These")
                    (org-tags-match-list-sublevels nil)))

@@ -145,25 +145,25 @@
     (message "❌ No staged changes found")))
 
 (use-package! copilot
-  :hook (prog-mode . copilot-mode)
-  ;; :bind (:map copilot-completion-map
-  ;;             ("<tab>" . 'copilot-accept-completion)
-  ;;             ("TAB" . 'copilot-accept-completion)
-  ;;             ("C-TAB" . 'copilot-accept-completion-by-word)
-  ;;             ("C-<tab>" . 'copilot-accept-completion-by-word)
-  ;;             ("M-n" . 'copilot-next-completion)
-  ;;             ("M-p" . 'copilot-previous-completion))
-  :config
-  (setq copilot-max-char 50000)
-  (setq copilot-idle-delay 1)
+              :hook (prog-mode . copilot-mode)
+              :bind (:map copilot-completion-map
+                          ("<tab>" . 'copilot-accept-completion)
+                          ("TAB" . 'copilot-accept-completion)
+                          ("C-TAB" . 'copilot-accept-completion-by-word)
+                          ("C-<tab>" . 'copilot-accept-completion-by-word)
+                          ("M-n" . 'copilot-next-completion)
+                          ("M-p" . 'copilot-previous-completion))
+              :config
+              (setq copilot-max-char 50000)
+              (setq copilot-idle-delay 1)
 
-  (add-to-list 'copilot-indentation-alist '(web-mode 2))
-  (add-to-list 'copilot-indentation-alist '(html-mode 2))
-  (add-to-list 'copilot-indentation-alist '(markdown-mode 2))
-  (add-to-list 'copilot-indentation-alist '(prog-mode 2))
-  (add-to-list 'copilot-indentation-alist '(org-mode 2))
-  (add-to-list 'copilot-indentation-alist '(text-mode 2))
-  (add-to-list 'copilot-indentation-alist '(closure-mode 2))
-  (add-to-list 'copilot-indentation-alist '(emacs-lisp-mode 2)))
+              (add-to-list 'copilot-indentation-alist '(web-mode 2))
+              (add-to-list 'copilot-indentation-alist '(html-mode 2))
+              (add-to-list 'copilot-indentation-alist '(markdown-mode 2))
+              (add-to-list 'copilot-indentation-alist '(prog-mode 2))
+              (add-to-list 'copilot-indentation-alist '(org-mode 2))
+              (add-to-list 'copilot-indentation-alist '(text-mode 2))
+              (add-to-list 'copilot-indentation-alist '(closure-mode 2))
+              (add-to-list 'copilot-indentation-alist '(emacs-lisp-mode 2)))
 
 (provide 'init-ai)

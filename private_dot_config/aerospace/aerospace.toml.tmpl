@@ -78,8 +78,8 @@ cmd-shift-space = 'layout floating tiling' # in i3
 cmd-alt-f = 'fullscreen' # in i3 (but no cmd)
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
-cmd-1 = 'workspace 1' # GTD (OmniFocus), Drafts, Loqseq
-cmd-2 = 'workspace 2' # Obsidian
+cmd-1 = 'workspace 1' # Left display
+cmd-2 = 'workspace 2' # Obsidian, Drafts, Loqseq
 cmd-3 = 'workspace 3' # Browser
 cmd-4 = 'workspace 4' # Free special
 cmd-5 = 'workspace 5' # AI GUI chats
@@ -89,7 +89,7 @@ cmd-8 = 'workspace 8' # Media in Safari (Netflix...), Communication, Musics and 
 cmd-9 = 'workspace 9' # AI CLI & Agents
 cmd-0 = 'workspace 10' # Terminal
 
-cmd-a = 'workspace A'
+# cmd-a = 'workspace A'
 # alt-b = 'workspace B'
 # alt-c = 'workspace C'
 # alt-d = 'workspace D'
@@ -124,7 +124,7 @@ cmd-ctrl-8 = 'move-node-to-workspace 8'
 cmd-ctrl-9 = 'move-node-to-workspace 9'
 cmd-ctrl-0 = 'move-node-to-workspace 10'
 
-cmd-ctrl-a = 'move-node-to-workspace A'
+# cmd-ctrl-a = 'move-node-to-workspace A'
 # cmd-ctrl-b = 'move-node-to-workspace B'
 # cmd-ctrl-c = 'move-node-to-workspace C'
 # cmd-ctrl-d = 'move-node-to-workspace D'
@@ -160,17 +160,16 @@ cmd-r = 'mode resize' # in i3
 # ---------------------------------------------------------
 
 # ---------------------------------------------------------
-
 [[on-window-detected]]
-if.app-id = 'com.omnigroup.OmniFocus4'
-run = "move-node-to-workspace 1"
+if.app-id = 'net.publicspace.dist.vitaminr4'
+run = ["layout tiling", "move-node-to-workspace 1"]
+
 [[on-window-detected]]
 if.app-id = 'com.agiletortoise.Drafts-OSX'
-run = "move-node-to-workspace 1"
+run = "move-node-to-workspace 2"
 [[on-window-detected]]
 if.app-id = 'com.electron.logseq'
-run = "move-node-to-workspace 1"
-
+run = "move-node-to-workspace 2"
 [[on-window-detected]]
 if.app-id = 'md.obsidian'
 run = "move-node-to-workspace 2"
@@ -251,9 +250,6 @@ run = ["layout floating"]
 if.app-id = "com.runningwithcrayons.Alfred-Preferences"
 run = ["layout floating"]
 
-[[on-window-detected]]
-if.app-id = 'net.publicspace.dist.vitaminr4'
-run = ["layout tiling", "move-node-to-workspace A"]
 
 [[on-window-detected]]
 if.app-name-regex-substring = '^.*$'
@@ -272,11 +268,10 @@ run = 'move-node-to-workspace 8'
 #8 = '2'   # Media in Safari (Netflix...), Communication, Musics and Undifined apps
 #9 = '2'   # AI CLI & Agents
 ## 0 = 'main'      # terminal
-#A = '1'      # Extras
 
 [workspace-to-monitor-force-assignment]
-# 1 = 'main'      # GTD (OmniFocus), Drafts, Logseq
-2 = '3'   # Obsidian
+1 = '1'    # Left display
+2 = 'main' # GTD (OmniFocus), Drafts, Logseq
 # 3 = 'main'      # Browser
 # 4 = 'main'   # Free special
 5 = '3'   # AI GUI chats
@@ -285,4 +280,3 @@ run = 'move-node-to-workspace 8'
 8 = '3'   # Media in Safari (Netflix...), Communication, Musics and Undifined apps
 9 = '3'   # AI CLI & Agents
 # 0 = 'main'      # terminal
-A = '1'      # Extras

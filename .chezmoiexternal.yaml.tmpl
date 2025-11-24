@@ -34,16 +34,6 @@
   refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
 {{ end }}
 
-{{ if or (eq .emacsType "purcell") .emacsLoadAllDistros }}
-".config/emacs":
-  type: "git-repo"
-  url: "https://github.com/maxclax/emacs.d.git"
-  args:
-    - "--depth=1"
-  exact: true
-  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
-{{ end }}
-
 {{ if or (eq .emacsType "prelude") .emacsLoadAllDistros }}
 ".config/preludeemacs.d":
   type: "git-repo"
