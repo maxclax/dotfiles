@@ -1,0 +1,3 @@
+[submodule "private_dot_config/emacs"]
+	path = private_dot_config/emacs
+	url = https://github.com/maxclax/emacs.d.git
