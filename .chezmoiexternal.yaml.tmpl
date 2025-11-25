@@ -25,19 +25,9 @@
 {{ end }}
 
 {{ if or (eq .emacsType "Doom") .emacsLoadAllDistros }}
-".config/doomemacs":
+".config/emacs":
   type: "git-repo"
   url: "https://github.com/doomemacs/doomemacs.git"
-  args:
-    - "--depth=1"  
-  exact: true
-  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
-{{ end }}
-
-{{ if or (eq .emacsType "prelude") .emacsLoadAllDistros }}
-".config/preludeemacs.d":
-  type: "git-repo"
-  url: "https://github.com/bbatsov/prelude.git"
   args:
     - "--depth=1"  
   exact: true
@@ -50,5 +40,4 @@
   url: "https://github.com/alacritty/alacritty-theme"
   exact: true
   refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
-
 {{ end }}

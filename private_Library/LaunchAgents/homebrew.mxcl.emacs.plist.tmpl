@@ -9,11 +9,7 @@
     <array>
         <string>/opt/homebrew/bin/emacs</string>
         <string>--daemon</string>
-    {{- if eq .emacsType "Doom" }}
-    <string>--init-directory={{ .chezmoi.homeDir }}/.config/doomemacs</string>
-    {{- else if eq .emacsType "prelude" }}
-    <string>--init-directory={{ .chezmoi.homeDir }}/.config/preludeemacs.d</string>
-    {{- else if eq .emacsType "purcell" }}
+    {{- if eq .emacsType "purcell" }}
     <string>--init-directory={{ .chezmoi.homeDir }}/.config/purcellemacs.d</string>
     {{- else }}
     <string>--init-directory={{ .chezmoi.homeDir }}/.config/emacs</string>
