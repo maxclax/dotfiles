@@ -8,77 +8,100 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun +my/setup-clean-c-c-bindings ()
-  ;; Also clear in override map to prevent conflicts
+  ;; Clear specific prefixes in override map
   (when (boundp 'general-override-mode-map)
-    (define-key general-override-mode-map (kbd "C-c n") (make-sparse-keymap)))
+    (define-key general-override-mode-map (kbd "C-c n") (make-sparse-keymap))
+    (define-key general-override-mode-map (kbd "C-c p") (make-sparse-keymap))
+    (define-key general-override-mode-map (kbd "C-c o") (make-sparse-keymap)))
 
-  ;; Apply your custom C-c bindings with highest priority
+  ;; Apply your custom C-c bindings directly to global map
   (map!
    (:map override
-         "C-c a"     #'org-agenda
-         "C-c x"     #'org-capture
+         :desc "Org agenda" "C-c a" #'org-agenda
+         :desc "Org capture" "C-c x" #'org-capture
 
-         "C-c b f"   #'format-all-buffer
+         (:prefix ("C-c b" . "Buffers")
+          :desc "Format buffer" "f" #'format-all-buffer)
 
-         "C-c F j"   #'dirvish-dwim
-         "C-c F n"   #'+default/yank-filename
+         (:prefix ("C-c F" . "Files")
+          :desc "Dirvish DWIM" "j" #'dirvish-dwim
+          :desc "Yank filename" "n" #'+default/yank-filename)
 
-         "C-c g A"   #'+my/smart-commit
-         "C-c g a"   #'+my/commit-with-ai
+         (:prefix ("C-c g" . "Git")
+          :desc "Smart commit" "A" #'+my/smart-commit
+          :desc "AI commit" "a" #'+my/commit-with-ai)
 
-         "C-c i t D" #'org-download-delete
-         "C-c i t d" #'my/open-templates-directory
-         "C-c i t f" #'my/org-attach-file-and-insert-link
-         "C-c i t F" #'my/org-attach-multiple-files-and-insert-links
-         "C-c i t i" #'my/insert-template
-         "C-c i t s" #'org-download-screenshot
-         "C-c i t u" #'org-download-image
-         "C-c i t y" #'org-download-clipboard
+         (:prefix ("C-c i" . "Insert")
+          (:prefix ("t" . "Templates")
+           :desc "Delete image" "D" #'org-download-delete
+           :desc "Templates directory" "d" #'my/open-templates-directory
+           :desc "Attach file" "f" #'my/org-attach-file-and-insert-link
+           :desc "Attach multiple files" "F" #'my/org-attach-multiple-files-and-insert-links
+           :desc "Insert template" "i" #'my/insert-template
+           :desc "Screenshot" "s" #'org-download-screenshot
+           :desc "Download image" "u" #'org-download-image
+           :desc "Clipboard image" "y" #'org-download-clipboard))
 
-         "C-c l p l" #'list-processes
-         "C-c l p p" #'prodigy
-         "C-c l s c" (lambda () (interactive) (compile "cd ~/ && chezmoi apply"))
-         "C-c l t"   #'hl-todo-insert
-         "C-c l x"   #'align-regexp
+         (:prefix ("C-c l" . "Tools")
+          (:prefix ("p" . "Process")
+           :desc "List processes" "l" #'list-processes
+           :desc "Prodigy" "p" #'prodigy)
+          (:prefix ("s" . "Shell")
+           :desc "Chezmoi apply" "c" (lambda () (interactive) (compile "cd ~/ && chezmoi apply")))
+          :desc "Insert TODO" "t" #'hl-todo-insert
+          :desc "Align regexp" "x" #'align-regexp)
 
-         "C-c n b"   #'denote-backlinks
-         "C-c n d"   #'denote-dired
-         "C-c n g"   #'denote-grep
-         "C-c n j"   #'denote-journal-new-or-existing-entry
-         "C-c n l"   #'denote-link
-         "C-c n n"   #'denote
-         "C-c n r"   #'denote-rename-file
-         "C-c n S"   #'consult-notes-search-in-all-notes
-         "C-c n s"   #'consult-notes
+         (:prefix ("C-c n" . "Notes")
+          :desc "Denote backlinks" "b" #'denote-backlinks
+          :desc "Denote dired" "d" #'denote-dired
+          :desc "Denote grep" "g" #'denote-grep
+          :desc "Denote journal" "j" #'denote-journal-new-or-existing-entry
+          :desc "Denote link" "l" #'denote-link
+          :desc "New denote" "n" #'denote
+          :desc "Denote rename" "r" #'denote-rename-file
+          :desc "Search all notes" "S" #'consult-notes-search-in-all-notes
+          :desc "Consult notes" "s" #'consult-notes)
 
-         ;; "C-c o c"   #'org-clock-in-last
-         ;; "C-c o i"   #'org-clock-in
-         ;; "C-c o j"   #'org-clock-goto
-         ;; "C-c o o"   #'org-clock-out
+         (:prefix ("C-c o" . "Open")
+          :desc "Dired jump" "-" #'dired-jump
+          :desc "Dirvish" "/" #'dirvish
+          :desc "Dirvish sidebar" "p" #'dirvish-side
+          :desc "Reveal in Finder" "O" #'+macos/reveal-project-in-finder
+          :desc "Open link" "x" #'link-hint-open-link
+          :desc "Open link at point" "X" #'link-hint-open-link-at-point)
 
-         "C-c O x"   #'link-hint-open-link
-         "C-c O X"   #'link-hint-open-link-at-point
+         (:prefix ("C-c p" . "Project")
+          :desc "Search project" "s" #'+default/search-project
+          :desc "Search symbol in notes" "." #'+default/search-notes-for-symbol-at-point
+          :desc "Switch project" "p" #'projectile-switch-project
+          :desc "Recent files" "e" #'projectile-recentf
+          :desc "Find file" "f" #'projectile-find-file
+          :desc "Find file other project" "F" #'doom/find-file-in-other-project
+          :desc "Kill project buffers" "k" #'projectile-kill-buffers
+          (:prefix ("t" . "TODOs")
+           :desc "Insert TODO comment" "i" #'hl-todo-insert
+           :desc "Search TODOs" "t" (lambda () (interactive)
+                                       (if (projectile-project-p)
+                                           (consult-ripgrep (projectile-project-root) "TODO:")
+                                         (message "Not in a project")))))
 
-         "C-c p t i" #'hl-todo-insert
-         "C-c p t l" #'magit-todos-list
-         "C-c p t t" (lambda () (interactive)
-                        (if (projectile-project-p)
-                            (consult-ripgrep (projectile-project-root) "TODO")
-                          (message "Not in a project")))
-         "C-c p t T" (lambda () (interactive)
-                        (if (projectile-project-p)
-                            (consult-ripgrep (projectile-project-root) "TODO\\|HACK\\|TEMP\\|DONE\\|NOTE\\|DONT\\|DEBUG\\|FAIL\\|FIXME")
-                          (message "Not in a project")))
-         "C-c p t u" #'magit-todos-update
-
-         "C-c t K"   #'keycast-log-mode
-         "C-c t k"   #'keycast-header-line-mode
-         "C-c t t p" #'pomm-pause
-         "C-c t t r" #'pomm-reset
-         "C-c t t s" #'pomm-start
-         "C-c t t S" #'pomm-stop
-         "C-c t t t" #'pomm)))
+         (:prefix ("C-c t" . "Toggles/Timing")
+          :desc "Keycast log mode" "K" #'keycast-log-mode
+          :desc "Keycast header mode" "k" #'keycast-header-line-mode
+          (:prefix ("t" . "Timer")
+           :desc "Pause timer" "p" #'pomm-pause
+           :desc "Reset timer" "r" #'pomm-reset
+           :desc "Start timer" "s" #'pomm-start
+           :desc "Stop timer" "S" #'pomm-stop
+           :desc "Pomm timer" "t" #'pomm)))))
 
 
 ;; Apply after Doom finishes loading (for startup)
 (add-hook 'doom-first-buffer-hook #'+my/setup-clean-c-c-bindings)
+
+;; Apply very late to override any packages that load after us
+(add-hook 'window-setup-hook #'+my/setup-clean-c-c-bindings)
+
+;; Also apply when switching buffers (in case mode-specific bindings interfere)
+(add-hook 'buffer-list-update-functions
+          (lambda () (+my/setup-clean-c-c-bindings)))

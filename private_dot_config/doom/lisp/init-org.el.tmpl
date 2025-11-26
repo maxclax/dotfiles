@@ -57,7 +57,6 @@
   ;; Custom commands
   (setq org-agenda-custom-commands
         '(;; Default agenda (no DONE)
-          ("a" "Agenda" agenda "") 
 
           ;; Show completed tasks
           ("c" "Completed tasks"
@@ -166,17 +165,20 @@
           ;; Eisenhower Matrix (using priorities)
           ("E" "Eisenhower Matrix"
            ((tags-todo "PRIORITY=\"A\""
-                       ((org-agenda-overriding-header "🔥 DO (Priority A = I-U)")))
-            (tags-todo "PRIORITY=\"B\""
-                       ((org-agenda-overriding-header "📅 SCHEDULE (Priority B = I-NU)")))
-            (tags-todo "PRIORITY=\"C\""
-                       ((org-agenda-overriding-header "👥 DELEGATE (Priority C = NI-U)")))
-            (tags-todo "PRIORITY=\"D\"|PRIORITY=\"\""
-                       ((org-agenda-overriding-header "🗑️ DELETE (Priority D = NI-NU)")
+                       ((org-agenda-overriding-header "🔥 DO (Priority A = I-U)")
                         (org-agenda-skip-function
                          '(lambda ()
-                            (or (org-agenda-skip-entry-if 'scheduled 'deadline 'timestamp)
-                                (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD")))))))))))
+                            (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))))))
+            (tags-todo "PRIORITY=\"B\""
+                       ((org-agenda-overriding-header "📅 SCHEDULE (Priority B = I-NU)")
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))))))
+            (tags-todo "PRIORITY=\"C\""
+                       ((org-agenda-overriding-header "👥 DELEGATE (Priority C = NI-U)")
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))))))))))
 
   ;; Eisenhower Matrix agenda function
   (defun my/eisenhower-matrix-agenda ()
