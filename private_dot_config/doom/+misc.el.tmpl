@@ -43,6 +43,12 @@
 
     (add-to-list 'dirvish-preview-dispatchers 'lla))
 
+  ;; Add C-f/C-b navigation for diving into folders and going back
+  (map! :map dirvish-mode-map
+        "C-f" #'dired-find-file
+        "C-b" #'dired-up-directory
+        "TAB" #'dirvish-subtree-toggle)
+
   (defun dirvish-copy-file-relative-path (&optional multi-line)
     "Copy filepath of marked files.
     If MULTI-LINE, make every path occupy a new line."

@@ -4,6 +4,7 @@
 ;;       user-mail-address "dev@site.com")
 
 ;; Load all configuration modules
+(load! "lisp/init-lsp.el")
 (load! "lisp/init-reading.el")
 ;; (load! "lisp/init-git.el")
 (load! "lisp/init-org.el")

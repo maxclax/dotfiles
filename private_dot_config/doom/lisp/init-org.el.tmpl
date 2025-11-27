@@ -46,13 +46,13 @@
         org-agenda-skip-deadline-if-done t
         org-agenda-skip-timestamp-if-done t)
 
-  ;; Show TODO subtasks as individual agenda items
-  (setq org-agenda-todo-list-sublevels t)
-  (setq org-tags-match-list-sublevels t)
+  ;; ;; Show TODO subtasks as individual agenda items
+  ;; (setq org-agenda-todo-list-sublevels t)
+  ;; (setq org-tags-match-list-sublevels t)
 
-  ;; Show subtasks of scheduled items in agenda
-  (setq org-agenda-show-inherited-tags nil)
-  (setq org-agenda-use-tag-inheritance nil)
+  ;; ;; Show subtasks of scheduled items in agenda
+  ;; (setq org-agenda-show-inherited-tags nil)
+  ;; (setq org-agenda-use-tag-inheritance nil)
 
   ;; Custom commands
   (setq org-agenda-custom-commands
@@ -67,7 +67,7 @@
 
           ;; GTD Full Review with Journal Integration
           ("d" "Dashboard (GTD)"
-           ((agenda "" ((org-agenda-span 'day)
+           ((agenda "" ((org-agenda-span 3)
                        (org-agenda-overriding-header "📅 Today")
                        (org-agenda-todo-list-sublevels t)))
             (todo "TODO"
@@ -153,14 +153,6 @@
                   ((org-agenda-overriding-header "📅 All Review Items")
                    (org-agenda-sorting-strategy '(property-up))))))
 
-          ;; GTD Focus View (inspired by EWS)
-          ("g" "GTD Focus"
-           ((agenda "" ((org-agenda-overriding-header "📅 Next 3 Days:")
-                       (org-agenda-span 3)
-                       (org-agenda-start-on-weekday nil)))
-            (todo "NEXT" ((org-agenda-overriding-header "⚡ Next Actions:")))
-            (todo "WAITING" ((org-agenda-overriding-header "⏳ Waiting For:")))
-            (todo "PROJECT" ((org-agenda-overriding-header "📁 Active Projects:")))))
 
           ;; Eisenhower Matrix (using priorities)
           ("E" "Eisenhower Matrix"
@@ -201,10 +193,10 @@
   (setq org-default-notes-file (concat {{ .primary_cloud | quote }} "/\!org/inbox.org"))
   (setq org-capture-templates
         '(;; Clean capture templates (no timestamps, links, or content)
-          ("t" "INBOX: Todo (clean)" entry (file+headline org-default-notes-file "Tasks")
+          ("t" "INBOX: Todo (clean)" entry (file org-default-notes-file)
            "* TODO %?")
           ;; Full context capture templates
-          ("c" "INBOX: Todo (full)" entry (file+headline org-default-notes-file "Tasks")
+          ("c" "INBOX: Todo (full)" entry (file org-default-notes-file)
            "* TODO %?\n%U\n  %i\n  %a" :clock-resume t)
           ("P" "PROJECT: ROADMAP" entry (file (lambda ()
                                                (if (projectile-project-p)
@@ -221,7 +213,7 @@
 
   ;; Helper function for journal capture
   (defun my/journal-capture-target ()
-    "Return today's journal file or create it."
+ n   "Return today's journal file or create it."
     (let* ((today (format-time-string "%Y%m%dT%H%M%S"))
            (title (format "Daily Log %s" (format-time-string "%Y-%m-%d")))
            (journal-dir (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}))
@@ -258,8 +250,7 @@
   (setq org-priority-faces
         '((?A . (:foreground "red" :weight bold))      ; A = I-U (DO)
           (?B . (:foreground "orange" :weight bold))   ; B = I-NU (SCHEDULE)
-          (?C . (:foreground "yellow" :weight bold))   ; C = NI-U (DELEGATE)
-          (?D . (:foreground "gray" :weight normal))))
+          (?C . (:foreground "gray" :weight bold))))   ; C = NI-U (DELEGATE)
 
   ;; Enable habit tracking
   (require 'org-habit)

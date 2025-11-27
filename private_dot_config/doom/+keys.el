@@ -28,7 +28,7 @@
           :desc "Yank filename" "n" #'+default/yank-filename)
 
          (:prefix ("C-c g" . "Git")
-          :desc "Smart commit" "A" #'+my/smart-commit
+          :desc "Generate AI commit (text)" "A" #'+my/smart-commit
           :desc "AI commit" "a" #'+my/commit-with-ai)
 
          (:prefix ("C-c i" . "Insert")
@@ -67,8 +67,7 @@
           :desc "Dirvish" "/" #'dirvish
           :desc "Dirvish sidebar" "p" #'dirvish-side
           :desc "Reveal in Finder" "O" #'+macos/reveal-project-in-finder
-          :desc "Open link" "x" #'link-hint-open-link
-          :desc "Open link at point" "X" #'link-hint-open-link-at-point)
+          :desc "Open link at point" "x" #'link-hint-open-link-at-point)
 
          (:prefix ("C-c p" . "Project")
           :desc "Search project" "s" #'+default/search-project

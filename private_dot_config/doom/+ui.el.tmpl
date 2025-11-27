@@ -93,3 +93,18 @@
         vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
         vertico-posframe-parameters '((left-fringe . 8)
                                       (right-fringe . 8))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(custom-theme-set-faces! doom-theme
+  `(hl-todo :foreground ,(doom-color 'bg)))
+(after! hl-todo
+  (setq hl-todo-color-background t
+        hl-todo-keyword-faces
+        `(("TODO"  . ,(doom-color 'orange))
+          ("DONE"  . ,(doom-color 'green))
+          ("NOTE"  . ,(doom-color 'green))
+          ("DEBUG"  . ,(doom-color 'red))
+          ("FAIL"  . ,(doom-color 'red))
+          ("FIXME" . ,(doom-color 'red)))))

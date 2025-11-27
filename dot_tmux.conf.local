@@ -1,38 +1,52 @@
 # Import gpakosz config first
 source-file ~/.tmux/.tmux.conf.local
 
-# /!\ do not add set -g @plugin 'tmux-plugins/tpm'
-# /!\ do not add run '~/.tmux/plugins/tpm/tpm'
-
-# to enable a plugin, use the 'set -g @plugin' syntax:
-# visit https://github.com/tmux-plugins for available plugins
-
-# List of plugins
-#set -g @plugin 'christoomey/vim-tmux-navigator'
-#set -g @plugin 'tmux-plugins/tmux-resurrect' # persist tmux sessions after computer restart
-#set -g @plugin 'tmux-plugins/tmux-continuum' # automatically saves sessions for you every 15 minutes
-
-# # => Misc settings --------------------------------------------------------
-
-# # Set a higher scrollback value
-# set -g history-limit 100000
-
-# # Make C-l work.
-# bind C-l send-keys 'C-l'
-
-# # Don't swallow Escape key in Vim.
-# set -sg escape-time 0
-
 
 # Disable window auto-rename.
 set-option -g allow-rename off
 
-# # Sane scrolling
-# set -g terminal-overrides 'xterm*:smcup@:rmcup@'
+# === EMACS-STYLE TMUX CONFIGURATION ===
 
-# # When more than one clients are attached to a session, only resize bigger
-# # clients if the smaller client is actively looking at it.
-# set -g aggressive-resize on
+# Keep default C-b prefix (standard and no major Emacs conflicts)
+set -g prefix2 C-b
+bind C-b send-prefix
 
-# Enable passthrough for image.nvim
-set -g allow-passthrough on
+# Use emacs keybindings
+set -g mode-keys emacs
+set -g status-keys emacs
+
+# === WINDOW MANAGEMENT (Emacs-style) ===
+# C-z f/b for next/previous window
+bind f next-window
+bind b previous-window
+
+# C-z Tab for last window
+bind Tab last-window
+
+# === PANE MANAGEMENT (Emacs-style) ===
+# C-z 2/3 for splits (like Emacs)
+bind 2 split-window -v -c "#{pane_current_path}"
+bind 3 split-window -h -c "#{pane_current_path}"
+
+# C-z 0/1 for pane management (like Emacs)
+bind 0 kill-pane
+bind 1 kill-pane -a
+
+# Pane navigation with C-z C-f/C-b/C-n/C-p
+bind C-f select-pane -R
+bind C-b select-pane -L
+bind C-n select-pane -D
+bind C-p select-pane -U
+
+# C-b o to display pane numbers (like Emacs other-window)
+bind o display-panes
+
+# Make pane numbers display longer
+set -g display-panes-time 4000  # 4 seconds instead of default 1 second
+
+# === EMACS-STYLE PANE RESIZING (Shift + navigation) ===
+# Repeatable pane resizing with Shift + navigation letters
+bind -r P resize-pane -U 2     # C-b P (Shift+p) - resize up
+bind -r N resize-pane -D 2     # C-b N (Shift+n) - resize down
+bind -r B resize-pane -L 2     # C-b B (Shift+b) - resize left
+bind -r F resize-pane -R 2     # C-b F (Shift+f) - resize right
