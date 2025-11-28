@@ -93,6 +93,18 @@ if [ -f ~/.config/chezmoi/chezmoi.toml ]; then
         echo "🍎 Applying nix-darwin configuration (requires password)..."
         HOSTNAME=$(hostname)
         echo "Using current system hostname: $HOSTNAME"
+
+        # Backup conflicting files if they exist
+        echo "Checking for conflicting system files..."
+        if [ -f /etc/bashrc ]; then
+            echo "Backing up /etc/bashrc to /etc/bashrc.before-nix-darwin"
+            sudo mv /etc/bashrc /etc/bashrc.before-nix-darwin
+        fi
+        if [ -f /etc/zshrc ]; then
+            echo "Backing up /etc/zshrc to /etc/zshrc.before-nix-darwin"
+            sudo mv /etc/zshrc /etc/zshrc.before-nix-darwin
+        fi
+
         if sudo nix run nix-darwin --extra-experimental-features "nix-command flakes" -- switch --flake ~/.config/home-manager-flake#"$HOSTNAME"; then
             echo "✅ nix-darwin setup complete!"
         else
@@ -114,6 +126,19 @@ else
     if [ "$UNAME_S" = "Darwin" ]; then
         echo "🍎 Applying nix-darwin configuration (requires password)..."
         HOSTNAME=$(hostname)
+        echo "Using current system hostname: $HOSTNAME"
+
+        # Backup conflicting files if they exist
+        echo "Checking for conflicting system files..."
+        if [ -f /etc/bashrc ]; then
+            echo "Backing up /etc/bashrc to /etc/bashrc.before-nix-darwin"
+            sudo mv /etc/bashrc /etc/bashrc.before-nix-darwin
+        fi
+        if [ -f /etc/zshrc ]; then
+            echo "Backing up /etc/zshrc to /etc/zshrc.before-nix-darwin"
+            sudo mv /etc/zshrc /etc/zshrc.before-nix-darwin
+        fi
+
         if sudo nix run nix-darwin --extra-experimental-features "nix-command flakes" -- switch --flake ~/.config/home-manager-flake#"$HOSTNAME"; then
             echo "✅ nix-darwin setup complete!"
         else
