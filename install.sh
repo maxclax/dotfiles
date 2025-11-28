@@ -86,11 +86,46 @@ echo "🔧 Enabling Nix experimental features..."
 # Enable experimental features for this session
 export NIX_CONFIG="experimental-features = nix-command flakes"
 
-if home-manager switch --flake ~/.config/home-manager-flake --extra-experimental-features "nix-command flakes" -b backup; then
-    echo "✅ Home Manager setup complete!"
+# Detect if we should use nix-darwin or home-manager
+# Check if we're on macOS and not extraUser by looking at chezmoi config
+if [ -f ~/.config/chezmoi/chezmoi.toml ]; then
+    if grep -q 'osid = "darwin"' ~/.config/chezmoi/chezmoi.toml && grep -q 'extraUser = false' ~/.config/chezmoi/chezmoi.toml; then
+        echo "🍎 Applying nix-darwin configuration (requires password)..."
+        if sudo darwin-rebuild switch --flake ~/.config/home-manager-flake --extra-experimental-features "nix-command flakes"; then
+            echo "✅ nix-darwin setup complete!"
+        else
+            echo "❌ Error: nix-darwin setup failed"
+            exit 1
+        fi
+    else
+        echo "👤 Applying Home Manager configuration (user-only)..."
+        if home-manager switch --flake ~/.config/home-manager-flake --extra-experimental-features "nix-command flakes" -b backup; then
+            echo "✅ Home Manager setup complete!"
+        else
+            echo "❌ Error: Home Manager setup failed"
+            exit 1
+        fi
+    fi
 else
-    echo "❌ Error: Home Manager setup failed"
-    exit 1
+    # Fallback for older detection method
+    UNAME_S=$(uname -s)
+    if [ "$UNAME_S" = "Darwin" ]; then
+        echo "🍎 Applying nix-darwin configuration (requires password)..."
+        if sudo darwin-rebuild switch --flake ~/.config/home-manager-flake --extra-experimental-features "nix-command flakes"; then
+            echo "✅ nix-darwin setup complete!"
+        else
+            echo "❌ Error: nix-darwin setup failed"
+            exit 1
+        fi
+    else
+        echo "👤 Applying Home Manager configuration (user-only)..."
+        if home-manager switch --flake ~/.config/home-manager-flake --extra-experimental-features "nix-command flakes" -b backup; then
+            echo "✅ Home Manager setup complete!"
+        else
+            echo "❌ Error: Home Manager setup failed"
+            exit 1
+        fi
+    fi
 fi
 
 echo ""
