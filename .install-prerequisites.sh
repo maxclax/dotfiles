@@ -84,7 +84,22 @@ Darwin*)
 	echo "Installing prerequisites for macOS..."
 	xcode-select --install || echo "XCode already installed"
 
-	echo "Installing prerequisites for macOS..."
+	# Install Homebrew first (required by nix-darwin config)
+	if ! command -v brew >/dev/null 2>&1; then
+		echo "Installing Homebrew..."
+		/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+		# Add Homebrew to PATH
+		if [ -f "/opt/homebrew/bin/brew" ]; then
+			eval "$(/opt/homebrew/bin/brew shellenv)"
+		elif [ -f "/usr/local/bin/brew" ]; then
+			eval "$(/usr/local/bin/brew shellenv)"
+		fi
+	else
+		echo "Homebrew already installed"
+	fi
+
+	echo "Installing Nix and Home Manager..."
 	install_nix_and_home_manager
 
 	;;
