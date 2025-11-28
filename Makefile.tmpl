@@ -288,4 +288,26 @@ backup_restore:
 		borgmatic extract --verbosity 1 --progress --repository $(repo) --archive $(archive) --destination $(dest) --path "$(path)"; \
 	fi
 
+# Syncthing file synchronization
+sync_start:
+	@echo "🔄 Starting Syncthing..."
+	syncthing serve &
+	@echo "Syncthing started. Access web GUI at http://127.0.0.1:8384"
+
+sync_stop:
+	@echo "🛑 Stopping Syncthing..."
+	pkill -f syncthing || echo "Syncthing not running"
+
+sync_status:
+	@echo "📊 Syncthing status:"
+	@pgrep -f syncthing > /dev/null && echo "✅ Running (PID: $$(pgrep -f syncthing))" || echo "❌ Not running"
+
+sync_browser:
+	@echo "🌐 Opening Syncthing web GUI..."
+	syncthing browser
+
+sync_config:
+	@echo "📂 Syncthing configuration paths:"
+	syncthing paths
+
 ##############################
