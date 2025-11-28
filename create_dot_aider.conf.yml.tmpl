@@ -29,6 +29,7 @@ weak-model: haiku
 ########################
 # API Keys and settings:
 
+{{- if .useOp -}}
 ## Specify the OpenAI API key
 openai-api-key: {{ onepasswordRead "op://Personal/OpenAI/tokens/emacs" }}
 
@@ -41,6 +42,7 @@ api-key:
   - deepseek={{ onepasswordRead "op://Personal/DeepSeek/tokens/emacs" }}
   - z-pu={{ onepasswordRead "op://Personal/z.ai/tokens/emacs" }}
 
+{{- end }}
 
 ###############
 # Git settings:
