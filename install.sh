@@ -91,7 +91,8 @@ export NIX_CONFIG="experimental-features = nix-command flakes"
 if [ -f ~/.config/chezmoi/chezmoi.toml ]; then
     if grep -q 'osid = "darwin"' ~/.config/chezmoi/chezmoi.toml && grep -q 'extraUser = false' ~/.config/chezmoi/chezmoi.toml; then
         echo "🍎 Applying nix-darwin configuration (requires password)..."
-        HOSTNAME=$(grep 'hostname = ' ~/.config/chezmoi/chezmoi.toml | sed 's/.*hostname = "\(.*\)".*/\1/')
+        HOSTNAME=$(hostname)
+        echo "Using current system hostname: $HOSTNAME"
         if sudo nix run nix-darwin --extra-experimental-features "nix-command flakes" -- switch --flake ~/.config/home-manager-flake#"$HOSTNAME"; then
             echo "✅ nix-darwin setup complete!"
         else

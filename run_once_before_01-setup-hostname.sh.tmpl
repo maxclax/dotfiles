@@ -107,7 +107,10 @@ case $choice in
 
     echo ""
     echo -e "${GREEN}✓ Hostname changed successfully!${NC}"
-    echo -e "${YELLOW}Note: You may need to restart your terminal or reboot for all changes to take effect.${NC}"
+    echo -e "${YELLOW}Reloading shell to pick up new hostname...${NC}"
+
+    # Reload shell environment to pick up new hostname
+    exec $SHELL
     ;;
   *)
     echo -e "${RED}✗ Invalid choice. Exiting.${NC}"
