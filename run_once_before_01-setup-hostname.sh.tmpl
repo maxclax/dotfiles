@@ -1,0 +1,120 @@
+#!/bin/bash
+
+# Setup hostname - runs before dotfiles installation
+# This script asks user if they want to change hostname before proceeding
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Check if running in container/pod environment
+is_container() {
+    # Check multiple container indicators
+    [ -f /.dockerenv ] || \
+    [ -n "${KUBERNETES_SERVICE_HOST}" ] || \
+    [ -n "${container}" ] || \
+    [ "$(cat /proc/1/cgroup 2>/dev/null | grep -c docker)" -gt 0 ] || \
+    [ "$(cat /proc/1/cgroup 2>/dev/null | grep -c containerd)" -gt 0 ] || \
+    [ "$(cat /proc/1/cgroup 2>/dev/null | grep -c kubepods)" -gt 0 ] || \
+    [ "$(cat /proc/1/cgroup 2>/dev/null | grep -c libpod)" -gt 0 ] || \
+    [ "$(cat /proc/1/cgroup 2>/dev/null | grep -c podman)" -gt 0 ] || \
+    [ "$(systemd-detect-virt 2>/dev/null)" = "container" ] || \
+    [ "$(systemd-detect-virt 2>/dev/null)" = "podman" ] || \
+    [ -n "${PODMAN_SYSTEMD_UNIT}" ] || \
+    [ "${CHEZMOI_CONTAINER:-false}" = "true" ] || \
+    [ "${container_manager:-}" = "podman" ]
+}
+
+# Skip hostname setup in containers
+if is_container; then
+    echo -e "${BLUE}=== Container Environment Detected ===${NC}"
+    echo -e "${YELLOW}Skipping hostname setup - not needed in containers/pods${NC}"
+    echo -e "${GREEN}✓ Continuing with dotfiles installation...${NC}"
+    echo ""
+    exit 0
+fi
+
+# Get current hostname
+current_hostname=$(hostname)
+
+echo -e "${BLUE}=== Dotfiles Installation - Hostname Setup ===${NC}"
+echo ""
+echo -e "Current hostname: ${YELLOW}$current_hostname${NC}"
+echo ""
+echo "Do you want to change the hostname before installing dotfiles?"
+echo "This is important because hostname is used in various configurations."
+echo ""
+echo "Options:"
+echo "  1) Keep current hostname ($current_hostname)"
+echo "  2) Change hostname"
+echo ""
+read -p "Choose option (1 or 2): " choice
+
+case $choice in
+  1)
+    echo -e "${GREEN}✓ Keeping current hostname: $current_hostname${NC}"
+    ;;
+  2)
+    echo ""
+    echo -e "${YELLOW}Enter new hostname:${NC}"
+    echo "  - Use lowercase letters, numbers, and hyphens only"
+    echo "  - No spaces or special characters"
+    echo "  - Example: macbook-pro, dev-machine, etc."
+    echo ""
+    read -p "New hostname: " new_hostname
+
+    # Validate hostname
+    if [[ ! "$new_hostname" =~ ^[a-z0-9-]+$ ]]; then
+      echo -e "${RED}✗ Invalid hostname format!${NC}"
+      echo "Hostname must contain only lowercase letters, numbers, and hyphens."
+      exit 1
+    fi
+
+    if [ -z "$new_hostname" ]; then
+      echo -e "${RED}✗ Hostname cannot be empty!${NC}"
+      exit 1
+    fi
+
+    echo ""
+    echo -e "${YELLOW}Changing hostname from '$current_hostname' to '$new_hostname'...${NC}"
+    echo "This may require sudo password."
+    echo ""
+
+    # Use the existing hostname-set script
+    # Try different possible paths for the hostname-set script
+    hostname_script=""
+    if [ -f "$HOME/.config/shell/bin/hostname-set" ]; then
+      hostname_script="$HOME/.config/shell/bin/hostname-set"
+    elif [ -f "{{ .chezmoi.homeDir }}/.config/shell/bin/hostname-set" ]; then
+      hostname_script="{{ .chezmoi.homeDir }}/.config/shell/bin/hostname-set"
+    elif command -v hostname-set >/dev/null 2>&1; then
+      hostname_script="hostname-set"
+    else
+      echo -e "${RED}✗ hostname-set script not found!${NC}"
+      echo "Searched in:"
+      echo "  - $HOME/.config/shell/bin/hostname-set"
+      echo "  - {{ .chezmoi.homeDir }}/.config/shell/bin/hostname-set"
+      echo "  - PATH"
+      exit 1
+    fi
+
+    "$hostname_script" "$new_hostname"
+
+    echo ""
+    echo -e "${GREEN}✓ Hostname changed successfully!${NC}"
+    echo -e "${YELLOW}Note: You may need to restart your terminal or reboot for all changes to take effect.${NC}"
+    ;;
+  *)
+    echo -e "${RED}✗ Invalid choice. Exiting.${NC}"
+    exit 1
+    ;;
+esac
+
+echo ""
+echo -e "${GREEN}=== Hostname setup complete. Continuing with dotfiles installation... ===${NC}"
+echo ""
