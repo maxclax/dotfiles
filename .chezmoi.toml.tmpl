@@ -4,23 +4,10 @@
 {{- $primary_cloud := promptStringOnce . "primary_cloud" "primary cloud storage" (printf "%s/primary_cloud" .chezmoi.homeDir) -}}
 {{- $secondary_cloud := promptStringOnce . "secondary_cloud" "secondary cloud storage" (printf "%s/secondary_cloud" .chezmoi.homeDir) -}}
 
-
-{{- $nvimType := "LunarVim" -}}
-{{- if stdinIsATTY -}}
-  {{- $choices := list "default" "LunarVim" "LazyVim" -}}
-  {{- $nvimType = promptChoiceOnce . "nvimType" "What type of NeoVim are you on" $choices -}}
-{{- end -}}
-
 {{- $emacsType := "default" -}}
 {{- if stdinIsATTY -}}
   {{- $choices := list "default" "Doom" "purcell" -}}
   {{- $emacsType = promptChoiceOnce . "emacsType" "What type of Emacs are you on" $choices -}}
-{{- end -}}
-
-{{- $editor := "vim" -}}
-{{- if stdinIsATTY -}}
-  {{- $choices := list "vim" "emacsclient" -}}
-  {{- $editor = promptChoiceOnce . "editor" "Which editor do you want to use as default" $choices -}}
 {{- end -}}
 
 {{- $shell := "zsh" -}}
@@ -128,7 +115,7 @@ encryption = "age"
     jupyter = {{ printf "%s/jupyter" $workspace | quote }}
     primary_cloud = {{ $primary_cloud | quote }}
     secondary_cloud = {{ $secondary_cloud | quote }}
-    editor = {{ $editor | quote }}
+    editor = "emacsclient"
     shell = {{ $shell | quote }}
 
     borgThisMachine = {{ promptBoolOnce . "borgThisMachine" "Use Borgbackups on this machine?" false }}
@@ -138,9 +125,6 @@ encryption = "age"
 
     fontsEnabled = {{ promptBoolOnce . "fontsEnabled" "Enable FONTS installation (from resources dir)?" false }}
     fontsPath = {{ printf "%s/fonts" $resources | quote }}
-
-    nvimType = {{ $nvimType | quote }}
-    nvimLoadAllDistros = {{ promptBoolOnce . "nvimLoadAllDistros" "Load all NeoVim distributions?" false }}
 
     emacsType = {{ $emacsType | quote }}
     emacsEnabledClient = {{ promptBoolOnce . "emacsEnabledClient" "Enable Emacs client?" false }}

@@ -27,7 +27,7 @@ playground = "USER_HOME/workspace/playground"
 jupyter = "USER_HOME/workspace/jupyter"
 primary_cloud = ""
 secondary_cloud = ""
-editor = "vim"
+editor = "emacs"
 
 borgThisMachine = false
 borgRepo = ""
@@ -37,12 +37,8 @@ borgWithPushover = false
 fontsEnabled = false
 fontsPath = ""
 
-nvimType = "default"
-nvimLoadAllDistros = false
-
 emacsType = "default"
 emacsEnabledClient = false
-emacsLoadAllDistros = false
 
 podmanEnabled = false
 dockerEnabled = false

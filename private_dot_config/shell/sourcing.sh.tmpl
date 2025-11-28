@@ -221,7 +221,7 @@ fe() {
 	files=$(find . -type f -not -path '*/\.git/*' -not -path '*/node_modules/*' -not -path '*/.venv/*' 2>/dev/null | \
 		fzf --preview 'head -100 {}' --preview-window=right:50% --prompt='edit> ')
 	if [[ -n "$files" ]]; then
-		"${EDITOR:-vim}" "$files"
+		"${EDITOR:-emacs}" "$files"
 	fi
 }
 

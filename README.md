@@ -153,7 +153,6 @@ make update_os
 - 🔑 **1Password integration**: Secure credential management via CLI
 - 📝 **Git configuration**: SSH signing with automated setup
 - 🐳 **Container support**: Podman/Docker development environments
-- 🚀 **Multi-editor**: Vim, Neovim (LunarVim, LazyVim), Emacs (Doom, Prelude)
 - 🔧 **Shell configurations**: Zsh, Bash with Starship prompt and Atuin history
 - 🗄️ **Automated backups**: Borgmatic with encrypted repositories
 - 🖥️ **Cross-platform**: macOS and Linux support with platform detection

@@ -32,9 +32,7 @@ alias doom={{ .chezmoi.homeDir }}/.config/emacs/bin/doom
 
 # GUI Emacs launchers for different distributions (non-blocking)
 alias emacs-default='emacs &'
-{{ if or (eq .emacsType "purcell") .emacsLoadAllDistros -}}
 alias emacs-purcell='emacs --init-directory={{ .chezmoi.homeDir }}/.config/purcellemacs.d &'
-{{- end }}
 
 # Emacs server commands for different distributions
 alias emacs-server-purcell='emacs --daemon --init-directory={{ .chezmoi.homeDir }}/.config/purcellemacs.d'
@@ -92,8 +90,6 @@ alias cpwd='pwd | tr -d "\n" | pbcopy'
 # with it.
 alias wget='wget --no-hsts'
 
-# Set NeoVim as vim by default
-alias vim='nvim'
 
 # Network diagnostics
 alias mtr='sudo mtr'                    # MTR with sudo

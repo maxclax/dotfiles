@@ -27,4 +27,16 @@ gui:
 git:
   overrideGpg: true # prevents lazygit from spawning a separate process when using GPG
 os:
-  editPreset: "nvim" # nvim-remote works so-so
+  editPreset: "emacs"
+keybinding:
+  universal:
+    prevItem: '<c-p>' # Emacs up
+    nextItem: '<c-n>' # Emacs down
+    gotoTop: '<c-a>' # Emacs beginning of buffer
+    gotoBottom: '<c-e>' # Emacs end of buffer
+    startSearch: '<c-s>' # Emacs search
+    # Unbind vim keys
+    prevItem-alt: <disabled>
+    nextItem-alt: <disabled>
+    scrollLeft: <disabled>
+    scrollRight: <disabled>

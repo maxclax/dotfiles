@@ -1,13 +1,20 @@
 #+TITLE: ROADMAP
 #+STARTUP: showall
 
-* Tasks
+* PROJECT ROADMAP (dotfiles)
 
+** 🏆 3 Outcomes
 
-* Recently Completed
+1. [ ]
 
-** DONE [#A] Journaling with denote or org-mode that will help me use my system similar to LogSeq where I can write what happened on the day. Log daily with all and next search by history. Also can see some like on this day in past years
+** Tasks
+
+** Resources
+
+** Recently Completed
+
+*** DONE [#A] Journaling with denote or org-mode that will help me use my system similar to LogSeq where I can write what happened on the day. Log daily with all and next search by history. Also can see some like on this day in past years
    CLOSED: [2025-11-17 Sun 15:30]
 
-** DONE [#A] I can have on system at same time doom emacs and other dists with my config
+*** DONE [#A] I can have on system at same time doom emacs and other dists with my config
    CLOSED: [2025-11-14 Thu 19:45]

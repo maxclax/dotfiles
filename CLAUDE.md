@@ -125,7 +125,7 @@ make tkill
     - `flake.nix.tmpl`: Home Manager flake definition
     - `home.nix.tmpl`: Main Home Manager configuration
     - `packages.nix.tmpl`: Package definitions
-    - `programs/`: Modular program configurations (zsh, vim, etc.)
+    - `programs/`: Modular program configurations (zsh, etc.)
 
 ### Home Manager Configuration
 
@@ -146,8 +146,7 @@ Files with `.tmpl` extension use chezmoi's Go templating:
 
 External repositories are managed via `.chezmoiexternal.yaml.tmpl`:
 - tmux configuration from gpakosz/.tmux
-- Vim/Neovim distributions (LunarVim, LazyVim)
-- Emacs configurations (Doom, Prelude, etc.)
+- Emacs configurations (Doom, Purcell, etc.)
 - Alacritty themes
 
 ### Security
@@ -178,6 +177,6 @@ External repositories are managed via `.chezmoiexternal.yaml.tmpl`:
 - Declarative package management with Home Manager
 - Encrypted secrets with age and 1Password
 - Automated backups with Borgmatic
-- Multiple editor configurations (Vim, Emacs distributions)
+- Multiple editor configurations (Emacs distributions)
 - Container development environment support
 - Git configuration with SSH signing

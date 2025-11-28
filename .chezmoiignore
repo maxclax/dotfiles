@@ -26,7 +26,6 @@ Library/Application\ Support/lazygit/config.yml
 .ssh/
 .logseq/
 .claude/
-.config/nvim
 .config/borgmatic.d
 {{ end }}
 

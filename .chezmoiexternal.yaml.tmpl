@@ -4,27 +4,7 @@
   exact: true
   refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
 
-{{ if or (eq .nvimType "LunarVim") .nvimLoadAllDistros }}
-".config/LunarVim":
-  type: "git-repo"
-  url: "https://github.com/LunarVim/LunarVim.git"
-  args:
-    - "--depth=1"  
-  exact: true
-  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
-{{ end }}
-
-{{ if or (eq .nvimType "LazyVim") .nvimLoadAllDistros }}
-".config/LazyVim":
-  type: "git-repo"
-  url: "https://github.com/LazyVim/starter.git"
-  args:
-    - "--depth=1"  
-  exact: true
-  refreshPeriod: {{ if .personal }}"72h"{{ else }}null{{ end }}
-{{ end }}
-
-{{ if or (eq .emacsType "Doom") .emacsLoadAllDistros }}
+{{ if or (eq .emacsType "Doom") }}
 ".config/emacs":
   type: "git-repo"
   url: "https://github.com/doomemacs/doomemacs.git"

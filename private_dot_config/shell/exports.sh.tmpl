@@ -96,9 +96,6 @@ else
   brew_prefix=""
 fi
 
-{{ if ne .nvimType "default" }}
-export NVIM_APPNAME={{ .nvimType }}
-{{ end }}
 export DOTFILES={{ .chezmoi.sourceDir }}
 export DOTFILES_SHELL=$shell
 export DOTFILES_BREW_PREFIX=$brew_prefix
@@ -122,13 +119,9 @@ export HOMEBREW_NO_ANALYTICS=1      # Disable Homebrew's analytics collection
 # ============================================================================
 # Editor Configuration
 # ============================================================================
-export GIT_EDITOR="nvim"            # Default editor for Git operations
-export EDITOR="nvim"               # Default system editor
 
-{{ if eq .editor "emacsclient" }}
 export GIT_EDITOR="emacsclient -t"
 export EDITOR="emacsclient -t"
-export ALTERNATE_EDITOR="emacs -nw"
 
 # Only use GUI (-c) when we are in an interactive terminal AND have a display
 if [[ -n "$DISPLAY" || -n "$WAYLAND_DISPLAY" ]] && [[ -t 1 ]]; then
@@ -136,7 +129,6 @@ if [[ -n "$DISPLAY" || -n "$WAYLAND_DISPLAY" ]] && [[ -t 1 ]]; then
 else
     export VISUAL="$EDITOR"            # fall back to terminal version
 fi
-{{ end }}
 
 # ============================================================================
 # Path and Repository Configuration
