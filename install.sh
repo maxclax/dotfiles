@@ -91,7 +91,8 @@ export NIX_CONFIG="experimental-features = nix-command flakes"
 if [ -f ~/.config/chezmoi/chezmoi.toml ]; then
     if grep -q 'osid = "darwin"' ~/.config/chezmoi/chezmoi.toml && grep -q 'extraUser = false' ~/.config/chezmoi/chezmoi.toml; then
         echo "🍎 Applying nix-darwin configuration (requires password)..."
-        if sudo darwin-rebuild switch --flake ~/.config/home-manager-flake --extra-experimental-features "nix-command flakes"; then
+        HOSTNAME=$(grep 'hostname = ' ~/.config/chezmoi/chezmoi.toml | sed 's/.*hostname = "\(.*\)".*/\1/')
+        if sudo nix run nix-darwin --extra-experimental-features "nix-command flakes" -- switch --flake ~/.config/home-manager-flake#"$HOSTNAME"; then
             echo "✅ nix-darwin setup complete!"
         else
             echo "❌ Error: nix-darwin setup failed"
@@ -111,7 +112,8 @@ else
     UNAME_S=$(uname -s)
     if [ "$UNAME_S" = "Darwin" ]; then
         echo "🍎 Applying nix-darwin configuration (requires password)..."
-        if sudo darwin-rebuild switch --flake ~/.config/home-manager-flake --extra-experimental-features "nix-command flakes"; then
+        HOSTNAME=$(hostname)
+        if sudo nix run nix-darwin --extra-experimental-features "nix-command flakes" -- switch --flake ~/.config/home-manager-flake#"$HOSTNAME"; then
             echo "✅ nix-darwin setup complete!"
         else
             echo "❌ Error: nix-darwin setup failed"
