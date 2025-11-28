@@ -71,15 +71,20 @@
                        (org-agenda-overriding-header "📅 Today")
                        (org-agenda-todo-list-sublevels t)))
             (todo "TODO"
-                  ((org-agenda-overriding-header "🏆 Daily Outcomes & Journal Tasks")
+                  ((org-agenda-overriding-header "🏆 Daily Outcomes")
                    (org-agenda-files (directory-files-recursively
                                      (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\\.org$"))
                    (org-agenda-sorting-strategy '(timestamp-down))
-                   (org-agenda-max-entries 5)
+                   (org-agenda-max-entries 25)
                    (org-agenda-skip-function
                     '(lambda ()
-                       (when (member "someday" (org-get-tags))
-                         (or (outline-next-heading) (point-max)))))))
+                       (let ((outline-path (org-get-outline-path t)))
+                         (or (when (member "someday" (org-get-tags))
+                               (or (outline-next-heading) (point-max)))
+                             (unless (cl-some (lambda (heading)
+                                                (string-match-p "Daily Outcomes" heading))
+                                              outline-path)
+                               (or (outline-next-heading) (point-max)))))))))
             (tags-todo "INBOX"
                   ((org-agenda-overriding-header "📥 Inbox - Process These")
                    (org-tags-match-list-sublevels nil)))
@@ -243,8 +248,8 @@
 
   ;; Eisenhower Matrix priority system (A=I-U, B=I-NU, C=NI-U, D=NI-NU)
   (setq org-priority-highest ?A)
-  (setq org-priority-lowest ?D)
-  (setq org-priority-default ?D)
+  (setq org-priority-lowest ?C)
+  (setq org-priority-default ?C)
 
   ;; Priority faces for Eisenhower Matrix
   (setq org-priority-faces
