@@ -291,8 +291,13 @@ backup_restore:
 # Syncthing file synchronization
 sync_start:
 	@echo "🔄 Starting Syncthing..."
-	syncthing serve &
-	@echo "Syncthing started. Access web GUI at http://127.0.0.1:8384"
+	@if pgrep -f syncthing > /dev/null; then \
+		echo "⚠️  Syncthing already running (PID: $$(pgrep -f syncthing))"; \
+	else \
+		nohup syncthing serve > /dev/null 2>&1 & \
+		sleep 2; \
+		echo "✅ Syncthing started as daemon. Access web GUI at http://127.0.0.1:8384"; \
+	fi
 
 sync_stop:
 	@echo "🛑 Stopping Syncthing..."
