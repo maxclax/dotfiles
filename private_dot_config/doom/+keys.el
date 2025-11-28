@@ -2,8 +2,8 @@
 
 (when IS-MAC
   (setq mac-option-modifier 'meta
-        mac-right-option-modifier 'meta
-        mac-command-modifier 'super))
+        mac-right-option-modifier 'super
+        mac-command-modifier 'none))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
