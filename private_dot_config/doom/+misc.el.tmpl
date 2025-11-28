@@ -47,7 +47,8 @@
   (map! :map dirvish-mode-map
         "C-f" #'dired-find-file
         "C-b" #'dired-up-directory
-        "TAB" #'dirvish-subtree-toggle)
+        "TAB" #'dirvish-subtree-toggle
+        "M-TAB" #'dirvish-layout-toggle)  ; Fast layout toggle
 
   (defun dirvish-copy-file-relative-path (&optional multi-line)
     "Copy filepath of marked files.

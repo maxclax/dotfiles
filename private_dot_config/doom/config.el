@@ -6,7 +6,7 @@
 ;; Load all configuration modules
 (load! "lisp/init-lsp.el")
 (load! "lisp/init-reading.el")
-;; (load! "lisp/init-git.el")
+(load! "lisp/init-git.el")
 (load! "lisp/init-org.el")
 (load! "lisp/init-pomodoro.el")
 (load! "lisp/init-bibliography.el")

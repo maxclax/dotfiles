@@ -1,16 +1,11 @@
 ;;; +git.el -*- lexical-binding: t; -*-
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; GIT
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 (after! git-link
   (setq git-link-open-in-browser nil
         git-link-use-commit t)
 
   ;; OVERRIDE
   (advice-add #'git-link--select-remote :override #'git-link--read-remote))
-
 
 (after! magit
   ;; Performance optimizations
@@ -48,13 +43,12 @@
           magit-insert-untracked-files
           magit-insert-unstaged-changes
           magit-insert-staged-changes
-          magit-insert-stashes             ; Show stashes
-          magit-insert-unpushed-to-pushremote  ; Show unpushed commits
-          magit-insert-unpushed-to-upstream    ; Show unpushed commits
-          magit-insert-unpulled-from-pushremote ; Show unpulled commits
-          magit-insert-unpulled-from-upstream   ; Show unpulled commits
-          magit-insert-recent-commits          ; Show recent commits
-          )
+          magit-insert-stashes
+          magit-insert-unpushed-to-pushremote
+          magit-insert-unpushed-to-upstream
+          magit-insert-unpulled-from-pushremote
+          magit-insert-unpulled-from-upstream
+          magit-insert-recent-commits)
         
         ;; Show recent commits in log
         magit-log-section-commit-count 10
@@ -72,26 +66,4 @@
           magit-insert-tags-header)
         
         ;; Show branch information
-        magit-status-show-hashes-in-headers t)
-
-  ;; Add git-credential-manager-core support
-  (add-hook 'magit-process-prompt-functions
-            'magit-process-git-credential-manager-core)
-
-  ;; fix magit prompt for midway auth
-  (cl-callf2 append '("Kerberos authentication failed.  Password:")
-    magit-process-password-prompt-regexps)
-
-  (magit-wip-after-apply-mode -1)
-  (magit-wip-before-change-mode -1))
-
-(use-package! magit-delta
-  :after magit
-  :init
-  (when (executable-find "delta")
-    (add-hook! magit-mode #'magit-delta-mode))
-  :config
-  (setq magit-delta-default-light-theme "GitHub")
-  (setq magit-delta-default-dark-theme "OneHalfDark")
-  )
-
+        magit-status-show-hashes-in-headers t))

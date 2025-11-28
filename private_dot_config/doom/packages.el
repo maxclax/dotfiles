@@ -86,7 +86,6 @@
 ;; =====================================================================
 
 (package! git-link)                   ; Generate GitHub/GitLab URLs for current file/line
-(package! magit-delta)                ; Enhanced diff display using delta for magit
 
 ;; =====================================================================
 ;; PRODUCTIVITY & WORKFLOW AUTOMATION
