@@ -127,14 +127,12 @@ encryption = "age"
 
     emacsType = {{ $emacsType | quote }}
     emacsEnabledClient = {{ promptBoolOnce . "emacsEnabledClient" "Enable Emacs client?" false }}
-    emacsLoadAllDistros = {{ promptBoolOnce . "emacsLoadAllDistros" "Load all Emacs distributions?" false }}
 
     podmanEnabled = {{ promptBoolOnce . "podmanEnabled" "Enable Podman container engine?" false }}
     dockerEnabled = {{ promptBoolOnce . "dockerEnabled" "Enable Docker container engine?" false }}
     containerEngine = {{ promptStringOnce . "containerEngine" "Container engine to use (podman or docker)" "podman" | quote }}
 
     goEnabled = {{ promptBoolOnce . "goEnabled" "Enable Go development environment?" false }}
-
     rustEnabled = {{ promptBoolOnce . "rustEnabled" "Enable Rust development environment?" false }}
 
     torproxyHost = {{ promptStringOnce . "torproxyHost" "Tor proxy host" "localhost" | quote }}

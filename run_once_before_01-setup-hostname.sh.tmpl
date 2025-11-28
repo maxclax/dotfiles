@@ -62,16 +62,16 @@ case $choice in
   2)
     echo ""
     echo -e "${YELLOW}Enter new hostname:${NC}"
-    echo "  - Use lowercase letters, numbers, and hyphens only"
+    echo "  - Use letters, numbers, and hyphens only"
     echo "  - No spaces or special characters"
-    echo "  - Example: macbook-pro, dev-machine, etc."
+    echo "  - Example: MacBook-Pro, dev-machine, space-M1, etc."
     echo ""
     read -p "New hostname: " new_hostname
 
     # Validate hostname
-    if [[ ! "$new_hostname" =~ ^[a-z0-9-]+$ ]]; then
+    if [[ ! "$new_hostname" =~ ^[a-zA-Z0-9-]+$ ]]; then
       echo -e "${RED}✗ Invalid hostname format!${NC}"
-      echo "Hostname must contain only lowercase letters, numbers, and hyphens."
+      echo "Hostname must contain only letters, numbers, and hyphens."
       exit 1
     fi
 
