@@ -84,6 +84,16 @@ Darwin*)
 	echo "Installing prerequisites for macOS..."
 	xcode-select --install || echo "XCode already installed"
 
+	# Install Rosetta 2 on Apple Silicon Macs (required for some Intel apps)
+	if [ "$(uname -m)" = "arm64" ]; then
+		echo "Installing Rosetta 2 for Intel app compatibility..."
+		if ! arch -x86_64 /usr/bin/true 2>/dev/null; then
+			sudo softwareupdate --install-rosetta --agree-to-license
+		else
+			echo "Rosetta 2 already installed"
+		fi
+	fi
+
 	# Install Homebrew first (required by nix-darwin config)
 	if ! command -v brew >/dev/null 2>&1; then
 		echo "Installing Homebrew..."
