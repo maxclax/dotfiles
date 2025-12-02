@@ -44,6 +44,10 @@
 (package! citar-denote)               ; Bibliography integration with denote
 (package! consult-notes)              ; General note searching with consult
 
+(package! tempel)
+(package! tempel-collection)
+(package! eglot-tempel)
+
 ;; =====================================================================
 ;; BIBLIOGRAPHY & ACADEMIC TOOLS
 ;; =====================================================================

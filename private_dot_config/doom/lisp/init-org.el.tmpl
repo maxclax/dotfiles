@@ -66,16 +66,58 @@
            ((org-agenda-span 7)))  ; Last 7 days
 
           ;; GTD Full Review with Journal Integration
-          ("d" "Dashboard (GTD)"
-           ((agenda "" ((org-agenda-span 'day)
-                       (org-agenda-overriding-header "📅 Today")
-                       (org-agenda-todo-list-sublevels t)))
+          ("d" "Dashboard (AR+GTD)"
+           ((todo "TODO"
+                  ((org-agenda-overriding-header "🏆 Yearly Outcomes")
+                   (org-agenda-files (directory-files-recursively
+                                     (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\\.org$"))
+                   (org-agenda-sorting-strategy '(deadline-up))
+                   (org-agenda-max-entries 3)
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let ((outline-path (org-get-outline-path t)))
+                         (or (when (member "someday" (org-get-tags))
+                               (or (outline-next-heading) (point-max)))
+                             (unless (cl-some (lambda (heading)
+                                                (string-match-p "Yearly Outcomes" heading))
+                                              outline-path)
+                               (or (outline-next-heading) (point-max)))))))))
+            (todo "TODO"
+                  ((org-agenda-overriding-header "🏆 Monthly Outcomes")
+                   (org-agenda-files (directory-files-recursively
+                                     (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\\.org$"))
+                   (org-agenda-sorting-strategy '(deadline-up))
+                   (org-agenda-max-entries 5)
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let ((outline-path (org-get-outline-path t)))
+                         (or (when (member "someday" (org-get-tags))
+                               (or (outline-next-heading) (point-max)))
+                             (unless (cl-some (lambda (heading)
+                                                (string-match-p "Monthly Outcomes" heading))
+                                              outline-path)
+                               (or (outline-next-heading) (point-max)))))))))
+            (todo "TODO"
+                  ((org-agenda-overriding-header "🏆 Weekly Outcomes")
+                   (org-agenda-files (directory-files-recursively
+                                     (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\\.org$"))
+                   (org-agenda-sorting-strategy '(deadline-up))
+                   (org-agenda-max-entries 10)
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let ((outline-path (org-get-outline-path t)))
+                         (or (when (member "someday" (org-get-tags))
+                               (or (outline-next-heading) (point-max)))
+                             (unless (cl-some (lambda (heading)
+                                                (string-match-p "Weekly Outcomes" heading))
+                                              outline-path)
+                               (or (outline-next-heading) (point-max)))))))))
             (todo "TODO"
                   ((org-agenda-overriding-header "🏆 Daily Outcomes")
                    (org-agenda-files (directory-files-recursively
                                      (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\\.org$"))
                    (org-agenda-sorting-strategy '(timestamp-down))
-                   (org-agenda-max-entries 25)
+                   (org-agenda-max-entries 15)
                    (org-agenda-skip-function
                     '(lambda ()
                        (let ((outline-path (org-get-outline-path t)))
@@ -85,6 +127,11 @@
                                                 (string-match-p "Daily Outcomes" heading))
                                               outline-path)
                                (or (outline-next-heading) (point-max)))))))))
+
+            (agenda "" ((org-agenda-span 'day)
+                       (org-agenda-overriding-header "📅 Today")
+                       (org-agenda-todo-list-sublevels t)))
+
             (tags-todo "INBOX"
                   ((org-agenda-overriding-header "📥 Inbox - Process These")
                    (org-tags-match-list-sublevels nil)))
@@ -218,15 +265,15 @@
 
   ;; Helper function for journal capture
   (defun my/journal-capture-target ()
- n   "Return today's journal file or create it."
+    "Return today's journal file or create it."
     (let* ((today (format-time-string "%Y%m%dT%H%M%S"))
-           (title (format "Daily Log %s" (format-time-string "%Y-%m-%d")))
+           (date-title (format-time-string "%Y-%m-%d"))
            (journal-dir (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}))
            (today-file (car (directory-files journal-dir t (format-time-string "%Y-%m-%d")))))
       (or today-file
           (expand-file-name (format "%s--%s__journal.org"
                                    today
-                                   (denote--slug-hyphenate title))
+                                   date-title)
                            journal-dir))))
 
   (setq org-log-repeat 'time)

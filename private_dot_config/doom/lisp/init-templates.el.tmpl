@@ -1,0 +1,15 @@
+ ;;; +templates.el -*- mode: emacs-lisp; lexical-binding: t; -*-
+
+;;; Commentary:
+
+(use-package! tempel
+  :defer t
+  :bind (("M-+" . tempel-complete)
+         ("M-*" . tempel-insert))
+  :init
+  (setq tempel-path (expand-file-name "!org/templates/*.el" {{ .primary_cloud | quote }})))
+
+(use-package tempel-collection)
+
+
+(provide 'init-templates)
