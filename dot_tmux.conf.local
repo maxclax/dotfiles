@@ -7,9 +7,10 @@ set-option -g allow-rename off
 
 # === EMACS-STYLE TMUX CONFIGURATION ===
 
-# Keep default C-b prefix (standard and no major Emacs conflicts)
-set -g prefix2 C-b
-bind C-b send-prefix
+# Keep default C-z prefix (standard and no major Emacs conflicts)
+set -g prefix C-z
+set -g prefix2 C-z
+bind C-z send-prefix
 
 # Use emacs keybindings
 set -g mode-keys emacs

@@ -213,7 +213,7 @@
 
        :config
        ;;literate
-       (default +bindings +smartparens))
+       (default +smartparens))
 
 ;; :private
 ;; my-python
