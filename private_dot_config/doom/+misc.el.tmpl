@@ -29,10 +29,11 @@
           ("W" ,(expand-file-name {{ .workspace_extra | quote }}) "Workspace extra")
           ("p" ,(expand-file-name {{ .playground | quote }}) "Playground")
           ("r" ,(expand-file-name {{ .resources | quote }}) "Resources")
+          ("s" ,(expand-file-name {{ .managed_sync | quote }}) "Managed Sync")
 
-          ;; Add cloud storage entries
-          ("P" ,(expand-file-name {{ .primary_cloud | quote }}) "Primary Cloud")
-          ("S" ,(expand-file-name {{ .secondary_cloud | quote }}) "Secondary Cloud")))
+          ;; Add storage entries
+          ("P" ,(expand-file-name {{ .primary_storage | quote }}) "Primary Storage")
+          ("S" ,(expand-file-name {{ .secondary_storage | quote }}) "Secondary Storage")))
 
   (when (executable-find "lla")
     (dirvish-define-preview lla (file)

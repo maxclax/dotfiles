@@ -70,7 +70,7 @@
            ((todo "TODO"
                   ((org-agenda-overriding-header "🏆 Yearly Outcomes")
                    (org-agenda-files (directory-files-recursively
-                                     (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\\.org$"))
+                                     (expand-file-name "org/denote/journal" {{ .managed_sync | quote }}) "\\.org$"))
                    (org-agenda-sorting-strategy '(deadline-up))
                    (org-agenda-max-entries 3)
                    (org-agenda-skip-function
@@ -85,7 +85,7 @@
             (todo "TODO"
                   ((org-agenda-overriding-header "🏆 Monthly Outcomes")
                    (org-agenda-files (directory-files-recursively
-                                     (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\\.org$"))
+                                     (expand-file-name "org/denote/journal" {{ .managed_sync | quote }}) "\\.org$"))
                    (org-agenda-sorting-strategy '(deadline-up))
                    (org-agenda-max-entries 5)
                    (org-agenda-skip-function
@@ -100,7 +100,7 @@
             (todo "TODO"
                   ((org-agenda-overriding-header "🏆 Weekly Outcomes")
                    (org-agenda-files (directory-files-recursively
-                                     (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\\.org$"))
+                                     (expand-file-name "org/denote/journal" {{ .managed_sync | quote }}) "\\.org$"))
                    (org-agenda-sorting-strategy '(deadline-up))
                    (org-agenda-max-entries 10)
                    (org-agenda-skip-function
@@ -115,7 +115,7 @@
             (todo "TODO"
                   ((org-agenda-overriding-header "🏆 Daily Outcomes")
                    (org-agenda-files (directory-files-recursively
-                                     (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\\.org$"))
+                                     (expand-file-name "org/denote/journal" {{ .managed_sync | quote }}) "\\.org$"))
                    (org-agenda-sorting-strategy '(timestamp-down))
                    (org-agenda-max-entries 15)
                    (org-agenda-skip-function
@@ -171,16 +171,16 @@
            ((agenda "" ((org-agenda-span 'day)
                        (org-agenda-overriding-header "📅 Today's Schedule")
                        (org-agenda-files (directory-files-recursively
-                                         (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\\.org$"))))
+                                         (expand-file-name "org/denote/journal" {{ .managed_sync | quote }}) "\\.org$"))))
             (todo "TODO"
                   ((org-agenda-overriding-header "📝 Journal Tasks & Outcomes")
                    (org-agenda-files (directory-files-recursively
-                                     (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\\.org$"))
+                                     (expand-file-name "org/denote/journal" {{ .managed_sync | quote }}) "\\.org$"))
                    (org-agenda-sorting-strategy '(timestamp-down))))
             (tags "+journal"
                   ((org-agenda-overriding-header "📔 Recent Journal Entries")
                    (org-agenda-files (directory-files-recursively
-                                     (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\\.org$"))
+                                     (expand-file-name "org/denote/journal" {{ .managed_sync | quote }}) "\\.org$"))
                    (org-agenda-sorting-strategy '(timestamp-down))
                    (org-agenda-max-entries 7)))))
 
@@ -189,12 +189,12 @@
            ((tags "+journal"
                   ((org-agenda-overriding-header "📖 All Journal Entries")
                    (org-agenda-files (directory-files-recursively
-                                     (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\\.org$"))
+                                     (expand-file-name "org/denote/journal" {{ .managed_sync | quote }}) "\\.org$"))
                    (org-agenda-sorting-strategy '(timestamp-down))))
             (search ""
                     ((org-agenda-overriding-header "🔍 Search Journal Content")
                      (org-agenda-files (directory-files-recursively
-                                       (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\.org$"))))))
+                                       (expand-file-name "org/denote/journal" {{ .managed_sync | quote }}) "\.org$"))))))
 
           ;; Review Dashboard
           ("R" "Review Dashboard"
@@ -231,18 +231,18 @@
     (org-agenda nil "E"))
 
   ;; PARA for projects, tasks, files
-  (setq org-directory (list {{ .primary_cloud | quote }} {{ .workspace | quote }} {{ .workspace_extra | quote }}))
+  (setq org-directory (list {{ .managed_sync | quote }} {{ .workspace | quote }} {{ .workspace_extra | quote }}))
   (setq org-agenda-file-regexp "\\`[^.].*\\.org\\'") ;; Exclude files starting with "."
   (setq org-agenda-files
         (seq-filter (lambda (file)
                       (not (string-match-p "/templates/" file)))
-                    (append (directory-files-recursively {{ .primary_cloud | quote }} "\\.org$")
+                    (append (directory-files-recursively {{ .managed_sync | quote }} "\\.org$")
                             (directory-files-recursively {{ .workspace | quote }} "\\.org$")
                             (directory-files-recursively {{ .workspace_extra | quote }} "\\.org$")
                             ;; Include journal files in agenda
-                            (directory-files-recursively (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\\.org$"))))
+                            (directory-files-recursively (expand-file-name "org/denote/journal" {{ .managed_sync | quote }}) "\\.org$"))))
 
-  (setq org-default-notes-file (concat {{ .primary_cloud | quote }} "/\!org/inbox.org"))
+  (setq org-default-notes-file (concat {{ .managed_sync | quote }} "/org/inbox.org"))
   (setq org-capture-templates
         '(;; Clean capture templates (no timestamps, links, or content)
           ("t" "INBOX: Todo (clean)" entry (file org-default-notes-file)
@@ -268,7 +268,7 @@
     "Return today's journal file or create it."
     (let* ((today (format-time-string "%Y%m%dT%H%M%S"))
            (date-title (format-time-string "%Y-%m-%d"))
-           (journal-dir (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}))
+           (journal-dir (expand-file-name "org/denote/journal" {{ .managed_sync | quote }}))
            (today-file (car (directory-files journal-dir t (format-time-string "%Y-%m-%d")))))
       (or today-file
           (expand-file-name (format "%s--%s__journal.org"
@@ -378,7 +378,7 @@
   (setq org-refile-targets
         `((nil :maxlevel . 5)
           (org-agenda-files :maxlevel . 5)
-          (,(directory-files-recursively (expand-file-name "!org/denote" {{ .primary_cloud | quote }}) "\\.org$") :maxlevel . 5)
+          (,(directory-files-recursively (expand-file-name "org/denote" {{ .managed_sync | quote }}) "\\.org$") :maxlevel . 5)
           ,@(when (file-exists-p {{ .workspace_extra | quote }})
               `((,(directory-files-recursively {{ .workspace_extra | quote }} "\\.org$") :maxlevel . 5)))))
 
@@ -444,7 +444,7 @@
     (let* ((today (current-time))
            (start-of-week (time-subtract today (seconds-to-time (* (calendar-day-of-week (calendar-current-date)) 86400))))
            (journal-files (directory-files-recursively
-                          (expand-file-name "!org/denote/journal" {{ .primary_cloud | quote }}) "\\.org$"))
+                          (expand-file-name "org/denote/journal" {{ .managed_sync | quote }}) "\\.org$"))
            (buffer-name "*Weekly Outcomes*"))
 
       ;; Create or switch to outcomes buffer
@@ -503,7 +503,7 @@
     "Set focus on primary cloud files."
     (interactive)
     (setq org-agenda-files
-          (directory-files-recursively {{ .primary_cloud | quote }} "\\.org$")))
+          (directory-files-recursively {{ .managed_sync | quote }} "\\.org$")))
 
   (defun org-focus-workspace()
     "Set focus on workspace files."
@@ -521,7 +521,7 @@
     "Set focus on all org files."
     (interactive)
     (setq org-agenda-files
-          (append (directory-files-recursively {{ .primary_cloud | quote }} "\\.org$")
+          (append (directory-files-recursively {{ .managed_sync | quote }} "\\.org$")
                   (directory-files-recursively {{ .workspace | quote }} "\\.org$")
                   (directory-files-recursively {{ .workspace_extra | quote }} "\\.org$"))))
 
@@ -533,7 +533,7 @@
         ;; File is in extra workspace - use extra attach dir
         (expand-file-name "!org/.attach/" {{ .workspace_extra | quote }})
       ;; Default to primary attach dir
-      (expand-file-name "!org/.attach/" {{ .primary_cloud | quote }})))
+      (expand-file-name "org/.attach/" {{ .managed_sync | quote }})))
 
   (defun my/set-attach-dir ()
     "Set org-attach-id-dir based on current buffer location."
@@ -543,7 +543,7 @@
       (make-directory org-attach-id-dir t)))
 
   ;; Set initial attach directory
-  (setq org-attach-id-dir (expand-file-name "!org/.attach/" {{ .primary_cloud | quote }}))
+  (setq org-attach-id-dir (expand-file-name "org/.attach/" {{ .managed_sync | quote }}))
   (setq org-attach-dir-relative t)
   (setq org-attach-use-inheritance t)
   (setq org-attach-auto-tag "attach")

@@ -1,8 +1,9 @@
 {{- $workspace := promptStringOnce . "workspace" "workspace directory" (printf "%s/workspace" .chezmoi.homeDir) -}}
 {{- $workspace_extra := promptStringOnce . "workspace_extra" "extra workspace directory" (printf "%s/workspace_extra" .chezmoi.homeDir) -}}
 {{- $resources := promptStringOnce . "resources" "resources directory" (printf "%s/workspace/resources" .chezmoi.homeDir) -}}
-{{- $primary_cloud := promptStringOnce . "primary_cloud" "primary cloud storage" (printf "%s/primary_cloud" .chezmoi.homeDir) -}}
-{{- $secondary_cloud := promptStringOnce . "secondary_cloud" "secondary cloud storage" (printf "%s/secondary_cloud" .chezmoi.homeDir) -}}
+{{- $managed_sync := promptStringOnce . "managed_sync" "managed sync storage" (printf "%s/.local/managed-sync" .chezmoi.homeDir) -}}
+{{- $primary_storage := promptStringOnce . "primary_storage" "primary storage" (printf "%s/primary_storage" .chezmoi.homeDir) -}}
+{{- $secondary_storage := promptStringOnce . "secondary_storage" "secondary storage" (printf "%s/secondary_storage" .chezmoi.homeDir) -}}
 
 {{- $emacsType := "default" -}}
 {{- if stdinIsATTY -}}
@@ -112,8 +113,9 @@ encryption = "age"
     workspace_extra = {{ $workspace_extra | quote }}
     resources = {{ $resources | quote }}
     playground = {{ printf "%s/playground" $workspace | quote }}
-    primary_cloud = {{ $primary_cloud | quote }}
-    secondary_cloud = {{ $secondary_cloud | quote }}
+    managed_sync = {{ $managed_sync | quote }}
+    primary_storage = {{ $primary_storage | quote }}
+    secondary_storage = {{ $secondary_storage | quote }}
     editor = "emacsclient"
     shell = {{ $shell | quote }}
 

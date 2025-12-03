@@ -9,7 +9,7 @@
 (use-package! denote
   :config
   ;; Dedicated denote directory
-  (setq denote-directory (expand-file-name "!org/denote" {{ .primary_cloud | quote }}))
+  (setq denote-directory (expand-file-name "org/denote" {{ .managed_sync | quote }}))
 
   ;; Lifecycle keywords (inspired by EWS)
   (setq denote-known-keywords
@@ -162,7 +162,7 @@ KEYWORD should be a string. FILE should be a full file path."
     (make-directory denote-journal-directory t))
 
   ;; Global template system for org-mode and denote
-  (setq my/templates-directory (expand-file-name "!org/templates" {{ .primary_cloud | quote }}))
+  (setq my/templates-directory (expand-file-name "org/templates" {{ .managed_sync | quote }}))
 
   ;; Create templates directory if it doesn't exist
   (unless (file-exists-p my/templates-directory)

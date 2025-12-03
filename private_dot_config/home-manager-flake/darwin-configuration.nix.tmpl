@@ -53,41 +53,41 @@
       echo "iCloud Drive not found at $ICLOUD_SOURCE"
     fi
 
-{{- if .primary_cloud }}
-    # Create primary cloud symlink
-    PRIMARY_CLOUD_SOURCE="{{ .primary_cloud }}"
-    PRIMARY_CLOUD_SYMLINK="{{ .chezmoi.homeDir }}/$(basename "{{ .primary_cloud }}")"
+{{- if .primary_storage }}
+    # Create primary storage symlink
+    PRIMARY_STORAGE_SOURCE="{{ .primary_storage }}"
+    PRIMARY_STORAGE_SYMLINK="{{ .chezmoi.homeDir }}/$(basename "{{ .primary_storage }}")"
 
-    if [[ -d "$PRIMARY_CLOUD_SOURCE" && ! -L "$PRIMARY_CLOUD_SYMLINK" ]]; then
-      if [[ ! -e "$PRIMARY_CLOUD_SYMLINK" ]]; then
-        echo "Creating primary cloud symlink: $PRIMARY_CLOUD_SYMLINK -> $PRIMARY_CLOUD_SOURCE"
-        sudo -u "{{ .chezmoi.username }}" ln -s "$PRIMARY_CLOUD_SOURCE" "$PRIMARY_CLOUD_SYMLINK"
+    if [[ -d "$PRIMARY_STORAGE_SOURCE" && ! -L "$PRIMARY_STORAGE_SYMLINK" ]]; then
+      if [[ ! -e "$PRIMARY_STORAGE_SYMLINK" ]]; then
+        echo "Creating primary storage symlink: $PRIMARY_STORAGE_SYMLINK -> $PRIMARY_STORAGE_SOURCE"
+        sudo -u "{{ .chezmoi.username }}" ln -s "$PRIMARY_STORAGE_SOURCE" "$PRIMARY_STORAGE_SYMLINK"
       else
-        echo "Warning: $PRIMARY_CLOUD_SYMLINK exists but is not a symlink"
+        echo "Warning: $PRIMARY_STORAGE_SYMLINK exists but is not a symlink"
       fi
-    elif [[ -L "$PRIMARY_CLOUD_SYMLINK" ]]; then
+    elif [[ -L "$PRIMARY_STORAGE_SYMLINK" ]]; then
       echo "Primary cloud symlink already exists"
     else
-      echo "Primary cloud not found at $PRIMARY_CLOUD_SOURCE"
+      echo "Primary cloud not found at $PRIMARY_STORAGE_SOURCE"
     fi
 {{- end }}
 
-{{- if .secondary_cloud }}
-    # Create secondary cloud symlink
-    SECONDARY_CLOUD_SOURCE="{{ .secondary_cloud }}"
-    SECONDARY_CLOUD_SYMLINK="{{ .chezmoi.homeDir }}/$(basename "{{ .secondary_cloud }}")"
+{{- if .secondary_storage }}
+    # Create secondary storage symlink
+    SECONDARY_STORAGE_SOURCE="{{ .secondary_storage }}"
+    SECONDARY_STORAGE_SYMLINK="{{ .chezmoi.homeDir }}/$(basename "{{ .secondary_storage }}")"
 
-    if [[ -d "$SECONDARY_CLOUD_SOURCE" && ! -L "$SECONDARY_CLOUD_SYMLINK" ]]; then
-      if [[ ! -e "$SECONDARY_CLOUD_SYMLINK" ]]; then
-        echo "Creating secondary cloud symlink: $SECONDARY_CLOUD_SYMLINK -> $SECONDARY_CLOUD_SOURCE"
-        sudo -u "{{ .chezmoi.username }}" ln -s "$SECONDARY_CLOUD_SOURCE" "$SECONDARY_CLOUD_SYMLINK"
+    if [[ -d "$SECONDARY_STORAGE_SOURCE" && ! -L "$SECONDARY_STORAGE_SYMLINK" ]]; then
+      if [[ ! -e "$SECONDARY_STORAGE_SYMLINK" ]]; then
+        echo "Creating secondary storage symlink: $SECONDARY_STORAGE_SYMLINK -> $SECONDARY_STORAGE_SOURCE"
+        sudo -u "{{ .chezmoi.username }}" ln -s "$SECONDARY_STORAGE_SOURCE" "$SECONDARY_STORAGE_SYMLINK"
       else
-        echo "Warning: $SECONDARY_CLOUD_SYMLINK exists but is not a symlink"
+        echo "Warning: $SECONDARY_STORAGE_SYMLINK exists but is not a symlink"
       fi
-    elif [[ -L "$SECONDARY_CLOUD_SYMLINK" ]]; then
+    elif [[ -L "$SECONDARY_STORAGE_SYMLINK" ]]; then
       echo "Secondary cloud symlink already exists"
     else
-      echo "Secondary cloud not found at $SECONDARY_CLOUD_SOURCE"
+      echo "Secondary cloud not found at $SECONDARY_STORAGE_SOURCE"
     fi
 {{- end }}
 
