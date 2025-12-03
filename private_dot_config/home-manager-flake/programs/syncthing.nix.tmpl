@@ -1,0 +1,21 @@
+# -*- mode: nix; -*-
+{ config, pkgs, lib, ... }:
+
+{
+  # Enable syncthing service
+  services.syncthing = {
+    enable = true;
+
+    # Set custom data directory (optional)
+    # dataDir = "{{ .chezmoi.homeDir }}/.local/syncthing";
+
+    # Set custom config directory (optional)
+    # configDir = "{{ .chezmoi.homeDir }}/.config/syncthing";
+
+    # Additional command line options
+    extraOptions = [
+      "--no-browser"  # Don't open browser on startup
+      "--logflags=0"  # Reduce log verbosity
+    ];
+  };
+}

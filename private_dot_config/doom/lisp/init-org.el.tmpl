@@ -232,6 +232,11 @@
 
   ;; PARA for projects, tasks, files
   (setq org-directory (list {{ .managed_sync | quote }} {{ .workspace | quote }} {{ .workspace_extra | quote }}))
+
+  ;; Disable logbook creation globally (no timestamps when changing TODO states)
+  (setq org-log-done nil)
+  ;; To enable logbook for specific buffer, add to top of org file:
+  ;; #+STARTUP: logdone
   (setq org-agenda-file-regexp "\\`[^.].*\\.org\\'") ;; Exclude files starting with "."
   (setq org-agenda-files
         (seq-filter (lambda (file)
@@ -713,5 +718,36 @@
                                                (time-add (current-time) (days-to-time days))))
             (message "Marked as reviewed. Next review: %s days" days))
         (message "No review period set. Use C-c r p first.")))))
+
+;; Reset function for checklists
+(defun my/org-reset-checklist ()
+  "Reset all DONE items to TODO and uncheck all checkboxes in current buffer."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (let ((todo-count 0)
+          (checkbox-count 0))
+
+      ;; Reset DONE/CANCELLED to TODO while preserving heading levels
+      (while (re-search-forward "^\\(\\*+\\) \\(DONE\\|CANCELLED\\) " nil t)
+        (replace-match "\\1 TODO " nil nil)
+        (setq todo-count (1+ todo-count)))
+
+      ;; Reset checked checkboxes to unchecked
+      (goto-char (point-min))
+      (while (re-search-forward "^[ \t]*- \\[X\\]" nil t)
+        (replace-match "- [ ]" nil nil)
+        (setq checkbox-count (1+ checkbox-count)))
+
+      ;; Remove logbook entries
+      (goto-char (point-min))
+      (while (re-search-forward ":LOGBOOK:\n\\(.*\n\\)*?:END:" nil t)
+        (replace-match ""))
+
+      (message "Reset %d TODO items and %d checkboxes" todo-count checkbox-count))))
+
+;; Force disable logbook creation (override any Doom defaults)
+(setq org-log-done nil
+      org-log-done-with-time nil)
 
 (provide 'init-org)
