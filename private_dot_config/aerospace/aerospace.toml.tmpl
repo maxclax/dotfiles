@@ -85,7 +85,7 @@ cmd-4 = 'workspace 4' # Free special
 cmd-5 = 'workspace 5' # AI GUI chats
 cmd-6 = 'workspace 6' # Dev (env)
 cmd-7 = 'workspace 7' # Dev (Emacs F1)
-cmd-8 = 'workspace 8' # Media in Safari (Netflix...), Communication, Musics and Undifined apps
+cmd-8 = 'workspace 8' # Media (Netflix...), Communication, Musics and Undifined apps
 cmd-9 = 'workspace 9' # AI CLI & Agents
 cmd-0 = 'workspace 10' # Terminal
 
@@ -196,6 +196,9 @@ run = "move-node-to-workspace 4"
 if.app-id = 'xyz.chatboxapp.app'
 run = "move-node-to-workspace 5"
 [[on-window-detected]]
+if.app-id = 'com.apple.Safari'
+run = "move-node-to-workspace 5"
+[[on-window-detected]]
 if.app-id = 'com.openai.chat'
 run = "move-node-to-workspace 5"
 [[on-window-detected]]
@@ -265,7 +268,7 @@ run = 'move-node-to-workspace 8'
 #5 = '2'   # AI GUI chats
 #6 = '2'   # Dev (env)
 #7 = 'main'        # Dev (Emacs F1)
-#8 = '2'   # Media in Safari (Netflix...), Communication, Musics and Undifined apps
+#8 = '2'   # Media (Netflix...), Communication, Musics and Undifined apps
 #9 = '2'   # AI CLI & Agents
 ## 0 = 'main'      # terminal
 
@@ -277,6 +280,6 @@ run = 'move-node-to-workspace 8'
 5 = '3'   # AI GUI chats
 6 = '3'   # Dev (env)
 7 = 'main'        # Dev (Emacs F1)
-8 = '3'   # Media in Safari (Netflix...), Communication, Musics and Undifined apps
+8 = '3'   # Media (Netflix...), Communication, Musics and Undifined apps
 9 = '3'   # AI CLI & Agents
 # 0 = 'main'      # terminal
