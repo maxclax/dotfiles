@@ -5,4 +5,7 @@
     {{ .Key }}
   {{- end -}}
 {{- end -}}
+{{- if .useOp }}
+{{ onepasswordRead "op://Personal/localhost-ssh/public key" }}
+{{- end }}
 {{ end }}
