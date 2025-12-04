@@ -18,13 +18,12 @@
   (map!
    (:map override
          :desc "Org agenda" "C-c a" #'org-agenda
-         :desc "Org capture" "C-c x" #'org-capture
+         :desc "Org capture" "C-c c" #'org-capture
 
          (:prefix ("C-c b" . "Buffers")
           :desc "Format buffer" "f" #'format-all-buffer)
 
          (:prefix ("C-c F" . "Files")
-          :desc "Dirvish DWIM" "j" #'dirvish-dwim
           :desc "Yank filename" "n" #'+default/yank-filename)
 
          (:prefix ("C-c g" . "Git")
@@ -53,6 +52,7 @@
 
          (:prefix ("C-c n" . "Notes")
           :desc "Denote backlinks" "b" #'denote-backlinks
+          :desc "Denote link after creating" "c" #'denote-link-after-creating
           :desc "Denote dired" "d" #'denote-dired
           :desc "Denote grep" "g" #'denote-grep
           :desc "Denote journal" "j" #'denote-journal-new-or-existing-entry
@@ -85,8 +85,6 @@
                                          (message "Not in a project")))))
 
          (:prefix ("C-c t" . "Toggles/Timing")
-          :desc "Keycast log mode" "K" #'keycast-log-mode
-          :desc "Keycast header mode" "k" #'keycast-header-line-mode
           (:prefix ("t" . "Timer")
            :desc "Pause timer" "p" #'pomm-pause
            :desc "Reset timer" "r" #'pomm-reset

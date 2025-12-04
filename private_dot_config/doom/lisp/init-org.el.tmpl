@@ -13,30 +13,28 @@
               (lambda (&rest _)
                 (org-save-all-org-buffers)))
 
-  ;; Reset checkboxes and subtasks when repeating task is marked DONE
-  (defun my/reset-repeating-task ()
-    "Reset checkboxes and subtasks in repeating tasks when marked DONE."
-    (when (and (string= (org-get-todo-state) "DONE")
-               (org-get-repeat))  ; Check if this is a repeating task
-      (message "Resetting repeating task and subtasks...")
+  ;; Reset subtasks when repeating task is processed
+  (defun my/reset-repeating-subtasks ()
+    "Reset subtasks and checkboxes when a repeating task is reset."
+    (when (org-get-repeat)  ; This is a repeating task
+      (message "Resetting repeating task subtasks...")
       (save-excursion
         (org-back-to-heading t)
         (let ((end (save-excursion (org-end-of-subtree t))))
-          ;; Reset checkboxes
-          (while (re-search-forward "^[ \t]*- \\[X\\]" end t)
-            (replace-match "- [ ]" nil nil)
-            (message "Reset checkbox"))
-          ;; Reset subtasks back to TODO
-          (goto-char (point))
+          ;; Reset all DONE subtasks back to TODO
           (org-map-entries
            (lambda ()
-             (when (and (string= (org-get-todo-state) "DONE")
-                        (> (org-current-level) 1))  ; Only subtasks
+             (when (string= (org-get-todo-state) "DONE")
                (org-todo "TODO")
                (message "Reset subtask: %s" (org-get-heading t t))))
-           nil 'tree)))))
+           nil 'tree)
+          ;; Reset checkboxes (this should already work, but ensure it)
+          (goto-char (point))
+          (while (re-search-forward "^[ \t]*- \\[X\\]" end t)
+            (replace-match "- [ ]" nil nil))))))
 
-  (add-hook 'org-after-todo-state-change-hook #'my/reset-repeating-task)
+  ;; Use the proper hook that runs after repeat processing
+  (add-hook 'org-todo-repeat-hook #'my/reset-repeating-subtasks)
 
   ;; Dim blocked tasks
   (setq org-agenda-dim-blocked-tasks t)
@@ -237,6 +235,10 @@
   (setq org-log-done nil)
   ;; To enable logbook for specific buffer, add to top of org file:
   ;; #+STARTUP: logdone
+
+  ;; Reset subtasks when marking repeating task as DONE
+  (setq org-log-repeat 'time)
+  (setq org-todo-repeat-to-state "TODO")
   (setq org-agenda-file-regexp "\\`[^.].*\\.org\\'") ;; Exclude files starting with "."
   (setq org-agenda-files
         (seq-filter (lambda (file)
@@ -281,7 +283,6 @@
                                    date-title)
                            journal-dir))))
 
-  (setq org-log-repeat 'time)
   ;; GTD-style TODO keywords with PROJECT state
   (setq org-todo-keywords
         '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!/!)")
