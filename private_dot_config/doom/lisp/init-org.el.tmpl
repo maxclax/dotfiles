@@ -56,15 +56,64 @@
   (setq org-agenda-custom-commands
         '(;; Default agenda (no DONE)
 
-          ;; Show completed tasks
-          ("c" "Completed tasks"
-           ((tags "TODO=\"DONE\""
-                  ((org-agenda-overriding-header "✅ Completed Tasks")
-                   (org-agenda-sorting-strategy '(timestamp-down)))))
-           ((org-agenda-span 7)))  ; Last 7 days
+          ;; GTD Full Review with Journal Integration
+          ("d" "Dashboard (GTD)"
+           ((todo "TODO"
+                  ((org-agenda-overriding-header "🏆 Daily Outcomes")
+                   (org-agenda-files (directory-files-recursively
+                                     (expand-file-name "org/denote/journal" {{ .managed_sync | quote }}) "\\.org$"))
+                   (org-agenda-sorting-strategy '(timestamp-down))
+                   (org-agenda-max-entries 15)
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let ((outline-path (org-get-outline-path t)))
+                         (or (when (member "someday" (org-get-tags))
+                               (or (outline-next-heading) (point-max)))
+                             (unless (cl-some (lambda (heading)
+                                                (string-match-p "Daily Outcomes" heading))
+                                              outline-path)
+                               (or (outline-next-heading) (point-max)))))))))
+
+            (agenda "" ((org-agenda-span 'day)
+                       (org-agenda-overriding-header "📅 Today")
+                       (org-agenda-todo-list-sublevels t)))
+
+            (tags-todo "INBOX"
+                  ((org-agenda-overriding-header "📥 Inbox - Process These")
+                   (org-tags-match-list-sublevels nil)))
+            (stuck ""
+                   ((org-agenda-overriding-header "🚫 Stuck Projects (no NEXT)")
+                    (org-agenda-tags-todo-honor-ignore-options t)
+                    (org-tags-match-list-sublevels t)))
+            (tags-todo "-INBOX/NEXT"
+                       ((org-agenda-overriding-header "⚡ Next Actions")
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (org-agenda-skip-entry-if 'scheduled 'deadline)))
+                        (org-tags-match-list-sublevels t)))
+            (tags-todo "-INBOX/PROJECT"
+                       ((org-agenda-overriding-header "📁 Active Projects")
+                        (org-tags-match-list-sublevels t)))
+            (tags-todo "-INBOX/-NEXT"
+                       ((org-agenda-overriding-header "🔍 Orphaned Tasks")
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (or (org-agenda-skip-subtree-if 'todo '("PROJECT" "HOLD" "WAITING" "DELEGATED"))
+                                (org-agenda-skip-subtree-if 'nottodo '("TODO"))
+                                ;; Skip tasks with scheduled/deadline dates or repeating
+                                (org-agenda-skip-entry-if 'scheduled 'deadline 'timestamp)
+                                ;; Skip tasks with any tags
+                                (when (org-get-tags-at) (point-max)))))
+                        (org-tags-match-list-sublevels t)))
+            (tags-todo "/WAITING"
+                       ((org-agenda-overriding-header "⏳ Waiting For")))
+            (tags-todo "/DELEGATED"
+                       ((org-agenda-overriding-header "👥 Delegated")))
+            (tags-todo "-INBOX/HOLD"
+                       ((org-agenda-overriding-header "⏸️ On Hold")))))
 
           ;; GTD Full Review with Journal Integration
-          ("d" "Dashboard (AR+GTD)"
+         ("D" "Dashboard (AR)"
            ((todo "TODO"
                   ((org-agenda-overriding-header "🏆 Yearly Outcomes")
                    (org-agenda-files (directory-files-recursively
@@ -124,112 +173,179 @@
                              (unless (cl-some (lambda (heading)
                                                 (string-match-p "Daily Outcomes" heading))
                                               outline-path)
-                               (or (outline-next-heading) (point-max)))))))))
+                               (or (outline-next-heading) (point-max)))))))))))
 
-            (agenda "" ((org-agenda-span 'day)
-                       (org-agenda-overriding-header "📅 Today")
-                       (org-agenda-todo-list-sublevels t)))
 
-            (tags-todo "INBOX"
-                  ((org-agenda-overriding-header "📥 Inbox - Process These")
-                   (org-tags-match-list-sublevels nil)))
-            (stuck ""
-                   ((org-agenda-overriding-header "🚫 Stuck Projects (no NEXT)")
-                    (org-agenda-tags-todo-honor-ignore-options t)
-                    (org-tags-match-list-sublevels t)))
-            (tags-todo "-INBOX/NEXT"
-                       ((org-agenda-overriding-header "⚡ Next Actions")
-                        (org-agenda-skip-function
-                         '(lambda ()
-                            (org-agenda-skip-entry-if 'scheduled 'deadline)))
-                        (org-tags-match-list-sublevels t)))
-            (tags-todo "-INBOX/PROJECT"
-                       ((org-agenda-overriding-header "📁 Active Projects")
-                        (org-tags-match-list-sublevels t)))
-            (tags-todo "-INBOX/-NEXT"
-                       ((org-agenda-overriding-header "🔍 Orphaned Tasks")
-                        (org-agenda-skip-function
-                         '(lambda ()
-                            (or (org-agenda-skip-subtree-if 'todo '("PROJECT" "HOLD" "WAITING" "DELEGATED"))
-                                (org-agenda-skip-subtree-if 'nottodo '("TODO"))
-                                ;; Skip tasks with scheduled/deadline dates or repeating
-                                (org-agenda-skip-entry-if 'scheduled 'deadline 'timestamp)
-                                ;; Skip tasks with any tags
-                                (when (org-get-tags-at) (point-max)))))
-                        (org-tags-match-list-sublevels t)))
-            (tags-todo "/WAITING"
-                       ((org-agenda-overriding-header "⏳ Waiting For")))
-            (tags-todo "/DELEGATED"
-                       ((org-agenda-overriding-header "👥 Delegated")))
-            (tags-todo "-INBOX/HOLD"
-                       ((org-agenda-overriding-header "⏸️ On Hold")))))
-
-          ;; Journal Dashboard
-          ("j" "Journal Dashboard"
-           ((agenda "" ((org-agenda-span 'day)
-                       (org-agenda-overriding-header "📅 Today's Schedule")
-                       (org-agenda-files (directory-files-recursively
-                                         (expand-file-name "org/denote/journal" {{ .managed_sync | quote }}) "\\.org$"))))
-            (todo "TODO"
-                  ((org-agenda-overriding-header "📝 Journal Tasks & Outcomes")
+          ;; Friday Reflection - All Daily Outcomes Tasks
+          ("F" "Friday Reflection - Daily Outcomes"
+           ((tags "LEVEL>0"
+                  ((org-agenda-overriding-header "📅 Monday")
                    (org-agenda-files (directory-files-recursively
                                      (expand-file-name "org/denote/journal" {{ .managed_sync | quote }}) "\\.org$"))
-                   (org-agenda-sorting-strategy '(timestamp-down))))
-            (tags "+journal"
-                  ((org-agenda-overriding-header "📔 Recent Journal Entries")
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let* ((outline-path (org-get-outline-path t))
+                              (file-date (file-name-base (buffer-file-name)))
+                              (current-day (calendar-day-of-week (calendar-current-date)))
+                              (days-since-monday (if (= current-day 0) 6 (1- current-day)))
+                              (week-start (time-subtract (current-time) (seconds-to-time (* days-since-monday 86400))))
+                              (monday-date (format-time-string "%Y%m%d" week-start)))
+                         (unless (and (or (org-at-heading-p) (org-at-property-p))
+                                     (cl-some (lambda (heading)
+                                                (string-match-p "Daily Outcomes" heading))
+                                              outline-path)
+                                     (not (string-match-p "Daily Outcomes" (or (org-get-heading t t t t) "")))
+                                     (string-match-p monday-date file-date))
+                           (or (outline-next-heading) (point-max))))))
+                   (org-agenda-show-inherited-tags nil)
+                   (org-agenda-prefix-format "  %i %-12:c%?-12t% s")))
+            (tags "LEVEL>0"
+                  ((org-agenda-overriding-header "📅 Tuesday")
                    (org-agenda-files (directory-files-recursively
                                      (expand-file-name "org/denote/journal" {{ .managed_sync | quote }}) "\\.org$"))
-                   (org-agenda-sorting-strategy '(timestamp-down))
-                   (org-agenda-max-entries 7)))))
-
-          ;; Journal Review
-          ("J" "Journal Review"
-           ((tags "+journal"
-                  ((org-agenda-overriding-header "📖 All Journal Entries")
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let* ((outline-path (org-get-outline-path t))
+                              (file-date (file-name-base (buffer-file-name)))
+                              (current-day (calendar-day-of-week (calendar-current-date)))
+                              (days-since-monday (if (= current-day 0) 6 (1- current-day)))
+                              (week-start (time-subtract (current-time) (seconds-to-time (* days-since-monday 86400))))
+                              (tuesday-date (format-time-string "%Y%m%d" (time-add week-start (seconds-to-time 86400)))))
+                         (unless (and (or (org-at-heading-p) (org-at-property-p))
+                                     (cl-some (lambda (heading)
+                                                (string-match-p "Daily Outcomes" heading))
+                                              outline-path)
+                                     (not (string-match-p "Daily Outcomes" (or (org-get-heading t t t t) "")))
+                                     (string-match-p tuesday-date file-date))
+                           (or (outline-next-heading) (point-max))))))
+                   (org-agenda-show-inherited-tags nil)
+                   (org-agenda-prefix-format "  %i %-12:c%?-12t% s")))
+            (tags "LEVEL>0"
+                  ((org-agenda-overriding-header "📅 Wednesday")
                    (org-agenda-files (directory-files-recursively
                                      (expand-file-name "org/denote/journal" {{ .managed_sync | quote }}) "\\.org$"))
-                   (org-agenda-sorting-strategy '(timestamp-down))))
-            (search ""
-                    ((org-agenda-overriding-header "🔍 Search Journal Content")
-                     (org-agenda-files (directory-files-recursively
-                                       (expand-file-name "org/denote/journal" {{ .managed_sync | quote }}) "\.org$"))))))
-
-          ;; Review Dashboard
-          ("R" "Review Dashboard"
-           ((tags-todo "NEXT_REVIEW<=\"<today>\""
-                  ((org-agenda-overriding-header "📋 Items Due for Review")
-                   (org-agenda-sorting-strategy '(property-up))))
-            (tags "REVIEW_PERIOD={.+}"
-                  ((org-agenda-overriding-header "📅 All Review Items")
-                   (org-agenda-sorting-strategy '(property-up))))))
-
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let* ((outline-path (org-get-outline-path t))
+                              (file-date (file-name-base (buffer-file-name)))
+                              (current-day (calendar-day-of-week (calendar-current-date)))
+                              (days-since-monday (if (= current-day 0) 6 (1- current-day)))
+                              (week-start (time-subtract (current-time) (seconds-to-time (* days-since-monday 86400))))
+                              (wednesday-date (format-time-string "%Y%m%d" (time-add week-start (seconds-to-time (* 2 86400))))))
+                         (unless (and (or (org-at-heading-p) (org-at-property-p))
+                                     (cl-some (lambda (heading)
+                                                (string-match-p "Daily Outcomes" heading))
+                                              outline-path)
+                                     (not (string-match-p "Daily Outcomes" (or (org-get-heading t t t t) "")))
+                                     (string-match-p wednesday-date file-date))
+                           (or (outline-next-heading) (point-max))))))
+                   (org-agenda-show-inherited-tags nil)
+                   (org-agenda-prefix-format "  %i %-12:c%?-12t% s")))
+            (tags "LEVEL>0"
+                  ((org-agenda-overriding-header "📅 Thursday")
+                   (org-agenda-files (directory-files-recursively
+                                     (expand-file-name "org/denote/journal" {{ .managed_sync | quote }}) "\\.org$"))
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let* ((outline-path (org-get-outline-path t))
+                              (file-date (file-name-base (buffer-file-name)))
+                              (current-day (calendar-day-of-week (calendar-current-date)))
+                              (days-since-monday (if (= current-day 0) 6 (1- current-day)))
+                              (week-start (time-subtract (current-time) (seconds-to-time (* days-since-monday 86400))))
+                              (thursday-date (format-time-string "%Y%m%d" (time-add week-start (seconds-to-time (* 3 86400))))))
+                         (unless (and (or (org-at-heading-p) (org-at-property-p))
+                                     (cl-some (lambda (heading)
+                                                (string-match-p "Daily Outcomes" heading))
+                                              outline-path)
+                                     (not (string-match-p "Daily Outcomes" (or (org-get-heading t t t t) "")))
+                                     (string-match-p thursday-date file-date))
+                           (or (outline-next-heading) (point-max))))))
+                   (org-agenda-show-inherited-tags nil)
+                   (org-agenda-prefix-format "  %i %-12:c%?-12t% s")))
+            (tags "LEVEL>0"
+                  ((org-agenda-overriding-header "📅 Friday")
+                   (org-agenda-files (directory-files-recursively
+                                     (expand-file-name "org/denote/journal" {{ .managed_sync | quote }}) "\\.org$"))
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let* ((outline-path (org-get-outline-path t))
+                              (file-date (file-name-base (buffer-file-name)))
+                              (current-day (calendar-day-of-week (calendar-current-date)))
+                              (days-since-monday (if (= current-day 0) 6 (1- current-day)))
+                              (week-start (time-subtract (current-time) (seconds-to-time (* days-since-monday 86400))))
+                              (friday-date (format-time-string "%Y%m%d" (time-add week-start (seconds-to-time (* 4 86400))))))
+                         (unless (and (or (org-at-heading-p) (org-at-property-p))
+                                     (cl-some (lambda (heading)
+                                                (string-match-p "Daily Outcomes" heading))
+                                              outline-path)
+                                     (not (string-match-p "Daily Outcomes" (or (org-get-heading t t t t) "")))
+                                     (string-match-p friday-date file-date))
+                           (or (outline-next-heading) (point-max))))))
+                   (org-agenda-show-inherited-tags nil)
+                   (org-agenda-prefix-format "  %i %-12:c%?-12t% s")))
+            (tags "LEVEL>0"
+                  ((org-agenda-overriding-header "📅 Saturday")
+                   (org-agenda-files (directory-files-recursively
+                                     (expand-file-name "org/denote/journal" {{ .managed_sync | quote }}) "\\.org$"))
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let* ((outline-path (org-get-outline-path t))
+                              (file-date (file-name-base (buffer-file-name)))
+                              (current-day (calendar-day-of-week (calendar-current-date)))
+                              (days-since-monday (if (= current-day 0) 6 (1- current-day)))
+                              (week-start (time-subtract (current-time) (seconds-to-time (* days-since-monday 86400))))
+                              (saturday-date (format-time-string "%Y%m%d" (time-add week-start (seconds-to-time (* 5 86400))))))
+                         (unless (and (or (org-at-heading-p) (org-at-property-p))
+                                     (cl-some (lambda (heading)
+                                                (string-match-p "Daily Outcomes" heading))
+                                              outline-path)
+                                     (not (string-match-p "Daily Outcomes" (or (org-get-heading t t t t) "")))
+                                     (string-match-p saturday-date file-date))
+                           (or (outline-next-heading) (point-max))))))
+                   (org-agenda-show-inherited-tags nil)
+                   (org-agenda-prefix-format "  %i %-12:c%?-12t% s")))
+            (tags "LEVEL>0"
+                  ((org-agenda-overriding-header "📅 Sunday")
+                   (org-agenda-files (directory-files-recursively
+                                     (expand-file-name "org/denote/journal" {{ .managed_sync | quote }}) "\\.org$"))
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let* ((outline-path (org-get-outline-path t))
+                              (file-date (file-name-base (buffer-file-name)))
+                              (current-day (calendar-day-of-week (calendar-current-date)))
+                              (days-since-monday (if (= current-day 0) 6 (1- current-day)))
+                              (week-start (time-subtract (current-time) (seconds-to-time (* days-since-monday 86400))))
+                              (sunday-date (format-time-string "%Y%m%d" (time-add week-start (seconds-to-time (* 6 86400))))))
+                         (unless (and (or (org-at-heading-p) (org-at-property-p))
+                                     (cl-some (lambda (heading)
+                                                (string-match-p "Daily Outcomes" heading))
+                                              outline-path)
+                                     (not (string-match-p "Daily Outcomes" (or (org-get-heading t t t t) "")))
+                                     (string-match-p sunday-date file-date))
+                           (or (outline-next-heading) (point-max))))))
+                   (org-agenda-show-inherited-tags nil)
+                   (org-agenda-prefix-format "  %i %-12:c%?-12t% s")))))
 
           ;; Eisenhower Matrix (using priorities)
           ("E" "Eisenhower Matrix"
            ((tags-todo "PRIORITY=\"A\""
-                       ((org-agenda-overriding-header "🔥 DO (Priority A = I-U)")
+                       ((org-agenda-overriding-header "🔥 Important & Urgent (Priority A)")
                         (org-agenda-skip-function
                          '(lambda ()
                             (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))))))
             (tags-todo "PRIORITY=\"B\""
-                       ((org-agenda-overriding-header "📅 SCHEDULE (Priority B = I-NU)")
+                       ((org-agenda-overriding-header "📅 Important & Not Urgent (Priority B)")
                         (org-agenda-skip-function
                          '(lambda ()
                             (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))))))
             (tags-todo "PRIORITY=\"C\""
-                       ((org-agenda-overriding-header "👥 DELEGATE (Priority C = NI-U)")
+                       ((org-agenda-overriding-header "👥 Not Important & Urgent (Priority C)")
                         (org-agenda-skip-function
                          '(lambda ()
                             (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))))))))))
 
-  ;; Eisenhower Matrix agenda function
-  (defun my/eisenhower-matrix-agenda ()
-    "Show Eisenhower Matrix in agenda format."
-    (interactive)
-    (org-agenda nil "E"))
 
-  ;; PARA for projects, tasks, files
-  (setq org-directory (list {{ .managed_sync | quote }} {{ .workspace | quote }} {{ .workspace_extra | quote }}))
+  (setq org-directory (list (expand-file-name "org" {{ .managed_sync | quote }}) {{ .workspace | quote }} {{ .workspace_extra | quote }}))
 
   ;; Disable logbook creation globally (no timestamps when changing TODO states)
   (setq org-log-done nil)
@@ -237,13 +353,13 @@
   ;; #+STARTUP: logdone
 
   ;; Reset subtasks when marking repeating task as DONE
-  (setq org-log-repeat 'time)
+  (setq org-log-repeat nil)  ; Don't log repeat timestamps
   (setq org-todo-repeat-to-state "TODO")
   (setq org-agenda-file-regexp "\\`[^.].*\\.org\\'") ;; Exclude files starting with "."
   (setq org-agenda-files
         (seq-filter (lambda (file)
                       (not (string-match-p "/templates/" file)))
-                    (append (directory-files-recursively {{ .managed_sync | quote }} "\\.org$")
+                    (append (directory-files-recursively (expand-file-name "org" {{ .managed_sync | quote }}) "\\.org$")
                             (directory-files-recursively {{ .workspace | quote }} "\\.org$")
                             (directory-files-recursively {{ .workspace_extra | quote }} "\\.org$")
                             ;; Include journal files in agenda
@@ -301,8 +417,8 @@
 
   ;; Eisenhower Matrix priority system (A=I-U, B=I-NU, C=NI-U, D=NI-NU)
   (setq org-priority-highest ?A)
-  (setq org-priority-lowest ?C)
-  (setq org-priority-default ?C)
+  (setq org-priority-lowest ?D)
+  (setq org-priority-default ?D)
 
   ;; Priority faces for Eisenhower Matrix
   (setq org-priority-faces
@@ -405,7 +521,7 @@
   (setq org-clock-persist t)
   (setq org-clock-in-resume t)
   (setq org-clock-into-drawer t)
-  (setq org-log-into-drawer t)
+  (setq org-log-into-drawer nil)  ; Don't create logbook drawers
   (setq org-clock-out-remove-zero-time-clocks t)
 
   ;; Disable logbook for subtasks by advising org-log functions
@@ -505,29 +621,29 @@
         (message "Weekly outcomes overview opened. Use in parallel with your journal Friday reflection.")))))
 
   ;; Org agenda focus functions
-  (defun org-focus-primary()
-    "Set focus on primary cloud files."
+  (defun my/org-focus-org()
+    "Set focus on managed sync org files."
     (interactive)
     (setq org-agenda-files
-          (directory-files-recursively {{ .managed_sync | quote }} "\\.org$")))
+          (directory-files-recursively (expand-file-name "org" {{ .managed_sync | quote }}) "\\.org$")))
 
-  (defun org-focus-workspace()
+  (defun my/org-focus-workspace()
     "Set focus on workspace files."
     (interactive)
     (setq org-agenda-files
           (directory-files-recursively {{ .workspace | quote }} "\\.org$")))
 
-  (defun org-focus-workspace-extra()
+  (defun my/org-focus-workspace-extra()
     "Set focus on extra workspace files."
     (interactive)
     (setq org-agenda-files
           (directory-files-recursively {{ .workspace_extra | quote }} "\\.org$")))
 
-  (defun org-focus-all()
+  (defun my/org-focus-all()
     "Set focus on all org files."
     (interactive)
     (setq org-agenda-files
-          (append (directory-files-recursively {{ .managed_sync | quote }} "\\.org$")
+          (append (directory-files-recursively (expand-file-name "org" {{ .managed_sync | quote }}) "\\.org$")
                   (directory-files-recursively {{ .workspace | quote }} "\\.org$")
                   (directory-files-recursively {{ .workspace_extra | quote }} "\\.org$"))))
 
@@ -686,39 +802,114 @@
   (defvar org-default-time "8:00"
     "The default time for deadlines.")
 
-  ;; Simple automated review system
-  (defun my/set-review-period (period)
-    "Quickly set review period for current heading."
-    (interactive
-     (list (completing-read "Review period: "
-                           '("daily" "weekly" "monthly" "quarterly"))))
-    (org-set-property "REVIEW_PERIOD" period)
-    (let ((days (pcase period
-                  ("daily" 1)
-                  ("weekly" 7)
-                  ("monthly" 30)
-                  ("quarterly" 90))))
-      (org-set-property "NEXT_REVIEW"
-                       (format-time-string "%Y-%m-%d"
-                                         (time-add (current-time) (days-to-time days))))
-      (message "Review set to %s" period)))
+  ;; =====================================================================
+  ;; IMAGE DISPLAY CONFIGURATION
+  ;; =====================================================================
 
-  (defun my/mark-reviewed ()
-    "Mark current item as reviewed and calculate next review date."
+  ;; Set default image width for org-mode inline images
+  (setq org-image-actual-width '(500))  ; Fixed width of 500 pixels
+  ;; Alternative options:
+  ;; (setq org-image-actual-width t)     ; Use actual image size
+  ;; (setq org-image-actual-width nil)   ; Use #+ATTR_ORG: :width specifications
+  ;; (setq org-image-actual-width 300)   ; Fixed width of 300 pixels
+  ;; (setq org-image-actual-width '(300 600)) ; Min 300px, max 600px
+
+  ;; Automatically display images when opening org files
+  (setq org-startup-with-inline-images t)
+
+  ;; Function to resize all images in current buffer
+  (defun my/org-resize-images (width)
+    "Resize all images in current buffer to specified width."
+    (interactive "nImage width (pixels): ")
+    (setq org-image-actual-width (list width))
+    (org-redisplay-inline-images))
+
+  ;; Quick resize functions
+  (defun my/org-images-small ()
+    "Set images to small size (300px)."
     (interactive)
-    (let ((period (org-entry-get nil "REVIEW_PERIOD")))
-      (if period
-          (let ((days (pcase period
-                        ("daily" 1)
-                        ("weekly" 7)
-                        ("monthly" 30)
-                        ("quarterly" 90))))
-            (org-set-property "LAST_REVIEW" (format-time-string "%Y-%m-%d"))
-            (org-set-property "NEXT_REVIEW"
-                             (format-time-string "%Y-%m-%d"
-                                               (time-add (current-time) (days-to-time days))))
-            (message "Marked as reviewed. Next review: %s days" days))
-        (message "No review period set. Use C-c r p first.")))))
+    (my/org-resize-images 300))
+
+  (defun my/org-images-medium ()
+    "Set images to medium size (500px)."
+    (interactive)
+    (my/org-resize-images 500))
+
+  (defun my/org-images-large ()
+    "Set images to large size (900px)."
+    (interactive)
+    (my/org-resize-images 900))
+
+  (defun my/org-images-actual ()
+    "Show images at actual size."
+    (interactive)
+    (setq org-image-actual-width t)
+    (org-redisplay-inline-images))
+
+  ;; =====================================================================
+  ;; JOURNELLY JOURNAL FUNCTIONS
+  ;; =====================================================================
+
+  (defun my/journal-find-same-day-previous-years ()
+    "Find journal entries from the same day in previous years (excluding current year)."
+    (interactive)
+    (let* ((today (format-time-string "%m-%d"))
+           (current-year (format-time-string "%Y"))
+           (journal-file (expand-file-name "org/journals/Journelly.org" {{ .managed_sync | quote }})))
+      (if (file-exists-p journal-file)
+          (progn
+            (find-file journal-file)
+            (goto-char (point-min))
+            ;; Create regex that matches same day but excludes current year
+            (let ((regex (concat "\\[\\(20[0-9][0-9]\\)-" today "\\)")))
+              (multi-occur (list (current-buffer)) regex)
+              ;; Filter out current year entries manually
+              (with-current-buffer "*Occur*"
+                (goto-char (point-min))
+                (while (re-search-forward (concat "\\[" current-year "-" today) nil t)
+                  (beginning-of-line)
+                  (let ((inhibit-read-only t))
+                    (delete-region (point) (progn (forward-line 1) (point))))))))
+        (message "Journal file not found: %s" journal-file))))
+
+  (defun my/journal-search-by-tag (tag)
+    "Search journal entries by hashtag."
+    (interactive "sEnter hashtag (without #): ")
+    (let ((journal-file (expand-file-name "org/journals/Journelly.org" {{ .managed_sync | quote }})))
+      (if (file-exists-p journal-file)
+          (progn
+            (find-file journal-file)
+            (goto-char (point-min))
+            (occur (concat "#" tag)))
+        (message "Journal file not found: %s" journal-file))))
+
+  (defun my/journal-find-entries-by-date (date)
+    "Find journal entries for a specific date (YYYY-MM-DD)."
+    (interactive "sEnter date (YYYY-MM-DD): ")
+    (let ((journal-file (expand-file-name "org/journals/Journelly.org" {{ .managed_sync | quote }})))
+      (if (file-exists-p journal-file)
+          (progn
+            (find-file journal-file)
+            (goto-char (point-min))
+            (occur (concat "\\[" date)))
+        (message "Journal file not found: %s" journal-file))))
+
+  (defun my/journal-find-location (location)
+    "Search journal entries by location."
+    (interactive "sEnter location: ")
+    (let ((journal-file (expand-file-name "org/journals/Journelly.org" {{ .managed_sync | quote }})))
+      (if (file-exists-p journal-file)
+          (progn
+            (find-file journal-file)
+            (goto-char (point-min))
+            (occur location))
+        (message "Journal file not found: %s" journal-file)))))
+
+  ;; Quick access to Journelly.org file
+  (defun my/open-journelly ()
+    "Quickly open the Journelly.org journal file."
+    (interactive)
+    (find-file (expand-file-name "org/journals/Journelly.org" {{ .managed_sync | quote }})))
 
 ;; Reset function for checklists
 (defun my/org-reset-checklist ()
@@ -747,8 +938,17 @@
 
       (message "Reset %d TODO items and %d checkboxes" todo-count checkbox-count))))
 
-;; Force disable logbook creation (override any Doom defaults)
+;; Force disable logbook creation (override any Doom defaults and file-local settings)
 (setq org-log-done nil
       org-log-done-with-time nil)
+
+;; Override any buffer-local logbook settings
+(defun my/disable-logbook-force ()
+  "Force disable logbook in current org buffer."
+  (setq-local org-log-done nil
+              org-log-done-with-time nil
+              org-log-into-drawer nil))
+
+(add-hook 'org-mode-hook #'my/disable-logbook-force)
 
 (provide 'init-org)

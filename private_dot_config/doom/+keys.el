@@ -56,6 +56,7 @@
           :desc "Denote dired" "d" #'denote-dired
           :desc "Denote grep" "g" #'denote-grep
           :desc "Denote journal" "j" #'denote-journal-new-or-existing-entry
+          :desc "Open Journelly" "J" #'my/open-journelly
           :desc "Denote link" "l" #'denote-link
           :desc "New denote" "n" #'denote
           :desc "Denote rename" "r" #'denote-rename-file
