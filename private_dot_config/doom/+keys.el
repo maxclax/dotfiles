@@ -55,6 +55,7 @@
           :desc "Denote link after creating" "c" #'denote-link-after-creating
           :desc "Denote dired" "d" #'denote-dired
           :desc "Denote grep" "g" #'denote-grep
+          :desc "Open inbox" "i" #'my/open-inbox
           :desc "Denote journal" "j" #'denote-journal-new-or-existing-entry
           :desc "Open Journelly" "J" #'my/open-journelly
           :desc "Denote link" "l" #'denote-link

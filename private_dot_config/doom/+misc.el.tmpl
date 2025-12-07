@@ -60,11 +60,3 @@
                           (dired-get-marked-files)))
            (names (mapconcat #'concat files (if multi-line "\n" " "))))
       (dirvish--kill-and-echo (if multi-line (concat "\n" names) names)))))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; PROJECTILE
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; (after! projectile
-;;   (setq compilation-read-command nil))   ; no prompt in projectile-compile-project

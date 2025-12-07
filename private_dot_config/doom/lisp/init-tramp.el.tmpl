@@ -1,10 +1,20 @@
 ;;; init-tramp.el --- TRAMP configuration -*- lexical-binding: t -*-
 
 ;;; Commentary:
-;; TRAMP configuration based on Doom Emacs community solutions
+;; Minimal TRAMP configuration - just the essentials
 
 ;;; Code:
 
+;; Only the essential settings that work
+(setq tramp-default-method "ssh")
+(setq tramp-verbose 1)
+
+;; Simple cleanup function
+(defun +tramp/cleanup-connections ()
+  "Clean up all TRAMP connections."
+  (interactive)
+  (tramp-cleanup-all-connections)
+  (message "TRAMP connections cleaned up"))
 
 (provide 'init-tramp)
 ;;; init-tramp.el ends here

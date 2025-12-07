@@ -14,6 +14,7 @@
 (load! "lisp/init-ai.el")
 (load! "lisp/init-denote")
 (load! "lisp/init-tramp.el")
+(load! "lisp/init-helpers.el")
 (load! "+misc")
 (load! "+ui")
 (load! "+keys")

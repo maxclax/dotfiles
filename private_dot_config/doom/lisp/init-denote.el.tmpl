@@ -20,8 +20,13 @@
   ;; Sort keywords for consistency
   (setq denote-sort-keywords t)
 
-  ;; Rename buffer mode and link face
-  (setq denote-rename-buffer-mode t)
+  ;; Enable buffer renaming to show clean [D] prefix instead of long filename
+  (denote-rename-buffer-mode 1)
+
+  ;; Make Denote notes open in full screen
+  (add-to-list 'display-buffer-alist
+               '("^\\[D\\]" ; Match buffers starting with [D]
+                 (display-buffer-reuse-mode-window display-buffer-same-window)))
 
   ;; Dired integration
   (add-hook 'dired-mode-hook #'denote-dired-mode)
@@ -275,5 +280,11 @@ KEYWORD should be a string. FILE should be a full file path."
           (lambda ()
             (define-key calendar-mode-map (kbd "RET") #'my/calendar-open-journal)
             (define-key calendar-mode-map (kbd "<return>") #'my/calendar-open-journal)))
+
+;; Function to open inbox.org
+(defun my/open-inbox ()
+  "Open the inbox.org file."
+  (interactive)
+  (find-file (expand-file-name "inbox.org" (expand-file-name "org" {{ .managed_sync | quote }}))))
 
 (provide 'init-denote)
