@@ -13,6 +13,7 @@
 (load! "lisp/init-bibliography.el")
 (load! "lisp/init-ai.el")
 (load! "lisp/init-denote")
+(load! "lisp/init-tramp.el")
 (load! "+misc")
 (load! "+ui")
 (load! "+keys")
