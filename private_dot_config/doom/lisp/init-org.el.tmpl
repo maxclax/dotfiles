@@ -344,16 +344,11 @@
                          '(lambda ()
                             (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))))))))))
 
+  (add-hook 'org-agenda-mode-hook 'hl-line-mode)
 
   (setq org-directory (list (expand-file-name "org" {{ .managed_sync | quote }}) {{ .workspace | quote }} {{ .workspace_extra | quote }}))
 
-  ;; Disable logbook creation globally (no timestamps when changing TODO states)
   (setq org-log-done nil)
-  ;; To enable logbook for specific buffer, add to top of org file:
-  ;; #+STARTUP: logdone
-
-  ;; Reset subtasks when marking repeating task as DONE
-  (setq org-log-repeat nil)  ; Don't log repeat timestamps
   (setq org-todo-repeat-to-state "TODO")
   (setq org-agenda-file-regexp "\\`[^.].*\\.org\\'") ;; Exclude files starting with "."
   (setq org-agenda-files
@@ -521,7 +516,7 @@
   (setq org-clock-persist t)
   (setq org-clock-in-resume t)
   (setq org-clock-into-drawer t)
-  (setq org-log-into-drawer nil)  ; Don't create logbook drawers
+  (setq org-log-into-drawer t)
   (setq org-clock-out-remove-zero-time-clocks t)
 
   ;; Disable logbook for subtasks by advising org-log functions
@@ -938,17 +933,5 @@
 
       (message "Reset %d TODO items and %d checkboxes" todo-count checkbox-count))))
 
-;; Force disable logbook creation (override any Doom defaults and file-local settings)
-(setq org-log-done nil
-      org-log-done-with-time nil)
-
-;; Override any buffer-local logbook settings
-(defun my/disable-logbook-force ()
-  "Force disable logbook in current org buffer."
-  (setq-local org-log-done nil
-              org-log-done-with-time nil
-              org-log-into-drawer nil))
-
-(add-hook 'org-mode-hook #'my/disable-logbook-force)
 
 (provide 'init-org)

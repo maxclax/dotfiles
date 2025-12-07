@@ -1,0 +1,269 @@
+#!/bin/bash
+# SSH Access Toggle Script for macOS
+# Manages SSH daemon configuration and service state
+
+set -euo pipefail
+
+# Configuration
+SSHD_CONFIG="/etc/ssh/sshd_config"
+BACKUP_CONFIG="/etc/ssh/sshd_config.backup"
+MARKER="# === SSH Toggle Management (added $(date '+%Y-%m-%d')) ==="
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Helper functions
+log_info() {
+    echo -e "${BLUE}[INFO]${NC} $1"
+}
+
+log_success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1"
+}
+
+log_warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
+# Check if running as root
+check_root() {
+    if [[ $EUID -eq 0 ]]; then
+        log_error "Do not run this script as root. It will use sudo when needed."
+        exit 1
+    fi
+}
+
+# Check if SSH daemon is running
+is_sshd_running() {
+    # Check macOS system remote login setting (most reliable)
+    if sudo systemsetup -getremotelogin 2>/dev/null | grep -q "Remote Login: On"; then
+        return 0
+    fi
+
+    # Check if SSH service is active in launchctl
+    if sudo launchctl list | grep -q "com.openssh.sshd"; then
+        return 0
+    fi
+
+    # Check if SSH is listening or has active connections on port 22
+    if lsof -i :22 2>/dev/null | grep -q -E "(LISTEN|ESTABLISHED)"; then
+        return 0
+    fi
+
+    # Check for any sshd processes (including session processes)
+    if pgrep -f "sshd" > /dev/null 2>&1; then
+        return 0
+    fi
+
+    return 1
+}
+
+# Get current SSH configuration status
+get_ssh_status() {
+    local password_auth=""
+    local pubkey_auth=""
+    local sshd_running=""
+
+    if [[ -f "$SSHD_CONFIG" ]]; then
+        # Check authentication settings
+        password_auth=$(grep -E "^PasswordAuthentication" "$SSHD_CONFIG" 2>/dev/null || echo "")
+        pubkey_auth=$(grep -E "^PubkeyAuthentication" "$SSHD_CONFIG" 2>/dev/null || echo "")
+    fi
+
+    # Check if SSH daemon is enabled/running
+    if is_sshd_running; then
+        sshd_running="enabled"
+    else
+        sshd_running="disabled"
+    fi
+
+    echo "SSH Daemon: $sshd_running"
+    echo "Password Auth: ${password_auth:-"not set"}"
+    echo "Pubkey Auth: ${pubkey_auth:-"not set"}"
+}
+
+# Enable SSH with key-only authentication
+enable_ssh() {
+    log_info "Enabling SSH with key-only authentication..."
+
+    # Create backup if it doesn't exist
+    if [[ ! -f "$BACKUP_CONFIG" ]]; then
+        sudo cp "$SSHD_CONFIG" "$BACKUP_CONFIG"
+        log_info "Created backup of original sshd_config"
+    fi
+
+    # Remove any existing SSH toggle configuration
+    sudo sed -i '' "/# === SSH Toggle Management/,/# === End SSH Toggle ===/d" "$SSHD_CONFIG" 2>/dev/null || true
+
+    # Add secure SSH configuration
+    sudo tee -a "$SSHD_CONFIG" > /dev/null << EOF
+
+$MARKER
+# Force key-only authentication for security
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+ChallengeResponseAuthentication no
+PubkeyAuthentication yes
+PermitEmptyPasswords no
+UsePAM no
+
+# Additional security settings
+PermitRootLogin no
+MaxAuthTries 3
+ClientAliveInterval 300
+ClientAliveCountMax 2
+# === End SSH Toggle ===
+EOF
+
+    # Enable and restart SSH daemon
+    sudo launchctl enable system/com.openssh.sshd
+    sudo launchctl bootstrap system /System/Library/LaunchDaemons/ssh.plist 2>/dev/null || true
+    sudo launchctl kickstart -k system/com.openssh.sshd
+
+    log_success "SSH enabled with key-only authentication!"
+    log_warning "Password login disabled – only SSH keys work now!"
+}
+
+# Disable SSH completely
+disable_ssh() {
+    log_info "Disabling SSH daemon..."
+
+    # Stop and disable SSH daemon
+    sudo launchctl bootout system /System/Library/LaunchDaemons/ssh.plist 2>/dev/null || true
+    sudo launchctl disable system/com.openssh.sshd
+
+    log_success "SSH daemon disabled!"
+    log_info "SSH is now completely turned off"
+}
+
+# Restore original SSH configuration
+restore_ssh() {
+    if [[ -f "$BACKUP_CONFIG" ]]; then
+        log_info "Restoring original SSH configuration..."
+        sudo cp "$BACKUP_CONFIG" "$SSHD_CONFIG"
+
+        # Restart SSH daemon
+        sudo launchctl kickstart -k system/com.openssh.sshd 2>/dev/null || true
+
+        log_success "Original SSH configuration restored!"
+    else
+        log_error "No backup configuration found!"
+        exit 1
+    fi
+}
+
+# Show current status
+show_status() {
+    log_info "Current SSH Status:"
+    echo "===================="
+    get_ssh_status
+    echo ""
+
+    if is_sshd_running; then
+        log_success "SSH daemon is RUNNING"
+        echo "You can connect via: ssh $(whoami)@$(hostname).local"
+    else
+        log_warning "SSH daemon is STOPPED"
+    fi
+}
+
+# Debug SSH status
+debug_status() {
+    log_info "Debug SSH Status:"
+    echo "=================="
+
+    echo "1. Process check:"
+    pgrep -f "/usr/sbin/sshd" || echo "No sshd processes found"
+
+    echo ""
+    echo "2. Launchctl status:"
+    sudo launchctl print system/com.openssh.sshd 2>/dev/null | grep state || echo "Could not get launchctl state"
+
+    echo ""
+    echo "3. Port 22 listeners:"
+    lsof -i :22 2>/dev/null || echo "Nothing listening on port 22"
+
+    echo ""
+    echo "4. System SSH setting:"
+    sudo systemsetup -getremotelogin 2>/dev/null || echo "Could not get remote login status"
+
+    echo ""
+    echo "5. Launchctl list SSH:"
+    sudo launchctl list | grep ssh || echo "No SSH services in launchctl list"
+}
+
+# Show usage information
+show_usage() {
+    cat << EOF
+SSH Access Toggle Script for macOS
+
+USAGE:
+    $(basename "$0") [COMMAND]
+
+COMMANDS:
+    enable      Enable SSH with key-only authentication (secure)
+    disable     Disable SSH daemon completely
+    restore     Restore original SSH configuration
+    status      Show current SSH status
+    debug       Show detailed SSH debug information
+    help        Show this help message
+
+EXAMPLES:
+    $(basename "$0") enable     # Enable secure SSH
+    $(basename "$0") disable    # Turn off SSH completely
+    $(basename "$0") status     # Check current state
+
+SECURITY NOTES:
+    - 'enable' mode uses key-only authentication (no passwords)
+    - Original configuration is backed up automatically
+    - 'restore' brings back original settings
+EOF
+}
+
+# Main script logic
+main() {
+    check_root
+
+    case "${1:-}" in
+        "enable")
+            enable_ssh
+            ;;
+        "disable")
+            disable_ssh
+            ;;
+        "restore")
+            restore_ssh
+            ;;
+        "status")
+            show_status
+            ;;
+        "debug")
+            debug_status
+            ;;
+        "help"|"-h"|"--help")
+            show_usage
+            ;;
+        "")
+            show_status
+            echo ""
+            show_usage
+            ;;
+        *)
+            log_error "Unknown command: $1"
+            echo ""
+            show_usage
+            exit 1
+            ;;
+    esac
+}
+
+# Run main function
+main "$@"
