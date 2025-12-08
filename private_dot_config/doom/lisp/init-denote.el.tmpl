@@ -9,7 +9,7 @@
 (use-package! denote
   :config
   ;; Dedicated denote directory
-  (setq denote-directory (expand-file-name "org/denote" {{ .managed_sync | quote }}))
+  (setq denote-directory (expand-file-name "org" {{ .managed_sync | quote }}))
 
   ;; Lifecycle keywords (inspired by EWS)
   (setq denote-known-keywords
