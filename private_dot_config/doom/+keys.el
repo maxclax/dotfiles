@@ -23,23 +23,26 @@
          (:prefix ("C-c b" . "Buffers")
           :desc "Format buffer" "f" #'format-all-buffer)
 
-         (:prefix ("C-c F" . "Files")
-          :desc "Yank filename" "n" #'+default/yank-filename)
+         (:prefix ("C-c f" . "Files")
+          :desc "Yank filename" "n" #'my/yank-buffer-filename
+          :desc "Yank buffer path" "N" #'my/yank-buffer-filepath)
 
          (:prefix ("C-c g" . "Git")
           :desc "Generate AI commit (text)" "A" #'+my/smart-commit
           :desc "AI commit" "a" #'+my/commit-with-ai)
 
          (:prefix ("C-c i" . "Insert")
+          (:prefix ("i" . "Images")
+           :desc "Attach file" "a" #'my/org-attach-file-and-insert-link
+           :desc "Attach multiple files" "A" #'my/org-attach-multiple-files-and-insert-links
+           :desc "Insert image from clipboard" "c" #'org-download-clipboard
+           :desc "Delete image" "d" #'org-download-delete
+           :desc "Insert image from file" "f" #'org-download-image
+           :desc "Insert screenshot" "s" #'org-download-screenshot
+           :desc "Insert image from URL" "u" #'org-download-image)
           (:prefix ("t" . "Templates")
-           :desc "Delete image" "D" #'org-download-delete
            :desc "Templates directory" "d" #'my/open-templates-directory
-           :desc "Attach file" "f" #'my/org-attach-file-and-insert-link
-           :desc "Attach multiple files" "F" #'my/org-attach-multiple-files-and-insert-links
-           :desc "Insert template" "i" #'my/insert-template
-           :desc "Screenshot" "s" #'org-download-screenshot
-           :desc "Download image" "u" #'org-download-image
-           :desc "Clipboard image" "y" #'org-download-clipboard))
+           :desc "Insert template" "i" #'my/insert-template))
 
          (:prefix ("C-c l" . "Tools")
           (:prefix ("p" . "Process")

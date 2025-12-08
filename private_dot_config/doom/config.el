@@ -1,9 +1,7 @@
 ;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
 
-;; (setq user-full-name "dev"
-;;       user-mail-address "dev@site.com")
-
 ;; Load all configuration modules
+(load! "lisp/init-dired.el")
 (load! "lisp/init-templates.el")
 (load! "lisp/init-lsp.el")
 (load! "lisp/init-reading.el")
@@ -14,7 +12,6 @@
 (load! "lisp/init-ai.el")
 (load! "lisp/init-denote")
 (load! "lisp/init-tramp.el")
-(load! "lisp/init-helpers.el")
 (load! "+misc")
 (load! "+ui")
 (load! "+keys")

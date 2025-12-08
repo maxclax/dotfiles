@@ -13,6 +13,19 @@
               (lambda (&rest _)
                 (org-save-all-org-buffers)))
 
+  ;; Fix org-id initialization to prevent hash-table errors
+  (with-eval-after-load 'org-id
+    (unless org-id-locations
+      (setq org-id-locations (make-hash-table :test 'equal)))
+    (unless org-id-files
+      (setq org-id-files nil)))
+
+  ;; Force org-id initialization on startup
+  (when (featurep 'org)
+    (require 'org-id)
+    (unless org-id-locations
+      (setq org-id-locations (make-hash-table :test 'equal))))
+
   ;; Reset subtasks when repeating task is processed
   (defun my/reset-repeating-subtasks ()
     "Reset subtasks and checkboxes when a repeating task is reset."
@@ -120,6 +133,7 @@
                                      (expand-file-name "org/denote/journal" {{ .managed_sync | quote }}) "\\.org$"))
                    (org-agenda-sorting-strategy '(deadline-up))
                    (org-agenda-max-entries 3)
+                   (org-agenda-remove-tags t)
                    (org-agenda-skip-function
                     '(lambda ()
                        (let ((outline-path (org-get-outline-path t)))
@@ -135,6 +149,7 @@
                                      (expand-file-name "org/denote/journal" {{ .managed_sync | quote }}) "\\.org$"))
                    (org-agenda-sorting-strategy '(deadline-up))
                    (org-agenda-max-entries 5)
+                   (org-agenda-remove-tags t)
                    (org-agenda-skip-function
                     '(lambda ()
                        (let ((outline-path (org-get-outline-path t)))
@@ -150,6 +165,7 @@
                                      (expand-file-name "org/denote/journal" {{ .managed_sync | quote }}) "\\.org$"))
                    (org-agenda-sorting-strategy '(deadline-up))
                    (org-agenda-max-entries 10)
+                   (org-agenda-remove-tags t)
                    (org-agenda-skip-function
                     '(lambda ()
                        (let ((outline-path (org-get-outline-path t)))
@@ -165,6 +181,7 @@
                                      (expand-file-name "org/denote/journal" {{ .managed_sync | quote }}) "\\.org$"))
                    (org-agenda-sorting-strategy '(timestamp-down))
                    (org-agenda-max-entries 15)
+                   (org-agenda-remove-tags t)
                    (org-agenda-skip-function
                     '(lambda ()
                        (let ((outline-path (org-get-outline-path t)))

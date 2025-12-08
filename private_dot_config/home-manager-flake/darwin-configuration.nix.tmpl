@@ -345,7 +345,7 @@
         InitialKeyRepeat = 15;
         KeyRepeat = 2; # Match original script value
 
-        # Mouse/trackpad settings
+        # Mouse/trackpad settings (NSGlobalDomain for UI sync)
         "com.apple.mouse.tapBehavior" = 1;
         NSWindowShouldDragOnGesture = true;
 
@@ -380,6 +380,30 @@
         NSWindowResizeTime = 0.001;
         # Try to disable window corner radius
         "com.apple.WindowManager.StandardDesktopPolicy.DisableRoundedCorners" = true;
+      };
+
+      # Trackpad settings - proper domains for macOS 14+
+      "com.apple.AppleMultitouchTrackpad" = {
+        # Enable tap to click for internal trackpad
+        Clicking = true;
+        # Disable force click and haptic feedback
+        ForceSuppressed = true;
+        ActuationStrength = 0;
+      };
+
+      "com.apple.driver.AppleBluetoothMultitouch.trackpad" = {
+        # Enable tap to click for external trackpad
+        Clicking = true;
+        # Disable force click for external trackpad
+        ForceSuppressed = true;
+      };
+
+      # Disable Spotlight keyboard shortcuts to free them for other apps
+      "com.apple.symbolichotkeys" = {
+        AppleSymbolicHotKeys = {
+          "64" = { enabled = false; }; # Spotlight search (Cmd+Space)
+          "65" = { enabled = false; }; # Spotlight window (Cmd+Opt+Space)
+        };
       };
     };
   };

@@ -1,36 +1,51 @@
 ;;; autoload/buffer.el -*- lexical-binding: t; -*-
 
 ;;;###autoload
-(defun +my/erase-buffer-no-yank ()
-  "Erase the current buffer's contents without affecting the kill ring. Works even in read-only buffers."
+(defun my/yank-buffer-filename  ()
+  "Copy and show the file name of the current buffer."
   (interactive)
-  (let ((inhibit-read-only t))
-    (erase-buffer)))
+  (if-let (file-name (file-name-nondirectory (buffer-file-name)))
+      (progn
+        (kill-new file-name)
+        (message "%s" file-name))
+    (message "WARNING: Current buffer is not attached to a file!")))
 
 ;;;###autoload
-(defun revert-buffer-no-confirm ()
-  "Revert buffer without confirmation."
+(defun my/yank-buffer-filepath ()
+  "Copy and show the full file path of the current buffer."
   (interactive)
-  (save-buffer)
-  (revert-buffer :ignore-auto :noconfirm))
+  (if-let (file-path (buffer-file-name))
+      (progn
+        (kill-new file-path)
+        (message "%s" file-path))
+    (message "WARNING: Current buffer is not attached to a file!")))
+
 
 ;;;###autoload
-(defun reload-buffer-no-confirm ()
-  "Revert buffer without confirmation."
+(defun my/delete-file-and-kill-buffer ()
+  "Delete the current file and kill the buffer, or just kill buffer if no file."
   (interactive)
-  (save-buffer)
-  (let ((f buffer-file-name))
-    (kill-this-buffer)
-    (find-file f)))
+  (let ((filename (buffer-file-name)))
+    (if filename
+        ;; Buffer has a file - ask to delete it
+        (when (y-or-n-p (format "Really delete file %s? " (file-name-nondirectory filename)))
+          (delete-file filename t)
+          (kill-buffer (current-buffer))
+          (message "File %s deleted" (file-name-nondirectory filename)))
+      ;; No file - just kill the buffer
+      (kill-buffer (current-buffer))
+      (message "Buffer killed"))))
+
 
 ;;;###autoload
-(defun indent-buffer ()
+(defun wait/indent-buffer ()
   "Indent the currently visited buffer."
   (interactive)
   (indent-region (point-min) (point-max)))
 
+
 ;;;###autoload
-(defun indent-region-or-buffer ()
+(defun wait/indent-region-or-buffer ()
   "Indent a region if selected, otherwise the whole buffer."
   (interactive)
   (save-excursion
@@ -42,69 +57,16 @@
         (indent-buffer)
         (message "Indented buffer.")))))
 
+
 ;;;###autoload
-(defun +my/untabify-buffer ()
+(defun wait/untabify-buffer ()
   (interactive)
   (save-excursion
     (untabify (point-min) (point-max)) nil))
 
-;;;###autoload
-(defun +my/hidden-dos-eol ()
-  "Do not show ^M in files containing mixed UNIX and DOS line endings."
-  (interactive)
-  (setq buffer-display-table (make-display-table))
-  (aset buffer-display-table ?\^M []))
 
 ;;;###autoload
-(defun +my/remove-dos-eol ()
-  "Replace DOS eolns CR LF with Unix eolns CR"
-  (interactive)
-  (goto-char (point-min))
-  (while (search-forward "\r" nil t) (replace-match "")))
-
-;;;###autoload
-(defun +my/insert-semicolon-at-the-end-of-this-line ()
-  (interactive)
-  (save-excursion
-    (end-of-line)
-    (insert ";")))
-
-;;;###autoload
-(defun +my/delete-semicolon-at-the-end-of-this-line ()
-  (interactive)
-  (save-excursion
-    (end-of-line)
-    (when (looking-back ";")
-      (backward-char)
-      (delete-char 1))))
-
-;;;###autoload
-(defun +my/check-large-buffer ()
+(defun wait/check-large-buffer ()
   "Check if the buffer is large."
   (when (> (buffer-size) 1048576)       ; 1MB
     t))
-
-;;;###autoload
-(defun +my/find-file-check-make-large-file-read-only-hook ()
-  "If a file is over a given size, make the buffer read only."
-  (when (+my/check-large-buffer)
-    (setq-local buffer-read-only t)
-    (buffer-disable-undo)
-    (fundamental-mode)))
-
-;;;###autodef
-(defun lsp! ()
-  "Dispatch to call the currently used lsp client entrypoint"
-  (interactive)
-  (unless (+my/check-large-buffer)
-    (if (modulep! :tools lsp +eglot)
-        (eglot-ensure)
-      (unless (bound-and-true-p lsp-mode)
-        (lsp-deferred)))))
-
-;;;###autodef
-(defun +lsp/restart ()
-  (interactive)
-  (if (modulep! :tools lsp +eglot)
-      (call-interactively 'eglot-reconnect)
-    (call-interactively 'lsp-workspace-restart)))

@@ -26,7 +26,7 @@
               (circadian-setup))
 
 ;; highlighting after scrolling/jumping
-(beacon-mode 1)
+;;(beacon-mode 1)
 
 ;; Perfect font + theme for emacsclient frames
 (setq display-line-numbers-type t)
@@ -81,18 +81,18 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; ── Corfu + childframe (your actual completion stack) ─────
-(after! corfu
-  (setq +corfu-want-ret-to-confirm "both")
+;; (after! corfu
+;;   (setq +corfu-want-ret-to-confirm "both")
 
-  ;; Make childframe prettier + faster
-  (setq corfu-popupinfo-delay '(0.5 . 0.5))  ; docs appear after 0.5s
-  (corfu-popupinfo-mode 1))
+;;   ;; Make childframe prettier + faster
+;;   (setq corfu-popupinfo-delay '(0.5 . 0.5))  ; docs appear after 0.5s
+;;   (corfu-popupinfo-mode 1))
 
-(after! vertico-posframe
-  (setq vertico-posframe-border-width 3
-        vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
-        vertico-posframe-parameters '((left-fringe . 8)
-                                      (right-fringe . 8))))
+;; (after! vertico-posframe
+;;   (setq vertico-posframe-border-width 3
+;;         vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
+;;         vertico-posframe-parameters '((left-fringe . 8)
+;;                                       (right-fringe . 8))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

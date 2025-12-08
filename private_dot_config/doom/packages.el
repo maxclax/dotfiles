@@ -1,20 +1,11 @@
 ;; LSP-related packages
 
-;; ;; disabled packages
-;; (disable-packages! solaire-mode
-;;                    osx-trash
-;;                    realgud
-;;                    realgud-trepan-ni
-;;                    ccls
-;;                    tide
-;;                    swiper
-;;                    forge
-;;                    code-review
-;;                    writegood-mode
-;;                    dired-x
-;;                    flymake-popon
-;;                    lsp-python-ms
-;;                    pyimport)
+;; disabled packages
+(disable-packages! solaire-mode
+                   writegood-mode
+                   dired-x
+                   flymake-popon
+                   pyimport)
 
 ;; =====================================================================
 ;; AI ASSISTANCE & CODE COMPLETION
@@ -83,7 +74,6 @@
 (package! circadian)                  ; Automatic theme switching (day/night modes)
 (package! beacon)                     ; Highlight cursor position after scrolling/jumping
 (package! keycast)                    ; Display current command/key sequence in mode line
-;;(package! all-the-icons-ibuffer)      ; Add file type icons to buffer list
 
 ;; =====================================================================
 ;; GIT INTEGRATION & VERSION CONTROL
