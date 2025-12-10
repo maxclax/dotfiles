@@ -28,8 +28,8 @@
           :desc "Yank buffer path" "N" #'my/yank-buffer-filepath)
 
          (:prefix ("C-c g" . "Git")
-          :desc "Generate AI commit (text)" "A" #'+my/smart-commit
-          :desc "AI commit" "a" #'+my/commit-with-ai)
+          :desc "Generate AI commit (text)" "A" #'my/smart-commit
+          :desc "AI commit" "a" #'my/commit-with-ai)
 
          (:prefix ("C-c i" . "Insert")
           (:prefix ("i" . "Images")

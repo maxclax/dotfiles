@@ -91,7 +91,7 @@
     (message "Switched to Anthropic model")))
 
 ;; AI Commit Message Generator
-(defun +my/smart-commit ()
+(defun my/smart-commit ()
   "Generate commit message using AI with your template."
   (interactive)
   (let ((diff (shell-command-to-string "git diff --cached")))
@@ -134,14 +134,14 @@
                                              ;; Move cursor to end of inserted message
                                              (goto-char (+ insert-point (length msg))))))))))))))
 
-(defun +my/commit-with-ai ()
+(defun my/commit-with-ai ()
   "Start commit and auto-generate message."
   (interactive)
   (if (magit-anything-staged-p)
       (progn
         (magit-commit-create)
         (message "⏳ Generating AI commit message...")
-        (run-with-timer 2 nil #'+my/smart-commit))
+        (run-with-timer 2 nil #'my/smart-commit))
     (message "❌ No staged changes found")))
 
 (use-package! copilot

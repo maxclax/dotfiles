@@ -44,7 +44,7 @@
     (let ((files '())
           (dirs (list denote-directory)))
       ;; Add extra workspace denote directory if it exists (SSD mounted)
-      (let ((extra-denote-dir (expand-file-name "!org/denote" {{ .workspace_extra | quote }})))
+      (let ((extra-denote-dir (expand-file-name "org" {{ .workspace_extra | quote }})))
         (when (file-exists-p extra-denote-dir)
           (push extra-denote-dir dirs)))
       ;; Collect files from all available directories
@@ -65,7 +65,7 @@
     (interactive
      (list (read-string "Title: ")
            (denote-keywords-prompt)))
-    (let ((extra-denote-dir (expand-file-name "!org/denote" {{ .workspace_extra | quote }})))
+    (let ((extra-denote-dir (expand-file-name "org" {{ .workspace_extra | quote }})))
       (if (file-exists-p extra-denote-dir)
           (let ((denote-directory extra-denote-dir))
             (denote title keywords)
@@ -76,7 +76,7 @@
   (defun my/denote-journal-extra ()
     "Create or open journal entry in extra workspace."
     (interactive)
-    (let ((extra-denote-dir (expand-file-name "!org/denote" {{ .workspace_extra | quote }})))
+    (let ((extra-denote-dir (expand-file-name "org" {{ .workspace_extra | quote }})))
       (if (file-exists-p extra-denote-dir)
           (let ((denote-directory extra-denote-dir)
                 (denote-journal-directory (expand-file-name "journal" extra-denote-dir)))
@@ -107,7 +107,7 @@ KEYWORD should be a string. FILE should be a full file path."
   (defun my/get-consult-notes-sources ()
     "Get consult-notes sources for all available denote directories."
     (let ((sources `(("Denote Primary" ?d ,denote-directory))))
-      (let ((extra-denote-dir (expand-file-name "!org/denote" {{ .workspace_extra | quote }})))
+      (let ((extra-denote-dir (expand-file-name "org" {{ .workspace_extra | quote }})))
         (when (file-exists-p extra-denote-dir)
           (push `("Denote Extra" ?x ,extra-denote-dir) sources)))
       (reverse sources)))
@@ -131,7 +131,7 @@ KEYWORD should be a string. FILE should be a full file path."
   (defun my/debug-denote-dirs ()
     "Debug denote directory configuration."
     (interactive)
-    (let ((extra-denote-dir (expand-file-name "!org/denote" {{ .workspace_extra | quote }})))
+    (let ((extra-denote-dir (expand-file-name "org" {{ .workspace_extra | quote }})))
       (message "Primary denote dir: %s (exists: %s)"
                denote-directory (file-exists-p denote-directory))
       (message "Extra denote dir: %s (exists: %s)"

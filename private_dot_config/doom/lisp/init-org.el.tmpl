@@ -363,9 +363,9 @@
 
   (add-hook 'org-agenda-mode-hook 'hl-line-mode)
 
-  (setq org-directory (append (list (expand-file-name "org" {{ .managed_sync | quote }}) {{ .workspace | quote }})
-                              (when (file-exists-p {{ .workspace_extra | quote }})
-                                (list {{ .workspace_extra | quote }}))))
+  (setq org-directory (append (list (expand-file-name "org" {{ .managed_sync | quote }}))
+                              (when (file-exists-p (expand-file-name "org" {{ .workspace_extra | quote }}))
+                                (list (expand-file-name "org" {{ .workspace_extra | quote }})))))
 
   (setq org-log-done nil)
   (setq org-todo-repeat-to-state "TODO")
@@ -374,9 +374,8 @@
         (seq-filter (lambda (file)
                       (not (string-match-p "/templates/" file)))
                     (append (directory-files-recursively (expand-file-name "org" {{ .managed_sync | quote }}) "\\.org$")
-                            (directory-files-recursively {{ .workspace | quote }} "\\.org$")
-                            (when (file-exists-p {{ .workspace_extra | quote }})
-                              (directory-files-recursively {{ .workspace_extra | quote }} "\\.org$"))
+                            (when (file-exists-p (expand-file-name "org" {{ .workspace_extra | quote }}))
+                              (directory-files-recursively (expand-file-name "org" {{ .workspace_extra | quote }}) "\\.org$"))
                             ;; Include journal files in agenda
                             (directory-files-recursively (expand-file-name "org/journal" {{ .managed_sync | quote }}) "\\.org$"))))
 
@@ -523,8 +522,8 @@
   (setq org-refile-targets
         `((nil :maxlevel . 5)
           (org-agenda-files :maxlevel . 5)
-          ,@(when (file-exists-p {{ .workspace_extra | quote }})
-              `((,(directory-files-recursively {{ .workspace_extra | quote }} "\\.org$") :maxlevel . 5)))))
+          ,@(when (file-exists-p (expand-file-name "org" {{ .workspace_extra | quote }}))
+              `((,(directory-files-recursively (expand-file-name "org" {{ .workspace_extra | quote }}) "\\.org$") :maxlevel . 5)))))
 
   (setq org-refile-use-outline-path t)
   (setq org-outline-path-complete-in-steps nil)
@@ -646,10 +645,10 @@
   (defun my/get-attach-dir ()
     "Get attachment directory based on current file location."
     (if (and (buffer-file-name)
-             (file-exists-p {{ .workspace_extra | quote }})
-             (string-match-p {{ .workspace_extra | quote }} (buffer-file-name)))
+             (file-exists-p (expand-file-name "org" {{ .workspace_extra | quote }}))
+             (string-match-p (expand-file-name "org" {{ .workspace_extra | quote }}) (buffer-file-name)))
         ;; File is in extra workspace - use extra attach dir
-        (expand-file-name "!org/.attach/" {{ .workspace_extra | quote }})
+        (expand-file-name ".attach/org" {{ .workspace_extra | quote }})
       ;; Default to primary attach dir
       (expand-file-name "org/.attach/" {{ .managed_sync | quote }})))
 

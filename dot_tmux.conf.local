@@ -17,9 +17,9 @@ set -g mode-keys emacs
 set -g status-keys emacs
 
 # === WINDOW MANAGEMENT (Emacs-style) ===
-# C-z f/b for next/previous window
-bind f next-window
-bind b previous-window
+# C-z C-f/b for next/previous window
+bind C-f next-window
+bind C-b previous-window
 
 # C-z Tab for last window
 bind Tab last-window
@@ -33,11 +33,11 @@ bind 3 split-window -h -c "#{pane_current_path}"
 bind 0 kill-pane
 bind 1 kill-pane -a
 
-# Pane navigation with C-z C-f/C-b/C-n/C-p
-bind C-f select-pane -R
-bind C-b select-pane -L
-bind C-n select-pane -D
-bind C-p select-pane -U
+# Pane navigation with C-z f/b/n/p
+bind f select-pane -R
+bind b select-pane -L
+bind n select-pane -D
+bind p select-pane -U
 
 # C-b o to display pane numbers (like Emacs other-window)
 bind o display-panes
