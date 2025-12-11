@@ -25,9 +25,6 @@
               ;; Setup circadian for automatic switching
               (circadian-setup))
 
-;; highlighting after scrolling/jumping
-;;(beacon-mode 1)
-
 ;; Perfect font + theme for emacsclient frames
 (setq display-line-numbers-type t)
 ;; (setq display-line-numbers-type 'relative)
@@ -61,6 +58,21 @@
 (use-package rainbow-mode
   :ensure t
   :hook ((prog-mode text-mode conf-mode) . rainbow-mode))
+
+;; Form feed line display (^L characters as horizontal lines)
+(use-package! page-break-lines
+  :config
+  (global-page-break-lines-mode 1))
+
+;; Display fill column indicator like Purcell
+(when (boundp 'display-fill-column-indicator)
+  (setq-default display-fill-column-indicator-character ?┊)
+  (add-hook 'prog-mode-hook 'display-fill-column-indicator-mode))
+
+;; Enable cursor blinking
+(blink-cursor-mode 1)
+(setq blink-cursor-interval 0.4
+      blink-cursor-delay 0.5)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; LOG

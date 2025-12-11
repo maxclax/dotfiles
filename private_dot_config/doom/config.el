@@ -11,6 +11,11 @@
 (load! "lisp/init-bibliography.el")
 (load! "lisp/init-ai.el")
 (load! "lisp/init-denote")
+(load! "lisp/init-bookmarks.el")
+(load! "lisp/init-whichkey.el")
+(load! "lisp/init-windows.el")
+(load! "lisp/init-erc.el")
+(load! "lisp/init-private.el")
 (load! "lisp/init-tramp.el")
 (load! "+misc")
 (load! "+ui")
@@ -22,12 +27,15 @@
 ;; Increase kill ring size (default is 120)
 (setq kill-ring-max 250)
 
-(setq bookmark-default-file "~/doom-bookmarks")
 
 (setq doom-scratch-buffer-major-mode 'emacs-lisp-mode
       confirm-kill-emacs nil)
 
+;; Enable repeat mode for repeatable keys (Emacs 28+)
+(when (fboundp 'repeat-mode)
+  (repeat-mode 1))
+
 ;; Keep everything in sync with the real world
 (global-auto-revert-mode 1)
 (setq global-auto-revert-non-file-buffers t)
-(setq auto-revert-verbose nil)   ; ← silence the “reverted buffer …” messagen
+(setq auto-revert-verbose nil)   ; ← silence the "reverted buffer …" messagen

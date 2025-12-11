@@ -419,8 +419,8 @@
           (sequence "PROJECT(p)" "|" "DONE(d!/!)" "CANCELLED(c@/!)")
           (sequence "WAITING(w@/!)" "DELEGATED(D!)" "HOLD(h)" "|" "CANCELLED(c@/!)")))
 
-  ;; Stuck projects detection (projects without NEXT actions)
-  (setq org-stuck-projects '("-INBOX/PROJECT" ("NEXT")))
+  ;; Stuck projects detection (projects without NEXT, WAITING, or DELEGATED actions)
+  (setq org-stuck-projects '("-INBOX/PROJECT" ("NEXT" "WAITING" "DELEGATED")))
 
   ;; TODO keyword faces
   (setq org-todo-keyword-faces

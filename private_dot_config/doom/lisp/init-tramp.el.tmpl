@@ -1,20 +1,30 @@
-;;; init-tramp.el --- TRAMP configuration -*- lexical-binding: t -*-
+;;; init-tramp.el -*- mode: emacs-lisp; lexical-binding: t -*-
 
 ;;; Commentary:
 ;; Minimal TRAMP configuration - just the essentials
 
 ;;; Code:
 
-;; Only the essential settings that work
-(setq tramp-default-method "ssh")
-(setq tramp-verbose 1)
+;; Basic TRAMP configuration
+(after! tramp
+  ;; Default method
+  (setq tramp-default-method "ssh")
 
-;; Simple cleanup function
-(defun +tramp/cleanup-connections ()
-  "Clean up all TRAMP connections."
-  (interactive)
-  (tramp-cleanup-all-connections)
-  (message "TRAMP connections cleaned up"))
+;; Server-specific shell optimizations (using private server data if available)
+  (when (boundp 'my/tramp-private-servers)
+    (dolist (server my/tramp-private-servers)
+      (let ((server-path (cdr server)))
+        (when (string-match-p "space-M[14].local" server-path)
+          (add-to-list 'tramp-connection-properties
+                       (list (regexp-quote (car (split-string server-path ":")))
+                             "remote-shell" "/bin/zsh"))))))
+
+  ;; Simple cleanup function
+  (defun my/tramp-cleanup-connections ()
+    "Clean up all TRAMP connections."
+    (interactive)
+    (tramp-cleanup-all-connections)
+    (message "TRAMP connections cleaned up")))
 
 (provide 'init-tramp)
 ;;; init-tramp.el ends here

@@ -36,7 +36,7 @@
 (package! consult-notes)              ; General note searching with consult
 
 (package! tempel)
-(package! tempel-collection)
+;; (package! tempel-collection)
 (package! eglot-tempel)
 
 ;; =====================================================================
@@ -74,6 +74,7 @@
 (package! circadian)                  ; Automatic theme switching (day/night modes)
 (package! beacon)                     ; Highlight cursor position after scrolling/jumping
 (package! keycast)                    ; Display current command/key sequence in mode line
+(package! page-break-lines)           ; Display ^L characters as horizontal lines
 
 ;; =====================================================================
 ;; GIT INTEGRATION & VERSION CONTROL

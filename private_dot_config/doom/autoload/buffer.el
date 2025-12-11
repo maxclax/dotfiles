@@ -1,7 +1,7 @@
 ;;; autoload/buffer.el -*- lexical-binding: t; -*-
 
 ;;;###autoload
-(defun my/yank-buffer-filename  ()
+(defun my/kill-buffer-filename  ()
   "Copy and show the file name of the current buffer."
   (interactive)
   (if-let (file-name (file-name-nondirectory (buffer-file-name)))
@@ -11,7 +11,7 @@
     (message "WARNING: Current buffer is not attached to a file!")))
 
 ;;;###autoload
-(defun my/yank-buffer-filepath ()
+(defun my/kill-buffer-filepath ()
   "Copy and show the full file path of the current buffer."
   (interactive)
   (if-let (file-path (buffer-file-name))

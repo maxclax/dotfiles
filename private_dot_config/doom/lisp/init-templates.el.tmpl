@@ -9,9 +9,6 @@
   :init
   (setq tempel-path (expand-file-name "org/templates/*.el" {{ .managed_sync | quote }})))
 
-(use-package tempel-collection)
-
-
 (defun tempel--next-friday ()
   "Return timestamp of next Friday (today if Friday)."
   (let* ((now (current-time))

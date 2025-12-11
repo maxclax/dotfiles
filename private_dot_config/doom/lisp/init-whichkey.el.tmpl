@@ -1,0 +1,21 @@
+;;; lisp/init-whichkey.el -*- mode: emacs-lisp; lexical-binding: t; -*-
+
+;;; Commentary:
+;; Which-key configuration for better key discovery and paging
+
+(after! which-key
+  ;; Enable C-h commands in which-key
+  (setq which-key-use-C-h-commands t)
+
+  ;; Configure paging behavior
+  (setq which-key-show-early-on-C-h t)
+
+  ;; Add n/p for next/previous page navigation
+  (define-key which-key-C-h-map "n" 'which-key-show-next-page-cycle)
+  (define-key which-key-C-h-map "p" 'which-key-show-previous-page-cycle)
+
+  ;; Also add standard help commands
+  (define-key which-key-C-h-map "h" 'which-key-show-top-level)
+  (define-key which-key-C-h-map "?" 'which-key-C-h-dispatch))
+
+(provide 'init-whichkey)

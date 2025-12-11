@@ -29,9 +29,6 @@
   # Set primary user for Homebrew and user preferences
   system.primaryUser = "{{ .chezmoi.username }}";
 
-  # LaunchDaemons for system services
-  # (espanso moved to Home Manager as user agent)
-
   # System activation commands to restart processes after configuration changes
   system.activationScripts.extraActivation.text = ''
     # Create iCloud symlink for cross-platform access
@@ -141,7 +138,6 @@
       "colorsnapper"                # Color picker and palette tool
       "daisydisk"                   # Disk space analyzer with visual interface
       "emacs-app"                   # Emacs text editor with macOS integration
-      "espanso"
       "firefox"                     # Mozilla web browser
       "flux-app"                    # Blue light filter for eye strain reduction
       "focus"                       # Website and app blocker for productivity
