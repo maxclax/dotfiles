@@ -17,6 +17,7 @@
 (load! "lisp/init-erc.el")
 (load! "lisp/init-private.el")
 (load! "lisp/init-tramp.el")
+(load! "lisp/init-docker.el")
 (load! "+misc")
 (load! "+ui")
 (load! "+keys")
