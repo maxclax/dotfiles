@@ -11,7 +11,7 @@
   (map!
    (:map override
     :desc "Org agenda" "C-c a"           #'org-agenda
-    :desc "Org capture" "C-c c"          #'org-capture
+    :desc "Org capture" "C-c x"          #'org-capture
     :desc "Evaluate line/region" "C-c e" #'+eval/line-or-region
     :desc "Winner undo" "C-c <left>"     #'winner-undo
     :desc "Winner redo" "C-c <right>"    #'winner-redo
@@ -25,7 +25,7 @@
      :desc "Next fold" "C-n"           #'+fold/next
      :desc "Previous fold" "C-p"       #'+fold/previous)
 
-    (:prefix ("C-c C" . "Code")
+    (:prefix ("C-c c" . "Code")
      :desc "Jump to definition" "d"     #'+lookup/definition
      :desc "Jump to references" "D"     #'+lookup/references
      :desc "Evaluate buffer/region" "e" #'+eval/buffer-or-region

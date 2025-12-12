@@ -92,6 +92,16 @@
 (package! consult-todo)               ; Browse and jump to TODO items using consult
 
 ;; =====================================================================
+;; DATABASE TOOLS
+;; =====================================================================
+;; Database clients and utilities for various database systems
+;; → lisp/init-pgmacs.el
+
+(package! pg)                         ; PostgreSQL library for Emacs
+(package! pgmacs
+  :recipe (:host github :repo "emarsden/pgmacs")) ; PostgreSQL client for Emacs
+
+;; =====================================================================
 ;; DEVELOPMENT TOOLS & TERMINAL
 ;; =====================================================================
 

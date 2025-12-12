@@ -15,6 +15,7 @@
 (load! "lisp/init-whichkey.el")
 (load! "lisp/init-windows.el")
 (load! "lisp/init-erc.el")
+(load! "lisp/init-pgmacs.el")
 (load! "lisp/init-private.el")
 (load! "lisp/init-tramp.el")
 (load! "lisp/init-docker.el")
