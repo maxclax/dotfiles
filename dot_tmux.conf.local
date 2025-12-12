@@ -7,39 +7,39 @@ set-option -g allow-rename off
 
 # === EMACS-STYLE TMUX CONFIGURATION ===
 
-# Keep default C-z prefix (standard and no major Emacs conflicts)
-set -g prefix C-z
-set -g prefix2 C-z
-bind C-z send-prefix
+# Use C-x prefix (safer than C-z, Emacs-style)
+set -g prefix C-x
+set -g prefix2 C-x
+bind C-x send-prefix
 
 # Use emacs keybindings
 set -g mode-keys emacs
 set -g status-keys emacs
 
 # === WINDOW MANAGEMENT (Emacs-style) ===
-# C-z C-f/b for next/previous window
+# C-x C-f/b for next/previous window
 bind C-f next-window
 bind C-b previous-window
 
-# C-z Tab for last window
+# C-x Tab for last window
 bind Tab last-window
 
 # === PANE MANAGEMENT (Emacs-style) ===
-# C-z 2/3 for splits (like Emacs)
+# C-x 2/3 for splits (like Emacs)
 bind 2 split-window -v -c "#{pane_current_path}"
 bind 3 split-window -h -c "#{pane_current_path}"
 
-# C-z 0/1 for pane management (like Emacs)
+# C-x 0/1 for pane management (like Emacs)
 bind 0 kill-pane
 bind 1 kill-pane -a
 
-# Pane navigation with C-z f/b/n/p
+# Pane navigation with C-x f/b/n/p
 bind f select-pane -R
 bind b select-pane -L
 bind n select-pane -D
 bind p select-pane -U
 
-# C-b o to display pane numbers (like Emacs other-window)
+# C-x o to display pane numbers (like Emacs other-window)
 bind o display-panes
 
 # Make pane numbers display longer
@@ -47,7 +47,18 @@ set -g display-panes-time 4000  # 4 seconds instead of default 1 second
 
 # === EMACS-STYLE PANE RESIZING (Shift + navigation) ===
 # Repeatable pane resizing with Shift + navigation letters
-bind -r P resize-pane -U 2     # C-b P (Shift+p) - resize up
-bind -r N resize-pane -D 2     # C-b N (Shift+n) - resize down
-bind -r B resize-pane -L 2     # C-b B (Shift+b) - resize left
-bind -r F resize-pane -R 2     # C-b F (Shift+f) - resize right
+bind -r P resize-pane -U 2     # C-x P (Shift+p) - resize up
+bind -r N resize-pane -D 2     # C-x N (Shift+n) - resize down
+bind -r B resize-pane -L 2     # C-x B (Shift+b) - resize left
+bind -r F resize-pane -R 2     # C-x F (Shift+f) - resize right
+
+# === EMACS-STYLE COPY MODE ===
+# Enter copy mode with C-x [
+bind [ copy-mode
+
+# Emacs-style copy mode key bindings
+bind-key -T copy-mode M-w send-keys -X copy-selection-and-cancel
+bind-key -T copy-mode C-w send-keys -X copy-selection-and-cancel
+bind-key -T copy-mode C-g send-keys -X cancel
+bind-key -T copy-mode C-s send-keys -X search-forward
+bind-key -T copy-mode C-r send-keys -X search-backward
