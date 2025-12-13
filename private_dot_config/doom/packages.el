@@ -7,6 +7,9 @@
                    flymake-popon
                    pyimport)
 
+(package! tldr)
+(package! lorem-ipsum)
+
 ;; =====================================================================
 ;; AI ASSISTANCE & CODE COMPLETION
 ;; =====================================================================
