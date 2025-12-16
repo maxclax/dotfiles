@@ -3,7 +3,7 @@
 (when IS-MAC
   (setq mac-option-modifier 'meta
         mac-right-option-modifier 'super
-        mac-command-modifier 'none))
+        mac-command-modifier 'hyper))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -60,10 +60,7 @@
       :desc "Insert image from URL" "u"       #'org-download-image)
      (:prefix ("o" . "Org")
       :desc "org-timestamp []" "t"            #'org-timestamp-inactive
-      :desc "org-timestamp <>" "T"            #'org-timestamp)
-     (:prefix ("t" . "Templates")
-      :desc "Templates directory" "d"         #'my/open-templates-directory
-      :desc "Insert template" "i"             #'my/insert-template))
+      :desc "org-timestamp <>" "T"            #'org-timestamp))
 
     (:prefix ("C-c l" . "Tools")
              (:prefix ("e" . "ERC IRC")
@@ -158,6 +155,25 @@
 (add-hook 'doom-first-buffer-hook #'my/setup-clean-c-c-bindings)
 (add-hook 'doom-first-buffer-hook #'my/setup-c-x-bindings)
 
+;; Mac-style Cmd shortcuts for GUI Emacs
+(defun my/setup-mac-cmd-shortcuts ()
+  "Setup Mac-style Cmd+C/V/X/Z shortcuts for GUI Emacs."
+  (when (display-graphic-p)
+    (map!
+     (:map override
+      :desc "Copy (Cmd+C)" "H-c" #'kill-ring-save
+      :desc "Paste (Cmd+V)" "H-v" #'yank
+      :desc "Cut (Cmd+X)" "H-x" #'kill-region
+      :desc "Undo (Cmd+Z)" "H-z" #'undo
+      :desc "Redo (Shift+Cmd+Z)" "H-Z" #'redo
+      :desc "Paste Pop (Shift+Cmd+V)" "H-V" #'yank-pop
+      :desc "Select All (Cmd+A)" "H-a" #'mark-whole-buffer
+      :desc "Save (Cmd+S)" "H-s" #'save-buffer))))
+
+;; Apply early to ensure our bindings take precedence
+(add-hook 'doom-first-buffer-hook #'my/setup-mac-cmd-shortcuts)
+
 ;; Apply very late to override any packages that load after us
 (add-hook 'window-setup-hook #'my/setup-clean-c-c-bindings)
 (add-hook 'window-setup-hook #'my/setup-c-x-bindings)
+(add-hook 'window-setup-hook #'my/setup-mac-cmd-shortcuts)

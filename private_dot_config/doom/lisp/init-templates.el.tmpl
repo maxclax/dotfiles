@@ -7,7 +7,8 @@
   :bind (("M-+" . tempel-complete)
          ("M-*" . tempel-insert))
   :init
-  (setq tempel-path (expand-file-name "org/templates/*.el" {{ .managed_sync | quote }})))
+  (setq tempel-path
+        (expand-file-name "emacs/templates/*.el" {{ printf "%s/.local/extra-configs" .chezmoi.homeDir | quote }})))
 
 (defun tempel--next-friday ()
   "Return timestamp of next Friday (today if Friday)."

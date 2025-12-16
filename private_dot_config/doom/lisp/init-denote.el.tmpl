@@ -166,50 +166,23 @@ KEYWORD should be a string. FILE should be a full file path."
   (unless (file-exists-p denote-journal-directory)
     (make-directory denote-journal-directory t))
 
-  ;; Global template system for org-mode and denote
-  (setq my/templates-directory (expand-file-name "org/templates" {{ .managed_sync | quote }}))
-
-  ;; Create templates directory if it doesn't exist
-  (unless (file-exists-p my/templates-directory)
-    (make-directory my/templates-directory t))
-
-  ;; Global template insertion function
-  (defun my/insert-template (template-name)
-    "Insert template by name from global templates directory."
-    (interactive
-     (list (completing-read "Template: "
-                           (mapcar #'file-name-sans-extension
-                                  (directory-files my/templates-directory nil "\\.org$")))))
-    (let ((template-file (expand-file-name (concat template-name ".org") my/templates-directory)))
-      (when (file-exists-p template-file)
-        (insert-file-contents template-file)
-        (message "Inserted template: %s" template-name))))
-
-  ;; Open templates directory
-  (defun my/open-templates-directory ()
-    "Open the templates directory in dired."
-    (interactive)
-    (dired my/templates-directory))
-
-  ;; Automatic journal template insertion (optional)
-  (defun my/denote-journal-insert-template ()
-    "Insert journal template from template file if it exists."
+  ;; Automatic tempel daily-journal insertion for new journal entries
+  (defun my/denote-journal-insert-tempel ()
+    "Insert daily-journal tempel template for new journal entries."
     (when (and (derived-mode-p 'org-mode)
                (buffer-file-name)
                (string-match-p "journal" (buffer-file-name))
-               (not buffer-read-only))
-      (let ((template-file (expand-file-name "journal.org" my/templates-directory)))
-        (when (and (file-exists-p template-file)
-                   (= (buffer-size) 0))  ; Only insert if buffer is empty
-          (condition-case err
-              (progn
-                (goto-char (point-max))
-                (insert-file-contents template-file))
-            (error
-             (message "Error inserting journal template: %s" (error-message-string err))))))))
+               (not buffer-read-only)
+               (= (buffer-size) 0))  ; Only insert if buffer is empty
+      (condition-case err
+          (progn
+            (require 'tempel)
+            (tempel-insert 'daily-journal))
+        (error
+         (message "Error inserting daily-journal template: %s" (error-message-string err))))))
 
-  ;; Use find-file-hook instead of denote-journal specific hook
-  (add-hook 'find-file-hook #'my/denote-journal-insert-template)
+  ;; Use find-file-hook to automatically insert template
+  (add-hook 'find-file-hook #'my/denote-journal-insert-tempel)
 
   ;; Remove problematic advice and use simpler approach
   (advice-remove 'denote-journal-new-entry #'my/denote-journal-advice)
