@@ -166,9 +166,7 @@
       :desc "Cut (Cmd+X)" "H-x" #'kill-region
       :desc "Undo (Cmd+Z)" "H-z" #'undo
       :desc "Redo (Shift+Cmd+Z)" "H-Z" #'redo
-      :desc "Paste Pop (Shift+Cmd+V)" "H-V" #'yank-pop
-      :desc "Select All (Cmd+A)" "H-a" #'mark-whole-buffer
-      :desc "Save (Cmd+S)" "H-s" #'save-buffer))))
+      :desc "Paste Pop (Shift+Cmd+V)" "H-V" #'yank-pop))))
 
 ;; Apply early to ensure our bindings take precedence
 (add-hook 'doom-first-buffer-hook #'my/setup-mac-cmd-shortcuts)
