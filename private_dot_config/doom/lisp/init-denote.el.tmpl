@@ -172,14 +172,23 @@ KEYWORD should be a string. FILE should be a full file path."
     (when (and (derived-mode-p 'org-mode)
                (buffer-file-name)
                (string-match-p "journal" (buffer-file-name))
-               (not buffer-read-only)
-               (= (buffer-size) 0))  ; Only insert if buffer is empty
-      (condition-case err
-          (progn
-            (require 'tempel)
-            (tempel-insert 'daily-journal))
-        (error
-         (message "Error inserting daily-journal template: %s" (error-message-string err))))))
+               (not buffer-read-only))
+      (save-excursion
+        (goto-char (point-min))
+        ;; Skip past frontmatter if it exists
+        (when (looking-at "#\\+")
+          (while (and (not (eobp)) (looking-at "#\\+"))
+            (forward-line 1))
+          (when (looking-at "^$")
+            (forward-line 1)))
+        ;; Only insert if no content after frontmatter
+        (when (eobp)
+          (condition-case err
+              (progn
+                (require 'tempel)
+                (tempel-insert 'daily-journal))
+            (error
+             (message "Error inserting daily-journal template: %s" (error-message-string err))))))))
 
   ;; Use find-file-hook to automatically insert template
   (add-hook 'find-file-hook #'my/denote-journal-insert-tempel)

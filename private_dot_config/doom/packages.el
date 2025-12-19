@@ -9,6 +9,7 @@
 
 (package! tldr)
 (package! lorem-ipsum)
+(package! vundo)
 
 ;; =====================================================================
 ;; AI ASSISTANCE & CODE COMPLETION

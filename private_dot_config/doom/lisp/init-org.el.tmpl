@@ -119,11 +119,43 @@
                                 (when (org-get-tags-at) (point-max)))))
                         (org-tags-match-list-sublevels t)))
             (tags-todo "/WAITING"
-                       ((org-agenda-overriding-header "⏳ Waiting For")))
+                       ((org-agenda-overriding-header "⏳ Waiting For")
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (let ((deadline (org-get-deadline-time (point)))
+                                  (scheduled (org-get-scheduled-time (point)))
+                                  (week-from-now (time-add (current-time) (days-to-time 3))))
+                              (when (or deadline scheduled)
+                                (unless (or (and deadline (time-less-p deadline week-from-now))
+                                            (and scheduled (time-less-p scheduled week-from-now)))
+                                  (or (outline-next-heading) (point-max))))
+                              ;; If no deadline/schedule, always show (don't skip)
+                              )))))
             (tags-todo "/DELEGATED"
-                       ((org-agenda-overriding-header "👥 Delegated")))
+                       ((org-agenda-overriding-header "👥 Delegated")
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (let ((deadline (org-get-deadline-time (point)))
+                                  (scheduled (org-get-scheduled-time (point)))
+                                  (week-from-now (time-add (current-time) (days-to-time 3))))
+                              (when (or deadline scheduled)
+                                (unless (or (and deadline (time-less-p deadline week-from-now))
+                                            (and scheduled (time-less-p scheduled week-from-now)))
+                                  (or (outline-next-heading) (point-max))))
+                              ;; If no deadline/schedule, always show (don't skip)
+                              )))))
             (tags-todo "-INBOX/HOLD"
-                       ((org-agenda-overriding-header "⏸️ On Hold")))))
+                       ((org-agenda-overriding-header "⏸️ On Hold")
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (let ((deadline (org-get-deadline-time (point)))
+                                  (scheduled (org-get-scheduled-time (point)))
+                                  (week-from-now (time-add (current-time) (days-to-time 3))))
+                              (when (or deadline scheduled)
+                                (unless (or (and deadline (time-less-p deadline week-from-now))
+                                            (and scheduled (time-less-p scheduled week-from-now)))
+                                  (or (outline-next-heading) (point-max))))
+                              )))))))
 
           ;; GTD Full Review with Journal Integration
            ("D" "Dashboard (AR)"
