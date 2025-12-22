@@ -50,6 +50,10 @@
      :desc "Emoji" "e"                        #'emoji-insert
      :desc "Current file name" "f"            #'+default/insert-filename
      :desc "Current file path" "F"            #'+default/insert-filepath
+     :desc "Current time [H:M]" "t"           #'my/insert-current-time
+     (:prefix ("j" . "Journal")
+      :desc "Start journal log entry" "s"     #'my/journal-log-start
+      :desc "Finish journal log entry" "f"    #'my/journal-log-finish)
      (:prefix ("i" . "Images")
       :desc "Attach file" "a"                 #'my/org-attach-file-and-insert-link
       :desc "Attach multiple files" "A"       #'my/org-attach-multiple-files-and-insert-links
@@ -101,7 +105,6 @@
      :desc "Open link at point" "x" #'link-hint-open-link-at-point)
 
     (:prefix ("C-c p" . "Project")
-     :desc "Search symbol in notes" "."  #'+default/search-notes-for-symbol-at-point
      :desc "Recent files" "e"            #'projectile-recentf
      :desc "Find file" "f"               #'projectile-find-file
      :desc "Find file other project" "F" #'doom/find-file-in-other-project
@@ -138,11 +141,10 @@
      :desc "Zen mode" "z"              #'+zen/toggle
      :desc "Zen mode (fullscreen)" "Z" #'+zen/toggle-fullscreen
      (:prefix ("t" . "Timer")
-      :desc "Pause timer" "p"          #'pomm-pause
-      :desc "Reset timer" "r"          #'pomm-reset
-      :desc "Start timer" "s"          #'pomm-start
-      :desc "Stop timer" "S"           #'pomm-stop
-      :desc "Pomm timer" "t"           #'pomm)))))
+      :desc "Switch timer" "p"         #'pomm-third-time-switch
+      :desc "Start timer" "s"          #'pomm-third-time-start
+      :desc "Stop timer" "S"           #'pomm-third-time-stop
+      :desc "Pomm third-time" "t"      #'pomm-third-time)))))
 
 
 ;; Setup C-x bindings

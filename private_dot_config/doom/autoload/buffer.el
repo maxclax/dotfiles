@@ -38,14 +38,14 @@
 
 
 ;;;###autoload
-(defun wait/indent-buffer ()
+(defun my/indent-buffer ()
   "Indent the currently visited buffer."
   (interactive)
   (indent-region (point-min) (point-max)))
 
 
 ;;;###autoload
-(defun wait/indent-region-or-buffer ()
+(defun my/indent-region-or-buffer ()
   "Indent a region if selected, otherwise the whole buffer."
   (interactive)
   (save-excursion
@@ -59,14 +59,14 @@
 
 
 ;;;###autoload
-(defun wait/untabify-buffer ()
+(defun my/untabify-buffer ()
   (interactive)
   (save-excursion
     (untabify (point-min) (point-max)) nil))
 
 
 ;;;###autoload
-(defun wait/check-large-buffer ()
+(defun my/check-large-buffer ()
   "Check if the buffer is large."
   (when (> (buffer-size) 1048576)       ; 1MB
     t))

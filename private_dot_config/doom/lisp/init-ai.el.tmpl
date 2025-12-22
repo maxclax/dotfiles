@@ -38,57 +38,19 @@
   :config
   (require 'gptel-integrations)
   (require 'gptel-org)
-  ;; Set Ollama as the default backend with Qwen model
-  (setq gptel-model 'qwen2.5-coder:14b
-        ;; gptel-default-mode 'org-mode
+  (setq gptel-model 'claude-sonnet-4
+        gptel-default-mode 'org-mode
         gptel-use-curl t
         gptel-use-tools t
         gptel-confirm-tool-calls 'always
         gptel-include-tool-results 'auto
-        gptel--system-message (concat gptel--system-message " Make sure to use English language.")
         gptel-backend (gptel-make-gh-copilot "gptel.Copilot" :stream t))
 
   ;; Keep other backends available for switching
   (setq gptel-gh-copilot-model "claude-sonnet-4")
   (setq gptel-anthropic-model "claude-sonnet-4-20250514")
-  (setq gptel-gemini-model "gemini-2.0-flash-exp")
-  (setq gptel-deepseek-model "deepseek-pro")
 
-  (gptel-make-deepseek "gptel.DeepSeek" :stream t)
-  (gptel-make-anthropic "gptel.Claude" :stream t)
-  (gptel-make-gemini "gptel.Gemini" :stream nil)
-
-  ;; Also define the Ollama backend separately for switching
-  (gptel-make-ollama "Ollama"
-    :host "localhost:11434"
-    :stream t
-    :models '(qwen2.5-coder:14b qwen2.5-coder:7b qwen2:7b qwen:latest mistral:latest llama3.1:latest)))
-
-;; Helper functions to switch between different AI backends
-(with-eval-after-load 'gptel
-  (defun my/gptel-use-ollama-qwen ()
-    "Switch gptel to use Ollama Qwen model."
-    (interactive)
-    (setq gptel-model 'qwen2.5-coder:14b
-          gptel-backend (gptel-make-ollama "Ollama"
-                       :host "localhost:11434"
-                       :stream t
-                       :models '(qwen2.5-coder:14b qwen2.5-coder:7b qwen2:7b qwen:latest mistral:latest llama3.1:latest)))
-    (message "Switched to Ollama Qwen model"))
-
-  (defun my/gptel-use-openai ()
-    "Switch gptel to use OpenAI model."
-    (interactive)
-    (setq gptel-model 'gpt-4.1
-          gptel-backend (gptel-make-gh-copilot "gptel.Copilot" :stream t))
-    (message "Switched to OpenAI model"))
-
-  (defun my/gptel-use-anthropic ()
-    "Switch gptel to use Anthropic model."
-    (interactive)
-    (setq gptel-model 'claude-sonnet-4-20250514
-          gptel-backend (gptel-make-anthropic "gptel.Claude" :stream t))
-    (message "Switched to Anthropic model")))
+  (gptel-make-anthropic "gptel.Claude" :stream t))
 
 ;; AI Commit Message Generator
 (defun my/smart-commit ()
