@@ -1,4 +1,4 @@
-;;; autoload/buffer.el -*- lexical-binding: t; -*-
+;;; autoload/buffer.el -*- mode: emacs-lisp lexical-binding: t; -*-
 
 ;;;###autoload
 (defun my/kill-buffer-filename  ()
@@ -70,3 +70,4 @@
   "Check if the buffer is large."
   (when (> (buffer-size) 1048576)       ; 1MB
     t))
+
