@@ -13,8 +13,8 @@
  :logseq-date-between {:version "v0.0.7", :repo "Cologler/logseq-date-between-typescript", :effect false, :theme false}
  :logseq-plugin-show-page-date {:version "v1.2.0", :repo "YU000jp/logseq-plugin-show-page-date", :effect true, :theme false}
  :logseq-show-github-star {:version "v0.0.2", :repo "studyduck/logseq-show-github-star", :effect true, :theme false}
- :logseq-vim-shortcuts {:version "v0.1.22", :repo "vipzhicheng/logseq-plugin-vim-shortcuts", :effect true, :theme false}
- :logseq-mermaid-plugin {:version "v2.0.4", :repo "benjypng/logseq-mermaid-plugin", :effect true, :theme false}
+ :logseq-vim-shortcuts {:version "v0.2.0", :repo "vipzhicheng/logseq-plugin-vim-shortcuts", :effect true, :theme false}
+ :logseq-mermaid-plugin {:version "v2.2.1", :repo "benjypng/logseq-mermaid-plugin", :effect true, :theme false}
  :logseq-comment-block {:version "v0.0.9", :repo "vipzhicheng/logseq-plugin-comment-block", :effect false, :theme false}
  :logseq-graph-analysis {:version "0.12.0", :repo "trashhalo/logseq-graph-analysis", :effect true, :theme false}
  :logseq-awesome-links {:version "v1.15.16", :repo "yoyurec/logseq-awesome-links", :effect true, :theme false}}
