@@ -269,4 +269,20 @@ KEYWORD should be a string. FILE should be a full file path."
   (interactive)
   (find-file (expand-file-name "inbox.org" (expand-file-name "org" {{ .managed_sync | quote }}))))
 
+;; Function to open yesterday's journal
+(defun my/open-yesterday-journal ()
+  "Open yesterday's denote journal entry."
+  (interactive)
+  (let* ((yesterday (time-subtract (current-time) (days-to-time 1)))
+         (date-string (format-time-string "%Y-%m-%d" yesterday)))
+    (denote-journal-extras-new-or-existing-entry date-string)))
+
+;; Function to open tomorrow's journal
+(defun my/open-tomorrow-journal ()
+  "Open tomorrow's denote journal entry."
+  (interactive)
+  (let* ((tomorrow (time-add (current-time) (days-to-time 1)))
+         (date-string (format-time-string "%Y-%m-%d" tomorrow)))
+    (denote-journal-extras-new-or-existing-entry date-string)))
+
 (provide 'init-denote)

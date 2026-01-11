@@ -8,41 +8,22 @@ fi
 
 # Check if npm is available
 if ! command -v npm &> /dev/null; then
-  echo "npm is not installed, skipping cspell dictionaries installation."
+  echo "npm is not installed, skipping node tools installation."
   exit 0
 fi
 
-echo "Installing cspell dictionaries globally..."
+echo "Installing node tools globally..."
 
-# Install all cspell dictionaries globally
+# Set npm global prefix to a writable location
+export NPM_CONFIG_PREFIX="$HOME/.local"
+
+# Create directories if they don't exist
+mkdir -p "$HOME/.local/bin"
+mkdir -p "$HOME/.local/lib/node_modules"
+
+# Install node tools globally to user directory
 npm install -g \
-  cspell \
-  @cspell/dict-bash \
-  @cspell/dict-cryptocurrencies \
-  @cspell/dict-css \
-  @cspell/dict-data-science \
-  @cspell/dict-de-de \
-  @cspell/dict-django \
-  @cspell/dict-docker \
-  @cspell/dict-elisp \
-  @cspell/dict-filetypes \
-  @cspell/dict-fonts \
-  @cspell/dict-fullstack \
-  @cspell/dict-git \
-  @cspell/dict-html \
-  @cspell/dict-html-symbol-entities \
-  @cspell/dict-k8s \
-  @cspell/dict-lorem-ipsum \
-  @cspell/dict-markdown \
-  @cspell/dict-node \
-  @cspell/dict-npm \
-  @cspell/dict-python \
-  @cspell/dict-ru_ru \
-  @cspell/dict-shell \
-  @cspell/dict-software-terms \
-  @cspell/dict-terraform \
-  @cspell/dict-typescript \
-  @cspell/dict-uk-ua \
-  @cspell/dict-vue
+  @anthropic-ai/claude-code \
+  cspell
 
-echo "cspell dictionaries installation completed."
+echo "node tools installation completed."

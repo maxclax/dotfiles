@@ -150,7 +150,6 @@ add_to_path append "$HOME/.rd/bin"
 # NOTE: The last prepend appears first in $PATH - order matters!
 # Priority (highest to lowest):
 add_to_path prepend "$PYENV_ROOT/bin"         # pyenv
-add_to_path prepend "$HOME/.local/bin"        # user-installed binaries
 add_to_path prepend "$HOME/.config/shell/bin" # personal and custom scripts
 add_to_path prepend "$HOME/.config/emacs/bin"      # emacs binaries
 
@@ -165,9 +164,9 @@ export WORDCHARS='*?[]~&;!$%^<>'
 # Ensure Nix user profile is in PATH with high priority
 add_to_path prepend "/nix/var/nix/profiles/default/bin"
 add_to_path prepend "$HOME/.nix-profile/bin"
-
-# Home Manager packages
 add_to_path prepend "$HOME/.local/state/nix/profiles/home-manager/home-path/bin"
+# User-installed binaries (highest priority - after Nix to override)
+add_to_path prepend "$HOME/.local/bin"        # user-installed binaries
 
 # ============================================================================
 # AI Development Tools Configuration

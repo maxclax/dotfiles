@@ -72,9 +72,9 @@
           ;; GTD Full Review with Journal Integration
           ("d" "Dashboard (GTD)"
            ((todo "TODO"
-                  ((org-agenda-overriding-header "🏆 Daily Outcomes")
+                  ((org-agenda-overriding-header (concat "🏆 Daily Outcomes → " (my/get-today-date)))
                    (org-agenda-files (directory-files-recursively
-                                       (expand-file-name "org/journal" {{ .managed_sync | quote }}) "\\.org$"))
+                                      (expand-file-name "org/journal" {{ .managed_sync | quote }}) "\\.org$"))
                    (org-agenda-sorting-strategy '(timestamp-down))
                    (org-agenda-max-entries 15)
                    (org-agenda-skip-function
@@ -155,12 +155,19 @@
                                 (unless (or (and deadline (time-less-p deadline week-from-now))
                                             (and scheduled (time-less-p scheduled week-from-now)))
                                   (or (outline-next-heading) (point-max))))
-                              )))))))
+                              )))))
+
+            (tags "+someday/TODO"
+                  ((org-agenda-overriding-header "⁉️ Someday & Maybe")
+                   (org-agenda-sorting-strategy '(priority-down alpha-up))
+                   (org-agenda-remove-tags t)
+                   (org-agenda-max-entries 10)
+                   (org-agenda-prefix-format "  %i%(my/agenda-bold-prefix)%?-12t %s")))))
 
           ;; GTD Full Review with Journal Integration
            ("D" "Dashboard (AR)"
           ((todo "TODO"
-                 ((org-agenda-overriding-header "🏆 Yearly Outcomes")
+                 ((org-agenda-overriding-header (concat "🏆 Yearly Outcomes → " (my/get-end-of-quarter-date)))
                   (org-agenda-files (directory-files-recursively
                                      (expand-file-name "org/journal" {{ .managed_sync | quote }}) "\\.org$"))
                   (org-agenda-sorting-strategy '(deadline-up))
@@ -176,7 +183,7 @@
                                              outline-path)
                               (or (outline-next-heading) (point-max)))))))))
            (todo "TODO"
-                 ((org-agenda-overriding-header "🏆 Monthly Outcomes")
+                 ((org-agenda-overriding-header (concat "🏆 Monthly Outcomes → " (my/get-end-of-month-date)))
                   (org-agenda-files (directory-files-recursively
                                      (expand-file-name "org/journal" {{ .managed_sync | quote }}) "\\.org$"))
                   (org-agenda-sorting-strategy '(deadline-up))
@@ -192,7 +199,7 @@
                                              outline-path)
                               (or (outline-next-heading) (point-max)))))))))
            (todo "TODO"
-                 ((org-agenda-overriding-header "🏆 Weekly Outcomes")
+                 ((org-agenda-overriding-header (concat "🏆 Weekly Outcomes → " (my/get-next-friday-date)))
                   (org-agenda-files (directory-files-recursively
                                      (expand-file-name "org/journal" {{ .managed_sync | quote }}) "\\.org$"))
                   (org-agenda-sorting-strategy '(deadline-up))
@@ -228,7 +235,7 @@
          ;; Friday Reflection - All Daily Outcomes Tasks
           ("F" "Friday Reflection - Daily Outcomes"
            (;; Weekly Outcomes TODOs from Monday (this week)
-            (todo "TODO"
+            (alltodo ""
                   ((org-agenda-overriding-header "🏆️ Weekly Outcomes")
                    (org-agenda-files (directory-files-recursively
                                        (expand-file-name "org/journal" {{ .managed_sync | quote }}) "\\.org$"))
@@ -236,10 +243,10 @@
                     '(lambda ()
                        (let ((outline-path (org-get-outline-path t))
                              (current-heading (org-get-heading t t t t)))
-                         ;; Show only TODO items under Weekly Outcomes heading
-                         (unless (or (string-match-p "Weekly Outcomes" current-heading)
+                         ;; Show all items under Weekly Outcomes heading (including DONE)
+                         (unless (or (string-match-p "🏆️ Weekly Outcomes\\|Weekly Outcomes" current-heading)
                                      (cl-some (lambda (heading)
-                                               (string-match-p "Weekly Outcomes" heading))
+                                               (string-match-p "🏆️ Weekly Outcomes\\|Weekly Outcomes" heading))
                                              outline-path))
                            (or (outline-next-heading) (point-max))))))
                    (org-agenda-show-inherited-tags nil)
@@ -540,6 +547,48 @@
          ;; Non-denote files - show just filename without extension
          (t
           (file-name-sans-extension file))))))
+
+  ;; ──────────────────────────────────────────────────────────────
+  ;; Date helper functions for agenda headers
+  ;; ──────────────────────────────────────────────────────────────
+  (defun my/get-end-of-year-date ()
+    "Return formatted string for end of current year."
+    (format-time-string "[%Y-%m-%d %a]" (encode-time 0 0 0 31 12 (nth 5 (decode-time)))))
+
+  (defun my/get-end-of-quarter-date ()
+    "Return formatted string for end of current quarter."
+    (let* ((now (current-time))
+           (decoded (decode-time now))
+           (m (nth 4 decoded))
+           (y (nth 5 decoded))
+           (end-m (cond ((<= m 3) 3) ((<= m 6) 6) ((<= m 9) 9) (t 12))))
+      (format-time-string "[%Y-%m-%d %a]" (encode-time 0 0 0 (if (= end-m 12) 31 30) end-m y))))
+
+  (defun my/get-end-of-month-date ()
+    "Return formatted string for end of current month."
+    (let* ((now (current-time))
+           (decoded (decode-time now))
+           (y (nth 5 decoded))
+           (m (nth 4 decoded))
+           (day (pcase m
+                  ((or 1 3 5 7 8 10 12) 31)
+                  ((or 4 6 9 11) 30)
+                  (2 (if (and (= (mod y 4) 0)
+                              (or (/= (mod y 100) 0) (= (mod y 400) 0)))
+                         29 28)))))
+      (format-time-string "[%Y-%m-%d %a]" (encode-time 0 0 0 day m y))))
+
+  (defun my/get-next-friday-date ()
+    "Return formatted string for next Friday (today if Friday)."
+    (let* ((now (current-time))
+           (dow (string-to-number (format-time-string "%w" now)))
+           (days-ahead (if (= dow 5) 0 (- 5 dow)))
+           (days-ahead (if (< days-ahead 0) (+ 7 days-ahead) days-ahead)))
+      (format-time-string "[%Y-%m-%d %a]" (time-add now (* days-ahead 86400)))))
+
+  (defun my/get-today-date ()
+    "Return formatted string for today."
+    (format-time-string "[%Y-%m-%d %a]"))
 
   ;; ──────────────────────────────────────────────────────────────
   ;; Make filename/title BOLD in agenda – guaranteed to work

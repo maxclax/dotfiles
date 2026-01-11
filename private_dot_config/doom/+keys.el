@@ -16,14 +16,14 @@
     :desc "Winner undo" "C-c <left>"     #'winner-undo
     :desc "Winner redo" "C-c <right>"    #'winner-redo
 
-    (:prefix ("C-c C-f" . "Fold")
-     :desc "Toggle fold" "C-f"         #'+fold/toggle
-     :desc "Open fold" "C-u"           #'+fold/open
-     :desc "Close fold" "C-c"          #'+fold/close
-     :desc "Open all folds" "C-a C-u"  #'+fold/open-all
-     :desc "Close all folds" "C-a C-c" #'+fold/close-all
-     :desc "Next fold" "C-n"           #'+fold/next
-     :desc "Previous fold" "C-p"       #'+fold/previous)
+    ;; (:prefix ("C-c C-f" . "Fold")
+    ;;  :desc "Toggle fold" "C-f"         #'+fold/toggle
+    ;;  :desc "Open fold" "C-u"           #'+fold/open
+    ;;  :desc "Close fold" "C-c"          #'+fold/close
+    ;;  :desc "Open all folds" "C-a C-u"  #'+fold/open-all
+    ;;  :desc "Close all folds" "C-a C-c" #'+fold/close-all
+    ;;  :desc "Next fold" "C-n"           #'+fold/next
+    ;;  :desc "Previous fold" "C-p"       #'+fold/previous)
 
     (:prefix ("C-c c" . "Code")
      :desc "Jump to definition" "d"     #'+lookup/definition
@@ -50,6 +50,7 @@
      :desc "Emoji" "e"                        #'emoji-insert
      :desc "Current file name" "f"            #'+default/insert-filename
      :desc "Current file path" "F"            #'+default/insert-filepath
+     :desc "Insert shell link" "l"           #'my/insert-shell-link
      :desc "Current time [H:M]" "t"           #'my/insert-current-time
      (:prefix ("j" . "Journal")
       :desc "Start journal log entry" "s"     #'my/journal-log-start
@@ -86,7 +87,10 @@
      :desc "Denote dired" "d"               #'denote-dired
      :desc "Denote grep" "g"                #'denote-grep
      :desc "Open inbox" "i"                 #'my/open-inbox
-     :desc "Denote journal" "j"             #'denote-journal-new-or-existing-entry
+     (:prefix ("j" . "Journal")
+      :desc "Today's journal" "j"           #'denote-journal-new-or-existing-entry
+      :desc "Tomorrow's journal" "t"        #'my/open-tomorrow-journal
+      :desc "Yesterday's journal" "y"       #'my/open-yesterday-journal)
      :desc "Open Journelly" "J"             #'my/open-journelly
      :desc "Denote link" "l"                #'denote-link
      :desc "New denote" "n"                 #'denote
