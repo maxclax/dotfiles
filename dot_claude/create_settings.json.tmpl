@@ -1,4 +1,5 @@
 {
+  "env": {},
   "permissions": {
     "allow": [],
     "deny": [
@@ -13,7 +14,11 @@
       "Read({{ .workspace_extra }}/**)"
     ]
   },
-  "env": {},
+  "enabledPlugins": {
+    "context7@claude-plugins-official": true,
+    "playwright@claude-plugins-official": true,
+    "pyright-lsp@claude-plugins-official": true
+  },
   "mcpServers": {
     "filesystem": {
         "command": "npx",
@@ -25,29 +30,10 @@
         "env": {},
         "working_directory": null
     },
-    "context7": {
-        "command": "npx",
-        "args": [
-        "-y",
-        "@upstash/context7-mcp"
-        ],
-        "env": {
-        "DEFAULT_MINIMUM_TOKENS": "6000"
-        },
-        "working_directory": null
-    },
     "fetch": {
         "command": "uvx",
         "args": [
         "mcp-server-fetch"
-        ],
-        "env": {},
-        "working_directory": null
-    },
-    "playwright": {
-        "command": "npx",
-        "args": [
-        "@playwright/mcp@latest"
         ],
         "env": {},
         "working_directory": null
@@ -57,14 +43,6 @@
         "args": [
             "-y",
             "@modelcontextprotocol/server-sequential-thinking"
-        ],
-        "env": {},
-        "working_directory": null
-    },
-    "nixos": {
-        "command": "uvx",
-        "args": [
-        "mcp-nixos"
         ],
         "env": {},
         "working_directory": null
