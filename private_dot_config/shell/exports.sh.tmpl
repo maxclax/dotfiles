@@ -116,6 +116,9 @@ export NIX_SHOW_WARNINGS=0          # Suppress deprecation warnings and other no
 # Homebrew configuration
 export HOMEBREW_NO_ANALYTICS=1      # Disable Homebrew's analytics collection
 
+# NPM configuration - use user directory for global packages
+export NPM_CONFIG_PREFIX="$HOME/.local"
+
 # ============================================================================
 # Editor Configuration
 # ============================================================================
