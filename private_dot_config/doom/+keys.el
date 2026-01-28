@@ -6,7 +6,7 @@
         mac-command-modifier 'hyper))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;; default doom ~/.config/emacs/modules/config/default/+evil-bindings.el
 (defun my/setup-clean-c-c-bindings ()
   (map!
    (:map override
@@ -134,6 +134,32 @@
      :desc "Jump to previous hunk" "p"     #'+vc-gutter/previous-hunk
      :desc "Git time machine" "t"          #'git-timemachine-toggle)
 
+    (:prefix ("C-c w" . "Workspace")
+     :desc "Display tab bar"           "TAB" #'+workspace/display
+     :desc "Switch workspace"          "."   #'+workspace/switch-to
+     :desc "Switch to last workspace"  "`"   #'+workspace/other
+     :desc "New workspace"             "n"   #'+workspace/new
+     :desc "New named workspace"       "N"   #'+workspace/new-named
+     :desc "Load workspace from file"  "l"   #'+workspace/load
+     :desc "Save workspace to file"    "s"   #'+workspace/save
+     :desc "Kill session"              "x"   #'+workspace/kill-session
+     :desc "Kill this workspace"       "d"   #'+workspace/kill
+     :desc "Delete saved workspace"    "D"   #'+workspace/delete
+     :desc "Rename workspace"          "r"   #'+workspace/rename
+     :desc "Restore last session"      "R"   #'+workspace/restore-last-session
+     :desc "Next workspace"            "]"   #'+workspace/switch-right
+     :desc "Previous workspace"        "["   #'+workspace/switch-left
+     :desc "Switch to 1st workspace"   "1"   #'+workspace/switch-to-0
+     :desc "Switch to 2nd workspace"   "2"   #'+workspace/switch-to-1
+     :desc "Switch to 3rd workspace"   "3"   #'+workspace/switch-to-2
+     :desc "Switch to 4th workspace"   "4"   #'+workspace/switch-to-3
+     :desc "Switch to 5th workspace"   "5"   #'+workspace/switch-to-4
+     :desc "Switch to 6th workspace"   "6"   #'+workspace/switch-to-5
+     :desc "Switch to 7th workspace"   "7"   #'+workspace/switch-to-6
+     :desc "Switch to 8th workspace"   "8"   #'+workspace/switch-to-7
+     :desc "Switch to 9th workspace"   "9"   #'+workspace/switch-to-8
+     :desc "Switch to final workspace" "0"   #'+workspace/switch-to-final)
+
     (:prefix ("C-c t" . "Toggles")
      :desc "Fill column" "c"           #'global-display-fill-column-indicator-mode
      :desc "Eat other window" "e"      #'eat-other-window
@@ -158,10 +184,6 @@
         :desc "Split horizontally instead" "C-x |" #'my/split-window-horizontally-instead
         :desc "Split vertically instead" "C-x _"   #'my/split-window-vertically-instead))
 
-;; Apply early to ensure our bindings take precedence
-(add-hook 'doom-first-buffer-hook #'my/setup-clean-c-c-bindings)
-(add-hook 'doom-first-buffer-hook #'my/setup-c-x-bindings)
-
 ;; Mac-style Cmd shortcuts for GUI Emacs
 (defun my/setup-mac-cmd-shortcuts ()
   "Setup Mac-style Cmd+C/V/X/Z shortcuts for GUI Emacs."
@@ -175,10 +197,19 @@
       :desc "Redo (Shift+Cmd+Z)" "H-Z" #'redo
       :desc "Paste Pop (Shift+Cmd+V)" "H-V" #'yank-pop))))
 
+;; Setup M bindings
+(defun my/setup-meta-bindings ()
+  (map! :desc "Other window" "M-o" #'other-window
+        :desc "imenu" "M-i" #'imenu))
+
 ;; Apply early to ensure our bindings take precedence
+(add-hook 'doom-first-buffer-hook #'my/setup-clean-c-c-bindings)
+(add-hook 'doom-first-buffer-hook #'my/setup-c-x-bindings)
 (add-hook 'doom-first-buffer-hook #'my/setup-mac-cmd-shortcuts)
+(add-hook 'doom-first-buffer-hook #'my/setup-meta-bindings)
 
 ;; Apply very late to override any packages that load after us
 (add-hook 'window-setup-hook #'my/setup-clean-c-c-bindings)
 (add-hook 'window-setup-hook #'my/setup-c-x-bindings)
 (add-hook 'window-setup-hook #'my/setup-mac-cmd-shortcuts)
+(add-hook 'window-setup-hook #'my/setup-meta-bindings)

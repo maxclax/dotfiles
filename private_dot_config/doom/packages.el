@@ -10,6 +10,7 @@
 (package! tldr)
 (package! lorem-ipsum)
 (package! vundo)
+(package! undo-tree)
 
 ;; =====================================================================
 ;; AI ASSISTANCE & CODE COMPLETION
