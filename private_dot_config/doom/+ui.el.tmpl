@@ -54,6 +54,9 @@
       doom-modeline-persp-name t  ;; adds perspective name to modeline
       doom-modeline-persp-icon t) ;; adds folder icon next to persp name
 
+;; Every project must have own workspace
+(setq +workspaces-on-switch-project-behavior t)
+
 ;; Enable rainbow-mode globally
 (use-package rainbow-mode
   :ensure t

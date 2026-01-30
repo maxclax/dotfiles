@@ -94,30 +94,25 @@
             (tags-todo "INBOX"
                        ((org-agenda-overriding-header "📥 Inbox - Process These")
                         (org-tags-match-list-sublevels nil)))
-            (stuck ""
-                   ((org-agenda-overriding-header "🚫 Stuck Projects (no NEXT)")
-                    (org-agenda-tags-todo-honor-ignore-options t)
-                    (org-tags-match-list-sublevels t)))
+
             (tags-todo "-INBOX/NEXT"
                        ((org-agenda-overriding-header "⚡ Next Actions")
                         (org-agenda-skip-function
                          '(lambda ()
                             (org-agenda-skip-entry-if 'scheduled 'deadline)))
                         (org-tags-match-list-sublevels t)))
-            (tags-todo "-INBOX/PROJECT"
-                       ((org-agenda-overriding-header "📁 Active Projects")
-                        (org-tags-match-list-sublevels t)))
-            (tags-todo "-INBOX/-NEXT"
-                       ((org-agenda-overriding-header "🔍 Orphaned Tasks")
+
+            (tags-todo "project-INBOX-hold"
+                       ((org-agenda-overriding-header "🚫 Stuck Projects (no deadline/scheduled)")
                         (org-agenda-skip-function
                          '(lambda ()
-                            (or (org-agenda-skip-subtree-if 'todo '("PROJECT" "HOLD" "WAITING" "DELEGATED"))
-                                (org-agenda-skip-subtree-if 'nottodo '("TODO"))
-                                ;; Skip tasks with scheduled/deadline dates or repeating
-                                (org-agenda-skip-entry-if 'scheduled 'deadline 'timestamp)
-                                ;; Skip tasks with any tags
-                                (when (org-get-tags-at) (point-max)))))
+                            (or (org-agenda-skip-entry-if 'scheduled 'deadline
+                                                          'todo '("DONE" "CANCELLED" "HOLD" "NEXT" "WAITING"))
+                                ;; Skip headings without a TODO keyword
+                                (unless (org-get-todo-state)
+                                  (or (outline-next-heading) (point-max))))))
                         (org-tags-match-list-sublevels t)))
+
             (tags-todo "/WAITING"
                        ((org-agenda-overriding-header "⏳ Waiting For")
                         (org-agenda-skip-function
@@ -131,6 +126,7 @@
                                   (or (outline-next-heading) (point-max))))
                               ;; If no deadline/schedule, always show (don't skip)
                               )))))
+
             (tags-todo "/DELEGATED"
                        ((org-agenda-overriding-header "👥 Delegated")
                         (org-agenda-skip-function
@@ -144,6 +140,65 @@
                                   (or (outline-next-heading) (point-max))))
                               ;; If no deadline/schedule, always show (don't skip)
                               )))))
+
+            (tags-todo "-INBOX/-NEXT"
+                       ((org-agenda-overriding-header "🔍 Orphaned Tasks")
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (or (org-agenda-skip-subtree-if 'todo '("PROJECT" "HOLD" "WAITING" "DELEGATED"))
+                                (org-agenda-skip-subtree-if 'nottodo '("TODO"))
+                                ;; Skip tasks with scheduled/deadline dates or repeating
+                                (org-agenda-skip-entry-if 'scheduled 'deadline 'timestamp)
+                                ;; Skip tasks with local tags (ignore inherited filetags)
+                                (when (org-get-tags nil t) (point-max))
+                                ;; Skip any subtask (level 2+), only show top-level TODOs
+                                (when (> (org-current-level) 1)
+                                  (or (outline-next-heading) (point-max))))))
+                        (org-tags-match-list-sublevels t)))
+
+            (tags "project-INBOX"
+                  ((org-agenda-overriding-header "📁 Active Projects")
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       ;; Show only the first level-1 heading per project file
+                       (let ((first-heading
+                              (save-excursion
+                                (goto-char (point-min))
+                                (when (re-search-forward "^\\* " nil t)
+                                  (line-beginning-position)))))
+                         (unless (and (= (org-current-level) 1)
+                                      (= (line-beginning-position) first-heading))
+                           (or (outline-next-heading) (point-max))))))
+                   (org-tags-match-list-sublevels nil)))
+
+            (tags "hold-INBOX"
+                  ((org-agenda-overriding-header "⏸️ On Hold Projects")
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let ((first-heading
+                              (save-excursion
+                                (goto-char (point-min))
+                                (when (re-search-forward "^\\* " nil t)
+                                  (line-beginning-position)))))
+                         (unless (and (= (org-current-level) 1)
+                                      (= (line-beginning-position) first-heading))
+                           (or (outline-next-heading) (point-max))))))
+                   (org-tags-match-list-sublevels nil)))
+
+            (tags "research-INBOX"
+                  ((org-agenda-overriding-header "🔬 Research Ideas")
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let ((first-heading
+                              (save-excursion
+                                (goto-char (point-min))
+                                (when (re-search-forward "^\\* " nil t)
+                                  (line-beginning-position)))))
+                         (unless (and (= (org-current-level) 1)
+                                      (= (line-beginning-position) first-heading))
+                           (or (outline-next-heading) (point-max))))))
+                   (org-tags-match-list-sublevels nil)))
+
             (tags-todo "-INBOX/HOLD"
                        ((org-agenda-overriding-header "⏸️ On Hold")
                         (org-agenda-skip-function
@@ -476,7 +531,7 @@
           (sequence "WAITING(w@/!)" "DELEGATED(D!)" "HOLD(h)" "|" "CANCELLED(c@/!)")))
 
   ;; Stuck projects detection (projects without NEXT, WAITING, or DELEGATED actions)
-  (setq org-stuck-projects '("-INBOX/PROJECT" ("NEXT" "WAITING" "DELEGATED")))
+  (setq org-stuck-projects '("project-INBOX" ("NEXT" "WAITING" "DELEGATED") nil ""))
 
   ;; TODO keyword faces
   (setq org-todo-keyword-faces
