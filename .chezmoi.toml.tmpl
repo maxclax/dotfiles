@@ -2,6 +2,7 @@
 {{- $workspace_extra := promptStringOnce . "workspace_extra" "extra workspace directory" (printf "%s/workspace_extra" .chezmoi.homeDir) -}}
 {{- $resources := promptStringOnce . "resources" "resources directory" (printf "%s/workspace/resources" .chezmoi.homeDir) -}}
 {{- $managed_sync := promptStringOnce . "managed_sync" "managed sync storage" (printf "%s/.local/managed-sync" .chezmoi.homeDir) -}}
+{{- $org_dir := promptStringOnce . "org_dir" "org directory" (printf "%s/.local/managed-sync/org" .chezmoi.homeDir) -}}
 {{- $primary_storage := promptStringOnce . "primary_storage" "primary storage" (printf "%s/primary_storage" .chezmoi.homeDir) -}}
 {{- $secondary_storage := promptStringOnce . "secondary_storage" "secondary storage" (printf "%s/secondary_storage" .chezmoi.homeDir) -}}
 
@@ -114,6 +115,7 @@ encryption = "age"
     resources = {{ $resources | quote }}
     playground = {{ printf "%s/playground" $workspace | quote }}
     managed_sync = {{ $managed_sync | quote }}
+    org_dir = {{ $org_dir | quote }}
     primary_storage = {{ $primary_storage | quote }}
     secondary_storage = {{ $secondary_storage | quote }}
     editor = "emacsclient"

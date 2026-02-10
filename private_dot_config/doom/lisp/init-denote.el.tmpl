@@ -9,7 +9,10 @@
 (use-package! denote
   :config
   ;; Dedicated denote directory
-  (setq denote-directory (expand-file-name "org" {{ .managed_sync | quote }}))
+  (setq denote-directory {{ .org_dir | quote }})
+
+  ;; Exclude certain directories from being scanned for notes (e.g., data, attachments)
+  (setq denote-excluded-directories-regexp ".attach\\|data\\|images")
 
   ;; Lifecycle keywords (inspired by EWS)
   (setq denote-known-keywords
@@ -267,7 +270,7 @@ KEYWORD should be a string. FILE should be a full file path."
 (defun my/open-inbox ()
   "Open the inbox.org file."
   (interactive)
-  (find-file (expand-file-name "inbox.org" (expand-file-name "org" {{ .managed_sync | quote }}))))
+  (find-file (expand-file-name "inbox.org" {{ .org_dir | quote }})))
 
 ;; Function to open yesterday's journal
 (defun my/open-yesterday-journal ()

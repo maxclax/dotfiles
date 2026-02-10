@@ -95,7 +95,7 @@ cmd-0 = 'workspace 10' # Terminal
 # alt-d = 'workspace D'
 # alt-e = 'workspace E'
 # alt-g = 'workspace G'
-# alt-i = 'workspace I'
+cmd-i = 'workspace I'
 # alt-m = 'workspace M'
 # alt-n = 'workspace N'
 # alt-o = 'workspace O'
@@ -130,7 +130,7 @@ cmd-ctrl-0 = 'move-node-to-workspace 10'
 # cmd-ctrl-d = 'move-node-to-workspace D'
 # cmd-ctrl-e = 'move-node-to-workspace E'
 # cmd-ctrl-g = 'move-node-to-workspace G'
-# cmd-ctrl-i = 'move-node-to-workspace I'
+cmd-ctrl-i = 'move-node-to-workspace I'
 # cmd-ctrl-m = 'move-node-to-workspace M'
 # cmd-ctrl-n = 'move-node-to-workspace N'
 # cmd-ctrl-o = 'move-node-to-workspace O'
@@ -260,26 +260,15 @@ run = 'move-node-to-workspace 8'
 
 # ---------------------------------------------------------
 # https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
-#[workspace-to-monitor-force-assignment]
-## 1 = 'main'      # GTD (OmniFocus), Drafts, Logseq
-#2 = '2'   # Obsidian
-## 3 = 'main'      # Browser
-## 4 = 'main'   # Free special
-#5 = '2'   # AI GUI chats
-#6 = '2'   # Dev (env)
-#7 = 'main'        # Dev (Emacs F1)
-#8 = '2'   # Media (Netflix...), Communication, Musics and Undifined apps
-#9 = '2'   # AI CLI & Agents
-## 0 = 'main'      # terminal
-
 [workspace-to-monitor-force-assignment]
-1 = '1'    # Left display
-2 = 'main' # GTD (OmniFocus), Drafts, Logseq
-# 3 = 'main'      # Browser
-# 4 = 'main'   # Free special
-5 = '3'   # AI GUI chats
-6 = '3'   # Dev (env)
-7 = 'main'        # Dev (Emacs F1)
-8 = '3'   # Media (Netflix...), Communication, Musics and Undifined apps
-9 = '3'   # AI CLI & Agents
-# 0 = 'main'      # terminal
+1 = 1         # Left display
+2 = 'main'    # GTD (OmniFocus), Drafts, Logseq
+# 3 = 'main'  # Browser
+# 4 = 'main'  # Free special
+5 = [4, 3]    # AI GUI chats
+6 = [4, 3]    # Dev (env)
+7 = 'main'    # Dev (Emacs F1)
+8 = [4, 3]    # Media (Netflix...), Communication, Musics and Undifined apps
+9 = [4, 3]    # AI CLI & Agents
+# 0 = 'main'  # terminal
+I = [3, 4]    # Info (references, reading)

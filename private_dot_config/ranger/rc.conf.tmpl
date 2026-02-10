@@ -81,6 +81,7 @@ map gh cd ~
 map gd cd ~/Downloads
 map gD cd ~/Desktop
 map gc cd ~/.config
+map gC cd ~/Library/Mobile Documents/
 map gw cd {{ .workspace }}
 map ge cd {{ .workspace_extra }}
 map gr cd {{ .resources }}
@@ -95,8 +96,9 @@ map gP cd {{ .playground }}
 map i display_file
 
 # Git integration
-map ggA shell git add %s
-map ggC shell git commit
-map ggS shell git status
-map ggP shell git push
-map ggL shell git log --oneline
+map gga shell git add %s
+map ggc shell git commit
+map ggs shell git status
+map ggi shell git init
+map ggp shell git push
+map ggl shell git log --oneline

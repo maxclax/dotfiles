@@ -74,7 +74,7 @@
            ((todo "TODO"
                   ((org-agenda-overriding-header (concat "🏆 Daily Outcomes → " (my/get-today-date)))
                    (org-agenda-files (directory-files-recursively
-                                      (expand-file-name "org/journal" {{ .managed_sync | quote }}) "\\.org$"))
+                                      (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))
                    (org-agenda-sorting-strategy '(timestamp-down))
                    (org-agenda-max-entries 15)
                    (org-agenda-skip-function
@@ -101,6 +101,23 @@
                          '(lambda ()
                             (org-agenda-skip-entry-if 'scheduled 'deadline)))
                         (org-tags-match-list-sublevels t)))
+            (tags-todo "PRIORITY=\"A\""
+                       ((org-agenda-overriding-header "🔥 Important & Urgent (Priority A)")
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))))))
+
+            (tags-todo "PRIORITY=\"B\""
+                       ((org-agenda-overriding-header "📅 Important & Not Urgent (Priority B)")
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))))))
+
+            (tags-todo "PRIORITY=\"C\""
+                       ((org-agenda-overriding-header "👥 Not Important & Urgent (Priority C)")
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))))))
 
             (tags-todo "project-INBOX-hold"
                        ((org-agenda-overriding-header "🚫 Stuck Projects (no deadline/scheduled)")
@@ -199,6 +216,20 @@
                            (or (outline-next-heading) (point-max))))))
                    (org-tags-match-list-sublevels nil)))
 
+            (tags "pinned-INBOX"
+                  ((org-agenda-overriding-header "📌 Pinned Notes")
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let ((first-heading
+                              (save-excursion
+                                (goto-char (point-min))
+                                (when (re-search-forward "^\\* " nil t)
+                                  (line-beginning-position)))))
+                         (unless (and (= (org-current-level) 1)
+                                      (= (line-beginning-position) first-heading))
+                           (or (outline-next-heading) (point-max))))))
+                   (org-tags-match-list-sublevels nil)))
+
             (tags-todo "-INBOX/HOLD"
                        ((org-agenda-overriding-header "⏸️ On Hold")
                         (org-agenda-skip-function
@@ -224,7 +255,7 @@
           ((todo "TODO"
                  ((org-agenda-overriding-header (concat "🏆 Yearly Outcomes → " (my/get-end-of-quarter-date)))
                   (org-agenda-files (directory-files-recursively
-                                     (expand-file-name "org/journal" {{ .managed_sync | quote }}) "\\.org$"))
+                                     (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))
                   (org-agenda-sorting-strategy '(deadline-up))
                   (org-agenda-max-entries 3)
                   (org-agenda-remove-tags t)
@@ -240,7 +271,7 @@
            (todo "TODO"
                  ((org-agenda-overriding-header (concat "🏆 Monthly Outcomes → " (my/get-end-of-month-date)))
                   (org-agenda-files (directory-files-recursively
-                                     (expand-file-name "org/journal" {{ .managed_sync | quote }}) "\\.org$"))
+                                     (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))
                   (org-agenda-sorting-strategy '(deadline-up))
                   (org-agenda-max-entries 5)
                   (org-agenda-remove-tags t)
@@ -256,7 +287,7 @@
            (todo "TODO"
                  ((org-agenda-overriding-header (concat "🏆 Weekly Outcomes → " (my/get-next-friday-date)))
                   (org-agenda-files (directory-files-recursively
-                                     (expand-file-name "org/journal" {{ .managed_sync | quote }}) "\\.org$"))
+                                     (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))
                   (org-agenda-sorting-strategy '(deadline-up))
                   (org-agenda-max-entries 10)
                   (org-agenda-remove-tags t)
@@ -272,7 +303,7 @@
            (todo "TODO"
                  ((org-agenda-overriding-header "🏆 Daily Outcomes")
                   (org-agenda-files (directory-files-recursively
-                                     (expand-file-name "org/journal" {{ .managed_sync | quote }}) "\\.org$"))
+                                     (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))
                   (org-agenda-sorting-strategy '(timestamp-down))
                   (org-agenda-max-entries 15)
                   (org-agenda-remove-tags t)
@@ -293,7 +324,7 @@
             (alltodo ""
                   ((org-agenda-overriding-header "🏆️ Weekly Outcomes")
                    (org-agenda-files (directory-files-recursively
-                                       (expand-file-name "org/journal" {{ .managed_sync | quote }}) "\\.org$"))
+                                       (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))
                    (org-agenda-skip-function
                     '(lambda ()
                        (let ((outline-path (org-get-outline-path t))
@@ -309,7 +340,7 @@
             (tags "LEVEL>0"
                   ((org-agenda-overriding-header "📅 Monday")
                    (org-agenda-files (directory-files-recursively
-                                       (expand-file-name "org/journal" {{ .managed_sync | quote }}) "\\.org$"))
+                                       (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))
                    (org-agenda-skip-function
                     '(lambda ()
                        (let* ((outline-path (org-get-outline-path t))
@@ -330,7 +361,7 @@
             (tags "LEVEL>0"
                   ((org-agenda-overriding-header "📅 Tuesday")
                    (org-agenda-files (directory-files-recursively
-                                       (expand-file-name "org/journal" {{ .managed_sync | quote }}) "\\.org$"))
+                                       (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))
                    (org-agenda-skip-function
                     '(lambda ()
                        (let* ((outline-path (org-get-outline-path t))
@@ -351,7 +382,7 @@
             (tags "LEVEL>0"
                   ((org-agenda-overriding-header "📅 Wednesday")
                    (org-agenda-files (directory-files-recursively
-                                       (expand-file-name "org/journal" {{ .managed_sync | quote }}) "\\.org$"))
+                                       (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))
                    (org-agenda-skip-function
                     '(lambda ()
                        (let* ((outline-path (org-get-outline-path t))
@@ -372,7 +403,7 @@
             (tags "LEVEL>0"
                   ((org-agenda-overriding-header "📅 Thursday")
                    (org-agenda-files (directory-files-recursively
-                                       (expand-file-name "org/journal" {{ .managed_sync | quote }}) "\\.org$"))
+                                       (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))
                    (org-agenda-skip-function
                     '(lambda ()
                        (let* ((outline-path (org-get-outline-path t))
@@ -393,7 +424,7 @@
             (tags "LEVEL>0"
                   ((org-agenda-overriding-header "📅 Friday")
                    (org-agenda-files (directory-files-recursively
-                                       (expand-file-name "org/journal" {{ .managed_sync | quote }}) "\\.org$"))
+                                       (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))
                    (org-agenda-skip-function
                     '(lambda ()
                        (let* ((outline-path (org-get-outline-path t))
@@ -414,7 +445,7 @@
             (tags "LEVEL>0"
                   ((org-agenda-overriding-header "📅 Saturday")
                    (org-agenda-files (directory-files-recursively
-                                       (expand-file-name "org/journal" {{ .managed_sync | quote }}) "\\.org$"))
+                                       (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))
                    (org-agenda-skip-function
                     '(lambda ()
                        (let* ((outline-path (org-get-outline-path t))
@@ -435,7 +466,7 @@
             (tags "LEVEL>0"
                   ((org-agenda-overriding-header "📅 Sunday")
                    (org-agenda-files (directory-files-recursively
-                                       (expand-file-name "org/journal" {{ .managed_sync | quote }}) "\\.org$"))
+                                       (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))
                    (org-agenda-skip-function
                     '(lambda ()
                        (let* ((outline-path (org-get-outline-path t))
@@ -474,7 +505,7 @@
 
   (add-hook 'org-agenda-mode-hook 'hl-line-mode)
 
-  (setq org-directory (append (list (expand-file-name "org" {{ .managed_sync | quote }}))
+  (setq org-directory (append (list {{ .org_dir | quote }})
                               (when (file-exists-p (expand-file-name "org" {{ .workspace_extra | quote }}))
                                 (list (expand-file-name "org" {{ .workspace_extra | quote }})))))
 
@@ -484,13 +515,13 @@
   (setq org-agenda-files
         (seq-filter (lambda (file)
                       (not (string-match-p "/templates/" file)))
-                    (append (directory-files-recursively (expand-file-name "org" {{ .managed_sync | quote }}) "\\.org$")
+                    (append (directory-files-recursively {{ .org_dir | quote }} "\\.org$")
                             (when (file-exists-p (expand-file-name "org" {{ .workspace_extra | quote }}))
                               (directory-files-recursively (expand-file-name "org" {{ .workspace_extra | quote }}) "\\.org$"))
                             ;; Include journal files in agenda
-                            (directory-files-recursively (expand-file-name "org/journal" {{ .managed_sync | quote }}) "\\.org$"))))
+                            (directory-files-recursively (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))))
 
-  (setq org-default-notes-file (concat {{ .managed_sync | quote }} "/org/inbox.org"))
+  (setq org-default-notes-file (expand-file-name "inbox.org" {{ .org_dir | quote }}))
   (setq org-capture-templates
         '(;; Clean capture templates (no timestamps, links, or content)
           ("t" "INBOX: Todo (clean)" entry (file org-default-notes-file)
@@ -516,7 +547,7 @@
     "Return today's journal file or create it."
     (let* ((today (format-time-string "%Y%m%dT%H%M%S"))
            (date-title (format-time-string "%Y-%m-%d"))
-           (journal-dir (expand-file-name "org/journal" {{ .managed_sync | quote }}))
+           (journal-dir (expand-file-name "journal" {{ .org_dir | quote }}))
            (today-file (car (directory-files journal-dir t (format-time-string "%Y-%m-%d")))))
       (or today-file
           (expand-file-name (format "%s--%s__journal.org"
@@ -526,9 +557,9 @@
 
   ;; GTD-style TODO keywords with PROJECT state
   (setq org-todo-keywords
-        '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!/!)")
-          (sequence "PROJECT(p)" "|" "DONE(d!/!)" "CANCELLED(c@/!)")
-          (sequence "WAITING(w@/!)" "DELEGATED(D!)" "HOLD(h)" "|" "CANCELLED(c@/!)")))
+        '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
+          (sequence "PROJECT(p)" "|" "DONE(d)" "CANCELLED(c)")
+          (sequence "WAITING(w)" "DELEGATED(D)" "HOLD(h)" "|" "CANCELLED(c)")))
 
   ;; Stuck projects detection (projects without NEXT, WAITING, or DELEGATED actions)
   (setq org-stuck-projects '("project-INBOX" ("NEXT" "WAITING" "DELEGATED") nil ""))
@@ -698,14 +729,6 @@
   (setq org-log-into-drawer t)
   (setq org-clock-out-remove-zero-time-clocks t)
 
-  ;; Disable logbook for subtasks by advising org-log functions
-  (defun my/no-log-for-subtasks (orig-fun &rest args)
-    "Don't log state changes for subtasks (level 3+)."
-    (unless (and (org-at-heading-p)
-                 (>= (org-current-level) 3)) ; Skip logging for level 3+ headings
-      (apply orig-fun args)))
-
-  (advice-add 'org-add-log-note :around #'my/no-log-for-subtasks)
   (setq org-time-clocksum-format
         '(:hours "%d" :require-hours t :minutes ":%02d" :require-minutes t))
 
@@ -740,7 +763,7 @@
     (let* ((today (current-time))
            (start-of-week (time-subtract today (seconds-to-time (* (calendar-day-of-week (calendar-current-date)) 86400))))
            (journal-files (directory-files-recursively
-                           (expand-file-name "org/journal" {{ .managed_sync | quote }}) "\\.org$"))
+                           (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))
            (buffer-name "*Weekly Outcomes*"))
 
       ;; Create or switch to outcomes buffer
@@ -803,7 +826,7 @@
         ;; File is in extra workspace - use extra attach dir
         (expand-file-name ".attach/org" {{ .workspace_extra | quote }})
       ;; Default to primary attach dir
-      (expand-file-name "org/.attach/" {{ .managed_sync | quote }})))
+      (expand-file-name ".attach" {{ .org_dir | quote }})))
 
   (defun my/set-attach-dir ()
     "Set org-attach-id-dir based on current buffer location."
@@ -813,7 +836,7 @@
       (make-directory org-attach-id-dir t)))
 
   ;; Set initial attach directory
-  (setq org-attach-id-dir (expand-file-name "org/.attach/" {{ .managed_sync | quote }}))
+  (setq org-attach-id-dir (expand-file-name ".attach" {{ .org_dir | quote }}))
   (setq org-attach-dir-relative t)
   (setq org-attach-use-inheritance t)
   (setq org-attach-auto-tag "attach")
@@ -1003,7 +1026,7 @@
     (interactive)
     (let* ((today (format-time-string "%m-%d"))
            (current-year (format-time-string "%Y"))
-           (journal-file (expand-file-name "org/Journelly.org" {{ .managed_sync | quote }})))
+           (journal-file (expand-file-name "Journelly.org" {{ .org_dir | quote }})))
       (if (file-exists-p journal-file)
           (progn
             (find-file journal-file)
@@ -1023,7 +1046,7 @@
   (defun my/journal-search-by-tag (tag)
     "Search journal entries by hashtag."
     (interactive "sEnter hashtag (without #): ")
-    (let ((journal-file (expand-file-name "org/Journelly.org" {{ .managed_sync | quote }})))
+    (let ((journal-file (expand-file-name "Journelly.org" {{ .org_dir | quote }})))
       (if (file-exists-p journal-file)
           (progn
             (find-file journal-file)
@@ -1034,7 +1057,7 @@
   (defun my/journal-find-entries-by-date (date)
     "Find journal entries for a specific date (YYYY-MM-DD)."
     (interactive "sEnter date (YYYY-MM-DD): ")
-    (let ((journal-file (expand-file-name "org/Journelly.org" {{ .managed_sync | quote }})))
+    (let ((journal-file (expand-file-name "Journelly.org" {{ .org_dir | quote }})))
       (if (file-exists-p journal-file)
           (progn
             (find-file journal-file)
@@ -1045,7 +1068,7 @@
   (defun my/journal-find-location (location)
     "Search journal entries by location."
     (interactive "sEnter location: ")
-    (let ((journal-file (expand-file-name "org/Journelly.org" {{ .managed_sync | quote }})))
+    (let ((journal-file (expand-file-name "Journelly.org" {{ .org_dir | quote }})))
       (if (file-exists-p journal-file)
           (progn
             (find-file journal-file)
@@ -1057,7 +1080,7 @@
   (defun my/open-journelly ()
     "Quickly open the Journelly.org journal file."
     (interactive)
-    (find-file (expand-file-name "org/Journelly.org" {{ .managed_sync | quote }})))
+    (find-file (expand-file-name "Journelly.org" {{ .org_dir | quote }})))
 
 ;; Reset function for checklists
 (defun my/org-reset-checklist ()
