@@ -95,11 +95,14 @@
                        ((org-agenda-overriding-header "📥 Inbox - Process These")
                         (org-tags-match-list-sublevels nil)))
 
-            (tags-todo "-INBOX/NEXT"
+            (tags-todo "-INBOX-visit-hold/NEXT"
                        ((org-agenda-overriding-header "⚡ Next Actions")
                         (org-agenda-skip-function
                          '(lambda ()
                             (org-agenda-skip-entry-if 'scheduled 'deadline)))
+                        (org-tags-match-list-sublevels t)))
+            (tags-todo "visit/NEXT"
+                       ((org-agenda-overriding-header "📍 Places to Visit")
                         (org-tags-match-list-sublevels t)))
             (tags-todo "PRIORITY=\"A\""
                        ((org-agenda-overriding-header "🔥 Important & Urgent (Priority A)")
@@ -119,7 +122,7 @@
                          '(lambda ()
                             (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))))))
 
-            (tags-todo "project-INBOX-hold"
+            (tags-todo "project-INBOX-hold-someday-shopping"
                        ((org-agenda-overriding-header "🚫 Stuck Projects (no deadline/scheduled)")
                         (org-agenda-skip-function
                          '(lambda ()
