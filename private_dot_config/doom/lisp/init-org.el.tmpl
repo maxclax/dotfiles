@@ -173,7 +173,7 @@
                                   (or (outline-next-heading) (point-max))))))
                         (org-tags-match-list-sublevels t)))
 
-            (tags "project-INBOX"
+            (tags "project-INBOX-shopping"
                   ((org-agenda-overriding-header "📁 Active Projects")
                    (org-agenda-skip-function
                     '(lambda ()
@@ -501,7 +501,14 @@
                        ((org-agenda-overriding-header "👥 Not Important & Urgent (Priority C)")
                         (org-agenda-skip-function
                          '(lambda ()
-                            (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))))))))))
+                            (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))))))))
+
+          ;; Shopping & Selling Lists
+          ("S" "Shopping & Selling"
+           ((tags-todo "shopping"
+                       ((org-agenda-overriding-header "🛒 Shopping List")))
+            (tags-todo "selling"
+                       ((org-agenda-overriding-header "💰 Selling List")))))))
 
   (add-hook 'org-agenda-mode-hook 'hl-line-mode)
 
