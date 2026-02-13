@@ -16,9 +16,10 @@
 
   ;; Lifecycle keywords (inspired by EWS)
   (setq denote-known-keywords
-        '("projects" "areas" "resources" "archives"
+        '("project" "area" "resource" "archive"
           "reference" "meeting" "finance" "work" "personal"
-          "idea" "draft" "completed" "journal"))
+          "idea" "draft" "completed" "journal"
+          "health" "shopping" "selling" "hold" "someday" "visit" "administration" "research"))
 
   ;; Sort keywords for consistency
   (setq denote-sort-keywords t)
@@ -47,21 +48,33 @@
     (let ((dir (expand-file-name "org" {{ .workspace_extra | quote }})))
       (when (file-exists-p dir) dir)))
 
-  ;; Include extra dir in denote-directory-files for link resolution, backlinks, grep
-  (advice-add 'denote-directory-files :around
-              (lambda (orig-fn &rest args)
-                "Also collect denote files from extra workspace."
-                (let ((primary-files (apply orig-fn args))
-                      (extra-dir (my/denote-extra-dir)))
-                  (if extra-dir
-                      (let ((denote-directory extra-dir))
-                        (append primary-files (apply orig-fn args)))
-                    primary-files))))
-
-  ;; Collect denote files from all directories (for custom commands)
+  ;; Collect denote files from all directories
   (defun my/denote-all-files ()
     "Return denote files from both primary and extra directories."
-    (denote-directory-files))
+    (let ((primary-files (denote-directory-files))
+          (extra-dir (my/denote-extra-dir)))
+      (if extra-dir
+          (let ((denote-directory extra-dir))
+            (append primary-files (denote-directory-files)))
+        primary-files)))
+
+  ;; Make all denote commands that use denote-file-prompt search both dirs
+  (advice-add 'denote-file-prompt :around
+              (lambda (orig-fn &rest args)
+                "Override denote-file-prompt to search all directories."
+                (let ((all-files (my/denote-all-files)))
+                  (completing-read (or (cadr args) "Select note: ")
+                                   all-files nil t nil 'denote-file-history))))
+
+  ;; Make link following (C-c C-o) find files from extra dir
+  (advice-add 'denote-get-path-by-id :around
+              (lambda (orig-fn id &rest args)
+                "Search extra dir if file not found in primary."
+                (or (apply orig-fn id args)
+                    (let ((extra-dir (my/denote-extra-dir)))
+                      (when extra-dir
+                        (let ((denote-directory extra-dir))
+                          (apply orig-fn id args)))))))
 
   ;; Create denote note in extra workspace
   (defun my/denote-create-in-extra ()
@@ -87,18 +100,6 @@
     "Find denote files across all directories."
     (interactive)
     (find-file (completing-read "Find note: " (my/denote-all-files) nil t)))
-
-  ;; Link to note from any directory
-  (defun my/denote-link ()
-    "Insert denote link, searching across all directories."
-    (interactive)
-    (let* ((all-files (my/denote-all-files))
-           (file (completing-read "Link to note: " all-files nil t)))
-      (when (and file (file-exists-p file))
-        (let ((description (denote-get-link-description file))
-              (id (denote-retrieve-filename-identifier file))
-              (type (denote-filetype-heuristics (buffer-file-name))))
-          (denote-link file type description id)))))
 
   ;; Custom function to check if a file has a specific keyword
   (defun denote-file-has-keyword-p (file keyword)

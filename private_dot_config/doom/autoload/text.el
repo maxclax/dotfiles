@@ -53,3 +53,48 @@
   "Insert a new journal entry with current time."
   (interactive)
   (insert (format "** [%s] " (format-time-string "%H:%M"))))
+
+;;;###autoload
+(defun my/markdown-to-org-buffer ()
+  "Convert common Markdown syntax to Org in current buffer."
+  (interactive)
+  (save-excursion
+    (let ((count 0))
+      ;; Markdown images: ![alt](../assets/file) → [[file:.attach/file]]
+      (goto-char (point-min))
+      (while (re-search-forward "!\\[.*?\\](\\.\\.?/assets/\\(.*?\\))" nil t)
+        (replace-match "[[file:.attach/\\1]]")
+        (setq count (1+ count)))
+      ;; Markdown links to assets: [text](../assets/file) → [[file:.attach/file]]
+      (goto-char (point-min))
+      (while (re-search-forward "\\[.*?\\](\\.\\.?/assets/\\(.*?\\))" nil t)
+        (replace-match "[[file:.attach/\\1]]")
+        (setq count (1+ count)))
+      ;; Markdown links to URLs: [text](http...) → [[url][text]]
+      (goto-char (point-min))
+      (while (re-search-forward "\\[\\(.*?\\)\\](\\(https?://.*?\\))" nil t)
+        (replace-match "[[\\2][\\1]]")
+        (setq count (1+ count)))
+      ;; Remove standalone [[ ]] wrappers (not org links)
+      (goto-char (point-min))
+      (while (re-search-forward "\\[\\[\\([^][\n]+?\\)\\]\\]" nil t)
+        (unless (string-match-p "^\\(file\\|http\\|https\\|denote\\|attachment\\|today-journal\\):" (match-string 1))
+          (replace-match "\\1")
+          (setq count (1+ count))))
+      ;; Markdown bold **text** → org bold *text*
+      (goto-char (point-min))
+      (while (re-search-forward "\\*\\*\\(.*?\\)\\*\\*" nil t)
+        (replace-match "*\\1*")
+        (setq count (1+ count)))
+      ;; Markdown inline code `code` → org verbatim =code=
+      (goto-char (point-min))
+      (while (re-search-forward "`\\([^`\n]+?\\)`" nil t)
+        (replace-match "=\\1=")
+        (setq count (1+ count)))
+      ;; Markdown headings: # → *, ## → **, etc.
+      (goto-char (point-min))
+      (while (re-search-forward "^\\(#{1,6}\\) " nil t)
+        (let ((stars (make-string (length (match-string 1)) ?*)))
+          (replace-match (concat stars " ")))
+        (setq count (1+ count)))
+      (message "Converted %d Markdown elements to Org" count))))

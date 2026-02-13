@@ -93,7 +93,8 @@
       :desc "Tomorrow's journal" "t"        #'my/open-tomorrow-journal
       :desc "Yesterday's journal" "y"       #'my/open-yesterday-journal)
      :desc "Open Journelly" "J"             #'my/open-journelly
-     :desc "Denote link" "l"                #'my/denote-link
+     :desc "Denote link" "l"                #'denote-link
+     :desc "Denote add links" "L"            #'denote-add-links
      :desc "New denote" "n"                 #'denote
      :desc "New denote (extra)" "N"          #'my/denote-create-in-extra
      :desc "Denote rename" "r"              #'denote-rename-file

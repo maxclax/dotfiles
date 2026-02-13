@@ -5,6 +5,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (after! org
+  ;; Syntax highlighting in src blocks
+  (setq org-src-fontify-natively t)
+  (setq org-src-tab-acts-natively t)
+
   ;; Enable org-depend for sequential tasks
   (require 'org-depend)
 
