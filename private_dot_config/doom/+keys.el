@@ -84,8 +84,8 @@
     (:prefix ("C-c n" . "Notes")
      :desc "Denote backlinks" "b"           #'denote-backlinks
      :desc "Denote link after creating" "c" #'denote-link-after-creating
-     :desc "Denote dired" "d"               #'denote-dired
-     :desc "Denote find" "f"                #'consult-denote-find
+     :desc "Denote dired" "d"               #'my/denote-dired
+     :desc "Denote find" "f"                #'my/denote-find
      :desc "Denote grep" "g"                #'denote-grep
      :desc "Open inbox" "i"                 #'my/open-inbox
      (:prefix ("j" . "Journal")
@@ -95,6 +95,7 @@
      :desc "Open Journelly" "J"             #'my/open-journelly
      :desc "Denote link" "l"                #'denote-link
      :desc "New denote" "n"                 #'denote
+     :desc "New denote (extra)" "N"          #'my/denote-create-in-extra
      :desc "Denote rename" "r"              #'denote-rename-file
      :desc "Consult notes" "s"              #'consult-notes
      :desc "Search all notes" "S"           #'consult-notes-search-in-all-notes)

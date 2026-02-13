@@ -41,54 +41,51 @@
   (unless (file-exists-p denote-directory)
     (make-directory denote-directory t))
 
-  ;; Override denote directory function to search in multiple directories
-  (defun my/denote-directory-files (&optional regexp)
-    "Return list of denote files from all available denote directories, optionally filtered by REGEXP."
-    (let ((files '())
-          (dirs (list denote-directory)))
-      ;; Add extra workspace denote directory if it exists (SSD mounted)
-      (let ((extra-denote-dir (expand-file-name "org" {{ .workspace_extra | quote }})))
-        (when (file-exists-p extra-denote-dir)
-          (push extra-denote-dir dirs)))
-      ;; Collect files from all available directories
-      (dolist (dir dirs)
-        (when (file-exists-p dir)
-          (setq files (append files (directory-files-recursively dir "\\.org$")))))
-      ;; Filter by regexp if provided
-      (if regexp
-          (seq-filter (lambda (file) (string-match-p regexp file)) files)
-        files)))
+  ;; Include extra workspace files in denote searches
+  (defun my/denote-extra-dir ()
+    "Return extra denote directory if it exists, nil otherwise."
+    (let ((dir (expand-file-name "org" {{ .workspace_extra | quote }})))
+      (when (file-exists-p dir) dir)))
 
-  ;; Set denote to use our custom function
-  (setq denote-directory-files-function #'my/denote-directory-files)
+  (advice-add 'denote-directory-files :around
+              (lambda (orig-fn &rest args)
+                "Also collect denote files from extra workspace."
+                (let ((primary-files (apply orig-fn args))
+                      (extra-dir (my/denote-extra-dir)))
+                  (if extra-dir
+                      (let ((denote-directory extra-dir))
+                        (append primary-files (apply orig-fn args)))
+                    primary-files))))
 
-  ;; Function to create note in extra workspace when needed
-  (defun my/denote-create-in-extra (title keywords)
-    "Create denote note in extra workspace (occasionally)."
-    (interactive
-     (list (read-string "Title: ")
-           (denote-keywords-prompt)))
-    (let ((extra-denote-dir (expand-file-name "org" {{ .workspace_extra | quote }})))
-      (if (file-exists-p extra-denote-dir)
-          (let ((denote-directory extra-denote-dir))
-            (denote title keywords)
-            (message "Created note in extra workspace"))
-        (message "Extra workspace not mounted. Use regular denote command."))))
-
-  ;; Function to create journal in extra workspace
-  (defun my/denote-journal-extra ()
-    "Create or open journal entry in extra workspace."
+  ;; Create denote note in extra workspace
+  (defun my/denote-create-in-extra ()
+    "Create denote note in extra workspace."
     (interactive)
-    (let ((extra-denote-dir (expand-file-name "org" {{ .workspace_extra | quote }})))
-      (if (file-exists-p extra-denote-dir)
-          (let ((denote-directory extra-denote-dir)
-                (denote-journal-directory (expand-file-name "journal" extra-denote-dir)))
-            ;; Create journal directory if it doesn't exist
-            (unless (file-exists-p denote-journal-directory)
-              (make-directory denote-journal-directory t))
-            (denote-journal-new-or-existing-entry)
-            (message "Created/opened journal in extra workspace"))
-        (message "Extra workspace not mounted. Use regular journal command."))))
+    (let ((extra-dir (my/denote-extra-dir)))
+      (if extra-dir
+          (let ((denote-directory extra-dir))
+            (call-interactively #'denote))
+        (message "Extra workspace not mounted."))))
+
+  ;; Dired showing both denote directories
+  (defun my/denote-dired ()
+    "Open dired with all denote directories."
+    (interactive)
+    (let ((dirs (list denote-directory))
+          (extra-dir (my/denote-extra-dir)))
+      (when extra-dir (push extra-dir dirs))
+      (dired (cons "Denote" dirs))))
+
+  ;; Find across all denote directories
+  (defun my/denote-find ()
+    "Find denote files across all directories."
+    (interactive)
+    (let* ((extra-dir (my/denote-extra-dir))
+           (dirs (if extra-dir
+                     (list denote-directory extra-dir)
+                   (list denote-directory)))
+           (all-files (denote-directory-files)))
+      (find-file (completing-read "Find note: " all-files nil t))))
 
   ;; Custom function to check if a file has a specific keyword
   (defun denote-file-has-keyword-p (file keyword)
@@ -134,15 +131,15 @@ KEYWORD should be a string. FILE should be a full file path."
   (defun my/debug-denote-dirs ()
     "Debug denote directory configuration."
     (interactive)
-    (let ((extra-denote-dir (expand-file-name "org" {{ .workspace_extra | quote }})))
+    (let ((extra-dir (my/denote-extra-dir)))
       (message "Primary denote dir: %s (exists: %s)"
                denote-directory (file-exists-p denote-directory))
       (message "Extra denote dir: %s (exists: %s)"
-               extra-denote-dir (file-exists-p extra-denote-dir))
+               (or extra-dir "N/A") (if extra-dir t nil))
       (message "Consult-notes sources: %s"
                (mapcar #'car consult-notes-file-dir-sources))
       (message "Denote files found: %d"
-               (length (my/denote-directory-files)))))
+               (length (denote-directory-files)))))
 
   ;; Enable live preview
   (consult-notes-org-headings-mode 1))
@@ -220,7 +217,9 @@ KEYWORD should be a string. FILE should be a full file path."
   :after (denote consult)
   :config
   (setq consult-notes-denote-display-keywords-indicator "_")
-  (consult-notes-denote-mode))
+  ;; Don't enable consult-notes-denote-mode — it only uses denote-directory (main).
+  ;; Instead, rely on consult-notes-file-dir-sources which covers both dirs.
+  )
 
 ;; Citar-Denote to manage literature notes
 (use-package! citar-denote
