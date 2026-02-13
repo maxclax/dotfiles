@@ -167,6 +167,7 @@
      :desc "Indent guides" "i"         #'indent-bars-mode
      :desc "Indent style" "I"          #'doom/toggle-indent-style
      :desc "Line numbers" "l"          #'doom/toggle-line-numbers
+     :desc "Inline images" "p"          #'org-toggle-inline-images
      :desc "Read-only" "r"             #'read-only-mode
      :desc "Soft line wrapping" "w"    #'+word-wrap-mode
      :desc "Zen mode" "z"              #'+zen/toggle

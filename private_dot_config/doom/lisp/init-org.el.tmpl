@@ -907,70 +907,80 @@
               (message "Attached %d files" (length selected-files)))
           (message "No files selected")))))
 
-  ;; Helper function to attach a single file
+  ;; Helper function to copy file to shared .attach dir
   (defun my/org-attach-single-file (file)
-    "Attach a single file and insert link."
+    "Copy file to shared .attach directory and insert direct link."
     (when (and file (file-exists-p file))
-      ;; Copy file to attachment directory
-      (let* ((attach-dir (org-attach-dir-get-create))
+      (let* ((assets-dir (my/get-attach-dir))
              (filename (file-name-nondirectory file))
-             (destination (expand-file-name filename attach-dir)))
+             (destination (expand-file-name filename assets-dir)))
+
+        ;; Create assets dir if needed
+        (unless (file-exists-p assets-dir)
+          (make-directory assets-dir t))
 
         ;; Handle duplicate filenames
         (when (file-exists-p destination)
-          (let ((base-name (file-name-sans-extension filename))
-                (extension (file-name-extension filename t))
+          (let ((base (file-name-sans-extension filename))
+                (ext (file-name-extension filename t))
                 (counter 1))
             (while (file-exists-p destination)
-              (setq filename (format "%s-%d%s" base-name counter extension))
-              (setq destination (expand-file-name filename attach-dir))
+              (setq filename (format "%s-%d%s" base counter ext))
+              (setq destination (expand-file-name filename assets-dir))
               (setq counter (1+ counter)))))
 
         ;; Copy the file
         (copy-file file destination)
 
         ;; Insert the link
-        (insert (format "[[attachment:%s]]" filename))
-
-        ;; For images, add display attributes and show inline
         (when (string-match-p "\\.(jpg\\|jpeg\\|png\\|gif\\|svg\\|bmp\\|webp)$" filename)
-          (save-excursion
-            (beginning-of-line)
-            (insert "#+ATTR_ORG: :width 500\n")))
-
-        ;; Add newline for next file
-        (insert "\n")))
+          (insert "#+ATTR_ORG: :width 500\n"))
+        (let ((rel-path (file-relative-name
+                         (expand-file-name filename assets-dir)
+                         (file-name-directory (buffer-file-name)))))
+          (insert (format "[[file:%s]]\n" rel-path)))))
 
     ;; Show inline images after all files are processed
     (org-display-inline-images))
 
-  ;; Configure native drag-and-drop to use 500 width for images
+  ;; Drag-and-drop: copy image to shared .attach dir, insert direct file link
   (defun my/org-dnd-file-handler (uri action)
-    "Handle drag-and-drop files with automatic attachment and width settings."
+    "Handle drag-and-drop files by copying to the shared .attach directory."
     (let ((file (dnd-get-local-file-name uri t)))
       (when (and file (file-exists-p file))
-        ;; Ensure we have ID and attach tag
-        (unless (org-entry-get nil "ID")
-          (org-id-get-create))
-        (org-toggle-tag "attach" 'on)
+        (let* ((assets-dir (my/get-attach-dir))
+               (filename (file-name-nondirectory file))
+               (destination (expand-file-name filename assets-dir)))
 
-        ;; Use org-attach to handle the file
-        (org-attach-attach file nil 'cp)
+          ;; Create assets dir if needed
+          (unless (file-exists-p assets-dir)
+            (make-directory assets-dir t))
 
-        ;; Insert the link with proper formatting
-        (let ((filename (file-name-nondirectory file)))
-          ;; For images, add display attributes
+          ;; Handle duplicate filenames
+          (when (file-exists-p destination)
+            (let ((base (file-name-sans-extension filename))
+                  (ext (file-name-extension filename t))
+                  (counter 1))
+              (while (file-exists-p destination)
+                (setq filename (format "%s-%d%s" base counter ext))
+                (setq destination (expand-file-name filename assets-dir))
+                (setq counter (1+ counter)))))
+
+          ;; Copy file
+          (copy-file file destination)
+
+          ;; Insert link
           (when (string-match-p "\\.(jpg\\|jpeg\\|png\\|gif\\|svg\\|bmp\\|webp)$" filename)
             (insert "#+ATTR_ORG: :width 500\n"))
-
-          (insert (format "[[attachment:%s]]" filename))
+          (let ((rel-path (file-relative-name
+                           (expand-file-name filename assets-dir)
+                           (file-name-directory (buffer-file-name)))))
+            (insert (format "[[file:%s]]" rel-path)))
           (insert "\n")
 
-          ;; Display images inline
-          (when (string-match-p "\\.(jpg\\|jpeg\\|png\\|gif\\|svg\\|bmp\\|webp)$" filename)
-            (org-display-inline-images)))
+          ;; Show inline
+          (org-display-inline-images))
 
-        ;; Return 'private to indicate we handled the drop
         'private)))
 
   ;; Set the drag-and-drop handler for org-mode
