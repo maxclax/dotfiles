@@ -41,12 +41,13 @@
   (unless (file-exists-p denote-directory)
     (make-directory denote-directory t))
 
-  ;; Include extra workspace files in denote searches
+  ;; Extra workspace directory helper
   (defun my/denote-extra-dir ()
     "Return extra denote directory if it exists, nil otherwise."
     (let ((dir (expand-file-name "org" {{ .workspace_extra | quote }})))
       (when (file-exists-p dir) dir)))
 
+  ;; Include extra dir in denote-directory-files for link resolution, backlinks, grep
   (advice-add 'denote-directory-files :around
               (lambda (orig-fn &rest args)
                 "Also collect denote files from extra workspace."
@@ -56,6 +57,11 @@
                       (let ((denote-directory extra-dir))
                         (append primary-files (apply orig-fn args)))
                     primary-files))))
+
+  ;; Collect denote files from all directories (for custom commands)
+  (defun my/denote-all-files ()
+    "Return denote files from both primary and extra directories."
+    (denote-directory-files))
 
   ;; Create denote note in extra workspace
   (defun my/denote-create-in-extra ()
@@ -80,12 +86,19 @@
   (defun my/denote-find ()
     "Find denote files across all directories."
     (interactive)
-    (let* ((extra-dir (my/denote-extra-dir))
-           (dirs (if extra-dir
-                     (list denote-directory extra-dir)
-                   (list denote-directory)))
-           (all-files (denote-directory-files)))
-      (find-file (completing-read "Find note: " all-files nil t))))
+    (find-file (completing-read "Find note: " (my/denote-all-files) nil t)))
+
+  ;; Link to note from any directory
+  (defun my/denote-link ()
+    "Insert denote link, searching across all directories."
+    (interactive)
+    (let* ((all-files (my/denote-all-files))
+           (file (completing-read "Link to note: " all-files nil t)))
+      (when (and file (file-exists-p file))
+        (let ((description (denote-get-link-description file))
+              (id (denote-retrieve-filename-identifier file))
+              (type (denote-filetype-heuristics (buffer-file-name))))
+          (denote-link file type description id)))))
 
   ;; Custom function to check if a file has a specific keyword
   (defun denote-file-has-keyword-p (file keyword)

@@ -93,7 +93,7 @@
       :desc "Tomorrow's journal" "t"        #'my/open-tomorrow-journal
       :desc "Yesterday's journal" "y"       #'my/open-yesterday-journal)
      :desc "Open Journelly" "J"             #'my/open-journelly
-     :desc "Denote link" "l"                #'denote-link
+     :desc "Denote link" "l"                #'my/denote-link
      :desc "New denote" "n"                 #'denote
      :desc "New denote (extra)" "N"          #'my/denote-create-in-extra
      :desc "Denote rename" "r"              #'denote-rename-file
@@ -167,6 +167,7 @@
      :desc "Flymake" "f"               #'flymake-mode
      :desc "Indent guides" "i"         #'indent-bars-mode
      :desc "Indent style" "I"          #'doom/toggle-indent-style
+     :desc "Link display" "L"           #'org-toggle-link-display
      :desc "Line numbers" "l"          #'doom/toggle-line-numbers
      :desc "Inline images" "p"          #'org-toggle-inline-images
      :desc "Read-only" "r"             #'read-only-mode
