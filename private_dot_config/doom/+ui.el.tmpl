@@ -82,13 +82,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (use-package! keycast
+  :after doom-modeline
   :config
-  ;; Enable keycast-header-line-mode by default
-  (keycast-header-line-mode 1)
-  ;; Optional: customize keycast appearance
-  (setq keycast-header-line-format "%2s%k%c%R")
-  ;; Show in header line instead of mode line for cleaner look
-  (setq keycast-insert-after 'mode-line-buffer-identification))
+  ;; Show keycast via global-mode-string → doom-modeline misc-info segment
+  ;; Works in all modelines without redefining each one
+  (add-to-list 'global-mode-string '("" keycast-mode-line))
+  (add-hook 'post-command-hook #'keycast--update))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

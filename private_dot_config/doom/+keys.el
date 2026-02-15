@@ -174,12 +174,21 @@
      :desc "Copilot" "a"               #'copilot-mode
      :desc "Zen mode" "z"              #'+zen/toggle
      :desc "Zen mode (fullscreen)" "Z" #'+zen/toggle-fullscreen
-     (:prefix ("t" . "Timer")
+     (:prefix ("T" . "Pomodoro")
+      :desc "Pomodoro" "t"             #'pomm
+      :desc "Start" "s"                #'pomm-start
+      :desc "Start with context" "S"   #'pomm-start-with-context
+      :desc "Pause" "p"                #'pomm-pause
+      :desc "Stop" "x"                 #'pomm-stop
+      :desc "Set context" "c"          #'pomm-set-context)
+     (:prefix ("t" . "Timing")
       :desc "Start timer" "s"          #'tmr
-      :desc "Start with ticking" "S"   (cmd! (call-interactively #'tmr) (my/tick-start))
-      :desc "Clone last timer" "c"     #'tmr-clone
+      :desc "Start with details" "S"   #'tmr-with-details
       :desc "Cancel timer" "x"         #'tmr-cancel
+      :desc "Reschedule timer" "r"     #'tmr-reschedule
+      :desc "Pause/Resume" "p"         #'tmr-toggle-pause
       :desc "List timers" "l"          #'tmr-tabulated-view
+      :desc "List timers (full)" "L"   #'tmr-tabulated-mode
       :desc "Toggle ticking" "t"       #'my/tick-toggle)))))
 
 

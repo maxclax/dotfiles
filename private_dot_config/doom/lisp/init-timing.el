@@ -1,24 +1,33 @@
 ;;; lisp/init-timing.el -*- mode: emacs-lisp; lexical-binding: t; -*-
 
-;; ── TMR Timer (Vitamin-R style) ─────────────────────────────────────
+;; ── TMR Timer  ─────────────────────────────────────
 ;; Flexible time-boxing with sound notifications
 
 (use-package! tmr
-  :config
-  ;; Completion sound when timer finishes
-  (setq tmr-sound-file "/System/Library/Sounds/Glass.aiff")
+  :init
+  ;; Suppress DBUS warning on macOS — we override notifications with osascript
+  (add-to-list 'warning-suppress-types '(tmr))
 
-  ;; Use macOS afplay instead of ffplay
-  (setq tmr-sound-command "afplay")
+  :config
+
+  ;; Completion sound
+  (setq tmr-sound-file "/System/Library/Sounds/Glass.aiff")
 
   ;; Keep history of timer descriptions
   (setq tmr-description-list 'tmr-description-history)
 
-  ;; Common focus durations (Vitamin-R style)
+  ;; Common focus durations
   (setq tmr-description-history
-        '("Deep Work" "Quick Task" "Review" "Break" "Meeting")))
+        '("Deep Work" "Quick Task" "Review" "Break" "Meeting" "Administration"))
 
-;; ── Ticking sound during focus (Vitamin-R clock sounds) ─────────────
+  ;; Auto-start ticking when a timer is created
+  (add-hook 'tmr-timer-created-functions
+            (lambda (_timer) (my/tick-start)))
+
+  ;; Show remaining time in mode line
+  (tmr-mode-line-mode 1))
+
+;; ── Ticking sound during focus ─────────────
 (defvar my/tick-process nil "Process playing the ticking loop.")
 
 (defvar my/tick-sounds
