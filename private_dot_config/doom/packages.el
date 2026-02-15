@@ -19,9 +19,6 @@
 ;; → lisp/init-ai.el
 
 (package! copilot)                    ; GitHub Copilot AI code completion
-(package! gptel :recipe (:nonrecursive t)) ; ChatGPT/LLM interface in Emacs
-(package! aidermacs)               ; AI coding assistant (disabled)
-(package! aider :recipe (:host github :repo "tninja/aider.el")) ; Alternative AI assistant
 
 ;; =====================================================================
 ;; NOTE-TAKING & KNOWLEDGE MANAGEMENT
@@ -71,6 +68,7 @@
 ;; → lisp/init-timing.el
 
 (package! pomm)                       ; Pomodoro timer and productivity tracker
+(package! tmr)                        ; TMR May Ring (tmr)
 
 ;; =====================================================================
 ;; UI ENHANCEMENT & VISUAL TOOLS

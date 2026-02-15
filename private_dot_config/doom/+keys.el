@@ -126,8 +126,6 @@
                                    (message "Not in a project")))))
 
     (:prefix ("C-c v" . "Versioning")
-     :desc "AI commit" "a"                 #'my/commit-with-ai
-     :desc "Generate AI commit (text)" "A" #'my/smart-commit
      :desc "Magit blame" "B"               #'magit-blame
      :desc "Kill link to remote" "k"       #'+vc/browse-at-remote-kill
      :desc "Kill link to homepage" "K"     #'+vc/browse-at-remote-kill-homepage
@@ -173,13 +171,16 @@
      :desc "Inline images" "p"          #'org-toggle-inline-images
      :desc "Read-only" "r"             #'read-only-mode
      :desc "Soft line wrapping" "w"    #'+word-wrap-mode
+     :desc "Copilot" "a"               #'copilot-mode
      :desc "Zen mode" "z"              #'+zen/toggle
      :desc "Zen mode (fullscreen)" "Z" #'+zen/toggle-fullscreen
      (:prefix ("t" . "Timer")
-      :desc "Switch timer" "p"         #'pomm-third-time-switch
-      :desc "Start timer" "s"          #'pomm-third-time-start
-      :desc "Stop timer" "S"           #'pomm-third-time-stop
-      :desc "Pomm third-time" "t"      #'pomm-third-time)))))
+      :desc "Start timer" "s"          #'tmr
+      :desc "Start with ticking" "S"   (cmd! (call-interactively #'tmr) (my/tick-start))
+      :desc "Clone last timer" "c"     #'tmr-clone
+      :desc "Cancel timer" "x"         #'tmr-cancel
+      :desc "List timers" "l"          #'tmr-tabulated-view
+      :desc "Toggle ticking" "t"       #'my/tick-toggle)))))
 
 
 ;; Setup C-x bindings
