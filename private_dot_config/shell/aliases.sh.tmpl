@@ -21,10 +21,10 @@ alias tree='tree -C'
 alias t="tree -C -L 2"
 alias t3="tree -C -L 3"
 
-# emacsclient
-alias e='emacsclient -t'      # Terminal Emacs
-alias ec='emacsclient -c -n'  # GUI Emacs (non-blocking)
-alias killemacs='emacsclient -e "(kill-emacs)"'
+# emacsclient (auto-start server if not running)
+alias e='emacsclient -t -a ""'      # Terminal Emacs
+alias ec='emacsclient -c -n -a ""'  # GUI Emacs (non-blocking)
+alias ek='emacsclient -e "(save-buffers-kill-emacs)"'
 
 # Emacs commands for different distributions
 alias doom={{ .chezmoi.homeDir }}/.config/emacs/bin/doom
@@ -39,15 +39,15 @@ alias emacs-server-default='emacs --daemon'
 
 # Set default emacs-server based on chosen distribution
 {{- if eq .emacsType "purcell" }}
-alias emacs-server='emacs-server-purcell'p
+alias emacs-server='emacs-server-purcell'
 {{- else }}
 alias emacs-server='emacs-server-default'
 {{- end }}
 
 # Restart commands for each distribution
-alias restart-emacs='killemacs && emacs-server'  # Restart current default
-alias restart-emacs-purcell='killemacs && emacs-server-purcell'
-alias restart-emacs-default='killemacs && emacs-server-default'
+alias restart-emacs='ek && emacs-server'  # Restart current default
+alias restart-emacs-purcell='ek && emacs-server-purcell'
+alias restart-emacs-default='ek && emacs-server-default'
 
 # Git
 alias lg='lazygit'

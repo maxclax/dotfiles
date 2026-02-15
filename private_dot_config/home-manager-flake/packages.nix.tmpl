@@ -4,60 +4,34 @@
 {
   # The home.packages option allows you to install Nix packages into your environment
   home.packages = with pkgs; [
-    # Essential Unix utilities needed for shell functionality
-    coreutils              # Essential Unix utilities (mkdir, mv, etc.)
-    findutils              # Find utilities (find, xargs)
-    gnugrep                # GNU grep
-    gawk                   # GNU awk
-    gnused                 # GNU sed
-    util-linux             # System utilities (uname, etc.)
-    git                    # Git (required by oh-my-zsh)
-    nix-search-cli         # Nix package search CLI (for pay-respects)
-    bash                   # Bourne Again Shell
-    curl                   # Transfer data with URLs
-    openssh                # SSH client and server
-    wget                   # Retrieve files from web
 
-    # Core System & CLI Tools
-    age                    # Encryption with GPG keys
-    atuin                  # Magical shell history
-    bandwhich              # Network utilization display
-    bat                    # Cat clone with syntax highlighting
-    broot                  # Interactive directory navigator
-    btop                   # Resource monitor
-    chezmoi                # Manage dotfiles across machines
-    cmake                  # Cross-platform build system
-    direnv                 # Environment switcher for shell
-    duf                    # Disk Usage/Free Utility
-    dust                   # Intuitive du replacement
-    eza                    # Modern replacement for 'ls'
-    fd                     # Simple, fast, user-friendly 'find'
-    fzf                    # Command-line fuzzy finder
-    gh                     # GitHub command-line tool
-    git-lfs                # Git Large File Storage
-    gnumake                # GNU make utility
-    gdu                    # Fast disk usage analyzer
-    gtrash                 # Trash can for command-line
-    htop                   # Interactive process viewer
-    hyperfine              # Command-line benchmarking
-    inetutils              # Network utilities (ping, telnet, etc.)
-    kubectl                # Kubernetes command-line tool
-    kubectx                # Switch between k8s contexts
-    kubernetes-helm        # Kubernetes package manager
-    lazygit                # Simple terminal UI for Git
-    lsof                   # List open files
-    ncdu                   # Disk usage analyzer
-    neofetch               # System information tool
-    pipenv                 # Python dependency management
-    python3                # The Python programming language
-    pay-respects           # Pay respects
-    ripgrep                # Recursively searches directories
-    shellcheck             # Shell script static analysis
-    starship               # Cross-shell prompt
-    tmux                   # Terminal multiplexer
-    trash-cli              # Command line trash utility
-    tree                   # Display directory tree
-    zoxide                 # A smarter cd command
+    # ── Core Unix Utilities ──────────────────────────────────────────────
+    # Essential tools required for basic shell and system functionality
+    coreutils              # GNU core utilities (ls, cp, mv, mkdir, etc.)
+    findutils              # GNU find, xargs, locate
+    gnugrep                # GNU grep — pattern matching
+    gawk                   # GNU awk — text processing language
+    gnused                 # GNU sed — stream editor
+    util-linux             # Low-level system utilities (lsblk, mount, etc.)
+    bash                   # Bourne Again Shell
+    curl                   # Transfer data via URLs (HTTP, FTP, etc.)
+    openssh                # SSH client/server for secure remote access
+    wget                   # Non-interactive web file retriever
+
+    # ── Version Control ──────────────────────────────────────────────────
+    git                    # Distributed version control system
+    git-lfs                # Git extension for large binary files
+    gh                     # GitHub CLI — PRs, issues, repos from terminal
+    git-absorb             # Auto-absorb staged changes into prior commits
+    lazygit                # TUI for git — staging, branching, diffing
+
+    # ── Shell & Prompt ───────────────────────────────────────────────────
+    starship               # Cross-shell prompt with git/lang status
+    atuin                  # Shell history search with sync & fuzzy find
+    direnv                 # Auto-load/unload env vars per directory
+    zoxide                 # Smarter cd — learns from your habits
+    pay-respects           # Correct previous console command (like thefuck)
+    nix-search-cli         # Search nixpkgs from the terminal
 {{- if and (eq .shell "zsh") (not .nixosContainer) }}
     zsh                    # Z shell
 {{- end }}
@@ -65,159 +39,236 @@
     fish                   # Fish shell
 {{- end }}
 
-    # Cross-platform packages useful on all systems
-    asciinema              # Terminal session recorder
-    cacert                 # Certificate authorities
-    fuse                   # Filesystem in userspace
-    git-absorb             # Automatically absorb staged changes into commits
-    gnupg                  # GNU Privacy Guard
-    jq                     # Command-line JSON processor
-    openvpn                # Virtual Private Network client/server
-    pkg-config             # Package configuration helper
-    units                  # Unit conversion tool
+    # ── File Navigation & Search ─────────────────────────────────────────
+    fd                     # Fast, user-friendly alternative to find
+    fzf                    # Fuzzy finder for files, history, processes
+    ripgrep                # Ultra-fast recursive grep (rg)
+    tree                   # Display directory structure as a tree
+    broot                  # Interactive directory navigator with fuzzy search
+    eza                    # Modern ls replacement with icons and git status
+    ranger                 # Console file manager with vim keybindings
+    yazi                   # Blazing fast terminal file manager in Rust
 
+    # ── System Monitoring ────────────────────────────────────────────────
+    btop                   # Resource monitor (CPU, RAM, disk, network)
+    htop                   # Interactive process viewer
+    bandwhich              # Per-process network bandwidth monitor
+    duf                    # Disk usage overview (modern df)
+    dust                   # Intuitive disk usage (modern du)
+    gdu                    # Fast disk usage analyzer with TUI
+    ncdu                   # Disk usage analyzer with ncurses interface
+    lsof                   # List open files and network connections
 
-    # Common fonts for all systems
+    # ── Text & Data Processing ───────────────────────────────────────────
+    bat                    # cat with syntax highlighting and git integration
+    jq                     # Command-line JSON processor and formatter
+
+    # ── Networking ───────────────────────────────────────────────────────
+    inetutils              # Classic network tools (ping, telnet, ftp, etc.)
+
+    # ── Build & Dev Essentials ───────────────────────────────────────────
+    cmake                  # Cross-platform build system generator
+    gnumake                # GNU make — build automation
+    pkg-config             # Compiler/linker flags for installed libraries
+    shellcheck             # Static analysis and linting for shell scripts
+
+    # ── Multiplexer ──────────────────────────────────────────────────────
+    tmux                   # Terminal multiplexer — sessions, windows, panes
+
+    # ── Dotfiles & Secrets ───────────────────────────────────────────────
+    chezmoi                # Manage dotfiles across multiple machines
+    age                    # Simple, modern file encryption (used by chezmoi)
+    gnupg                  # GNU Privacy Guard — encryption and signing
+
+    # ── Benchmarking & Testing ───────────────────────────────────────────
+    hyperfine              # Command-line benchmarking tool
+
+    # ── Misc CLI Utilities ───────────────────────────────────────────────
+    asciinema              # Record and share terminal sessions
+    cacert                 # Mozilla CA certificate bundle
+    trash-cli              # Move files to trash from command line
+    gtrash                 # Another trash CLI with restore support
+    units                  # Unit conversion calculator
+    neofetch               # System info display with ASCII art
+    tldr                   # Community-driven man page summaries
+
+    # ── Python ───────────────────────────────────────────────────────────
+    python3                # Python 3 interpreter
+    pipenv                 # Python virtualenv and dependency management
+    fuse                   # Filesystem in userspace (FUSE)
+
+    # ── Kubernetes ───────────────────────────────────────────────────────
+    kubectl                # Kubernetes CLI for cluster management
+    kubectx                # Switch between k8s clusters and namespaces
+    kubernetes-helm        # Kubernetes package manager (Helm charts)
+
+    # ── Fonts ────────────────────────────────────────────────────────────
     fira-code              # Monospaced font with programming ligatures
-    nerd-fonts.fira-code   # Fira Code with Nerd Font icons (new format)
-    nerd-fonts.symbols-only # Symbols Nerd Font for Doom Emacs icons
-    jetbrains-mono         # JetBrains monospaced font
-    font-awesome           # Icon font and CSS toolkit
+    nerd-fonts.fira-code   # Fira Code patched with Nerd Font icons
+    nerd-fonts.symbols-only # Nerd Font symbols only (for Doom Emacs icons)
+    jetbrains-mono         # JetBrains monospaced font for coding
+    font-awesome           # Iconic font and CSS toolkit
 
-    # ----------------------------------------------------------------------------
-    # Development machines
-    # ----------------------------------------------------------------------------
+    # ── VPN ──────────────────────────────────────────────────────────────
+    openvpn                # Open-source VPN client/server
+
+    # ========================================================================
+    # macOS Development Machine
+    # ========================================================================
 {{- if eq .chezmoi.os "darwin" }}
-    # AI Development Tools
-    github-copilot-cli
-    ollama                 # Run large language models (temporarily disabled due to build issue)
-    goose-cli              # AI-powered coding assistant 
 
-    # Advanced Development & Programming
-    _1password-cli         # 1Password CLI
-    borgbackup             # Deduplicating backup program
-    borgmatic              # BorgBackup wrapper
-    chafa                  # Image to terminal converter
-    cmatrix                # Matrix digital rain effect
-    coreutils-prefixed     # GNU core utilities with 'g' prefix
-    cowsay                 # ASCII pictures of a cow with a message - TEST PACKAGE
-    ctop                   # Top-like interface for containers
-    discount               # Markdown C implementation
-    dive                   # Docker/Podman image layer analyzer
-    ffmpegthumbnailer      # Video thumbnail generator (for ranger)
-    fontconfig             # Library for configuring fonts
-    glances                # System monitoring tool
-    graphviz               # Graph visualization software
+    # ── AI & LLM Tools ──────────────────────────────────────────────────
+    github-copilot-cli     # GitHub Copilot in the terminal
+    ollama                 # Run LLMs locally (llama, mistral, etc.)
+    goose-cli              # AI-powered coding assistant (Block)
+
+    # ── Backup & Security ────────────────────────────────────────────────
+    _1password-cli         # 1Password CLI — secrets and credentials
+    borgbackup             # Deduplicating encrypted backup
+    borgmatic              # Wrapper for BorgBackup with YAML config
+    trufflehog             # Scan repos for leaked credentials and secrets
+
+    # ── Container & Orchestration ────────────────────────────────────────
+    ctop                   # Top-like TUI for container metrics
+    dive                   # Explore Docker/Podman image layers and sizes
+    lazydocker             # TUI for Docker — containers, images, volumes
+
+    # ── Kubernetes & Cloud ───────────────────────────────────────────────
+    k9s                    # TUI for Kubernetes cluster management
+    kind                   # Run local Kubernetes clusters in Docker
+    linkerd                # Lightweight service mesh for Kubernetes
+    popeye                 # Kubernetes cluster resource sanitizer
+    stern                  # Multi-pod and container log tailing
+    terraform              # Infrastructure as Code — cloud provisioning
     hcloud                 # Hetzner Cloud CLI
-    hey                    # HTTP load generator
-    hugo                   # Fast static site generator
-    iftop                  # Display bandwidth usage
-    imagemagick            # Convert, edit, compose images
-    k6                     # Modern load testing tool
-    lazydocker             # Simple terminal UI for Docker
-    luarocks               # Package manager for Lua
-    mtr                    # Network diagnostic tool (traceroute+ping)
+
+    # ── Web & API Testing ────────────────────────────────────────────────
+    hey                    # HTTP load generator (like ab, wrk)
+    k6                     # Modern load testing tool (Grafana)
+    nmap                   # Network discovery and security scanner
+    mtr                    # Network diagnostic (traceroute + ping combined)
+    speedtest-cli          # Test internet bandwidth via speedtest.net
+
+    # ── Static Sites & Docs ──────────────────────────────────────────────
+    hugo                   # Fast static site generator (Go-based)
+    discount               # Fast Markdown to HTML converter (C)
+
+    # ── Media & Image Processing ─────────────────────────────────────────
+    chafa                  # Display images in terminal (sixel, ASCII)
+    ffmpegthumbnailer      # Video thumbnail generator (used by ranger)
+    imagemagick            # Convert, resize, edit images from CLI
+    poppler                # PDF rendering library (used by ranger preview)
+    vips                   # High-performance image processing library
+    pngpaste               # Paste PNG from clipboard to file (macOS)
+
+    # ── Code Quality & Formatting ────────────────────────────────────────
+    ruff                   # Extremely fast Python linter and formatter
+    stylelint              # Modern CSS/SCSS linter
     nixfmt                 # Nix code formatter
-    nmap                   # Network discovery and security
-    pnpm                   # Fast, efficient package manager
-    pueue                  # Command queue manager
-    ranger                 # Console file manager
-    ruff                   # Extremely fast Python linter
-    sl                     # Steam locomotive animation
-    slides                 # Terminal presentation tool
-    speedtest-cli          # Test internet bandwidth
-    stylelint              # Linter for CSS
-    syncthing              # Continuous file synchronization
-    tldr                   # Collaborative cheatsheets
-    tokei                  # Code statistics tool
-    tmuxinator             # Manage complex tmux sessions
-    tree-sitter            # Parser generator tool
-    trufflehog             # Find leaked credentials
-    uv                     # Fast Python package installer
-    vips                   # Fast image processing library
-    watch                  # Execute a program periodically
-    yazi                   # Blazing fast terminal file manager written in Rust
+    tokei                  # Count lines of code by language
 
-    # Kubernetes & Cloud Development
-    k9s                    # Kubernetes CLI To Manage Clusters
-    kind                   # Kubernetes IN Docker
-    linkerd                # Service mesh for Kubernetes
-    popeye                 # Kubernetes cluster sanitizer
-    stern                  # Multi pod log tailing
-    terraform              # Infrastructure as Code
+    # ── Node.js ──────────────────────────────────────────────────────────
+    nodejs                 # JavaScript runtime (V8 engine)
+    pnpm                   # Fast, disk-efficient Node package manager
+    deno                   # Secure JavaScript/TypeScript runtime
+    nodePackages.cspell    # Spell checker for source code and docs
+    nodePackages.js-beautify # Code formatter for JS, HTML, CSS
 
-    # Language-specific packages for development
-    # Python
-    python3Packages.editorconfig # EditorConfig for Python
-    python3Packages.isort  # Sort Python imports
-    python3Packages.ptpython # Advanced Python REPL
+    # ── Python Packages ──────────────────────────────────────────────────
+    uv                     # Ultra-fast Python package installer (Rust)
+    python3Packages.editorconfig # EditorConfig support for Python
+    python3Packages.isort  # Sort Python imports automatically
+    python3Packages.ptpython # Advanced Python REPL with autocomplete
     python3Packages.pytest # Python testing framework
 
-    # Node.js
-    nodePackages.cspell    # Spell checker for code
-    nodePackages.js-beautify # Beautifier for JavaScript
-    nodejs                 # JavaScript runtime
+    # ── Emacs Dependencies ───────────────────────────────────────────────
+    clang                  # C/C++/ObjC compiler (used by Emacs packages)
+    coreutils              # GNU coreutils (needed by some Emacs packages)
+    emacs.pkgs.editorconfig # EditorConfig plugin for Emacs
+    aspell                 # Spell checker (used by ispell/flyspell)
 
-    # Deno
-    deno
-    
-    # Emacs
-    clang
-    coreutils              # Core utilities
-    emacs.pkgs.editorconfig # EditorConfig for Emacs
+    # ── Database ─────────────────────────────────────────────────────────
+    pgcli                  # PostgreSQL CLI with autocomplete and syntax highlighting
 
-    # Development utilities
-    aspell                 # Spell checker
-    pgcli                  # Postgres CLI with autocompletion
+    # ── Session & Task Management ────────────────────────────────────────
+    pueue                  # Background task queue manager with TUI
+    tmuxinator             # Manage complex tmux sessions via YAML
+    syncthing              # Continuous peer-to-peer file synchronization
 
-    poppler               # PDF rendering library (for ranger preview)
+    # ── Fonts & Display ──────────────────────────────────────────────────
+    fontconfig             # Font configuration and discovery library
+    jankyborders           # Window border highlights for macOS
 
-    # macOS-specific packages
-    #dockutil               # Manage macOS Dock items (disincluded due to build issues) → in brew
-    jankyborders           # Borders for macOS windows
-    mas                    # Mac App Store CLI
-    pngpaste               # Paste PNG into file
+    # ── Terminal Fun ─────────────────────────────────────────────────────
+    cmatrix                # Matrix digital rain effect
+    cowsay                 # ASCII cow with your message
+    sl                     # Steam locomotive — cure for typo 'sl' vs 'ls'
+    slides                 # Terminal-based presentation tool (Markdown)
+
+    # ── macOS System ─────────────────────────────────────────────────────
+    mas                    # Mac App Store CLI — install/update apps
+    #dockutil              # Manage macOS Dock items (broken build → use brew)
+    watch                  # Execute a command periodically (not built-in on macOS)
+    iftop                  # Real-time network bandwidth on an interface
+    glances                # Cross-platform system monitoring (Python)
+    graphviz               # Graph/diagram visualization (dot, neato)
+
+    # ── Lua ──────────────────────────────────────────────────────────────
+    luarocks               # Package manager for Lua modules
+
+    # ── Parser ───────────────────────────────────────────────────────────
+    tree-sitter            # Incremental parser generator (used by Emacs/Neovim)
 {{- end }}
 
-    # ----------------------------------------------------------------------------
-    # Server/Headless machines (rp-, debian, ubuntu, centos)
-    # ----------------------------------------------------------------------------
+    # ========================================================================
+    # Linux Server / Headless Machines
+    # ========================================================================
 {{- if eq .chezmoi.os "linux" }}
-    # Linux-specific packages only
-    gcc                    # GNU Compiler Collection
-    glibc                  # GNU C Library (provides iconv command)
-    atop                   # Advanced system and process monitor
-    inotify-tools          # Filesystem event monitoring
-    keepassxc              # Password manager
+
+    # ── Linux Build Essentials ───────────────────────────────────────────
+    gcc                    # GNU Compiler Collection (C, C++, Fortran)
+    glibc                  # GNU C Library (provides iconv, locale, etc.)
+
+    # ── Linux Monitoring ─────────────────────────────────────────────────
+    atop                   # Advanced system and process monitor (with history)
+    inotify-tools          # Watch filesystem events (inotifywait, inotifywatch)
+
+    # ── Linux Security ───────────────────────────────────────────────────
+    keepassxc              # Offline password manager with KeePass format
 
 {{ if not .ephemeral -}}
-    # GUI
+    # ── Linux GUI (non-ephemeral only) ───────────────────────────────────
     i3                     # Tiling window manager
-    appimage-run           # For running AppImages
-    protonvpn-gui          # Proton VPN GUI client
+    appimage-run           # Run AppImage binaries on NixOS
+    protonvpn-gui          # Proton VPN graphical client
+{{- end }}
 {{- end }}
 
-{{- end }}
-
-    # Conditional Packages
+    # ========================================================================
+    # Conditional Packages (enabled via chezmoi prompts)
+    # ========================================================================
 {{- if .podmanEnabled }}
-    podman                 # Daemonless container engine
-    podman-compose         # Run docker-compose.yml
+    # ── Podman (rootless containers) ─────────────────────────────────────
+    podman                 # Daemonless OCI container engine
+    podman-compose         # Run docker-compose files with Podman
 {{- end }}
 {{- if .dockerEnabled }}
-    docker                 # Containerization platform
-    docker-compose         # Run multi-container applications
+    # ── Docker ───────────────────────────────────────────────────────────
+    docker                 # Container runtime and build tool
+    docker-compose         # Define multi-container apps in YAML
 {{- end }}
 {{- if .goEnabled }}
-    go                     # The Go programming language
-    gopls                  # Go Language Server Protocol implementation
-    gomodifytags           # Go tool to modify struct tags
-    gotests                # Go test generator
-    gore                   # Go REPL
+    # ── Go Development ───────────────────────────────────────────────────
+    go                     # Go programming language
+    gopls                  # Go language server (LSP)
+    gomodifytags           # Add/update/remove struct field tags
+    gotests                # Generate Go table-driven tests
+    gore                   # Go REPL for quick experimentation
 {{- end }}
 {{- if .rustEnabled }}
-    rustc                  # The Rust compiler
-    rustup                 # Rust toolchain installer
+    # ── Rust Development ─────────────────────────────────────────────────
+    rustc                  # Rust compiler
+    rustup                 # Rust toolchain installer and manager
 {{- end }}
   ];
 }
