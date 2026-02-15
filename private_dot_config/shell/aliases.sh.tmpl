@@ -22,7 +22,7 @@ alias t="tree -C -L 2"
 alias t3="tree -C -L 3"
 
 # emacsclient (auto-start server if not running)
-alias e='emacsclient -t -a ""'      # Terminal Emacs
+alias e='TERM=xterm-256color emacsclient -t -a ""'  # Terminal Emacs
 alias ec='emacsclient -c -n -a ""'  # GUI Emacs (non-blocking)
 alias ek='emacsclient -e "(save-buffers-kill-emacs)"'
 

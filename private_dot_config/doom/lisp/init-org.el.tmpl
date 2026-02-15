@@ -694,10 +694,41 @@
   ;; Make filename/title BOLD in agenda – guaranteed to work
   ;; ──────────────────────────────────────────────────────────────
   (defun my/agenda-bold-prefix ()
-    "Return the cleaned filename/title in bold with colon."
+    "Return the cleaned filename/title with arrow separator (bolding applied post-render)."
     (let ((clean (my/clean-denote-title-for-agenda)))
       (when (and clean (not (string-empty-p clean)))
-        (concat (propertize clean 'font-lock-face '(:weight bold :height 1.2) 'face '(:weight bold :height 1.2 :foreground "#ff6c6b")) " → "))))
+        (concat clean " → "))))
+
+  (defun my/agenda-apply-bold-prefix ()
+    "Re-apply bold face to prefix titles after agenda render."
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward "\\(.+?\\) → " nil t)
+        (let ((beg (match-beginning 1))
+              (end (match-end 1)))
+          (add-face-text-property beg end '(:weight bold))))))
+
+  (defun my/agenda-style-tags ()
+    "Style individual tags as separate badges in agenda."
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward "\\(:[a-zA-Z0-9_@:]+:\\)\\s-*$" nil t)
+        (let* ((beg (match-beginning 1))
+               (end (match-end 1))
+               (tag-str (buffer-substring-no-properties beg end))
+               (tags (split-string tag-str ":" t))
+               (styled (mapconcat (lambda (tag)
+                                    (propertize (concat " " tag " ")
+                                                'face '(:foreground "#5B6268" :background "#e8e8e8"
+                                                         :weight light :height 0.85)))
+                                  tags " ")))
+          (let ((inhibit-read-only t))
+            (delete-region beg end)
+            (goto-char beg)
+            (insert styled))))))
+
+  (add-hook 'org-agenda-finalize-hook #'my/agenda-apply-bold-prefix)
+  (add-hook 'org-agenda-finalize-hook #'my/agenda-style-tags)
 
   (setq org-agenda-prefix-format
         '((agenda . " %i%(my/agenda-bold-prefix)%?-12t% s")

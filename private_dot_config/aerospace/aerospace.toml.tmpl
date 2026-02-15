@@ -55,15 +55,15 @@ cmd-p = 'focus up'      # previous line
 cmd-f = 'focus right'   # forward
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#move (Emacs style)
-cmd-shift-b = 'move left'    # backward
-cmd-shift-n = 'move down'    # next line
-cmd-shift-p = 'move up'      # previous line
-cmd-shift-f = 'move right'   # forward
+cmd-ctrl-b = 'move left'    # backward
+cmd-ctrl-n = 'move down'    # next line
+cmd-ctrl-p = 'move up'      # previous line
+cmd-ctrl-f = 'move right'   # forward
 
-cmd-shift-alt-b = ['join-with left']    # backward
-cmd-shift-alt-n = ['join-with down']    # next line
-cmd-shift-alt-p = ['join-with up']      # previous line
-cmd-shift-alt-f = ['join-with right']   # forward
+cmd-ctrl-alt-b = ['join-with left']    # backward
+cmd-ctrl-alt-n = ['join-with down']    # next line
+cmd-ctrl-alt-p = ['join-with up']      # previous line
+cmd-ctrl-alt-f = ['join-with right']   # forward
 
 cmd-alt-tab = 'workspace-back-and-forth'
 cmd-shift-alt-tab = 'move-workspace-to-monitor --wrap-around next'
@@ -161,10 +161,6 @@ cmd-ctrl-r = 'mode resize' # in i3
 
 # ---------------------------------------------------------
 [[on-window-detected]]
-if.app-id = 'net.publicspace.dist.vitaminr4'
-run = ["layout tiling", "move-node-to-workspace 1"]
-
-[[on-window-detected]]
 if.app-id = 'com.agiletortoise.Drafts-OSX'
 run = "move-node-to-workspace 2"
 [[on-window-detected]]
@@ -187,10 +183,11 @@ run = "move-node-to-workspace 3"
 if.app-id = "app.zen-browser.zen"
 run = "move-node-to-workspace 3"
 
-# Special apps
+# Frame 1
 [[on-window-detected]]
-if.app-id = 'com.iggsoftware.banktivity'
+if.app-id = "org.gnu.Emacs"
 run = "move-node-to-workspace 4"
+
 
 [[on-window-detected]]
 if.app-id = 'xyz.chatboxapp.app'
@@ -209,12 +206,6 @@ run = "move-node-to-workspace 5"
 if.app-id = 'org.alacritty'
 run = "move-node-to-workspace 6"
 
-# F1
-[[on-window-detected]]
-if.app-id = "org.gnu.Emacs"
-run = "move-node-to-workspace 7"
-
-
 [[on-window-detected]]
 if.app-id = 'com.github.wez.wezterm'
 run = "move-node-to-workspace 9"
@@ -231,6 +222,10 @@ run = "move-node-to-workspace 9"
 [[on-window-detected]]
 if.app-id = 'com.mitchellh.ghostty'
 run = "move-node-to-workspace 10"
+
+[[on-window-detected]]
+if.app-id = 'net.publicspace.dist.vitaminr4'
+run = ["layout tiling", "move-node-to-workspace I"]
 
 # ---------------------------------------------------------
 
@@ -256,19 +251,19 @@ run = ["layout floating"]
 
 [[on-window-detected]]
 if.app-name-regex-substring = '^.*$'
-run = 'move-node-to-workspace 8'
+run = 'move-node-to-workspace 7'
 
 # ---------------------------------------------------------
 # https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
 [workspace-to-monitor-force-assignment]
 1 = 1         # Left display
-2 = 'main'    # GTD (OmniFocus), Drafts, Logseq
+2 = 'main'    # GTD, Drafts, Logseq
 # 3 = 'main'  # Browser
-# 4 = 'main'  # Free special
+4 = 'main'    # Dev (Emacs F1)
 5 = [4, 3]    # AI GUI chats
 6 = [4, 3]    # Dev (env)
-7 = 'main'    # Dev (Emacs F1)
-8 = [4, 3]    # Media (Netflix...), Communication, Musics and Undifined apps
+7 = 'main'    # Free special
+8 = [4, 3]    # Undifined apps
 9 = [4, 3]    # AI CLI & Agents
 # 0 = 'main'  # terminal
-I = [3, 4]    # Info (references, reading)
+I = [3, 1]    # Info (references, reading)
