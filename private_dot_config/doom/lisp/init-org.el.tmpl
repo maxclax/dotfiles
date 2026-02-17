@@ -1446,6 +1446,104 @@ Returns list of (years-ago year location body source images)."
       (use-local-map my/on-this-day-map)
       (goto-char (point-min))))
 
+  ;; ── Journelly Tag Search ─────────────────────────────────────────────
+
+  (defun my/journelly-search-tag (tag)
+    "Search Journelly.org for entries containing #TAG.
+Shows results in a navigable buffer with dates, locations, body, and images."
+    (interactive
+     (list (completing-read "Journelly tag: "
+                            (my/journelly-collect-tags) nil nil)))
+    (let* ((tag-clean (replace-regexp-in-string "^#" "" tag))
+           (journelly-file (expand-file-name "Journelly.org" {{ .org_dir | quote }}))
+           (journelly-dir (file-name-directory journelly-file))
+           (entries '()))
+      (unless (file-exists-p journelly-file)
+        (user-error "Journelly.org not found"))
+      ;; Parse entries matching tag
+      (with-temp-buffer
+        (insert-file-contents journelly-file)
+        (goto-char (point-min))
+        (while (re-search-forward
+                "^\\* \\[\\([0-9-]+ [A-Za-z]+ [0-9:]+\\)\\]\\(.*\\)" nil t)
+          (let* ((date-str (match-string 1))
+                 (location (string-trim (or (match-string 2) "")))
+                 (location (replace-regexp-in-string "^@ *" "" location))
+                 (heading-pos (line-beginning-position))
+                 (content-start (point))
+                 (content-end (or (save-excursion
+                                    (when (re-search-forward "^\\* " nil t)
+                                      (line-beginning-position)))
+                                  (point-max)))
+                 (raw (buffer-substring-no-properties content-start content-end)))
+            (when (string-match-p (format "#%s\\b" (regexp-quote tag-clean))
+                                  (concat location " " raw))
+              (let* ((images (let (imgs)
+                               (with-temp-buffer
+                                 (insert raw)
+                                 (goto-char (point-min))
+                                 (while (re-search-forward "\\[\\[file:\\([^]]+\\)\\]\\]" nil t)
+                                   (push (expand-file-name (match-string 1) journelly-dir) imgs)))
+                               (nreverse imgs)))
+                     (body (string-trim
+                            (replace-regexp-in-string
+                             "\\[\\[file:.*\\]\\]" ""
+                             (replace-regexp-in-string
+                              ":PROPERTIES:[\n\r]\\(.\\|\n\\)*?:END:" "" raw)))))
+                (push (list date-str location
+                            (if (> (length body) 200)
+                                (concat (substring body 0 200) "...")
+                              body)
+                            images journelly-file heading-pos)
+                      entries))))))
+      (setq entries (nreverse entries))
+      ;; Render buffer
+      (let ((buf (get-buffer-create (format "*Journelly #%s*" tag-clean))))
+        (with-current-buffer buf
+          (let ((inhibit-read-only t))
+            (erase-buffer)
+            (insert (propertize (format "🏷 Journelly #%s" tag-clean)
+                                'face 'org-agenda-structure))
+            (insert (propertize (format "  (%d entries)\n" (length entries))
+                                'face 'font-lock-comment-face))
+            (insert (propertize "  RET/TAB to open source, q to quit\n\n"
+                                'face 'font-lock-comment-face))
+            (if (null entries)
+                (insert (propertize "  No entries found.\n" 'face 'font-lock-comment-face))
+              (dolist (e entries)
+                (let ((entry-start (point)))
+                  (insert (propertize (format "  %s" (nth 0 e)) 'face 'org-agenda-date))
+                  (when (and (nth 1 e) (not (string-empty-p (nth 1 e))))
+                    (insert (propertize (format "  📍 %s" (nth 1 e))
+                                        'face 'font-lock-comment-face)))
+                  (insert "\n")
+                  (let ((body (nth 2 e)))
+                    (when (and body (not (string-empty-p body)))
+                      (insert (format "  %s\n" body))))
+                  (when (nth 3 e)
+                    (insert "  ")
+                    (my/on-this-day-insert-images (seq-take (nth 3 e) 2)))
+                  (put-text-property entry-start (point) 'otd-file (nth 4 e))
+                  (put-text-property entry-start (point) 'otd-pos (nth 5 e))
+                  (put-text-property entry-start (point) 'keymap my/on-this-day-map)
+                  (insert "\n")))))
+          (use-local-map my/on-this-day-map)
+          (goto-char (point-min))
+          (read-only-mode 1))
+        (switch-to-buffer buf))))
+
+  (defun my/journelly-collect-tags ()
+    "Collect all unique #tags from Journelly.org."
+    (let ((journelly-file (expand-file-name "Journelly.org" {{ .org_dir | quote }}))
+          (tags '()))
+      (when (file-exists-p journelly-file)
+        (with-temp-buffer
+          (insert-file-contents journelly-file)
+          (goto-char (point-min))
+          (while (re-search-forward "#\\([[:alnum:]_]+\\)" nil t)
+            (push (match-string 1) tags))))
+      (delete-dups (mapcar #'downcase tags))))
+
 ;; Reset function for checklists
 (defun my/org-reset-checklist ()
   "Reset all DONE items to TODO and uncheck all checkboxes in current buffer."

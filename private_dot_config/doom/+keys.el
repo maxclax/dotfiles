@@ -96,6 +96,7 @@
       :desc "Refile to today" "r"           #'my/refile-to-today-journal
       :desc "On This Day" "o"              (cmd! (org-agenda nil "o")))
      :desc "Open Journelly" "J"             #'my/open-journelly
+     :desc "Journelly by tag" "T"            #'my/journelly-search-tag
      :desc "Denote link" "l"                #'denote-link
      :desc "Denote add links" "L"            #'denote-add-links
      :desc "New denote" "n"                 #'denote
