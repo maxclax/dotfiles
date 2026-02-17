@@ -74,8 +74,53 @@
       (my/tick-stop)
     (my/tick-start)))
 
-;; Auto-stop ticking when any tmr timer finishes
+;; ── Countdown alerts before timer ends ──────────────────────────────
+(defvar my/tmr-countdown-timers nil "Internal timers for countdown alerts.")
+
+(defun my/tmr-play-sound (sound &optional volume)
+  "Play macOS system SOUND at VOLUME (default 0.5)."
+  (start-process "tmr-alert" nil "afplay" "-v" (or volume "0.5")
+                 (format "/System/Library/Sounds/%s.aiff" sound)))
+
+(defun my/tmr-schedule-countdown (timer)
+  "Schedule countdown alerts for TIMER: 2min, 1min, and 10s-0s."
+  (my/tmr-cancel-countdown)
+  (let* ((end-date (tmr--timer-end-date timer))
+         (remaining (float-time (time-subtract end-date (current-time)))))
+    ;; 2 minutes warning
+    (when (> remaining 120)
+      (push (run-at-time (- remaining 120) nil
+                         (lambda () (my/tmr-play-sound "Submarine" "0.4")
+                           (message "TMR: 2 minutes remaining")))
+            my/tmr-countdown-timers))
+    ;; 1 minute warning
+    (when (> remaining 60)
+      (push (run-at-time (- remaining 60) nil
+                         (lambda () (my/tmr-play-sound "Blow" "0.5")
+                           (message "TMR: 1 minute remaining")))
+            my/tmr-countdown-timers))
+    ;; 10s countdown
+    (dotimes (i 11)
+      (let ((secs-left (- 10 i)))
+        (when (> remaining secs-left)
+          (push (run-at-time (- remaining secs-left) nil
+                             (lambda (s)
+                               (my/tmr-play-sound "Tink" "0.6")
+                               (message "TMR: %ds" s))
+                             secs-left)
+                my/tmr-countdown-timers))))))
+
+(defun my/tmr-cancel-countdown ()
+  "Cancel all scheduled countdown alerts."
+  (dolist (timer my/tmr-countdown-timers)
+    (when (timerp timer) (cancel-timer timer)))
+  (setq my/tmr-countdown-timers nil))
+
+;; Schedule countdown when timer starts, cancel+stop ticking when finished
+(add-hook 'tmr-timer-created-functions #'my/tmr-schedule-countdown)
 (add-hook 'tmr-timer-finished-functions
-          (lambda (_timer) (my/tick-stop)))
+          (lambda (_timer) (my/tmr-cancel-countdown) (my/tick-stop)))
+(add-hook 'tmr-timer-cancelled-functions
+          (lambda (_timer) (my/tmr-cancel-countdown) (my/tick-stop)))
 
 (provide 'init-timing)

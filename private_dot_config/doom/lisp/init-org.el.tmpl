@@ -255,7 +255,17 @@
                    (org-agenda-sorting-strategy '(priority-down alpha-up))
                    (org-agenda-remove-tags t)
                    (org-agenda-max-entries 10)
-                   (org-agenda-prefix-format "  %i%(my/agenda-bold-prefix)%?-12t %s")))))
+                   (org-agenda-prefix-format "  %i%(my/agenda-bold-prefix)%?-12t %s"))))
+           ((org-agenda-finalize-hook '(my/agenda-apply-bold-prefix
+                                        my/agenda-style-tags))))
+
+          ;; On This Day — journal memories ±5 days
+          ("o" "On This Day" agenda ""
+           ((org-agenda-span 1)
+            (org-agenda-files nil)
+            (org-agenda-entry-types nil)
+            (org-agenda-overriding-header "")
+            (org-agenda-finalize-hook '(my/agenda-on-this-day-full))))
 
           ;; GTD Full Review with Journal Integration
            ("D" "Dashboard (AR)"
@@ -571,7 +581,8 @@
 
   ;; GTD-style TODO keywords with PROJECT state
   (setq org-todo-keywords
-        '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
+        '((sequence "TODO(t)" "NEXT(n)" "INPROCESS(i)" "|" "DONE(d)")
+          (sequence "READ(r)" "INPROCESS(i)" "|" "DONE(d)" "CANCELLED(c)")
           (sequence "PROJECT(p)" "|" "DONE(d)" "CANCELLED(c)")
           (sequence "WAITING(w)" "DELEGATED(D)" "HOLD(h)" "|" "CANCELLED(c)")))
 
@@ -581,6 +592,8 @@
   ;; TODO keyword faces
   (setq org-todo-keyword-faces
         '(("NEXT" :inherit warning)
+          ("INPROCESS" :inherit success)
+          ("READ" :inherit font-lock-doc-face)
           ("PROJECT" :inherit font-lock-string-face)
           ("WAITING" :inherit font-lock-keyword-face)
           ("HOLD" :inherit font-lock-comment-face)))
@@ -767,6 +780,53 @@
   ;; Auto-save after refile
   (advice-add 'org-refile :after (lambda (&rest _) (org-save-all-org-buffers)))
 
+  ;; Quick refile to today's journal (under "Todos" heading)
+  (defun my/today-journal-rfloc ()
+    "Return refile location for today's journal Todos heading."
+    (let* ((journal-dir (expand-file-name "journal" denote-directory))
+           (date-string (format-time-string "%Y-%m-%d"))
+           (files (directory-files journal-dir t (concat date-string ".*\\.org$")))
+           (journal-file (car files)))
+      (unless journal-file
+        (denote-journal-new-or-existing-entry)
+        (setq files (directory-files journal-dir t (concat date-string ".*\\.org$")))
+        (setq journal-file (car files)))
+      (when journal-file
+        (with-current-buffer (find-file-noselect journal-file)
+          (save-excursion
+            (goto-char (point-min))
+            (unless (re-search-forward "^\\*+ Todos" nil t)
+              (goto-char (point-max))
+              (insert "\n* Todos\n")
+              (save-buffer))))
+        (list "Todos" journal-file nil
+              (with-current-buffer (find-file-noselect journal-file)
+                (save-excursion
+                  (goto-char (point-min))
+                  (re-search-forward "^\\*+ Todos" nil t)
+                  (point-at-bol)))))))
+
+  (defun my/refile-to-today-journal ()
+    "Refile current entry to today's journal under Todos heading.
+Works on single entry in org buffer or on all marked entries in agenda."
+    (interactive)
+    (let ((rfloc (my/today-journal-rfloc)))
+      (if (and (eq major-mode 'org-agenda-mode)
+               (org-agenda-bulk-marked-entries))
+          ;; Bulk refile all marked entries
+          (let ((marked (reverse (org-agenda-bulk-marked-entries))))
+            (dolist (entry marked)
+              (let ((inhibit-message t))
+                (org-with-point-at entry
+                  (org-refile nil nil rfloc))))
+            (org-agenda-bulk-unmark-all)
+            (message "Refiled %d items to today's journal → Todos" (length marked)))
+        ;; Single entry
+        (if (eq major-mode 'org-agenda-mode)
+            (org-agenda-refile nil rfloc)
+          (org-refile nil nil rfloc))
+        (message "Refiled to today's journal → Todos"))))
+
   ;; Clock tracking configuration
   (setq org-clock-persist t)
   (setq org-clock-in-resume t)
@@ -943,9 +1003,23 @@
           (message "No files selected")))))
 
   ;; Helper function to copy file to shared .attach dir
+  (defun my/convert-heic-to-jpeg (file)
+    "Convert HEIC file to JPEG, return new path. Return FILE unchanged if not HEIC."
+    (if (string-match-p "\\.heic$" (downcase file))
+        (let ((jpeg-file (concat (file-name-sans-extension file) ".jpg")))
+          (if (eq 0 (call-process "sips" nil nil nil "-s" "format" "jpeg"
+                                  file "--out" jpeg-file))
+              (progn (message "Converted HEIC → JPEG: %s" (file-name-nondirectory jpeg-file))
+                     jpeg-file)
+            (message "HEIC conversion failed, using original")
+            file))
+      file))
+
   (defun my/org-attach-single-file (file)
-    "Copy file to shared .attach directory and insert direct link."
+    "Copy file to shared .attach directory and insert direct link.
+HEIC files are auto-converted to JPEG."
     (when (and file (file-exists-p file))
+      (setq file (my/convert-heic-to-jpeg file))
       (let* ((assets-dir (my/get-attach-dir))
              (filename (file-name-nondirectory file))
              (destination (expand-file-name filename assets-dir)))
@@ -980,9 +1054,11 @@
 
   ;; Drag-and-drop: copy image to shared .attach dir, insert direct file link
   (defun my/org-dnd-file-handler (uri action)
-    "Handle drag-and-drop files by copying to the shared .attach directory."
+    "Handle drag-and-drop files by copying to the shared .attach directory.
+HEIC files are auto-converted to JPEG."
     (let ((file (dnd-get-local-file-name uri t)))
       (when (and file (file-exists-p file))
+        (setq file (my/convert-heic-to-jpeg file))
         (let* ((assets-dir (my/get-attach-dir))
                (filename (file-name-nondirectory file))
                (destination (expand-file-name filename assets-dir)))
@@ -1136,6 +1212,239 @@
     "Quickly open the Journelly.org journal file."
     (interactive)
     (find-file (expand-file-name "Journelly.org" {{ .org_dir | quote }})))
+
+  ;; ── On This Day ──────────────────────────────────────────────────────
+  ;; Entry format: (years-ago year location body source images)
+  ;; source: 'journelly or 'denote
+  ;; images: list of absolute file paths
+
+  (defun my/on-this-day-for-date (month day)
+    "Find journal entries for MONTH/DAY in previous years.
+Searches both Journelly.org and denote journal files.
+Returns list of (years-ago year location body source images)."
+    (let* ((current-year (string-to-number (format-time-string "%Y")))
+           (m (format "%02d" month))
+           (d (format "%02d" day))
+           (journelly-file (expand-file-name "Journelly.org" {{ .org_dir | quote }}))
+           (journelly-dir (file-name-directory journelly-file))
+           (journal-dir (expand-file-name "journal" denote-directory))
+           (results '()))
+
+      ;; Search Journelly.org
+      (when (file-exists-p journelly-file)
+        (with-temp-buffer
+          (insert-file-contents journelly-file)
+          (goto-char (point-min))
+          (while (re-search-forward
+                  (format "^\\* \\[\\([0-9]\\{4\\}\\)-%s-%s [A-Za-z]+ [0-9:]+\\]\\(.*\\)" m d)
+                  nil t)
+            (let* ((year (string-to-number (match-string 1)))
+                   (location (match-string 2))
+                   (years-ago (- current-year year))
+                   (content-start (point))
+                   (content-end (or (save-excursion
+                                      (when (re-search-forward "^\\* " nil t)
+                                        (line-beginning-position)))
+                                    (point-max)))
+                   (raw (buffer-substring-no-properties content-start content-end))
+                   ;; Extract image paths
+                   (images (let (imgs)
+                             (with-temp-buffer
+                               (insert raw)
+                               (goto-char (point-min))
+                               (while (re-search-forward "\\[\\[file:\\([^]]+\\)\\]\\]" nil t)
+                                 (let ((img (match-string 1)))
+                                   (push (expand-file-name img journelly-dir) imgs))))
+                             (nreverse imgs)))
+                   (body (string-trim
+                          (replace-regexp-in-string
+                           "\\[\\[file:.*\\]\\]" ""
+                           (replace-regexp-in-string
+                            ":PROPERTIES:[\n\r]\\(.\\|\n\\)*?:END:" ""
+                            raw)))))
+              (when (> years-ago 0)
+                (push (list years-ago year (string-trim (or location ""))
+                            (if (> (length body) 120)
+                                (concat (substring body 0 120) "...")
+                              body)
+                            'journelly images
+                            journelly-file content-start)
+                      results))))))
+
+      ;; Search denote journal files
+      (when (file-exists-p journal-dir)
+        (dolist (file (directory-files journal-dir t "\\.org$"))
+          (let ((fname (file-name-nondirectory file)))
+            (when (string-match (format "\\([0-9]\\{4\\}\\)%s%s" m d) fname)
+              (let* ((year (string-to-number (match-string 1 fname)))
+                     (years-ago (- current-year year)))
+                (when (> years-ago 0)
+                  (with-temp-buffer
+                    (insert-file-contents file)
+                    (let* ((raw (buffer-substring-no-properties
+                                 (point-min) (min (point-max) (+ (point-min) 800))))
+                           (images (let (imgs)
+                                     (goto-char (point-min))
+                                     (while (re-search-forward "\\[\\[file:\\([^]]+\\)\\]\\]" nil t)
+                                       (let ((img (match-string 1)))
+                                         (push (expand-file-name img (file-name-directory file)) imgs)))
+                                     (nreverse imgs)))
+                           (body (string-trim
+                                   (replace-regexp-in-string
+                                    "^#\\+.*\n" "" raw))))
+                      (push (list years-ago year ""
+                                  (if (> (length body) 120)
+                                      (concat (substring body 0 120) "...")
+                                    body)
+                                  'denote images
+                                  file nil)
+                            results)))))))))
+
+      ;; Sort by years ago
+      (sort results (lambda (a b) (< (car a) (car b))))))
+
+  (defun my/on-this-day ()
+    "Show journal entries from today's date in previous years."
+    (interactive)
+    (let* ((month (string-to-number (format-time-string "%m")))
+           (day (string-to-number (format-time-string "%d")))
+           (results (my/on-this-day-for-date month day)))
+      (if results
+          (mapconcat
+           (lambda (e)
+             (format "  %dy ago (%d)%s %s"
+                     (nth 0 e) (nth 1 e)
+                     (if (and (nth 2 e) (not (string-empty-p (nth 2 e))))
+                         (concat " " (nth 2 e)) "")
+                     (nth 3 e)))
+           results "\n")
+        "  No entries found for this date")))
+
+  (defun my/on-this-day-buffer ()
+    "Open a buffer showing On This Day entries for today ±5 days."
+    (interactive)
+    (let ((buf (get-buffer-create "*On This Day*")))
+      (with-current-buffer buf
+        (let ((inhibit-read-only t))
+          (erase-buffer)
+          (org-mode)
+          (insert "#+title: On This Day\n\n")
+          (dotimes (offset 11)
+            (let* ((day-offset (- offset 5))
+                   (target-time (time-add (current-time) (days-to-time day-offset)))
+                   (month (string-to-number (format-time-string "%m" target-time)))
+                   (day (string-to-number (format-time-string "%d" target-time)))
+                   (date-str (format-time-string "%B %d" target-time))
+                   (label (cond ((= day-offset 0) (format "* Today — %s\n" date-str))
+                                ((= day-offset -1) (format "* Yesterday — %s\n" date-str))
+                                ((= day-offset 1) (format "* Tomorrow — %s\n" date-str))
+                                ((< day-offset 0) (format "* %dd ago — %s\n" (abs day-offset) date-str))
+                                (t (format "* +%dd — %s\n" day-offset date-str))))
+                   (results (my/on-this-day-for-date month day)))
+              (when results
+                (insert label)
+                (dolist (e results)
+                  (insert (format "** %dy ago (%d)%s\n%s\n\n"
+                                  (nth 0 e) (nth 1 e)
+                                  (if (and (nth 2 e) (not (string-empty-p (nth 2 e))))
+                                      (concat " " (nth 2 e)) "")
+                                  (nth 3 e))))))))
+        (goto-char (point-min))
+        (read-only-mode 1))
+      (switch-to-buffer buf)))
+
+  (defun my/agenda-on-this-day ()
+    "Insert 'On This Day' section into dashboard agenda."
+    (let ((inhibit-read-only t))
+      (goto-char (point-max))
+      (insert "\n")
+      (insert (propertize "📅 On This Day" 'face 'org-agenda-structure) "\n")
+      (insert (my/on-this-day) "\n")))
+
+  (defun my/on-this-day-source-badge (source)
+    "Return a styled badge for SOURCE ('journelly or 'denote)."
+    (if (eq source 'journelly)
+        (propertize " Journelly " 'face '(:foreground "#5B6268" :background "#e8e8e8" :height 0.85))
+      (propertize " Denote " 'face '(:foreground "#5B6268" :background "#d4eaff" :height 0.85))))
+
+  (defun my/on-this-day-insert-images (images)
+    "Insert inline images from IMAGES list into current buffer."
+    (dolist (img images)
+      (when (and img (file-exists-p img)
+                 (string-match-p "\\.\\(jpg\\|jpeg\\|png\\|gif\\|bmp\\|webp\\)$" (downcase img)))
+        (let ((start (point)))
+          (insert-image (create-image img nil nil :width 300))
+          (insert "\n")))))
+
+  (defun my/on-this-day-open-source ()
+    "Open the source file for the entry at point."
+    (interactive)
+    (let ((file (get-text-property (point) 'otd-file))
+          (pos (get-text-property (point) 'otd-pos)))
+      (if file
+          (progn
+            (find-file file)
+            (when pos (goto-char pos))
+            (org-show-entry))
+        (message "No source file for this line"))))
+
+  (defvar my/on-this-day-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map (kbd "RET") #'my/on-this-day-open-source)
+      (define-key map (kbd "TAB") #'my/on-this-day-open-source)
+      (define-key map (kbd "q") #'quit-window)
+      map)
+    "Keymap for On This Day agenda buffer.")
+
+  (defun my/agenda-on-this-day-full ()
+    "Insert On This Day entries for ±5 days into agenda buffer."
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (insert (propertize "📅 On This Day\n" 'face 'org-agenda-structure))
+      (insert (propertize "  RET/TAB to open source, q to quit\n\n"
+                          'face 'font-lock-comment-face))
+      (let ((found-any nil))
+        (dotimes (offset 11)
+          (let* ((day-offset (- offset 5))
+                 (target-time (time-add (current-time) (days-to-time day-offset)))
+                 (month (string-to-number (format-time-string "%m" target-time)))
+                 (day (string-to-number (format-time-string "%d" target-time)))
+                 (date-str (format-time-string "%A, %B %d" target-time))
+                 (is-today (= day-offset 0))
+                 (label (cond (is-today (format "☀️ Today — %s " date-str))
+                              ((= day-offset -1) (format "Yesterday — %s" date-str))
+                              ((= day-offset 1) (format "Tomorrow — %s" date-str))
+                              ((< day-offset 0) (format "%dd ago — %s" (abs day-offset) date-str))
+                              (t (format "+%dd — %s" day-offset date-str))))
+                 (results (my/on-this-day-for-date month day)))
+            (when results
+              (setq found-any t)
+              (insert (propertize (concat label "\n")
+                                  'face (if is-today 'org-agenda-date-today 'org-agenda-date)))
+              (dolist (e results)
+                (let ((source (nth 4 e))
+                      (images (nth 5 e))
+                      (file (nth 6 e))
+                      (pos (nth 7 e))
+                      (entry-start (point)))
+                  (insert (format "  %dy ago (%d)%s " (nth 0 e) (nth 1 e)
+                                  (if (and (nth 2 e) (not (string-empty-p (nth 2 e))))
+                                      (nth 2 e) "")))
+                  (insert (my/on-this-day-source-badge source))
+                  (insert (format "\n  %s\n" (nth 3 e)))
+                  (when images
+                    (insert "  ")
+                    (my/on-this-day-insert-images (seq-take images 2)))
+                  ;; Add text properties for navigation
+                  (put-text-property entry-start (point) 'otd-file file)
+                  (put-text-property entry-start (point) 'otd-pos pos)
+                  (put-text-property entry-start (point) 'keymap my/on-this-day-map)))
+              (insert "\n"))))
+        (unless found-any
+          (insert (propertize "  No memories found for this period yet.\n  Keep journaling!\n"
+                              'face 'font-lock-comment-face))))
+      (use-local-map my/on-this-day-map)
+      (goto-char (point-min))))
 
 ;; Reset function for checklists
 (defun my/org-reset-checklist ()
