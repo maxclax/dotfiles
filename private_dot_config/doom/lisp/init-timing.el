@@ -123,4 +123,81 @@
 (add-hook 'tmr-timer-cancelled-functions
           (lambda (_timer) (my/tmr-cancel-countdown) (my/tick-stop)))
 
+;; ── Timer persistence across restarts ───────────────────────────────
+(defvar my/tmr-save-file (expand-file-name "tmr-timers.el" doom-cache-dir)
+  "File to persist active TMR timers.")
+
+(defun my/tmr-save-timers ()
+  "Save active (non-finished) timers to disk."
+  (let ((active (seq-remove #'tmr--timer-finishedp tmr--timers)))
+    (when active
+      (with-temp-file my/tmr-save-file
+        (insert ";; TMR saved timers\n")
+        (dolist (timer active)
+          (let ((end (float-time (tmr--timer-end-date timer)))
+                (desc (tmr--timer-description timer))
+                (ack (tmr--timer-acknowledgep timer))
+                (paused (tmr--timer-paused-remaining timer)))
+            (prin1 (list :end end
+                         :description desc
+                         :acknowledgep ack
+                         :paused (when paused (float-time paused)))
+                   (current-buffer))
+            (insert "\n")))))
+    (unless active
+      (when (file-exists-p my/tmr-save-file)
+        (delete-file my/tmr-save-file)))))
+
+(defun my/tmr-restore-timers ()
+  "Restore saved timers from disk, recreating those still in the future."
+  (when (file-exists-p my/tmr-save-file)
+    (let ((restored 0))
+      (with-temp-buffer
+        (insert-file-contents my/tmr-save-file)
+        (goto-char (point-min))
+        (condition-case nil
+            (while t
+              (let* ((data (read (current-buffer)))
+                     (end-time (plist-get data :end))
+                     (desc (plist-get data :description))
+                     (ack (plist-get data :acknowledgep))
+                     (paused-secs (plist-get data :paused))
+                     (remaining (- end-time (float-time))))
+                (cond
+                 ;; Paused timer — restore as paused
+                 (paused-secs
+                  (let ((timer (tmr--timer-create
+                                :description desc
+                                :acknowledgep ack
+                                :creation-date (current-time)
+                                :end-date (time-add (current-time) paused-secs)
+                                :input (format "%ss" (round paused-secs)))))
+                    (setf (tmr--timer-timer-object timer)
+                          (run-with-timer paused-secs nil #'tmr--complete timer))
+                    (setf (tmr--timer-paused-remaining timer) paused-secs)
+                    (cancel-timer (tmr--timer-timer-object timer))
+                    (push timer tmr--timers)
+                    (cl-incf restored)))
+                 ;; Still has time left — restore as active
+                 ((> remaining 1)
+                  (let ((timer (tmr--timer-create
+                                :description desc
+                                :acknowledgep ack
+                                :creation-date (current-time)
+                                :end-date (seconds-to-time end-time)
+                                :input (format "%sm" (round (/ remaining 60.0))))))
+                    (setf (tmr--timer-timer-object timer)
+                          (run-with-timer remaining nil #'tmr--complete timer))
+                    (push timer tmr--timers)
+                    (run-hook-with-args 'tmr-timer-created-functions timer)
+                    (cl-incf restored))))))
+          (end-of-file nil)))
+      (run-hooks 'tmr--update-hook)
+      (when (> restored 0)
+        (message "TMR: restored %d timer%s" restored (if (= restored 1) "" "s")))
+      (delete-file my/tmr-save-file))))
+
+(add-hook 'kill-emacs-hook #'my/tmr-save-timers)
+(add-hook 'doom-first-buffer-hook #'my/tmr-restore-timers)
+
 (provide 'init-timing)

@@ -257,7 +257,16 @@
                    (org-agenda-max-entries 10)
                    (org-agenda-prefix-format "  %i%(my/agenda-bold-prefix)%?-12t %s"))))
            ((org-agenda-finalize-hook '(my/agenda-apply-bold-prefix
-                                        my/agenda-style-tags))))
+                                        my/agenda-style-tags
+                                        my/agenda-milestones))))
+
+          ;; Milestones — life counters
+          ("m" "Milestones" agenda ""
+           ((org-agenda-span 1)
+            (org-agenda-files nil)
+            (org-agenda-entry-types nil)
+            (org-agenda-overriding-header "")
+            (org-agenda-finalize-hook '(my/agenda-milestones-full))))
 
           ;; On This Day — journal memories ±5 days
           ("o" "On This Day" agenda ""
@@ -564,7 +573,10 @@
           ("o" "Journal outcome" entry (function my/journal-capture-target)
            "- [ ] %?\n" :clock-resume t)
           ("r" "Journal reflection" entry (function my/journal-capture-target)
-           "** Reflection\n%?\n%U\n" :clock-resume t)))
+           "** Reflection\n%?\n%U\n" :clock-resume t)
+          ("m" "Milestone" entry (file my/milestones-file)
+           "* %?\n:PROPERTIES:\n:STARTED: %^{Started}t\n:END:\n"
+           :empty-lines 1)))
 
   ;; Helper function for journal capture
   (defun my/journal-capture-target ()
@@ -1445,6 +1457,111 @@ Returns list of (years-ago year location body source images)."
                               'face 'font-lock-comment-face))))
       (use-local-map my/on-this-day-map)
       (goto-char (point-min))))
+
+  ;; ── Milestones ────────────────────────────────────────────────────────
+  ;; Track life milestones with `:STARTED:` property and see elapsed time.
+  ;; Format: org headings with :STARTED: [2020-02-16 Sun 11:00] property.
+
+  (defvar my/milestones-file
+    (expand-file-name "milestones.org" {{ .org_dir | quote }})
+    "File containing milestone entries.")
+
+  (defun my/milestone-elapsed (start-time)
+    "Return human-readable elapsed string since START-TIME."
+    (let* ((now (decode-time))
+           (start (decode-time start-time))
+           (years (- (nth 5 now) (nth 5 start)))
+           (months (- (nth 4 now) (nth 4 start)))
+           (days (- (nth 3 now) (nth 3 start))))
+      (when (< days 0)
+        (cl-decf months)
+        (setq days (+ days 30)))
+      (when (< months 0)
+        (cl-decf years)
+        (setq months (+ months 12)))
+      (let ((parts '()))
+        (when (> years 0) (push (format "%dy" years) parts))
+        (when (> months 0) (push (format "%dm" months) parts))
+        (when (> days 0) (push (format "%dd" days) parts))
+        (if parts (string-join (nreverse parts) " ") "today"))))
+
+  (defun my/milestone-total-days (start-time)
+    "Return total days since START-TIME."
+    (floor (/ (float-time (time-subtract (current-time) start-time)) 86400)))
+
+  (defun my/milestones-parse ()
+    "Parse milestones file. Returns list of (title started-time tags pos)."
+    (let ((results '()))
+      (when (file-exists-p my/milestones-file)
+        (with-temp-buffer
+          (insert-file-contents my/milestones-file)
+          (org-mode)
+          (goto-char (point-min))
+          (while (re-search-forward "^\\*+ " nil t)
+            (let* ((heading (org-get-heading t t t t))
+                   (pos (line-beginning-position))
+                   (tags (org-get-tags))
+                   (started-str (org-entry-get (point) "STARTED")))
+              (when started-str
+                (let ((started-time (org-parse-time-string started-str)))
+                  (push (list heading
+                              (apply #'encode-time started-time)
+                              tags pos)
+                        results)))))))
+      (nreverse results)))
+
+  (defun my/agenda-milestones-full ()
+    "Insert milestones into agenda buffer as a dedicated view."
+    (let ((milestones (my/milestones-parse))
+          (inhibit-read-only t))
+      (erase-buffer)
+      (insert (propertize "🏆 Milestones\n" 'face 'org-agenda-structure))
+      (insert (propertize "  RET/TAB to open source, q to quit\n\n"
+                          'face 'font-lock-comment-face))
+      (if (null milestones)
+          (insert (propertize "  No milestones found.\n" 'face 'font-lock-comment-face))
+        (dolist (m milestones)
+          (let ((entry-start (point))
+                (title (nth 0 m))
+                (started (nth 1 m))
+                (tags (nth 2 m))
+                (pos (nth 3 m)))
+            (insert (propertize (format "  %s" title) 'face 'org-level-2))
+            (when tags
+              (insert " "
+                      (propertize (mapconcat (lambda (tag) (format ":%s:" tag)) tags "")
+                                  'face 'org-tag)))
+            (insert "\n")
+            (insert "  ")
+            (insert (propertize (my/milestone-elapsed started) 'face 'success))
+            (insert (propertize (format "  (%d days)" (my/milestone-total-days started))
+                                'face 'font-lock-comment-face))
+            (insert (propertize (format "  since %s"
+                                        (format-time-string "%b %d, %Y" started))
+                                'face 'font-lock-comment-face))
+            (insert "\n\n")
+            (put-text-property entry-start (point) 'otd-file my/milestones-file)
+            (put-text-property entry-start (point) 'otd-pos pos)
+            (put-text-property entry-start (point) 'keymap my/on-this-day-map))))
+      (use-local-map my/on-this-day-map)
+      (goto-char (point-min))))
+
+  (defun my/agenda-milestones ()
+    "Insert milestones section into agenda buffer."
+    (let ((milestones (my/milestones-parse))
+          (inhibit-read-only t))
+      (when milestones
+        (goto-char (point-max))
+        (insert "\n" (propertize "🏆 Milestones" 'face 'org-agenda-structure) "\n")
+        (dolist (m milestones)
+          (let ((title (nth 0 m))
+                (started (nth 1 m)))
+            (insert (format "  %s — " title))
+            (insert (propertize (my/milestone-elapsed started) 'face 'success))
+            (insert (propertize (format " (%d days)"
+                                        (my/milestone-total-days started))
+                                'face 'font-lock-comment-face))
+            (insert "\n"))))))
 
   ;; ── Journelly Tag Search ─────────────────────────────────────────────
 
