@@ -301,4 +301,81 @@ KEYWORD should be a string. FILE should be a full file path."
          (date-string (format-time-string "%Y-%m-%d" tomorrow)))
     (denote-journal-extras-new-or-existing-entry date-string)))
 
+;; Scrollable journal feed - all denote files in one buffer
+(defun my/denote-feed-open-entry ()
+  "Open the journal file for the entry at point for editing."
+  (interactive)
+  (let ((file (get-text-property (point) 'denote-feed-file)))
+    (if file
+        (find-file file)
+      ;; Try scanning backwards to find the heading's file property
+      (save-excursion
+        (when (re-search-backward "^\\* " nil t)
+          (let ((f (get-text-property (point) 'denote-feed-file)))
+            (if f (find-file f)
+              (message "No journal file found at point"))))))))
+
+(defun my/denote-feed ()
+  "Show all denote journal entries as a scrollable feed, newest first.
+Press RET or TAB on any entry to open it for editing."
+  (interactive)
+  (let* ((journal-dir denote-journal-directory)
+         (files (when (file-exists-p journal-dir)
+                  (directory-files journal-dir t "\\.org$")))
+         (sorted (sort (copy-sequence files) (lambda (a b)
+                               (string> (file-name-nondirectory a)
+                                        (file-name-nondirectory b)))))
+         (buf (get-buffer-create "*Denote Journal Feed*")))
+    (with-current-buffer buf
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (org-mode)
+        (insert "#+title: Journal Feed\n")
+        (insert "# RET / TAB on any entry to open and edit it\n\n")
+        (dolist (file sorted)
+          (let* ((title (or (denote-retrieve-front-matter-title-value file 'org)
+                            (file-name-base file)))
+                 (id (denote-retrieve-filename-identifier file))
+                 (date (when (>= (length id) 8)
+                         (format "%s-%s-%s"
+                                 (substring id 0 4)
+                                 (substring id 4 6)
+                                 (substring id 6 8))))
+                 (keywords (denote-extract-keywords-from-path file))
+                 (heading-start (point)))
+            ;; Insert heading with file property on it
+            (insert (format "* %s" title))
+            (when keywords
+              (insert (format "  :%s:" (mapconcat #'identity keywords ":"))))
+            (insert "\n")
+            (put-text-property heading-start (point) 'denote-feed-file file)
+            ;; Date line
+            (when date
+              (insert (format "  /[%s]/\n" date)))
+            (insert "\n")
+            ;; Content
+            (condition-case nil
+                (let ((content (with-temp-buffer
+                                 (insert-file-contents file)
+                                 (goto-char (point-min))
+                                 (when (looking-at "#\\+")
+                                   (while (and (not (eobp)) (looking-at "#\\+"))
+                                     (forward-line 1))
+                                   (forward-line 1))
+                                 (buffer-substring (point) (point-max)))))
+                  (insert content))
+              (error nil))
+            (insert "\n\n---\n\n")))
+        (goto-char (point-min))
+        (read-only-mode 1)
+        ;; Keybindings for opening entries
+        (use-local-map (copy-keymap org-mode-map))
+        (local-set-key (kbd "RET") #'my/denote-feed-open-entry)
+        (local-set-key (kbd "TAB") #'my/denote-feed-open-entry)
+        (local-set-key (kbd "<tab>") #'my/denote-feed-open-entry)
+        (local-set-key (kbd "e") #'my/denote-feed-open-entry)
+        (local-set-key (kbd "o") #'my/denote-feed-open-entry)))
+    (switch-to-buffer buf)
+    (message "Journal feed: %d entries — RET/TAB to open" (length sorted))))
+
 (provide 'init-denote)

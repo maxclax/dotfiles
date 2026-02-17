@@ -86,6 +86,7 @@
      :desc "Denote backlinks" "b"           #'denote-backlinks
      :desc "Denote link after creating" "c" #'denote-link-after-creating
      :desc "Denote dired" "d"               #'my/denote-dired
+     :desc "Denote feed" "e"                #'my/denote-feed
      :desc "Denote find" "f"                #'my/denote-find
      :desc "Denote grep" "g"                #'denote-grep
      :desc "Open inbox" "i"                 #'my/open-inbox
