@@ -93,8 +93,7 @@
       :desc "Today's journal" "j"           #'denote-journal-new-or-existing-entry
       :desc "Tomorrow's journal" "t"        #'my/open-tomorrow-journal
       :desc "Yesterday's journal" "y"       #'my/open-yesterday-journal
-      :desc "Refile to today" "r"           #'my/refile-to-today-journal
-      :desc "On This Day" "o"              (cmd! (org-agenda nil "o")))
+      :desc "Refile to today" "r"           #'my/refile-to-today-journal)
      :desc "Open Journelly" "J"             #'my/open-journelly
      :desc "Journelly by tag" "T"            #'my/journelly-search-tag
      :desc "Denote link" "l"                #'denote-link

@@ -260,6 +260,14 @@
                                         my/agenda-style-tags
                                         my/agenda-milestones))))
 
+          ;; Graveyard — RIP entries
+          ("g" "Graveyard" agenda ""
+           ((org-agenda-span 1)
+            (org-agenda-files nil)
+            (org-agenda-entry-types nil)
+            (org-agenda-overriding-header "")
+            (org-agenda-finalize-hook '(my/agenda-graveyard-full))))
+
           ;; Milestones — life counters
           ("m" "Milestones" agenda ""
            ((org-agenda-span 1)
@@ -1562,6 +1570,83 @@ Returns list of (years-ago year location body source images)."
                                         (my/milestone-total-days started))
                                 'face 'font-lock-comment-face))
             (insert "\n"))))))
+
+  ;; ── Graveyard (RIP) ───────────────────────────────────────────────────
+
+  (defun my/graveyard-parse ()
+    "Parse all #RIP entries from Journelly.org.
+Returns list of (date-str body images file pos) sorted newest first."
+    (let* ((journelly-file (expand-file-name "Journelly.org" {{ .org_dir | quote }}))
+           (journelly-dir (file-name-directory journelly-file))
+           (entries '()))
+      (when (file-exists-p journelly-file)
+        (with-temp-buffer
+          (insert-file-contents journelly-file)
+          (goto-char (point-min))
+          (while (re-search-forward
+                  "^\\* \\[\\([0-9-]+ [A-Za-z]+ [0-9:]+\\)\\]\\(.*\\)" nil t)
+            (let* ((date-str (match-string 1))
+                   (location (string-trim (or (match-string 2) "")))
+                   (heading-pos (line-beginning-position))
+                   (content-start (point))
+                   (content-end (or (save-excursion
+                                      (when (re-search-forward "^\\* " nil t)
+                                        (line-beginning-position)))
+                                    (point-max)))
+                   (raw (buffer-substring-no-properties content-start content-end)))
+              (when (string-match-p "#RIP\\b" (concat location " " raw))
+                (let* ((images (let (imgs)
+                                 (with-temp-buffer
+                                   (insert raw)
+                                   (goto-char (point-min))
+                                   (while (re-search-forward "\\[\\[file:\\([^]]+\\)\\]\\]" nil t)
+                                     (push (expand-file-name (match-string 1) journelly-dir) imgs)))
+                                 (nreverse imgs)))
+                       (body (string-trim
+                              (replace-regexp-in-string
+                               "#RIP" ""
+                               (replace-regexp-in-string
+                                "\\[\\[file:.*\\]\\]" ""
+                                (replace-regexp-in-string
+                                 ":PROPERTIES:[\n\r]\\(.\\|\n\\)*?:END:" "" raw))))))
+                  (push (list date-str body images journelly-file heading-pos)
+                        entries)))))))
+      (nreverse entries)))
+
+  (defun my/agenda-graveyard-full ()
+    "Insert Graveyard (RIP) entries into agenda buffer."
+    (let ((entries (my/graveyard-parse))
+          (inhibit-read-only t))
+      (erase-buffer)
+      (insert (propertize "🪦 Graveyard\n" 'face 'org-agenda-structure))
+      (insert (propertize "  RET/TAB to open source, q to quit\n\n"
+                          'face 'font-lock-comment-face))
+      (if (null entries)
+          (insert (propertize "  No entries found.\n" 'face 'font-lock-comment-face))
+        (dolist (e entries)
+          (let ((entry-start (point))
+                (date-str (nth 0 e))
+                (body (nth 1 e))
+                (images (nth 2 e))
+                (file (nth 3 e))
+                (pos (nth 4 e)))
+            (insert (propertize (format "  %s\n" date-str) 'face 'org-agenda-date))
+            (let ((body-clean (string-trim body)))
+              (when (and body-clean (not (string-empty-p body-clean)))
+                (let ((first-line (car (split-string body-clean "\n"))))
+                  (insert (format "  %s\n"
+                                  (if (> (length first-line) 120)
+                                      (concat (substring first-line 0 120) "...")
+                                    first-line))))))
+            (when images
+              (insert "  ")
+              (my/on-this-day-insert-images (seq-take images 2)))
+            (insert "\n")
+            (put-text-property entry-start (point) 'otd-file file)
+            (put-text-property entry-start (point) 'otd-pos pos)
+            (put-text-property entry-start (point) 'keymap my/on-this-day-map))))
+      (use-local-map my/on-this-day-map)
+      (goto-char (point-min))))
 
   ;; ── Journelly Tag Search ─────────────────────────────────────────────
 
