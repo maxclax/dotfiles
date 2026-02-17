@@ -308,12 +308,7 @@ KEYWORD should be a string. FILE should be a full file path."
   (let ((file (get-text-property (point) 'denote-feed-file)))
     (if file
         (find-file file)
-      ;; Try scanning backwards to find the heading's file property
-      (save-excursion
-        (when (re-search-backward "^\\* " nil t)
-          (let ((f (get-text-property (point) 'denote-feed-file)))
-            (if f (find-file f)
-              (message "No journal file found at point"))))))))
+      (message "No journal entry at point"))))
 
 (defun my/denote-feed ()
   "Show all denote journal entries as a scrollable feed, newest first.
@@ -342,13 +337,12 @@ Press RET or TAB on any entry to open it for editing."
                                  (substring id 4 6)
                                  (substring id 6 8))))
                  (keywords (denote-extract-keywords-from-path file))
-                 (heading-start (point)))
-            ;; Insert heading with file property on it
+                 (entry-start (point)))
+            ;; Insert heading
             (insert (format "* %s" title))
             (when keywords
               (insert (format "  :%s:" (mapconcat #'identity keywords ":"))))
             (insert "\n")
-            (put-text-property heading-start (point) 'denote-feed-file file)
             ;; Date line
             (when date
               (insert (format "  /[%s]/\n" date)))
@@ -365,7 +359,9 @@ Press RET or TAB on any entry to open it for editing."
                                  (buffer-substring (point) (point-max)))))
                   (insert content))
               (error nil))
-            (insert "\n\n---\n\n")))
+            (insert "\n\n---\n\n")
+            ;; Apply file property to entire entry block
+            (put-text-property entry-start (point) 'denote-feed-file file)))
         (goto-char (point-min))
         (read-only-mode 1)
         ;; Keybindings for opening entries
