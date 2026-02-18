@@ -258,7 +258,7 @@
                    (org-agenda-prefix-format "  %i%(my/agenda-bold-prefix)%?-12t %s"))))
            ((org-agenda-finalize-hook '(my/agenda-apply-bold-prefix
                                         my/agenda-style-tags
-                                        my/agenda-milestones))))
+                                        my/agenda-goto-top))))
 
           ;; Graveyard — RIP entries
           ("g" "Graveyard" agenda ""
@@ -283,6 +283,18 @@
             (org-agenda-entry-types nil)
             (org-agenda-overriding-header "")
             (org-agenda-finalize-hook '(my/agenda-on-this-day-full))))
+
+          ;; Reading List — TODOs and INPROCESS items tagged :read:
+          ("r" "Reading List"
+           ((tags-todo "read+TODO=\"INPROCESS\""
+                       ((org-agenda-overriding-header "📖 Reading Now")
+                        (org-agenda-sorting-strategy '(priority-down alpha-up))
+                        (org-agenda-prefix-format "  %i ")))
+            (tags-todo "read+TODO=\"TODO\""
+                       ((org-agenda-overriding-header "📚 To Read")
+                        (org-agenda-sorting-strategy '(priority-down alpha-up))
+                        (org-agenda-prefix-format "  %i "))))
+           ((org-agenda-finalize-hook '(my/agenda-goto-top))))
 
           ;; GTD Full Review with Journal Integration
            ("D" "Dashboard (AR)"
@@ -602,7 +614,6 @@
   ;; GTD-style TODO keywords with PROJECT state
   (setq org-todo-keywords
         '((sequence "TODO(t)" "NEXT(n)" "INPROCESS(i)" "|" "DONE(d)")
-          (sequence "READ(r)" "INPROCESS(i)" "|" "DONE(d)" "CANCELLED(c)")
           (sequence "PROJECT(p)" "|" "DONE(d)" "CANCELLED(c)")
           (sequence "WAITING(w)" "DELEGATED(D)" "HOLD(h)" "|" "CANCELLED(c)")))
 
@@ -613,7 +624,6 @@
   (setq org-todo-keyword-faces
         '(("NEXT" :inherit warning)
           ("INPROCESS" :inherit success)
-          ("READ" :inherit font-lock-doc-face)
           ("PROJECT" :inherit font-lock-string-face)
           ("WAITING" :inherit font-lock-keyword-face)
           ("HOLD" :inherit font-lock-comment-face)))
@@ -759,6 +769,10 @@
             (delete-region beg end)
             (goto-char beg)
             (insert styled))))))
+
+  (defun my/agenda-goto-top ()
+    "Move cursor to the top of the agenda buffer after finalization."
+    (goto-char (point-min)))
 
   (add-hook 'org-agenda-finalize-hook #'my/agenda-apply-bold-prefix)
   (add-hook 'org-agenda-finalize-hook #'my/agenda-style-tags)

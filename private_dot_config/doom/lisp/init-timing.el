@@ -116,10 +116,19 @@
     (when (timerp timer) (cancel-timer timer)))
   (setq my/tmr-countdown-timers nil))
 
+(defun my/tmr-focus-emacs ()
+  "Raise and focus Emacs when a timer finishes."
+  (raise-frame)
+  (when (fboundp 'x-focus-frame)
+    (x-focus-frame (selected-frame)))
+  (when IS-MAC
+    (start-process "focus-emacs" nil "osascript" "-e"
+                   "tell application \"Emacs\" to activate")))
+
 ;; Schedule countdown when timer starts, cancel+stop ticking when finished
 (add-hook 'tmr-timer-created-functions #'my/tmr-schedule-countdown)
 (add-hook 'tmr-timer-finished-functions
-          (lambda (_timer) (my/tmr-cancel-countdown) (my/tick-stop)))
+          (lambda (_timer) (my/tmr-cancel-countdown) (my/tick-stop) (my/tmr-focus-emacs)))
 (add-hook 'tmr-timer-cancelled-functions
           (lambda (_timer) (my/tmr-cancel-countdown) (my/tick-stop)))
 
@@ -155,7 +164,9 @@
       (with-temp-buffer
         (insert-file-contents my/tmr-save-file)
         (goto-char (point-min))
-        (condition-case nil
+        ;; Catch end-of-file (normal loop exit) AND any other errors so
+        ;; delete-file always runs even if a timer entry is malformed.
+        (condition-case err
             (while t
               (let* ((data (read (current-buffer)))
                      (end-time (plist-get data :end))
@@ -185,13 +196,19 @@
                                 :acknowledgep ack
                                 :creation-date (current-time)
                                 :end-date (seconds-to-time end-time)
-                                :input (format "%sm" (round (/ remaining 60.0))))))
+                                :input (format "%ss" (round remaining)))))
                     (setf (tmr--timer-timer-object timer)
                           (run-with-timer remaining nil #'tmr--complete timer))
                     (push timer tmr--timers)
-                    (run-hook-with-args 'tmr-timer-created-functions timer)
+                    ;; Call only our own hooks directly — avoids fragile TMR
+                    ;; internal hooks (e.g. mode-line) that expect a fully
+                    ;; TMR-created struct and can throw errors that prevent
+                    ;; delete-file from running on subsequent restarts.
+                    (my/tmr-schedule-countdown timer)
+                    (my/tick-start)
                     (cl-incf restored))))))
-          (end-of-file nil)))
+          (end-of-file nil)
+          (error (message "TMR restore error: %s" (error-message-string err)))))
       (run-hooks 'tmr--update-hook)
       (when (> restored 0)
         (message "TMR: restored %d timer%s" restored (if (= restored 1) "" "s")))

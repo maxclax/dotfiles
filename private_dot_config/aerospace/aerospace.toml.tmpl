@@ -161,10 +161,11 @@ cmd-ctrl-r = 'mode resize' # in i3
 
 # ---------------------------------------------------------
 [[on-window-detected]]
-if.app-id = 'com.agiletortoise.Drafts-OSX'
-run = "move-node-to-workspace 2"
+if.app-id = 'com.google.Chrome'
+run = "move-node-to-workspace 1"
+
 [[on-window-detected]]
-if.app-id = 'com.electron.logseq'
+if.app-id = 'com.agiletortoise.Drafts-OSX'
 run = "move-node-to-workspace 2"
 [[on-window-detected]]
 if.app-id = 'md.obsidian'
@@ -257,7 +258,7 @@ run = 'move-node-to-workspace 8'
 # https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
 [workspace-to-monitor-force-assignment]
 1 = 1         # Left display
-2 = 'main'    # GTD, Drafts, Logseq
+2 = 'main'    # GTD, Drafts
 # 3 = 'main'  # Browser
 4 = 'main'    # Dev (Emacs F1)
 5 = [4, 3]    # AI GUI chats

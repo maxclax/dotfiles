@@ -1,6 +1,34 @@
 ;;; autoload/text.el -*- lexical-binding: t; -*-
 
 ;;;###autoload
+(defun my/kill-inside-pair ()
+  "Kill content inside the surrounding pair — like vim's ci' / ci\" / ci(."
+  (interactive)
+  (let ((pairs '((?\" . ?\") (?\' . ?\') (?\` . ?\`)
+                 (?\( . ?\)) (?\[ . ?\]) (?\{ . ?\}))))
+    (let ((start nil)
+          (open-char nil)
+          (pos (point)))
+      ;; Search backward for the nearest opening delimiter
+      (save-excursion
+        (while (and (not start) (not (bobp)))
+          (backward-char)
+          (let* ((ch (char-after))
+                 (pair (or (assq ch pairs)
+                           (rassq ch pairs))))
+            (when pair
+              (setq start (point)
+                    open-char (car pair))))))
+      (if (not start)
+          (message "No surrounding pair found")
+        (let ((close-char (cdr (assq open-char pairs))))
+          (goto-char (1+ start))
+          (let ((content-start (point)))
+            (if (search-forward (string close-char) nil t)
+                (kill-region content-start (1- (point)))
+              (message "No closing %c found" close-char))))))))
+
+;;;###autoload
 (defun my/insert-current-time ()
   "Insert current time in [H:M] format."
   (interactive)

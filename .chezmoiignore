@@ -23,7 +23,6 @@ Library/Application\ Support/lazygit/config.yml
 
 {{ if or (not .personal) .ephemeral .headless }}
 .ssh/
-.logseq/
 .claude/
 .config/borgmatic.d
 {{ end }}

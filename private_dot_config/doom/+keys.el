@@ -11,6 +11,7 @@
   (map!
    (:map override
     :desc "Org agenda" "C-c a"           #'org-agenda
+    :desc "Kill inside pair" "C-c d"     #'my/kill-inside-pair
     :desc "Org capture" "C-c x"          #'org-capture
     :desc "Evaluate line/region" "C-c e" #'+eval/line-or-region
     :desc "Winner undo" "C-c <left>"     #'winner-undo
