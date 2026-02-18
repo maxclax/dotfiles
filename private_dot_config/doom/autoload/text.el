@@ -23,9 +23,11 @@
           (message "No surrounding pair found")
         (let ((close-char (cdr (assq open-char pairs))))
           (goto-char (1+ start))
-          (let ((content-start (point)))
+          (let ((inside (point-marker)))
             (if (search-forward (string close-char) nil t)
-                (kill-region content-start (1- (point)))
+                (progn
+                  (kill-region inside (1- (point)))
+                  (goto-char inside))
               (message "No closing %c found" close-char))))))))
 
 ;;;###autoload

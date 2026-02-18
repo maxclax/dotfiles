@@ -11,7 +11,6 @@
   (map!
    (:map override
     :desc "Org agenda" "C-c a"           #'org-agenda
-    :desc "Kill inside pair" "C-c d"     #'my/kill-inside-pair
     :desc "Org capture" "C-c x"          #'org-capture
     :desc "Evaluate line/region" "C-c e" #'+eval/line-or-region
     :desc "Winner undo" "C-c <left>"     #'winner-undo
@@ -32,6 +31,7 @@
      :desc "Evaluate buffer/region" "e" #'+eval/buffer-or-region
      :desc "Format buffer" "f"          #'format-all-buffer
      :desc "Find implementations" "i"   #'+lookup/implementations
+     :desc "Kill inside pair" "k"       #'my/kill-inside-pair
      :desc "Find type definition" "t"   #'+lookup/type-definition)
 
     (:prefix ("C-c f" . "Files")

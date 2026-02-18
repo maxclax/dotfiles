@@ -276,13 +276,14 @@
             (org-agenda-overriding-header "")
             (org-agenda-finalize-hook '(my/agenda-milestones-full))))
 
-          ;; On This Day — journal memories ±5 days
+          ;; On This Day — single day view, navigate with [ / ] / 0
           ("o" "On This Day" agenda ""
            ((org-agenda-span 1)
             (org-agenda-files nil)
             (org-agenda-entry-types nil)
             (org-agenda-overriding-header "")
-            (org-agenda-finalize-hook '(my/agenda-on-this-day-full))))
+            (org-agenda-finalize-hook '((lambda () (setq my/otd-offset 0))
+                                        my/agenda-on-this-day-full))))
 
           ;; Reading List — TODOs and INPROCESS items tagged :read:
           ("r" "Reading List"
@@ -1422,61 +1423,69 @@ Returns list of (years-ago year location body source images)."
             (org-show-entry))
         (message "No source file for this line"))))
 
+  (defvar my/otd-offset 0
+    "Current day offset for On This Day view. 0 = today, -1 = yesterday, etc.")
+
   (defvar my/on-this-day-map
     (let ((map (make-sparse-keymap)))
       (define-key map (kbd "RET") #'my/on-this-day-open-source)
       (define-key map (kbd "TAB") #'my/on-this-day-open-source)
+      (define-key map (kbd "[") (lambda () (interactive) (my/otd-navigate -1)))
+      (define-key map (kbd "]") (lambda () (interactive) (my/otd-navigate 1)))
+      (define-key map (kbd "0") #'my/otd-go-today)
       (define-key map (kbd "q") #'quit-window)
       map)
     "Keymap for On This Day agenda buffer.")
 
+  (defun my/otd-navigate (delta)
+    "Shift On This Day view by DELTA days and redraw."
+    (setq my/otd-offset (+ my/otd-offset delta))
+    (my/agenda-on-this-day-full))
+
+  (defun my/otd-go-today ()
+    "Jump back to today in On This Day view."
+    (interactive)
+    (setq my/otd-offset 0)
+    (my/agenda-on-this-day-full))
+
   (defun my/agenda-on-this-day-full ()
-    "Insert On This Day entries for ±5 days into agenda buffer."
-    (let ((inhibit-read-only t))
+    "Show On This Day for a single day. Navigate with [ / ] / 0."
+    (let* ((inhibit-read-only t)
+           (target-time (time-add (current-time) (days-to-time my/otd-offset)))
+           (month (string-to-number (format-time-string "%m" target-time)))
+           (day (string-to-number (format-time-string "%d" target-time)))
+           (date-str (format-time-string "%A, %B %d" target-time))
+           (is-today (= my/otd-offset 0))
+           (label (cond (is-today (format "☀️ Today — %s" date-str))
+                        ((= my/otd-offset -1) (format "◀ Yesterday — %s" date-str))
+                        ((= my/otd-offset 1) (format "▶ Tomorrow — %s" date-str))
+                        ((< my/otd-offset 0) (format "◀ %d days ago — %s" (abs my/otd-offset) date-str))
+                        (t (format "▶ +%d days — %s" my/otd-offset date-str))))
+           (results (my/on-this-day-for-date month day)))
       (erase-buffer)
       (insert (propertize "📅 On This Day\n" 'face 'org-agenda-structure))
-      (insert (propertize "  RET/TAB to open source, q to quit\n\n"
+      (insert (propertize "  [ prev   ] next   0 today   RET open   q quit\n\n"
                           'face 'font-lock-comment-face))
-      (let ((found-any nil))
-        (dotimes (offset 11)
-          (let* ((day-offset (- offset 5))
-                 (target-time (time-add (current-time) (days-to-time day-offset)))
-                 (month (string-to-number (format-time-string "%m" target-time)))
-                 (day (string-to-number (format-time-string "%d" target-time)))
-                 (date-str (format-time-string "%A, %B %d" target-time))
-                 (is-today (= day-offset 0))
-                 (label (cond (is-today (format "☀️ Today — %s " date-str))
-                              ((= day-offset -1) (format "Yesterday — %s" date-str))
-                              ((= day-offset 1) (format "Tomorrow — %s" date-str))
-                              ((< day-offset 0) (format "%dd ago — %s" (abs day-offset) date-str))
-                              (t (format "+%dd — %s" day-offset date-str))))
-                 (results (my/on-this-day-for-date month day)))
-            (when results
-              (setq found-any t)
-              (insert (propertize (concat label "\n")
-                                  'face (if is-today 'org-agenda-date-today 'org-agenda-date)))
-              (dolist (e results)
-                (let ((source (nth 4 e))
-                      (images (nth 5 e))
-                      (file (nth 6 e))
-                      (pos (nth 7 e))
-                      (entry-start (point)))
-                  (insert (format "  %dy ago (%d)%s " (nth 0 e) (nth 1 e)
-                                  (if (and (nth 2 e) (not (string-empty-p (nth 2 e))))
-                                      (nth 2 e) "")))
-                  (insert (my/on-this-day-source-badge source))
-                  (insert (format "\n  %s\n" (nth 3 e)))
-                  (when images
-                    (insert "  ")
-                    (my/on-this-day-insert-images (seq-take images 2)))
-                  ;; Add text properties for navigation
-                  (put-text-property entry-start (point) 'otd-file file)
-                  (put-text-property entry-start (point) 'otd-pos pos)
-                  (put-text-property entry-start (point) 'keymap my/on-this-day-map)))
-              (insert "\n"))))
-        (unless found-any
-          (insert (propertize "  No memories found for this period yet.\n  Keep journaling!\n"
-                              'face 'font-lock-comment-face))))
+      (insert (propertize (concat label "\n") 'face (if is-today 'org-agenda-date-today 'org-agenda-date)))
+      (if results
+          (dolist (e results)
+            (let ((source (nth 4 e))
+                  (images (nth 5 e))
+                  (file (nth 6 e))
+                  (pos (nth 7 e))
+                  (entry-start (point)))
+              (insert (format "  %dy ago (%d)%s " (nth 0 e) (nth 1 e)
+                              (if (and (nth 2 e) (not (string-empty-p (nth 2 e))))
+                                  (nth 2 e) "")))
+              (insert (my/on-this-day-source-badge source))
+              (insert (format "\n  %s\n" (nth 3 e)))
+              (when images
+                (insert "  ")
+                (my/on-this-day-insert-images (seq-take images 2)))
+              (put-text-property entry-start (point) 'otd-file file)
+              (put-text-property entry-start (point) 'otd-pos pos)
+              (put-text-property entry-start (point) 'keymap my/on-this-day-map)))
+        (insert (propertize "  No memories for this day yet.\n" 'face 'font-lock-comment-face)))
       (use-local-map my/on-this-day-map)
       (goto-char (point-min))))
 

@@ -137,12 +137,11 @@
   "File to persist active TMR timers.")
 
 (defun my/tmr-save-timers ()
-  "Save active (non-finished) timers to disk."
-  (let ((active (seq-remove #'tmr--timer-finishedp tmr--timers)))
-    (when active
+  "Save all timers (active and finished) to disk."
+  (if tmr--timers
       (with-temp-file my/tmr-save-file
         (insert ";; TMR saved timers\n")
-        (dolist (timer active)
+        (dolist (timer tmr--timers)
           (let ((end (float-time (tmr--timer-end-date timer)))
                 (desc (tmr--timer-description timer))
                 (ack (tmr--timer-acknowledgep timer))
@@ -152,10 +151,9 @@
                          :acknowledgep ack
                          :paused (when paused (float-time paused)))
                    (current-buffer))
-            (insert "\n")))))
-    (unless active
-      (when (file-exists-p my/tmr-save-file)
-        (delete-file my/tmr-save-file)))))
+            (insert "\n"))))
+    (when (file-exists-p my/tmr-save-file)
+      (delete-file my/tmr-save-file))))
 
 (defun my/tmr-restore-timers ()
   "Restore saved timers from disk, recreating those still in the future."
@@ -187,6 +185,16 @@
                           (run-with-timer paused-secs nil #'tmr--complete timer))
                     (setf (tmr--timer-paused-remaining timer) paused-secs)
                     (cancel-timer (tmr--timer-timer-object timer))
+                    (push timer tmr--timers)
+                    (cl-incf restored)))
+                 ;; Finished timer — restore as history entry only, no countdown
+                 (ack
+                  (let ((timer (tmr--timer-create
+                                :description desc
+                                :acknowledgep t
+                                :creation-date (current-time)
+                                :end-date (seconds-to-time end-time)
+                                :input "")))
                     (push timer tmr--timers)
                     (cl-incf restored)))
                  ;; Still has time left — restore as active
