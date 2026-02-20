@@ -57,37 +57,10 @@
 ;; Every project must have own workspace
 (setq +workspaces-on-switch-project-behavior t)
 
-;; ── Session persistence (workspaces + frames + windows) ─────────────
-;; persp-mode (Doom workspaces) handles: buffers, workspaces
-;; desktop.el handles: frame positions/sizes across displays, window layout
+;; ── Session persistence (workspaces + windows + buffers) ───────────
+;; persp-mode handles everything: buffers, window splits, workspaces
 (setq persp-auto-resume-time 1)     ;; restore workspaces 1s after startup
 (setq persp-auto-save-opt 1)        ;; auto-save on quit
-
-;; desktop.el — only for frame geometry, not buffers (persp handles those)
-(setq desktop-save t
-      desktop-load-locked-desktop t
-      desktop-auto-save-timeout 60
-      desktop-restore-frames t
-      desktop-restore-in-current-display nil   ;; keep original display positions
-      desktop-restore-forces-onscreen nil      ;; don't clamp to single screen
-      desktop-files-not-to-save "."            ;; don't save any file buffers
-      desktop-buffers-not-to-save "."          ;; skip all buffers (persp does this)
-      desktop-globals-to-save nil)             ;; no variables
-
-;; Ensure frame position/size are preserved (not filtered out)
-(after! frameset
-  (setq frameset-filter-alist
-        (mapcar (lambda (entry)
-                  (if (memq (car entry) '(left top width height))
-                      (cons (car entry) :save)
-                    entry))
-                frameset-filter-alist)))
-
-(add-hook 'doom-first-buffer-hook
-          (lambda ()
-            (desktop-save-mode 1)
-            ;; Load frames after persp has restored workspaces
-            (run-with-timer 3 nil #'desktop-read)))
 
 ;; Enable rainbow-mode globally
 (use-package rainbow-mode

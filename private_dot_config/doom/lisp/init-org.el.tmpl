@@ -577,40 +577,31 @@
 
   (setq org-default-notes-file (expand-file-name "inbox.org" {{ .org_dir | quote }}))
   (setq org-capture-templates
-        '(;; Clean capture templates (no timestamps, links, or content)
-          ("t" "INBOX: Todo (clean)" entry (file org-default-notes-file)
+        '(("t" "Quick todo → inbox.org (no context)" entry (file org-default-notes-file)
            "* TODO %?")
-          ;; Full context capture templates
-          ("c" "INBOX: Todo (full)" entry (file org-default-notes-file)
+          ("c" "Todo with context → inbox.org (adds link + timestamp)" entry (file org-default-notes-file)
            "* TODO %?\n%U\n  %i\n  %a" :clock-resume t)
-          ("P" "PROJECT: ROADMAP" entry (file (lambda ()
+          ("P" "Project task → ROADMAP.org in current project" entry (file (lambda ()
                                                 (if (projectile-project-p)
                                                      (concat (projectile-project-root) "ROADMAP.org")
                                                    (error "Not in a projectile project"))))
            "* TODO %?\n%U\n  %i\n  %a")
-          ;; Journal capture templates
-          ("j" "Journal quick entry" entry (function my/journal-capture-target)
-           "** %?\n%U\n  %i\n  %a" :clock-resume t)
-          ("o" "Journal outcome" entry (function my/journal-capture-target)
-           "- [ ] %?\n" :clock-resume t)
-          ("r" "Journal reflection" entry (function my/journal-capture-target)
-           "** Reflection\n%?\n%U\n" :clock-resume t)
-          ("m" "Milestone" entry (file my/milestones-file)
+          ("j" "Journal todo → today's journal Todos section" entry (file+headline my/today-journal-file "Todos")
+           "* TODO %?" :clock-resume t)
+          ("m" "Milestone → milestones.org (with start date)" entry (file my/milestones-file)
            "* %?\n:PROPERTIES:\n:STARTED: %^{Started}t\n:END:\n"
            :empty-lines 1)))
 
-  ;; Helper function for journal capture
-  (defun my/journal-capture-target ()
-    "Return today's journal file or create it."
+  ;; Return path to today's journal file (used as file+headline capture target)
+  (defun my/today-journal-file ()
+    "Return path to today's journal file, creating it if needed."
     (let* ((today (format-time-string "%Y%m%dT%H%M%S"))
            (date-title (format-time-string "%Y-%m-%d"))
            (journal-dir (expand-file-name "journal" {{ .org_dir | quote }}))
            (today-file (car (directory-files journal-dir t (format-time-string "%Y-%m-%d")))))
       (or today-file
-          (expand-file-name (format "%s--%s__journal.org"
-                                     today
-                                     date-title)
-                             journal-dir))))
+          (expand-file-name (format "%s--%s__journal.org" today date-title)
+                            journal-dir))))
 
   ;; GTD-style TODO keywords with PROJECT state
   (setq org-todo-keywords
