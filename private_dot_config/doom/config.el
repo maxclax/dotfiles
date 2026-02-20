@@ -20,6 +20,7 @@
 (load! "lisp/init-private.el")
 (load! "lisp/init-tramp.el")
 (load! "lisp/init-docker.el")
+(load! "lisp/init-casual.el")
 (load! "+misc")
 (load! "+ui")
 (load! "+keys")

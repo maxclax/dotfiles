@@ -145,10 +145,12 @@
           (let ((end (float-time (tmr--timer-end-date timer)))
                 (desc (tmr--timer-description timer))
                 (ack (tmr--timer-acknowledgep timer))
+                (finished (tmr--timer-finishedp timer))
                 (paused (tmr--timer-paused-remaining timer)))
             (prin1 (list :end end
                          :description desc
                          :acknowledgep ack
+                         :finishedp finished
                          :paused (when paused (float-time paused)))
                    (current-buffer))
             (insert "\n"))))
@@ -170,6 +172,7 @@
                      (end-time (plist-get data :end))
                      (desc (plist-get data :description))
                      (ack (plist-get data :acknowledgep))
+                     (finished (plist-get data :finishedp))
                      (paused-secs (plist-get data :paused))
                      (remaining (- end-time (float-time))))
                 (cond
@@ -187,11 +190,12 @@
                     (cancel-timer (tmr--timer-timer-object timer))
                     (push timer tmr--timers)
                     (cl-incf restored)))
-                 ;; Finished timer — restore as history entry only, no countdown
-                 (ack
+                 ;; Finished timer (acknowledged or finishedp) — restore as history only
+                 ((or ack finished)
                   (let ((timer (tmr--timer-create
                                 :description desc
                                 :acknowledgep t
+                                :finishedp t
                                 :creation-date (current-time)
                                 :end-date (seconds-to-time end-time)
                                 :input "")))

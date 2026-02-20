@@ -71,6 +71,14 @@
 (package! tmr)                        ; TMR May Ring (tmr)
 
 ;; =====================================================================
+;; CASUAL — TRANSIENT MENUS FOR BUILT-IN MODES
+;; =====================================================================
+;; C-o opens contextual menu in: dired, ibuffer, isearch, agenda, calc, info
+;; → lisp/init-casual.el
+
+(package! casual)                     ; Keyboard-driven menus via Transient
+
+;; =====================================================================
 ;; UI ENHANCEMENT & VISUAL TOOLS
 ;; =====================================================================
 
