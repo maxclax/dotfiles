@@ -215,6 +215,3 @@
        ;; (default +bindings +smartparens))
        (default +smartparens))
 
-;; :private
-;; my-python
-;; my-checker)
