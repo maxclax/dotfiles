@@ -16,6 +16,9 @@
   ;; Force single workspace per project
   (setq lsp-auto-guess-root nil)
   (setq lsp-restart 'auto-restart)
+
+  ;; Prevent ruff from spanning multiple projects in one server instance
+  (setq lsp-ruff-multi-root nil)
   
   ;; Disable LSP diagnostics completely
   (setq lsp-diagnostics-provider :none)         ; Disable LSP diagnostics
@@ -25,8 +28,8 @@
   (setq lsp-signature-auto-activate nil)        ; Disable signature help
   (setq lsp-signature-render-documentation nil) ; Disable signature docs
   
-  ;; Configure LSP completion for corfu
-  (setq lsp-completion-provider :capf) ; Use completion-at-point-functions
+  ;; Let Doom's corfu module own completion wiring (avoids company-mode warnings)
+  (setq lsp-completion-provider :none)
   
   ;; Configure completion settings for better import suggestions
   (setq lsp-completion-enable t

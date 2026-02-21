@@ -21,9 +21,13 @@
 (load! "lisp/init-tramp.el")
 (load! "lisp/init-docker.el")
 (load! "lisp/init-casual.el")
+(load! "lisp/init-django.el")
 (load! "+misc")
 (load! "+ui")
 (load! "+keys")
+
+;; Disable flymake in .env files (no linting needed for env var files)
+(add-hook 'dotenv-mode-hook (lambda () (flymake-mode -1)))
 
 ;; delete to trash
 (setq delete-by-moving-to-trash t)

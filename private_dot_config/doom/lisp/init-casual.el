@@ -18,6 +18,11 @@
      ((derived-mode-p 'org-mode)        (casual-org-tmenu))
      ((derived-mode-p 'calc-mode)       (casual-calc-tmenu))
      ((derived-mode-p 'Info-mode)       (casual-info-tmenu))
+     ((derived-mode-p 'help-mode)       (casual-help-tmenu))
+     ((derived-mode-p 'makefile-mode)   (casual-make-tmenu))
+     ((derived-mode-p 'css-mode)        (casual-css-tmenu))
+     ((derived-mode-p 'web-mode)        (casual-html-tmenu))
+     ((derived-mode-p 'html-mode)       (casual-html-tmenu))
      (t                                 (casual-editkit-main-tmenu))))
 
   ;; Single global binding — context-aware
@@ -28,6 +33,10 @@
 
   ;; calc-alg-map only exists after calc loads
   (with-eval-after-load 'calc
-    (keymap-set calc-alg-map "C-o" #'casual-calc-tmenu)))
+    (keymap-set calc-alg-map "C-o" #'casual-calc-tmenu))
+
+  ;; ediff has its own control buffer keymap, not a standard major mode
+  (with-eval-after-load 'ediff
+    (keymap-set ediff-mode-map "C-o" #'casual-ediff-tmenu)))
 
 (provide 'init-casual)
