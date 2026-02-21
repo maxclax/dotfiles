@@ -113,6 +113,16 @@ With namespace, finds the urls.py with matching app_name first."
            (not (string-match-p "/" thing)))       (my/django-open-module-at-point))
      (t                                            (my/django-open-url-at-point)))))
 
+(after! dape
+  (add-to-list 'dape-configs
+    '(django-attach
+      modes (python-mode python-ts-mode)
+      host "localhost"
+      port 5678
+      :request "attach"
+      :type "python"
+      :pathMappings [(:localRoot dape-cwd :remoteRoot "/usr/src/app")])))
+
 (defun my/django-project-p ()
   "Return non-nil if the current buffer is inside a Django project.
 Detected by the presence of manage.py at the project root."
