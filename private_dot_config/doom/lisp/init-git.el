@@ -80,7 +80,13 @@
                           'magit-insert-stashes t)
 
   ;; Auto-save WIP to hidden refs — never lose uncommitted work
-  (magit-wip-mode 1))
+  (magit-wip-mode 1)
+
+  ;; Fetch remotes silently when opening magit status, so unpulled sections
+  ;; and the doom-modeline ↓N indicator reflect actual remote state.
+  (add-hook 'magit-status-mode-hook
+            (lambda ()
+              (start-process "magit-fetch" nil "git" "fetch" "--all" "--quiet"))))
 
 (use-package! magit-delta
   :after magit
