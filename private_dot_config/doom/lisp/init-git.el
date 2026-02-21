@@ -46,7 +46,6 @@
           magit-insert-untracked-files
           magit-insert-unstaged-changes
           magit-insert-staged-changes
-          magit-insert-modules
           magit-insert-stashes
           magit-insert-unpushed-to-pushremote
           magit-insert-unpushed-to-upstream
@@ -71,6 +70,14 @@
         
         ;; Show branch information
         magit-status-show-hashes-in-headers t)
+
+  ;; Submodule sections — overview + unpulled only (no duplicate @{push})
+  (magit-add-section-hook 'magit-status-sections-hook
+                          'magit-insert-modules-overview
+                          'magit-insert-stashes t)
+  (magit-add-section-hook 'magit-status-sections-hook
+                          'magit-insert-modules-unpulled-from-upstream
+                          'magit-insert-stashes t)
 
   ;; Auto-save WIP to hidden refs — never lose uncommitted work
   (magit-wip-mode 1))
