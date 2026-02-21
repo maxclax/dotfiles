@@ -81,6 +81,38 @@ With namespace, finds the urls.py with matching app_name first."
 
 
 
+(defun my/django-open-module-at-point ()
+  "Open the Python module file at point."
+  (interactive)
+  (let* ((module (save-excursion
+                   (skip-chars-backward "a-zA-Z0-9_.")
+                   (let ((start (point)))
+                     (skip-chars-forward "a-zA-Z0-9_.")
+                     (buffer-substring-no-properties start (point)))))
+         (root (string-remove-suffix "/" (projectile-project-root)))
+         (path (concat (replace-regexp-in-string "\\." "/" module) ".py"))
+         (full-path (expand-file-name path root)))
+    (if (file-exists-p full-path)
+        (find-file full-path)
+      (user-error "Module not found: %s" full-path))))
+
+(defun my/django-open-at-point ()
+  "Smart open: detect what's at point and navigate to the right Django resource."
+  (interactive)
+  (let ((thing (or (thing-at-point 'filename t)
+                   (save-excursion
+                     (skip-chars-backward "a-zA-Z0-9_.")
+                     (let ((start (point)))
+                       (skip-chars-forward "a-zA-Z0-9_.")
+                       (buffer-substring-no-properties start (point)))))))
+    (cond
+     ((string-match-p "\\.html?\\'" thing)        (my/django-open-template-at-point))
+     ((string-match-p "\\.(png\\|jpg\\|jpeg\\|gif\\|svg\\|css\\|js\\|ico\\|woff2?\\|ttf)\\'" thing)
+                                                   (my/django-open-static-at-point))
+     ((and (string-match-p "\\." thing)
+           (not (string-match-p "/" thing)))       (my/django-open-module-at-point))
+     (t                                            (my/django-open-url-at-point)))))
+
 (defun my/django-project-p ()
   "Return non-nil if the current buffer is inside a Django project.
 Detected by the presence of manage.py at the project root."
@@ -114,9 +146,11 @@ Activated automatically in any project containing manage.py."
                     lsp-pyright-multi-root      nil
                     lsp-pyright-diagnostic-mode "workspace"))
       ;; Navigation keys
+      (local-set-key (kbd "C-c c o o") #'my/django-open-at-point)
       (local-set-key (kbd "C-c c o t") #'my/django-open-template-at-point)
       (local-set-key (kbd "C-c c o s") #'my/django-open-static-at-point)
-      (local-set-key (kbd "C-c c o u") #'my/django-open-url-at-point))))
+      (local-set-key (kbd "C-c c o u") #'my/django-open-url-at-point)
+      (local-set-key (kbd "C-c c o m") #'my/django-open-module-at-point))))
 
 (dolist (hook '(python-mode-hook
                 python-ts-mode-hook
