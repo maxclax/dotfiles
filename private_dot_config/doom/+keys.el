@@ -78,7 +78,7 @@
               :desc "List processes" "l"      #'list-processes
               :desc "Prodigy" "p"             #'prodigy)
              (:prefix ("s" . "Shell")
-              :desc "Chezmoi apply" "c" (lambda () (interactive) (compile "cd ~/ && chezmoi apply")))
+              :desc "Chezmoi apply" "c" (lambda () (interactive) (let ((compilation-buffer-name-function nil)) (compile "chezmoi apply"))))
              :desc "Reset checklist" "r"       #'my/org-reset-checklist
              :desc "Insert TODO" "t"          #'hl-todo-insert
              :desc "Align regexp" "x"         #'align-regexp)
