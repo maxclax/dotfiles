@@ -119,3 +119,4 @@
 (package! restclient)                 ; HTTP requests testing and API exploration
 (package! verb)                       ; HTTP client integrated with org-mode
 (package! eat)                        ; Terminal emulator package for running shells
+(package! magit-delta)                ; Delta syntax highlighting in Magit diffs

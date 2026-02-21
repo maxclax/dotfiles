@@ -25,6 +25,9 @@
         magit-log-auto-more nil
         magit-log-show-margin nil
         
+        ;; Word-level diff highlighting in all hunks
+        magit-diff-refine-hunk 'all
+
         ;; Faster diffs
         magit-diff-highlight-hunk-region-functions nil
         magit-diff-paint-whitespace nil
@@ -43,6 +46,7 @@
           magit-insert-untracked-files
           magit-insert-unstaged-changes
           magit-insert-staged-changes
+          magit-insert-modules
           magit-insert-stashes
           magit-insert-unpushed-to-pushremote
           magit-insert-unpushed-to-upstream
@@ -66,4 +70,11 @@
           magit-insert-tags-header)
         
         ;; Show branch information
-        magit-status-show-hashes-in-headers t))
+        magit-status-show-hashes-in-headers t)
+
+  ;; Auto-save WIP to hidden refs — never lose uncommitted work
+  (magit-wip-mode 1))
+
+(use-package! magit-delta
+  :after magit
+  :hook (magit-mode . magit-delta-mode))
