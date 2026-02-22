@@ -26,13 +26,17 @@
     ;;  :desc "Previous fold" "C-p"       #'+fold/previous)
 
     (:prefix ("C-c c" . "Code")
+     :desc "LSP: Code action" "a"        #'lsp-execute-code-action
      :desc "Jump to definition" "d"     #'+lookup/definition
      :desc "Jump to references" "D"     #'+lookup/references
      :desc "Evaluate buffer/region" "e" #'+eval/buffer-or-region
      :desc "Format buffer" "f"          #'format-all-buffer
      :desc "Find implementations" "i"   #'+lookup/implementations
      :desc "Kill inside pair" "k"       #'my/kill-inside-pair
-     :desc "Find type definition" "t"   #'+lookup/type-definition)
+     :desc "LSP: Organize imports" "o"  #'lsp-organize-imports
+     :desc "LSP: Rename symbol" "r"     #'lsp-rename
+     :desc "Find type definition" "t"   #'+lookup/type-definition
+     :desc "LSP: Restart workspace" "R" #'lsp-workspace-restart)
 
     (:prefix ("C-c f" . "Files")
      :desc "Copy this file" "C"           #'doom/copy-this-file
