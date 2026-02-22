@@ -121,3 +121,4 @@
 (package! eat)                        ; Terminal emulator package for running shells
 (package! magit-delta)                ; Delta syntax highlighting in Magit diffs
 (package! browse-kill-ring)           ; Visual kill ring browser
+(package! dimmer)                     ; Dim inactive windows for focus

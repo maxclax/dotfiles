@@ -79,6 +79,17 @@
             (desktop-save-mode 1)
             (run-with-timer 3 nil #'desktop-read)))
 
+;; Dim inactive windows for visual focus feedback
+(use-package! dimmer
+  :config
+  (setq-default dimmer-fraction 0.15)
+  ;; Re-process all windows after theme changes
+  (advice-add 'frame-set-background-mode :after (lambda (&rest _) (dimmer-process-all)))
+  ;; Skip dimming in terminal frames — poor contrast with 256 colours
+  (defun my/dimmer-exclude-terminal-p () (not (display-graphic-p)))
+  (add-to-list 'dimmer-exclusion-predicates #'my/dimmer-exclude-terminal-p)
+  (dimmer-mode 1))
+
 ;; Enable rainbow-mode globally
 (use-package rainbow-mode
   :hook ((prog-mode text-mode conf-mode) . rainbow-mode))
