@@ -1,0 +1,5 @@
+{{- if not .extraUser }}
+imports:
+  - "{{ .chezmoi.homeDir }}/.local/extra-configs/espanso/default.yml"
+  - "{{ .chezmoi.homeDir }}/.local/extra-configs/espanso/private.yml"
+{{- end }}

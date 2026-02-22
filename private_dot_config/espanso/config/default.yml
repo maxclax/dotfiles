@@ -1,0 +1,7 @@
+# espanso configuration file
+
+# For a complete introduction, visit the official docs at: https://espanso.org/docs/
+
+search_shortcut: SHIFT+CMD+E
+search_trigger: ":search"
+show_icon: true

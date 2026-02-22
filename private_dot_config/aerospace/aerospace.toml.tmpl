@@ -189,7 +189,6 @@ run = "move-node-to-workspace 3"
 if.app-id = "org.gnu.Emacs"
 run = "move-node-to-workspace 4"
 
-
 [[on-window-detected]]
 if.app-id = 'xyz.chatboxapp.app'
 run = "move-node-to-workspace 5"
@@ -230,6 +229,9 @@ run = ["layout tiling", "move-node-to-workspace I"]
 
 # ---------------------------------------------------------
 
+[[on-window-detected]]
+if.app-id = "com.federicoterzi.espanso"
+run = ["layout floating"]
 [[on-window-detected]]
 if.app-id = "com.noodlesoft.Hazel"
 run = ["layout floating"]

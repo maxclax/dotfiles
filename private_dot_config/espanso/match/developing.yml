@@ -1,0 +1,72 @@
+name: developing
+parent: default
+
+matches:
+  # Docker: stop rm all
+  - trigger: "'drm"
+    replace: "make rm_a"
+
+  # Docker: docker rmi -f $(docker images -a -q)
+  - trigger: ";dri"
+    replace: "docker rmi -f $(docker images -a -q)"
+
+  # Docker: docker-compose up -d
+  - trigger: ";dcu"
+    replace: "docker-compose up -d"
+
+  # Docker: make dcr
+  - trigger: ";dcr"
+    replace: "make dcr"
+
+  # Docker: make rm
+  - trigger: ";drm"
+    replace: "make rm"
+
+
+  # Docker: stop rm all containers
+  - trigger: ";dsra"
+    replace: "docker stop $(docker ps -aq); docker rm $(docker ps -a -q);"
+
+  # Python: pp locals()
+  - trigger: ";ppl"
+    replace: "pp locals()"
+
+  # Python: import ipdb; ipdb.set_trace()
+  - trigger: ";ipd"
+    replace: "import ipdb; ipdb.set_trace()"
+
+  # Commit snippets with list selection
+  - trigger: ";cmt"
+    form: |
+      [[message]]
+    form_fields:
+      message:
+        type: list
+        values:
+          - "dev: Update submodule to latest commit"
+          - "dev: Update dependencies"
+          - "dev: Update configuration"
+
+  # Conventional Commit Messages with form selection
+  - trigger: ";ccm"
+    form: |
+      [[type]]: [[message]]
+    form_fields:
+      type:
+        type: list
+        values:
+          - dev
+          - docs
+          - feat
+          - fix
+          - nit
+          - perf
+          - refactor
+          - revert
+          - test
+          - tweak
+      message:
+        type: text
+        multiline: false
+        hint: "commit message"
+        required: true
