@@ -120,3 +120,4 @@
 (package! verb)                       ; HTTP client integrated with org-mode
 (package! eat)                        ; Terminal emulator package for running shells
 (package! magit-delta)                ; Delta syntax highlighting in Magit diffs
+(package! browse-kill-ring)           ; Visual kill ring browser

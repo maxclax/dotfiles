@@ -3,5 +3,15 @@
 (use-package consult-todo
   :defer t)
 
+(use-package! browse-kill-ring
+  :bind ("M-Y" . browse-kill-ring)
+  :config
+  (setq browse-kill-ring-separator "\f")  ; page-break line between entries
+  (after! page-break-lines
+    (add-to-list 'page-break-lines-modes 'browse-kill-ring-mode))
+  (define-key browse-kill-ring-mode-map (kbd "C-g") #'browse-kill-ring-quit)
+  (define-key browse-kill-ring-mode-map (kbd "M-n") #'browse-kill-ring-forward)
+  (define-key browse-kill-ring-mode-map (kbd "M-p") #'browse-kill-ring-previous))
+
 (use-package! screenshot
   :defer t)
