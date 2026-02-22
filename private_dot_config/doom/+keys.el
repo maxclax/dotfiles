@@ -177,6 +177,7 @@
      :desc "Read-only" "r"             #'read-only-mode
      :desc "Soft line wrapping" "w"    #'+word-wrap-mode
      :desc "Copilot" "a"               #'copilot-mode
+     :desc "Prose mode" "P"             #'prose-mode
      :desc "Zen mode" "z"              #'+zen/toggle
      :desc "Zen mode (fullscreen)" "Z" #'+zen/toggle-fullscreen
      (:prefix ("T" . "Pomodoro")
