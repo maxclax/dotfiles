@@ -125,3 +125,5 @@
 (package! ipretty)                    ; Pretty-print Elisp eval results
 (package! macrostep)                  ; Inline macro expansion viewer
 (package! symbol-overlay)             ; Highlight and navigate symbol occurrences
+(package! org-cliplink)               ; Paste URL as org link fetching page title
+(package! grab-mac-link)              ; Grab link from macOS browser/app into org

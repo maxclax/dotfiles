@@ -1787,5 +1787,18 @@ Shows results in a navigable buffer with dates, locations, body, and images."
 
       (message "Reset %d TODO items and %d checkboxes" todo-count checkbox-count))))
 
+;; ── Link capture ──────────────────────────────────────────────────────────────
+;; org-cliplink: paste URL from clipboard as [[url][page title]] org link
+(use-package! org-cliplink
+  :after org
+  :bind (:map org-mode-map
+         ("C-c i L" . org-cliplink)))
+
+;; grab-mac-link: capture link from frontmost macOS browser/app
+(when (featurep :system 'macos)
+  (use-package! grab-mac-link
+    :after org
+    :bind (:map org-mode-map
+           ("C-c g" . grab-mac-link))))
 
 (provide 'init-org)
