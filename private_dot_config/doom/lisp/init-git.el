@@ -51,7 +51,8 @@
           magit-insert-unpushed-to-upstream
           magit-insert-unpulled-from-pushremote
           magit-insert-unpulled-from-upstream
-          magit-insert-recent-commits)
+          magit-insert-recent-commits
+          magit-insert-local-branches)
         
         ;; Show recent commits in log
         magit-log-section-commit-count 10
@@ -63,9 +64,11 @@
         magit-status-headers-hook
         '(magit-insert-error-header
           magit-insert-diff-filter-header
+          magit-insert-repo-header
           magit-insert-head-branch-header
           magit-insert-upstream-branch-header
           magit-insert-push-branch-header
+          magit-insert-remote-header
           magit-insert-tags-header)
         
         ;; Show branch information
@@ -82,11 +85,16 @@
   ;; Auto-save WIP to hidden refs — never lose uncommitted work
   (magit-wip-mode 1)
 
-  ;; Fetch remotes silently when opening magit status, so unpulled sections
-  ;; and the doom-modeline ↓N indicator reflect actual remote state.
-  (add-hook 'magit-status-mode-hook
-            (lambda ()
-              (start-process "magit-fetch" nil "git" "fetch" "--all" "--quiet"))))
+  ;; Fetch remotes when opening magit status. Async — magit refreshes after
+  ;; fetch completes so unpulled sections show real remote state.
+  (defadvice! my/magit-fetch-on-status (&rest _)
+    :before #'magit-status
+    (when (magit-toplevel)
+      (let ((proc (start-process "magit-fetch" nil "git" "fetch" "--all" "--quiet")))
+        (set-process-sentinel proc
+          (lambda (_proc event)
+            (when (string-match-p "finished" event)
+              (magit-refresh-all))))))))
 
 (use-package! magit-delta
   :after magit
