@@ -15,3 +15,14 @@
 
 (use-package! screenshot
   :defer t)
+
+;; Pretty-print Elisp eval output (C-x C-e, M-:)
+(use-package! ipretty
+  :config
+  (ipretty-mode 1))
+
+;; Inline macro expansion in emacs-lisp buffers
+(use-package! macrostep
+  :after elisp-mode
+  :bind (:map emacs-lisp-mode-map
+         ("C-c m" . macrostep-expand)))
