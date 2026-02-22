@@ -1792,13 +1792,6 @@ Shows results in a navigable buffer with dates, locations, body, and images."
 (use-package! org-cliplink
   :after org
   :bind (:map org-mode-map
-         ("C-c i L" . org-cliplink)))
-
-;; grab-mac-link: capture link from frontmost macOS browser/app
-(when (featurep :system 'macos)
-  (use-package! grab-mac-link
-    :after org
-    :bind (:map org-mode-map
-           ("C-c g" . grab-mac-link))))
+         ("C-c i l" . org-cliplink)))
 
 (provide 'init-org)

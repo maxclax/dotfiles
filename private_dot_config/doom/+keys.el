@@ -51,7 +51,7 @@
      :desc "Emoji" "e"                        #'emoji-insert
      :desc "Current file name" "f"            #'+default/insert-filename
      :desc "Current file path" "F"            #'+default/insert-filepath
-     :desc "Insert shell link" "l"           #'my/insert-shell-link
+     :desc "Insert shell link" "L"           #'my/insert-shell-link
      :desc "Current time [H:M]" "t"           #'my/insert-current-time
      (:prefix ("j" . "Journal")
       :desc "Start journal log entry" "s"     #'my/journal-log-start
