@@ -83,7 +83,7 @@
 
   ;; Show date in right margin of status buffer recent commits section.
   ;; magit-status-margin is separate from magit-log-margin (log buffers only).
-  (customize-set-variable 'magit-status-margin '(t "%Y-%m-%d" magit-log-margin-width nil 0))
+  (customize-set-variable 'magit-status-margin '(t "%Y-%m-%d %H:%M" magit-log-margin-width nil 0))
 
   ;; Auto-save WIP to hidden refs — never lose uncommitted work
   (magit-wip-mode 1)
