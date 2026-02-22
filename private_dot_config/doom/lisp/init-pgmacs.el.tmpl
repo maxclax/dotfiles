@@ -4,10 +4,7 @@
 ;; PostgreSQL client configuration using pgmacs
 
 (use-package! pgmacs
-  :defer t
-  :config
-  ;; Enable syntax highlighting for SQL
-  (add-hook 'pgmacs-mode-hook #'sql-mode))
+  :defer t)
 
 ;; Function to quickly connect to PostgreSQL (interactive)
 (defun my/pgmacs-connect ()
@@ -25,6 +22,6 @@
 (defun my/pgmacs-connect-uri ()
   "Connect to PostgreSQL using URI format."
   (interactive)
-  (pgmacs-open-uri "postgresql://postgres@localhost:5432/postgres"))
+  (pgmacs-open-uri "postgresql://postgres:postgres@localhost:5432/postgres"))
 
 (provide 'init-pgmacs)

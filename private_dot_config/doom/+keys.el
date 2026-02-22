@@ -80,6 +80,8 @@
               :desc "Prodigy" "p"             #'prodigy)
              (:prefix ("s" . "Shell")
               :desc "Chezmoi apply" "c" (lambda () (interactive) (let ((compilation-buffer-name-function nil)) (compile "chezmoi apply"))))
+             (:prefix ("d" . "Database")
+              :desc "pgmacs browser" "m"         #'my/pgmacs-connect-uri)
              :desc "Reset checklist" "r"       #'my/org-reset-checklist
              :desc "Insert TODO" "t"          #'hl-todo-insert
              :desc "Align regexp" "x"         #'align-regexp)
