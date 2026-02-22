@@ -58,26 +58,9 @@
 (setq +workspaces-on-switch-project-behavior t)
 
 ;; ── Session persistence ──────────────────────────────────────────────
-;; persp-mode handles: buffers, window splits, workspaces
-;; desktop.el handles: frame count + geometry (separate OS windows)
+;; persp-mode handles everything: buffers, window splits, workspaces
 (setq persp-auto-resume-time 1)     ;; restore workspaces 1s after startup
 (setq persp-auto-save-opt 1)        ;; auto-save on quit
-
-;; desktop.el — only restores frame count/positions, not buffers or splits
-(setq desktop-save t
-      desktop-load-locked-desktop t
-      desktop-auto-save-timeout 60
-      desktop-restore-frames t
-      desktop-restore-in-current-display nil
-      desktop-restore-forces-onscreen nil
-      desktop-files-not-to-save "."     ;; skip file buffers (persp handles)
-      desktop-buffers-not-to-save "."   ;; skip all buffers (persp handles)
-      desktop-globals-to-save nil)      ;; no variables
-
-(add-hook 'doom-first-buffer-hook
-          (lambda ()
-            (desktop-save-mode 1)
-            (run-with-timer 3 nil #'desktop-read)))
 
 ;; Dim inactive windows for visual focus feedback
 (use-package! dimmer

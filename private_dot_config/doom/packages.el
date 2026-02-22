@@ -67,7 +67,6 @@
 ;; Time tracking and productivity enhancement tools
 ;; → lisp/init-timing.el
 
-(package! pomm)                       ; Pomodoro timer and productivity tracker
 (package! tmr)                        ; TMR May Ring (tmr)
 
 ;; =====================================================================

@@ -116,117 +116,24 @@
     (when (timerp timer) (cancel-timer timer)))
   (setq my/tmr-countdown-timers nil))
 
-(defun my/tmr-focus-emacs ()
-  "Raise and focus Emacs when a timer finishes."
-  (raise-frame)
-  (when (fboundp 'x-focus-frame)
-    (x-focus-frame (selected-frame)))
-  (when IS-MAC
-    (start-process "focus-emacs" nil "osascript" "-e"
-                   "tell application \"Emacs\" to activate")))
+(defun my/tmr-notify (timer)
+  "Show macOS notification and raise Emacs when TIMER finishes."
+  (let ((desc (or (tmr--timer-description timer) "Timer")))
+    ;; macOS notification banner
+    (start-process "tmr-notify" nil "osascript" "-e"
+                   (format "display notification \"%s finished\" with title \"TMR\" sound name \"Glass\""
+                           desc))
+    ;; Raise Emacs window
+    (raise-frame)
+    (when IS-MAC
+      (start-process "focus-emacs" nil "osascript" "-e"
+                     "tell application \"Emacs\" to activate"))))
 
 ;; Schedule countdown when timer starts, cancel+stop ticking when finished
 (add-hook 'tmr-timer-created-functions #'my/tmr-schedule-countdown)
 (add-hook 'tmr-timer-finished-functions
-          (lambda (_timer) (my/tmr-cancel-countdown) (my/tick-stop) (my/tmr-focus-emacs)))
+          (lambda (timer) (my/tmr-cancel-countdown) (my/tick-stop) (my/tmr-notify timer)))
 (add-hook 'tmr-timer-cancelled-functions
           (lambda (_timer) (my/tmr-cancel-countdown) (my/tick-stop)))
-
-;; ── Timer persistence across restarts ───────────────────────────────
-(defvar my/tmr-save-file (expand-file-name "tmr-timers.el" doom-cache-dir)
-  "File to persist active TMR timers.")
-
-(defun my/tmr-save-timers ()
-  "Save all timers (active and finished) to disk."
-  (if tmr--timers
-      (with-temp-file my/tmr-save-file
-        (insert ";; TMR saved timers\n")
-        (dolist (timer tmr--timers)
-          (let ((end (float-time (tmr--timer-end-date timer)))
-                (desc (tmr--timer-description timer))
-                (ack (tmr--timer-acknowledgep timer))
-                (finished (tmr--timer-finishedp timer))
-                (paused (tmr--timer-paused-remaining timer)))
-            (prin1 (list :end end
-                         :description desc
-                         :acknowledgep ack
-                         :finishedp finished
-                         :paused (when paused (float-time paused)))
-                   (current-buffer))
-            (insert "\n"))))
-    (when (file-exists-p my/tmr-save-file)
-      (delete-file my/tmr-save-file))))
-
-(defun my/tmr-restore-timers ()
-  "Restore saved timers from disk, recreating those still in the future."
-  (when (file-exists-p my/tmr-save-file)
-    (let ((restored 0))
-      (with-temp-buffer
-        (insert-file-contents my/tmr-save-file)
-        (goto-char (point-min))
-        ;; Catch end-of-file (normal loop exit) AND any other errors so
-        ;; delete-file always runs even if a timer entry is malformed.
-        (condition-case err
-            (while t
-              (let* ((data (read (current-buffer)))
-                     (end-time (plist-get data :end))
-                     (desc (plist-get data :description))
-                     (ack (plist-get data :acknowledgep))
-                     (finished (plist-get data :finishedp))
-                     (paused-secs (plist-get data :paused))
-                     (remaining (- end-time (float-time))))
-                (cond
-                 ;; Paused timer — restore as paused
-                 (paused-secs
-                  (let ((timer (tmr--timer-create
-                                :description desc
-                                :acknowledgep ack
-                                :creation-date (current-time)
-                                :end-date (time-add (current-time) paused-secs)
-                                :input (format "%ss" (round paused-secs)))))
-                    (setf (tmr--timer-timer-object timer)
-                          (run-with-timer paused-secs nil #'tmr--complete timer))
-                    (setf (tmr--timer-paused-remaining timer) paused-secs)
-                    (cancel-timer (tmr--timer-timer-object timer))
-                    (push timer tmr--timers)
-                    (cl-incf restored)))
-                 ;; Finished timer (acknowledged or finishedp) — restore as history only
-                 ((or ack finished)
-                  (let ((timer (tmr--timer-create
-                                :description desc
-                                :acknowledgep t
-                                :finishedp t
-                                :creation-date (current-time)
-                                :end-date (seconds-to-time end-time)
-                                :input "")))
-                    (push timer tmr--timers)
-                    (cl-incf restored)))
-                 ;; Still has time left — restore as active
-                 ((> remaining 1)
-                  (let ((timer (tmr--timer-create
-                                :description desc
-                                :acknowledgep ack
-                                :creation-date (current-time)
-                                :end-date (seconds-to-time end-time)
-                                :input (format "%ss" (round remaining)))))
-                    (setf (tmr--timer-timer-object timer)
-                          (run-with-timer remaining nil #'tmr--complete timer))
-                    (push timer tmr--timers)
-                    ;; Call only our own hooks directly — avoids fragile TMR
-                    ;; internal hooks (e.g. mode-line) that expect a fully
-                    ;; TMR-created struct and can throw errors that prevent
-                    ;; delete-file from running on subsequent restarts.
-                    (my/tmr-schedule-countdown timer)
-                    (my/tick-start)
-                    (cl-incf restored))))))
-          (end-of-file nil)
-          (error (message "TMR restore error: %s" (error-message-string err)))))
-      (run-hooks 'tmr--update-hook)
-      (when (> restored 0)
-        (message "TMR: restored %d timer%s" restored (if (= restored 1) "" "s")))
-      (delete-file my/tmr-save-file))))
-
-(add-hook 'kill-emacs-hook #'my/tmr-save-timers)
-(add-hook 'doom-first-buffer-hook #'my/tmr-restore-timers)
 
 (provide 'init-timing)

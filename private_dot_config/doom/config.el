@@ -7,7 +7,6 @@
 (load! "lisp/init-reading.el")
 (load! "lisp/init-git.el")
 (load! "lisp/init-org.el")
-(load! "lisp/init-pomodoro.el")
 (load! "lisp/init-timing.el")
 (load! "lisp/init-bibliography.el")
 (load! "lisp/init-ai.el")

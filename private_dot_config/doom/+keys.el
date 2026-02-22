@@ -39,9 +39,10 @@
      :desc "Delete this file" "d"         #'doom/delete-this-file
      :desc "Kill (copy) filename" "k"     #'my/kill-buffer-filename
      :desc "Kill (copy) full path" "K"    #'my/kill-buffer-filepath
-     :desc "Rename/move this file" "r"    #'doom/move-this-file
+     :desc "Rename/move this file" "m"    #'doom/move-this-file
      :desc "Recent files" "r"             #'consult-recent-file
      :desc "Recent project file" "R"      #'projectile-recentf
+     :desc "Open file at point" "p"       #'ffap
      :desc "Sudo this file" "u"           #'doom/sudo-this-file
      :desc "Sudo find file" "U"           #'doom/sudo-find-file
      :desc "Open scratch buffer" "x"      #'doom/open-scratch-buffer
@@ -180,22 +181,15 @@
      :desc "Prose mode" "P"             #'prose-mode
      :desc "Zen mode" "z"              #'+zen/toggle
      :desc "Zen mode (fullscreen)" "Z" #'+zen/toggle-fullscreen
-     (:prefix ("T" . "Pomodoro")
-      :desc "Pomodoro" "t"             #'pomm
-      :desc "Start" "s"                #'pomm-start
-      :desc "Start with context" "S"   #'pomm-start-with-context
-      :desc "Pause" "p"                #'pomm-pause
-      :desc "Stop" "x"                 #'pomm-stop
-      :desc "Set context" "c"          #'pomm-set-context)
      (:prefix ("t" . "Timing")
-      :desc "Start timer" "s"          #'tmr
-      :desc "Start with details" "S"   #'tmr-with-details
+      :desc "Start timer" "t"          #'tmr
+      :desc "Start with details" "T"   #'tmr-with-details
+      :desc "Toggle ticking sound" "s" #'my/tick-toggle
       :desc "Cancel timer" "x"         #'tmr-cancel
       :desc "Reschedule timer" "r"     #'tmr-reschedule
       :desc "Pause/Resume" "p"         #'tmr-toggle-pause
       :desc "List timers" "l"          #'tmr-tabulated-view
-      :desc "List timers (full)" "L"   #'tmr-tabulated-mode
-      :desc "Toggle ticking" "t"       #'my/tick-toggle)))))
+      :desc "List timers (full)" "L"   #'tmr-tabulated-mode)))))
 
 
 ;; Setup C-x bindings
