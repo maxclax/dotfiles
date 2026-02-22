@@ -124,3 +124,4 @@
 (package! dimmer)                     ; Dim inactive windows for focus
 (package! ipretty)                    ; Pretty-print Elisp eval results
 (package! macrostep)                  ; Inline macro expansion viewer
+(package! symbol-overlay)             ; Highlight and navigate symbol occurrences

@@ -21,6 +21,15 @@
   :config
   (ipretty-mode 1))
 
+;; Highlight and navigate symbol occurrences without LSP
+(use-package! symbol-overlay
+  :hook ((prog-mode . symbol-overlay-mode))
+  :bind (:map symbol-overlay-mode-map
+         ("C-c h h" . symbol-overlay-put)
+         ("C-c h c" . symbol-overlay-remove-all)
+         ("C-c h n" . symbol-overlay-jump-next)
+         ("C-c h p" . symbol-overlay-jump-prev)))
+
 ;; Inline macro expansion in emacs-lisp buffers
 (use-package! macrostep
   :after elisp-mode
