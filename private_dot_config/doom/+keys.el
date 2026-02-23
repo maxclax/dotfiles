@@ -15,6 +15,7 @@
     :desc "Evaluate line/region" "C-c e" #'+eval/line-or-region
     :desc "Winner undo" "C-c <left>"     #'winner-undo
     :desc "Winner redo" "C-c <right>"    #'winner-redo
+    :desc "Open scratch buffer" "C-c X"      #'doom/switch-to-scratch-buffer
 
     (:prefix ("C-c C-f" . "Fold")
      :desc "Toggle fold" "C-f"         #'my/fold-toggle
@@ -25,7 +26,7 @@
      :desc "Next fold" "C-n"           #'+fold/next
      :desc "Previous fold" "C-p"       #'+fold/previous)
 
-    (:prefix ("C-c d" . "Diagnostics")
+    (:prefix ("C-c s" . "Syntax/Diagnostics")
      :desc "Next error"           "n" #'flymake-goto-next-error
      :desc "Previous error"       "p" #'flymake-goto-prev-error
      :desc "Explain error"        "e" #'flymake-show-diagnostic
@@ -35,17 +36,43 @@
      :desc "Cspell buffer"        "c" #'my/cspell-check-buffer
      :desc "Cspell changed files" "C" #'my/cspell-check-diff)
 
+    (:prefix ("C-c d" . "Debugger")
+     :desc "dape"                  "d" #'dape
+     :desc "Pause"                 "p" #'dape-pause
+     :desc "Continue"              "c" #'dape-continue
+     :desc "Next"                  "n" #'dape-next
+     :desc "Step in"               "s" #'dape-step-in
+     :desc "Step out"              "o" #'dape-step-out
+     :desc "Restart"               "r" #'dape-restart
+     :desc "Info"                  "i" #'dape-info
+     :desc "REPL"                  "R" #'dape-repl
+     :desc "Memory"                "m" #'dape-memory
+     :desc "Disassemble"           "M" #'dape-disassemble
+     :desc "Breakpoint log"        "l" #'dape-breakpoint-log
+     :desc "Breakpoint expression" "e" #'dape-breakpoint-expression
+     :desc "Breakpoint hits"       "h" #'dape-breakpoint-hits
+     :desc "Breakpoint toggle"     "b" #'dape-breakpoint-toggle
+     :desc "Breakpoint remove all" "B" #'dape-breakpoint-remove-all
+     :desc "Select thread"         "t" #'dape-select-thread
+     :desc "Select stack"          "S" #'dape-select-stack
+     :desc "Stack down"            ">" #'dape-stack-select-down
+     :desc "Stack up"              "<" #'dape-stack-select-up
+     :desc "Evaluate expression"   "x" #'dape-evaluate-expression
+     :desc "Watch dwim"            "w" #'dape-watch-dwim
+     :desc "Disconnect"            "D" #'dape-disconnect-quit
+     :desc "Quit"                  "q" #'dape-quit)
+
     (:prefix ("C-c c" . "Code")
      :desc "LSP: Code action" "a"        #'lsp-execute-code-action
-     :desc "LSP: Definition" "d"     #'+lookup/definition
-     :desc "LSP: References" "D"     #'+lookup/references
-     :desc "Format buffer" "f"          #'format-all-buffer
-     :desc "LSP: Implementations" "i"   #'+lookup/implementations
-     :desc "Kill inside pair" "k"       #'my/kill-inside-pair
-     :desc "LSP: Organize imports" "o"  #'lsp-organize-imports
-     :desc "LSP: Rename symbol" "r"     #'lsp-rename
-     :desc "LSP: Type definition" "t"   #'+lookup/type-definition
-     :desc "LSP: Restart workspace" "R" #'lsp-workspace-restart
+     :desc "LSP: Definition" "g"         #'+lookup/definition
+     :desc "LSP: References" "G"         #'+lookup/references
+     :desc "Format buffer" "f"           #'format-all-buffer
+     :desc "LSP: Implementations" "i"    #'+lookup/implementations
+     :desc "Kill inside pair" "k"        #'my/kill-inside-pair
+     :desc "LSP: Organize imports" "o"   #'lsp-organize-imports
+     :desc "LSP: Rename symbol" "r"      #'lsp-rename
+     :desc "LSP: Type definition" "t"    #'+lookup/type-definition
+     :desc "LSP: Restart workspace" "R"  #'lsp-workspace-restart
      (:prefix ("p" . "Python")
       :desc "Copy python cmd"      "p" #'my/python-copy-python-cmd
       :desc "Copy pytest cmd"      "y" #'my/python-copy-pytest-cmd
@@ -59,12 +86,9 @@
      :desc "Kill (copy) full path" "K"    #'my/kill-buffer-filepath
      :desc "Rename/move this file" "m"    #'doom/move-this-file
      :desc "Recent files" "r"             #'consult-recent-file
-     :desc "Recent project file" "R"      #'projectile-recentf
      :desc "Open file at point" "p"       #'ffap
      :desc "Sudo this file" "u"           #'doom/sudo-this-file
-     :desc "Sudo find file" "U"           #'doom/sudo-find-file
-     :desc "Open scratch buffer" "x"      #'doom/open-scratch-buffer
-     :desc "Switch to scratch buffer" "X" #'doom/switch-to-scratch-buffer)
+     :desc "Sudo find file" "U"           #'doom/sudo-find-file)
 
     (:prefix ("C-c i" . "Insert")
      :desc "Emoji" "e"                        #'emoji-insert
@@ -138,11 +162,11 @@
      :desc "Open link at point" "x" #'link-hint-open-link-at-point)
 
     (:prefix ("C-c p" . "Project")
-     :desc "Recent files" "e"            #'projectile-recentf
      :desc "Find file" "f"               #'projectile-find-file
      :desc "Find file other project" "F" #'doom/find-file-in-other-project
      :desc "Kill project buffers" "k"    #'projectile-kill-buffers
      :desc "Switch project" "p"          #'projectile-switch-project
+     :desc "Recent files" "r"            #'projectile-recentf
      :desc "Search project" "s"          #'+default/search-project
      (:prefix ("t" . "TODOs")
       :desc "Insert TODO comment" "i"    #'hl-todo-insert
@@ -159,32 +183,6 @@
      :desc "Jump to next hunk" "n"         #'+vc-gutter/next-hunk
      :desc "Jump to previous hunk" "p"     #'+vc-gutter/previous-hunk
      :desc "Git time machine" "t"          #'git-timemachine-toggle)
-
-    (:prefix ("C-c w" . "Workspace")
-     :desc "Display tab bar"           "TAB" #'+workspace/display
-     :desc "Switch workspace"          "."   #'+workspace/switch-to
-     :desc "Switch to last workspace"  "`"   #'+workspace/other
-     :desc "New workspace"             "n"   #'+workspace/new
-     :desc "New named workspace"       "N"   #'+workspace/new-named
-     :desc "Load workspace from file"  "l"   #'+workspace/load
-     :desc "Save workspace to file"    "s"   #'+workspace/save
-     :desc "Kill session"              "x"   #'+workspace/kill-session
-     :desc "Kill this workspace"       "d"   #'+workspace/kill
-     :desc "Delete saved workspace"    "D"   #'+workspace/delete
-     :desc "Rename workspace"          "r"   #'+workspace/rename
-     :desc "Restore last session"      "R"   #'+workspace/restore-last-session
-     :desc "Next workspace"            "]"   #'+workspace/switch-right
-     :desc "Previous workspace"        "["   #'+workspace/switch-left
-     :desc "Switch to 1st workspace"   "1"   #'+workspace/switch-to-0
-     :desc "Switch to 2nd workspace"   "2"   #'+workspace/switch-to-1
-     :desc "Switch to 3rd workspace"   "3"   #'+workspace/switch-to-2
-     :desc "Switch to 4th workspace"   "4"   #'+workspace/switch-to-3
-     :desc "Switch to 5th workspace"   "5"   #'+workspace/switch-to-4
-     :desc "Switch to 6th workspace"   "6"   #'+workspace/switch-to-5
-     :desc "Switch to 7th workspace"   "7"   #'+workspace/switch-to-6
-     :desc "Switch to 8th workspace"   "8"   #'+workspace/switch-to-7
-     :desc "Switch to 9th workspace"   "9"   #'+workspace/switch-to-8
-     :desc "Switch to final workspace" "0"   #'+workspace/switch-to-final)
 
     (:prefix ("C-c t" . "Toggles")
      :desc "Fill column" "c"           #'global-display-fill-column-indicator-mode
@@ -236,8 +234,28 @@
 
 ;; Setup M bindings
 (defun my/setup-meta-bindings ()
-  (map! :desc "Other window" "M-o" #'other-window
-        :desc "imenu" "M-i" #'imenu))
+  (map! :desc "Other window"    "M-o" #'other-window
+        :desc "imenu"           "M-i" #'imenu
+        ;; Workspace switching — M-1..9 overrides magit's M-1..4 (show-level-all),
+        ;; which is acceptable since plain 1/2/3/4 still works in magit.
+        :desc "Workspace 1"    "M-1" #'+workspace/switch-to-0
+        :desc "Workspace 2"    "M-2" #'+workspace/switch-to-1
+        :desc "Workspace 3"    "M-3" #'+workspace/switch-to-2
+        :desc "Workspace 4"    "M-4" #'+workspace/switch-to-3
+        :desc "Workspace 5"    "M-5" #'+workspace/switch-to-4
+        :desc "Workspace 6"    "M-6" #'+workspace/switch-to-5
+        :desc "Workspace 7"    "M-7" #'+workspace/switch-to-6
+        :desc "Workspace 8"    "M-8" #'+workspace/switch-to-7
+        :desc "Workspace 9"    "M-9" #'+workspace/switch-to-8
+        :desc "Prev workspace" "M-[" #'+workspace/switch-left
+        :desc "Next workspace" "M-]" #'+workspace/switch-right
+        :desc "Last workspace" "M-`" #'+workspace/other
+        :desc "New workspace"  "M-N" #'+workspace/new))
+
+;; Prevent projectile and persp-mode from binding their keymaps to C-c p.
+;; Must be set before these modes activate.
+(setq projectile-keymap-prefix nil
+      persp-keymap-prefix (kbd "C-c P"))
 
 ;; Apply early to ensure our bindings take precedence
 (add-hook 'doom-first-buffer-hook #'my/setup-clean-c-c-bindings)
