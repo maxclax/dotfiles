@@ -63,16 +63,17 @@
      :desc "Quit"                  "q" #'dape-quit)
 
     (:prefix ("C-c c" . "Code")
+     :desc "Format buffer" "f"           #'format-all-buffer
+     :desc "Kill inside pair" "k"        #'my/kill-inside-pair
      :desc "LSP: Code action" "a"        #'lsp-execute-code-action
      :desc "LSP: Definition" "g"         #'+lookup/definition
-     :desc "LSP: References" "G"         #'+lookup/references
-     :desc "Format buffer" "f"           #'format-all-buffer
      :desc "LSP: Implementations" "i"    #'+lookup/implementations
-     :desc "Kill inside pair" "k"        #'my/kill-inside-pair
      :desc "LSP: Organize imports" "o"   #'lsp-organize-imports
+     :desc "LSP: References" "G"         #'+lookup/references
      :desc "LSP: Rename symbol" "r"      #'lsp-rename
-     :desc "LSP: Type definition" "t"    #'+lookup/type-definition
      :desc "LSP: Restart workspace" "R"  #'lsp-workspace-restart
+     :desc "LSP: Type definition" "t"    #'+lookup/type-definition
+     :desc "Sort lines"             "s"  #'sort-lines
      (:prefix ("p" . "Python")
       :desc "Copy python cmd"      "p" #'my/python-copy-python-cmd
       :desc "Copy pytest cmd"      "y" #'my/python-copy-pytest-cmd
