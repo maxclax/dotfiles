@@ -16,14 +16,14 @@
     :desc "Winner undo" "C-c <left>"     #'winner-undo
     :desc "Winner redo" "C-c <right>"    #'winner-redo
 
-    ;; (:prefix ("C-c C-f" . "Fold")
-    ;;  :desc "Toggle fold" "C-f"         #'+fold/toggle
-    ;;  :desc "Open fold" "C-u"           #'+fold/open
-    ;;  :desc "Close fold" "C-c"          #'+fold/close
-    ;;  :desc "Open all folds" "C-a C-u"  #'+fold/open-all
-    ;;  :desc "Close all folds" "C-a C-c" #'+fold/close-all
-    ;;  :desc "Next fold" "C-n"           #'+fold/next
-    ;;  :desc "Previous fold" "C-p"       #'+fold/previous)
+    (:prefix ("C-c C-f" . "Fold")
+     :desc "Toggle fold" "C-f"         #'my/fold-toggle
+     :desc "Open fold" "C-u"           #'+fold/open
+     :desc "Close fold" "C-c"          #'+fold/close
+     :desc "Open all folds" "C-a C-u"  #'+fold/open-all
+     :desc "Close all folds" "C-a C-c" #'+fold/close-all
+     :desc "Next fold" "C-n"           #'+fold/next
+     :desc "Previous fold" "C-p"       #'+fold/previous)
 
     (:prefix ("C-c d" . "Diagnostics")
      :desc "Next error"           "n" #'flymake-goto-next-error
@@ -37,15 +37,14 @@
 
     (:prefix ("C-c c" . "Code")
      :desc "LSP: Code action" "a"        #'lsp-execute-code-action
-     :desc "Jump to definition" "d"     #'+lookup/definition
-     :desc "Jump to references" "D"     #'+lookup/references
-     :desc "Evaluate buffer/region" "e" #'+eval/buffer-or-region
+     :desc "LSP: Definition" "d"     #'+lookup/definition
+     :desc "LSP: References" "D"     #'+lookup/references
      :desc "Format buffer" "f"          #'format-all-buffer
-     :desc "Find implementations" "i"   #'+lookup/implementations
+     :desc "LSP: Implementations" "i"   #'+lookup/implementations
      :desc "Kill inside pair" "k"       #'my/kill-inside-pair
      :desc "LSP: Organize imports" "o"  #'lsp-organize-imports
      :desc "LSP: Rename symbol" "r"     #'lsp-rename
-     :desc "Find type definition" "t"   #'+lookup/type-definition
+     :desc "LSP: Type definition" "t"   #'+lookup/type-definition
      :desc "LSP: Restart workspace" "R" #'lsp-workspace-restart)
 
     (:prefix ("C-c f" . "Files")
@@ -282,6 +281,7 @@
         "C-b"   #'dired-up-directory
         "TAB"   #'dirvish-subtree-toggle
         "M-TAB" #'dirvish-layout-toggle))
+
 
 (after! verb
   (map! :map org-mode-map "C-c C-r" verb-command-map))
