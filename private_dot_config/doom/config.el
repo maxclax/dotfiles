@@ -3,7 +3,9 @@
 ;; Load all configuration modules
 (load! "lisp/init-dired.el")
 (load! "lisp/init-templates.el")
+(load! "lisp/init-checker.el")
 (load! "lisp/init-lsp.el")
+(load! "lisp/init-python.el")
 (load! "lisp/init-reading.el")
 (load! "lisp/init-git.el")
 (load! "lisp/init-org.el")

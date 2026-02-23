@@ -4,6 +4,10 @@
   ;; Enable dirvish globally for all dired buffers
   (dirvish-override-dired-mode)
 
+  ;; GNU ls (Nix coreutils) supports --group-directories-first; BSD ls does not.
+  ;; Set after dirvish-override-dired-mode so dirvish doesn't reset it.
+  (setq dired-listing-switches "-aBhl --group-directories-first")
+
   (setq dirvish-attributes
         '(vc-state file-size nerd-icons collapse file-time))
 
@@ -14,6 +18,7 @@
           ("d" "~/Desktop" "Desktop")
           ("D" "~/Downloads" "Downloads")
           ("I" ,(expand-file-name "~/icloud/Downloads") "Downloads (iCloud)")
+          ("o" ,(expand-file-name {{ .org_dir | quote }}) "Org dir")
 
           ("w" ,(expand-file-name {{ .workspace | quote }}) "Workspace")
           ("W" ,(expand-file-name {{ .workspace_extra | quote }}) "Workspace extra")
@@ -33,13 +38,6 @@
         `(shell . ("lla" "--icons" ,file))))
 
     (add-to-list 'dirvish-preview-dispatchers 'lla))
-
-  ;; Add C-f/C-b navigation for diving into folders and going back
-  (map! :map dirvish-mode-map
-        "C-f" #'dired-find-file
-        "C-b" #'dired-up-directory
-        "TAB" #'dirvish-subtree-toggle
-        "M-TAB" #'dirvish-layout-toggle)  ; Fast layout toggle
 
   (defun dirvish-copy-file-relative-path (&optional multi-line)
     "Copy filepath of marked files.

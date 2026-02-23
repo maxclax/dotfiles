@@ -38,6 +38,14 @@
           ./darwin-configuration.nix
           home-manager.darwinModules.home-manager
           {
+            # Workaround: deno 2.6.10 has a renamed test target in nixpkgs-unstable.
+            # Skip checks until nixpkgs is patched.
+            nixpkgs.overlays = [
+              (final: prev: {
+                deno = prev.deno.overrideAttrs (_: { doCheck = false; });
+              })
+            ];
+
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users."{{ .chezmoi.username }}" = import ./home.nix;

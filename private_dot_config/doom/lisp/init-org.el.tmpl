@@ -53,6 +53,15 @@
   ;; Use the proper hook that runs after repeat processing
   (add-hook 'org-todo-repeat-hook #'my/reset-repeating-subtasks)
 
+  ;; org-agenda uses text properties for faces, not font-lock.
+  ;; On first open after startup theme faces aren't fully resolved — redo once.
+  (defvar my/org-agenda-initial-redo t)
+  (add-hook 'org-agenda-mode-hook
+            (lambda ()
+              (when my/org-agenda-initial-redo
+                (setq my/org-agenda-initial-redo nil)
+                (run-with-idle-timer 0.3 nil #'org-agenda-redo))))
+
   ;; Dim blocked tasks
   (setq org-agenda-dim-blocked-tasks t)
 
@@ -1790,8 +1799,6 @@ Shows results in a navigable buffer with dates, locations, body, and images."
 ;; ── Link capture ──────────────────────────────────────────────────────────────
 ;; org-cliplink: paste URL from clipboard as [[url][page title]] org link
 (use-package! org-cliplink
-  :after org
-  :bind (:map org-mode-map
-         ("C-c i l" . org-cliplink)))
+  :after org)
 
 (provide 'init-org)

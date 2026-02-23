@@ -62,6 +62,7 @@
 (setq persp-auto-resume-time 1)     ;; restore workspaces 1s after startup
 (setq persp-auto-save-opt 1)        ;; auto-save on quit
 
+
 ;; Dim inactive windows for visual focus feedback
 (use-package! dimmer
   :config
@@ -97,13 +98,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (use-package! keycast
-  :after doom-modeline
   :config
-  ;; Show keycast via global-mode-string → doom-modeline misc-info segment
-  ;; Works in all modelines without redefining each one
-  (add-to-list 'global-mode-string '("" keycast-mode-line))
-  (add-hook 'post-command-hook #'keycast--update))
-
+  ;; Enable keycast-header-line-mode by default
+  (keycast-header-line-mode 1)
+  ;; Optional: customize keycast appearance
+  (setq keycast-header-line-format "%2s%k%c%R")
+  ;; Show in header line instead of mode line for cleaner look
+  (setq keycast-insert-after 'mode-line-buffer-identification))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; COMPLETION
@@ -149,7 +150,6 @@ word processor — soft wraps, relaxed spacing, bar cursor, flyspell."
         (setq-local show-trailing-whitespace nil)
         (setq-local line-spacing 0.2)
         (setq-local electric-pair-mode nil)
-        (ignore-errors (flyspell-mode 1))
         (visual-line-mode 1))
     (kill-local-variable 'truncate-lines)
     (kill-local-variable 'word-wrap)
@@ -159,7 +159,6 @@ word processor — soft wraps, relaxed spacing, bar cursor, flyspell."
     (kill-local-variable 'line-spacing)
     (kill-local-variable 'electric-pair-mode)
     (buffer-face-mode -1)
-    (flyspell-mode -1)
     (visual-line-mode -1)
     (when (fboundp 'writeroom-mode)
       (writeroom-mode 0))))

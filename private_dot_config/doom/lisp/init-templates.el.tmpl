@@ -4,8 +4,6 @@
 
 (use-package! tempel
   :defer t
-  :bind (("M-+" . tempel-complete)
-         ("M-*" . tempel-insert))
   :init
   (setq tempel-path
         (expand-file-name "emacs/templates/*.el" {{ printf "%s/.local/extra-configs" .chezmoi.homeDir | quote }})))

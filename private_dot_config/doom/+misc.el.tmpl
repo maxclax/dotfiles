@@ -3,15 +3,6 @@
 (use-package consult-todo
   :defer t)
 
-(use-package! browse-kill-ring
-  :bind ("M-Y" . browse-kill-ring)
-  :config
-  (setq browse-kill-ring-separator "\f")  ; page-break line between entries
-  (after! page-break-lines
-    (add-to-list 'page-break-lines-modes 'browse-kill-ring-mode))
-  (define-key browse-kill-ring-mode-map (kbd "C-g") #'browse-kill-ring-quit)
-  (define-key browse-kill-ring-mode-map (kbd "M-n") #'browse-kill-ring-forward)
-  (define-key browse-kill-ring-mode-map (kbd "M-p") #'browse-kill-ring-previous))
 
 (use-package! screenshot
   :defer t)
@@ -23,15 +14,8 @@
 
 ;; Highlight and navigate symbol occurrences without LSP
 (use-package! symbol-overlay
-  :hook ((prog-mode . symbol-overlay-mode))
-  :bind (:map symbol-overlay-mode-map
-         ("C-c h h" . symbol-overlay-put)
-         ("C-c h c" . symbol-overlay-remove-all)
-         ("C-c h n" . symbol-overlay-jump-next)
-         ("C-c h p" . symbol-overlay-jump-prev)))
+  :hook ((prog-mode . symbol-overlay-mode)))
 
 ;; Inline macro expansion in emacs-lisp buffers
 (use-package! macrostep
-  :after elisp-mode
-  :bind (:map emacs-lisp-mode-map
-         ("C-c m" . macrostep-expand)))
+  :after elisp-mode)

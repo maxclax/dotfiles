@@ -10,13 +10,6 @@
 
 (use-package! copilot
               :commands (copilot-mode)
-              :bind (:map copilot-completion-map
-                          ("<tab>" . 'copilot-accept-completion)
-                          ("TAB" . 'copilot-accept-completion)
-                          ("C-TAB" . 'copilot-accept-completion-by-word)
-                          ("C-<tab>" . 'copilot-accept-completion-by-word)
-                          ("M-n" . 'copilot-next-completion)
-                          ("M-p" . 'copilot-previous-completion))
               :config
               (setq copilot-max-char 3000000)
               (setq copilot-idle-delay 1)

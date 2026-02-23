@@ -81,6 +81,7 @@
 ;; UI ENHANCEMENT & VISUAL TOOLS
 ;; =====================================================================
 
+(package! flymake-cspell)             ; cspell backend for flymake
 (package! circadian)                  ; Automatic theme switching (day/night modes)
 (package! beacon)                     ; Highlight cursor position after scrolling/jumping
 (package! keycast)                    ; Display current command/key sequence in mode line
@@ -119,7 +120,6 @@
 (package! verb)                       ; HTTP client integrated with org-mode
 (package! eat)                        ; Terminal emulator package for running shells
 (package! magit-delta)                ; Delta syntax highlighting in Magit diffs
-(package! browse-kill-ring)           ; Visual kill ring browser
 (package! dimmer)                     ; Dim inactive windows for focus
 (package! ipretty)                    ; Pretty-print Elisp eval results
 (package! macrostep)                  ; Inline macro expansion viewer

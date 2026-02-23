@@ -25,6 +25,16 @@
     ;;  :desc "Next fold" "C-n"           #'+fold/next
     ;;  :desc "Previous fold" "C-p"       #'+fold/previous)
 
+    (:prefix ("C-c d" . "Diagnostics")
+     :desc "Next error"           "n" #'flymake-goto-next-error
+     :desc "Previous error"       "p" #'flymake-goto-prev-error
+     :desc "Explain error"        "e" #'flymake-show-diagnostic
+     :desc "List buffer errors"   "l" #'flymake-show-buffer-diagnostics
+     :desc "List project errors"  "L" #'flymake-show-project-diagnostics
+     :desc "Consult flymake"      "d" #'consult-flymake
+     :desc "Cspell buffer"        "c" #'my/cspell-check-buffer
+     :desc "Cspell changed files" "C" #'my/cspell-check-diff)
+
     (:prefix ("C-c c" . "Code")
      :desc "LSP: Code action" "a"        #'lsp-execute-code-action
      :desc "Jump to definition" "d"     #'+lookup/definition
@@ -56,6 +66,7 @@
      :desc "Emoji" "e"                        #'emoji-insert
      :desc "Current file name" "f"            #'+default/insert-filename
      :desc "Current file path" "F"            #'+default/insert-filepath
+     :desc "Insert link from clipboard" "l"  #'org-cliplink
      :desc "Insert shell link" "L"           #'my/insert-shell-link
      :desc "Current time [H:M]" "t"           #'my/insert-current-time
      (:prefix ("j" . "Journal")
@@ -115,7 +126,6 @@
 
     (:prefix ("C-c o" . "Open")
      :desc "Dired jump" "-"         #'dired-jump
-     :desc "Dirvish" "/"            #'dirvish
      :desc "Docker" "D"             #'docker
      :desc "Reveal in Finder" "O"   #'+macos/reveal-project-in-finder
      :desc "Dirvish sidebar" "p"    #'dirvish-side
@@ -175,6 +185,8 @@
     (:prefix ("C-c t" . "Toggles")
      :desc "Fill column" "c"           #'global-display-fill-column-indicator-mode
      :desc "Eat other window" "e"      #'eat-other-window
+     :desc "Keycast log mode" "K" #'keycast-log-mode
+     :desc "Keycast header mode" "k" #'keycast-header-line-mode
      :desc "Flymake" "f"               #'flymake-mode
      :desc "Indent guides" "i"         #'indent-bars-mode
      :desc "Indent style" "I"          #'doom/toggle-indent-style
@@ -201,6 +213,7 @@
 ;; Setup C-x bindings
 (defun my/setup-c-x-bindings ()
   (map! :desc "ibuffer" "C-x C-b"                  #'ibuffer
+        :desc "Dirvish" "C-x d"                    #'dirvish
         :desc "Split horizontally instead" "C-x |" #'my/split-window-horizontally-instead
         :desc "Split vertically instead" "C-x _"   #'my/split-window-vertically-instead))
 
@@ -233,3 +246,51 @@
 (add-hook 'window-setup-hook #'my/setup-c-x-bindings)
 (add-hook 'window-setup-hook #'my/setup-mac-cmd-shortcuts)
 (add-hook 'window-setup-hook #'my/setup-meta-bindings)
+
+;; ── Global bindings ───────────────────────────────────────────────────────────
+
+(map! "M-+" #'tempel-complete            ; Complete snippet at point
+      "M-*" #'tempel-insert             ; Insert snippet by name
+      "C-o" #'my/casual-open)           ; Context-aware transient menu
+
+;; ── Mode-specific bindings ────────────────────────────────────────────────────
+
+(after! symbol-overlay
+  (map! :map symbol-overlay-mode-map
+        "C-c h h" #'symbol-overlay-put
+        "C-c h c" #'symbol-overlay-remove-all
+        "C-c h n" #'symbol-overlay-jump-next
+        "C-c h p" #'symbol-overlay-jump-prev))
+
+(after! elisp-mode
+  (map! :map emacs-lisp-mode-map
+        "C-c m" #'macrostep-expand))
+
+(after! casual
+  (map! :map isearch-mode-map "C-o" #'casual-isearch-tmenu)
+  (with-eval-after-load 'calc-alg
+    (when (boundp 'calc-alg-map)
+      (map! :map calc-alg-map "C-o" #'casual-calc-tmenu)))
+  (with-eval-after-load 'ediff
+    (map! :map ediff-mode-map "C-o" #'casual-ediff-tmenu)))
+
+(after! dirvish
+  (map! :map dirvish-mode-map
+        "`"     #'dirvish-quick-access
+        "C-o"   #'my/casual-open        ; casual-dired-tmenu (overrides dired-display-file)
+        "C-f"   #'dired-find-file
+        "C-b"   #'dired-up-directory
+        "TAB"   #'dirvish-subtree-toggle
+        "M-TAB" #'dirvish-layout-toggle))
+
+(after! verb
+  (map! :map org-mode-map "C-c C-r" verb-command-map))
+
+(after! copilot
+  (map! :map copilot-completion-map
+        "<tab>"   #'copilot-accept-completion
+        "TAB"     #'copilot-accept-completion
+        "C-TAB"   #'copilot-accept-completion-by-word
+        "C-<tab>" #'copilot-accept-completion-by-word
+        "M-n"     #'copilot-next-completion
+        "M-p"     #'copilot-previous-completion))
