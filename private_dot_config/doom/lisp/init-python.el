@@ -9,6 +9,11 @@
 (add-hook! 'python-mode-hook
   (setq-local format-all-formatters '(("Python" ruff))))
 
+;; Highlight breakpoints on open
+(add-hook 'python-mode-hook    #'my/python-annotate-pdb)
+(add-hook 'python-ts-mode-hook #'my/python-annotate-pdb)
+
+
 ;; Pyright LSP configuration
 (after! lsp-pyright
   (setq lsp-pyright-python-executable-cmd "python3"

@@ -45,7 +45,12 @@
      :desc "LSP: Organize imports" "o"  #'lsp-organize-imports
      :desc "LSP: Rename symbol" "r"     #'lsp-rename
      :desc "LSP: Type definition" "t"   #'+lookup/type-definition
-     :desc "LSP: Restart workspace" "R" #'lsp-workspace-restart)
+     :desc "LSP: Restart workspace" "R" #'lsp-workspace-restart
+     (:prefix ("p" . "Python")
+      :desc "Copy python cmd"      "p" #'my/python-copy-python-cmd
+      :desc "Copy pytest cmd"      "y" #'my/python-copy-pytest-cmd
+      :desc "Yank module import"   "i" #'my/python-yank-module-import
+      :desc "Insert yanked import" "I" #'my/python-insert-temp-import))
 
     (:prefix ("C-c f" . "Files")
      :desc "Copy this file" "C"           #'doom/copy-this-file
