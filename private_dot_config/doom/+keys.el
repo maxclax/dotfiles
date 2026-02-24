@@ -251,7 +251,8 @@
         :desc "Prev workspace" "M-[" #'+workspace/switch-left
         :desc "Next workspace" "M-]" #'+workspace/switch-right
         :desc "Last workspace" "M-`" #'+workspace/other
-        :desc "New workspace"  "M-N" #'+workspace/new))
+        :desc "New workspace"  "M-N" #'+workspace/new
+        :desc "Kill workspace" "M-D" #'+workspace/kill))
 
 ;; Prevent projectile and persp-mode from binding their keymaps to C-c p.
 ;; Must be set before these modes activate.
