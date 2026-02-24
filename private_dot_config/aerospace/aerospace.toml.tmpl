@@ -78,16 +78,16 @@ cmd-shift-space = 'layout floating tiling' # in i3
 cmd-alt-f = 'fullscreen' # in i3 (but no cmd)
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
-cmd-1 = 'workspace 1' # Left display
-cmd-2 = 'workspace 2' # Obsidian, Drafts, Loqseq
+cmd-1 = 'workspace 1' # Dev (env)
+cmd-2 = 'workspace 2' # Obsidian, Drafts
 cmd-3 = 'workspace 3' # Browser
-cmd-4 = 'workspace 4' # Free special
-cmd-5 = 'workspace 5' # AI GUI chats
-cmd-6 = 'workspace 6' # Dev (env)
-cmd-7 = 'workspace 7' # Dev (Emacs F1)
+cmd-4 = 'workspace 4' # Dev (Emacs F1)
+cmd-5 = 'workspace 5' # Dev (Emacs F2)
+cmd-6 = 'workspace 6' # AI GUI chats
+cmd-7 = 'workspace 7' # Free special
 cmd-8 = 'workspace 8' # Media (Netflix...), Communication, Musics and Undifined apps
-cmd-9 = 'workspace 9' # AI CLI & Agents
-cmd-0 = 'workspace 10' # Terminal
+cmd-9 = 'workspace 9' # Terminal
+cmd-0 = 'workspace 10' # AI CLI & Agents
 
 # cmd-a = 'workspace A'
 # alt-b = 'workspace B'
@@ -161,7 +161,7 @@ cmd-ctrl-r = 'mode resize' # in i3
 
 # ---------------------------------------------------------
 [[on-window-detected]]
-if.app-id = 'com.google.Chrome'
+if.app-id = 'org.alacritty'
 run = "move-node-to-workspace 1"
 
 [[on-window-detected]]
@@ -189,38 +189,30 @@ run = "move-node-to-workspace 3"
 if.app-id = "org.gnu.Emacs"
 run = "move-node-to-workspace 4"
 
-[[on-window-detected]]
-if.app-id = 'xyz.chatboxapp.app'
-run = "move-node-to-workspace 5"
-[[on-window-detected]]
-if.app-id = 'com.apple.Safari'
-run = "move-node-to-workspace 5"
-[[on-window-detected]]
-if.app-id = 'com.openai.chat'
-run = "move-node-to-workspace 5"
-[[on-window-detected]]
-if.app-id = 'com.anthropic.claudefordesktop'
-run = "move-node-to-workspace 5"
+# Frame 2 (5)
 
 [[on-window-detected]]
-if.app-id = 'org.alacritty'
+if.app-id = 'xyz.chatboxapp.app'
+run = "move-node-to-workspace 6"
+[[on-window-detected]]
+if.app-id = 'com.apple.Safari'
+run = "move-node-to-workspace 6"
+[[on-window-detected]]
+if.app-id = 'com.openai.chat'
+run = "move-node-to-workspace 6"
+[[on-window-detected]]
+if.app-id = 'com.anthropic.claudefordesktop'
 run = "move-node-to-workspace 6"
 
 [[on-window-detected]]
-if.app-id = 'com.github.wez.wezterm'
-run = "move-node-to-workspace 9"
-[[on-window-detected]]
-if.app-id = 'net.kovidgoyal.kitty'
-run = "move-node-to-workspace 9"
-[[on-window-detected]]
-if.app-id = 'dev.warp.Warp-Stable'
-run = "move-node-to-workspace 9"
-[[on-window-detected]]
-if.app-id = 'com.electron.goose'
+if.app-id = 'com.mitchellh.ghostty'
 run = "move-node-to-workspace 9"
 
 [[on-window-detected]]
-if.app-id = 'com.mitchellh.ghostty'
+if.app-id = 'com.github.wez.wezterm'
+run = "move-node-to-workspace 10"
+[[on-window-detected]]
+if.app-id = 'net.kovidgoyal.kitty'
 run = "move-node-to-workspace 10"
 
 [[on-window-detected]]
@@ -259,14 +251,14 @@ run = 'move-node-to-workspace 8'
 # ---------------------------------------------------------
 # https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
 [workspace-to-monitor-force-assignment]
-1 = 1         # Left display
+1 = 1         # Dev (env)
 2 = 'main'    # GTD, Drafts
-# 3 = 'main'  # Browser
+3 = 'main'    # Browser
 4 = 'main'    # Dev (Emacs F1)
-5 = [4, 3]    # AI GUI chats
-6 = [4, 3]    # Dev (env)
-# 7 = 'main'    # Free special
+5 = [3, 4]    # Dev (Emacs F2)
+6 = [4, 3]    # AI GUI chats
+# 7 = 'main'  # Free special
 8 = [4, 3]    # Undifined apps
-9 = [4, 3]    # AI CLI & Agents
-# 0 = 'main'  # terminal
+9 = 'main'    # terminal
+10 = [4, 3]    # AI CLI & Agents
 I = [3, 1]    # Info (references, reading)
