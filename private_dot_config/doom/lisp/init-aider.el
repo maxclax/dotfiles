@@ -1,4 +1,4 @@
-;;; init-aider.el --- Aider AI pair programming integration -*- lexical-binding: t; -*-
+;;; init-aider.el -*- mode: emacs-lisp; lexical-binding: t; -*-
 
 (use-package! aider
   :commands (aider-run-aider

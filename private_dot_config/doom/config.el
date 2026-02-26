@@ -12,6 +12,7 @@
 (load! "lisp/init-timing.el")
 (load! "lisp/init-bibliography.el")
 (load! "lisp/init-copilot.el")
+(load! "lisp/init-minuet.el")
 (load! "lisp/init-gptel.el")
 (load! "lisp/init-aider.el")
 (load! "lisp/init-denote")
@@ -30,6 +31,14 @@
 (load! "+misc")
 (load! "+ui")
 (load! "+keys")
+
+;; Detect major mode for .tmpl files based on the underlying extension
+;; e.g. foo.el.tmpl → emacs-lisp-mode, foo.sh.tmpl → sh-mode
+(add-to-list 'auto-mode-alist
+             '("\\.tmpl\\'" . (lambda ()
+                                (let ((buffer-file-name
+                                       (replace-regexp-in-string "\\.tmpl\\'" "" buffer-file-name)))
+                                  (set-auto-mode)))))
 
 ;; Disable flymake in .env files (no linting needed for env var files)
 (add-hook 'dotenv-mode-hook (lambda () (flymake-mode -1)))

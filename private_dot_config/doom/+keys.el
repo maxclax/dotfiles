@@ -74,13 +74,6 @@
      :desc "LSP: Restart workspace" "R"  #'lsp-workspace-restart
      :desc "LSP: Type definition" "t"    #'+lookup/type-definition
      :desc "Sort lines"             "s"  #'sort-lines
-     (:prefix ("A" . "AI")
-      ;; gptel — inline LLM rewrite
-      :desc "Rewrite region/buffer" "r" #'gptel-rewrite
-      :desc "Switch model"          "m" #'gptel-menu
-      ;; aider — pair programming session
-      :desc "Aider project session" "a" #'my/aider-project
-      :desc "Code change (region)"  "c" #'aider-function-or-region-change)
      (:prefix ("p" . "Python")
       :desc "Copy python cmd"      "p" #'my/python-copy-python-cmd
       :desc "Copy pytest cmd"      "y" #'my/python-copy-pytest-cmd
@@ -192,6 +185,11 @@
      :desc "Jump to previous hunk" "p"     #'+vc-gutter/previous-hunk
      :desc "Git time machine" "t"          #'git-timemachine-toggle)
 
+    (:prefix ("C-c A" . "AI")
+     :desc "gptel: rewrite region"  "r" #'gptel-rewrite
+     :desc "aider: project session" "a" #'my/aider-project
+     :desc "aider: code change"     "c" #'aider-function-or-region-change)
+
     (:prefix ("C-c t" . "Toggles")
      :desc "Fill column" "c"           #'global-display-fill-column-indicator-mode
      :desc "Eat other window" "e"      #'eat-other-window
@@ -206,6 +204,7 @@
      :desc "Read-only" "r"             #'read-only-mode
      :desc "Soft line wrapping" "w"    #'+word-wrap-mode
      :desc "Copilot" "a"               #'copilot-mode
+     :desc "Minuet"  "A"               #'minuet-auto-suggestion-mode
      :desc "Prose mode" "P"             #'prose-mode
      :desc "Zen mode" "z"              #'+zen/toggle
      :desc "Zen mode (fullscreen)" "Z" #'+zen/toggle-fullscreen
@@ -331,3 +330,14 @@
         "C-<tab>" #'copilot-accept-completion-by-word
         "M-n"     #'copilot-next-completion
         "M-p"     #'copilot-previous-completion))
+
+;; Minuet keybindings (copilot-style inline completions)
+(after! minuet
+  (map! :map minuet-active-mode-map
+        "<tab>"   #'minuet-accept-suggestion
+        "TAB"     #'minuet-accept-suggestion
+        "C-TAB"   #'minuet-accept-suggestion-line
+        "C-<tab>" #'minuet-accept-suggestion-line
+        "M-n"     #'minuet-next-suggestion
+        "M-p"     #'minuet-previous-suggestion
+        "M-e"     #'minuet-dismiss-suggestion))

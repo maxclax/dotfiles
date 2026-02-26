@@ -20,6 +20,8 @@
 
 (package! copilot)                    ; GitHub Copilot AI code completion
 (package! gptel)                      ; LLM integration — inline rewrite, code transforms
+(package! minuet                      ; Copilot-style inline completions via Ollama
+  :recipe (:host github :repo "milanglacier/minuet-ai.el"))
 (package! aider                       ; Aider AI pair programming — region/file code changes
   :recipe (:host github :repo "tninja/aider.el"))
 

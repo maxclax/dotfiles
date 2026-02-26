@@ -117,6 +117,13 @@ Files with `.tmpl` extension use chezmoi's Go templating:
 - Conditional configurations based on OS, hostname, and user preferences
 - Integration with 1Password for secure credential management
 
+**When creating `.tmpl` files, always include the correct Emacs mode line on the first line:**
+- `*.el.tmpl` → `;;; filename.el -*- mode: emacs-lisp; lexical-binding: t; -*-`
+- `*.sh.tmpl` → `# filename.sh -*- mode: sh; lexical-binding: t; -*-`
+- `*.nix.tmpl` → `# -*- mode: nix; -*-`
+- `*.yml.tmpl` / `*.yaml.tmpl` → `# -*- mode: yaml; -*-`
+- `*.toml.tmpl` → `# -*- mode: conf-toml; -*-`
+
 ### External Dependencies
 
 External repositories are managed via `.chezmoiexternal.yaml.tmpl`:
