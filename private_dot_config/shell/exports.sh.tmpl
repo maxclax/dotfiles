@@ -1,6 +1,9 @@
 # exports.sh -*- mode: sh; lexical-binding: t; -*-
 # shellcheck shell=bash
 
+# Disable XON/XOFF flow control so C-s can be used in ranger, fzf, etc.
+stty -ixon 2>/dev/null
+
 # ============================================================================
 # PATH Management Functions
 # ============================================================================
@@ -105,6 +108,7 @@ export DOTFILES_BREW_PREFIX=$brew_prefix
 # ============================================================================
 export PIP_REQUIRE_VIRTUALENV=true  # Enforce virtualenv usage (use pip --isolated to bypass)
 export PYENV_ROOT="$HOME/.pyenv"    # pyenv installation directory
+export UV_LINK_MODE=copy            # Use copy instead of hardlinks (needed for Docker/cross-device)
 
 # ============================================================================
 # Package Manager Settings

@@ -44,7 +44,7 @@ matches:
         type: list
         values:
           - "dev: Update submodule to latest commit"
-          - "dev: Update dependencies"
+          - "chore: Update dependencies"
           - "dev: Update configuration"
 
   # Conventional Commit Messages with form selection

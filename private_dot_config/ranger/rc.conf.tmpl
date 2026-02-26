@@ -62,18 +62,18 @@ alias filter     scout -prts
 alias find       scout -aets
 alias mark       scout -mr
 alias unmark     scout -Mr
-alias search     scout -rs
 alias search_inc scout -rts
 alias travel     scout -aefklst
 
 # Custom commands
 map DD shell mv %s ~/.Trash
 map dT shell trash-put %s
-map bg shell cp %s ~/Desktop
-map mkd console mkdir%space
+
+map yD shell cp %s ~/Desktop
+map md  console mkdir%space
+map mf  console shell touch%space
+
 map sc shell du -sh %s
-map V shell code %s
-map vs shell code -r %s
 map o shell open %s
 map O shell open .
 
@@ -82,6 +82,7 @@ map gh cd ~
 map gd cd ~/Downloads
 map gD cd ~/Desktop
 map gc cd ~/.config
+map gl cd ~/.local
 map gC cd ~/Library/Mobile Documents/
 map gw cd {{ .workspace }}
 map ge cd {{ .workspace_extra }}

@@ -215,8 +215,11 @@
 
 ;; Setup C-x bindings
 (defun my/setup-c-x-bindings ()
-  (map! :desc "ibuffer" "C-x C-b"                  #'ibuffer
+  (map! :desc "Project ibuffer" "C-x C-b"          #'projectile-ibuffer
+        :desc "All ibuffer" "C-x C-B"             #'ibuffer
         :desc "Dirvish" "C-x d"                    #'dirvish
+        :desc "Project buffers" "C-x b"            #'projectile-switch-to-buffer
+        :desc "All buffers" "C-x B"                #'switch-to-buffer
         :desc "Split horizontally instead" "C-x |" #'my/split-window-horizontally-instead
         :desc "Split vertically instead" "C-x _"   #'my/split-window-vertically-instead))
 
@@ -251,8 +254,10 @@
         :desc "Prev workspace" "M-[" #'+workspace/switch-left
         :desc "Next workspace" "M-]" #'+workspace/switch-right
         :desc "Last workspace" "M-`" #'+workspace/other
-        :desc "New workspace"  "M-N" #'+workspace/new
-        :desc "Kill workspace" "M-D" #'+workspace/kill))
+        :desc "New workspace"      "M-N" #'+workspace/new
+        :desc "Kill workspace"     "M-D" #'+workspace/kill
+        :desc "Display workspaces" "M-W" #'+workspace/display
+        :desc "Switch workspace"   "M-S" #'+workspace/switch-to))
 
 ;; Prevent projectile and persp-mode from binding their keymaps to C-c p.
 ;; Must be set before these modes activate.

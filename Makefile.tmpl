@@ -45,6 +45,18 @@ hm_diff:
 hm_update:
 	@echo "🔄 Updating flake..."
 	cd ~/.config/home-manager-flake && nix flake update
+	@echo "📋 Building and diffing changes..."
+{{- if and (eq .chezmoi.os "darwin") (not .extraUser) }}
+	cd ~/.config/home-manager-flake && sudo darwin-rebuild build --flake . && \
+		nix store diff-closures /run/current-system ./result && \
+		rm -f ./result
+{{- else }}
+	cd ~/.config/home-manager-flake && home-manager build --flake . && \
+		nix store diff-closures ~/.local/state/nix/profiles/home-manager ./result && \
+		rm -f ./result
+{{- end }}
+	@printf "Apply changes? [y/N] " && read confirm && [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ] || \
+		(echo "❌ Cancelled — restoring flake.lock" && cd ~/.config/home-manager-flake && git checkout flake.lock && exit 1)
 {{- if and (eq .chezmoi.os "darwin") (not .extraUser) }}
 	@echo "🍎 Applying nix-darwin configuration (requires password)..."
 	sudo darwin-rebuild switch --flake ~/.config/home-manager-flake
@@ -58,8 +70,7 @@ hm_commit:
 	@echo "📄 Syncing flake.lock to dotfiles..."
 	chezmoi add ~/.config/home-manager-flake/flake.lock
 	@echo "📝 Committing updated flake.lock to dotfiles..."
-	cd {{ .chezmoi.sourceDir }} && git add private_dot_config/home-manager-flake/flake.lock
-	cd {{ .chezmoi.sourceDir }} && git commit -m "dev: update Home Manager flake.lock - $(shell date '+%Y-%m-%d')"
+	cd {{ .chezmoi.sourceDir }} && git commit --only private_dot_config/home-manager-flake/flake.lock -m "dev: update Home Manager flake.lock - $(shell date '+%Y-%m-%d')"
 	@echo "✅ flake.lock changes committed!"
 
 hm_list:

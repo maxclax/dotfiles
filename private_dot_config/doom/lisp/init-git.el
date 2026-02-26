@@ -7,6 +7,10 @@
   ;; OVERRIDE
   (advice-add #'git-link--select-remote :override #'git-link--read-remote))
 
+;; Auto-create a dedicated workspace when switching projects via projectile.
+;; 'switch means always create/switch workspace on project switch.
+(setq +workspaces-on-switch-project-behavior 'switch)
+
 (after! magit
   ;; Performance optimizations
   (setq magit-save-repository-buffers nil
@@ -73,6 +77,15 @@
         ;; Show branch information
         magit-status-show-hashes-in-headers t)
 
+  ;; Open submodule in its own dedicated workspace when navigating to it.
+  (defadvice! my/magit-submodule-in-workspace (fn module &rest args)
+    :around #'magit-submodule-visit
+    (let ((name (file-name-nondirectory (directory-file-name module))))
+      (unless (+workspace-exists-p name)
+        (+workspace/new name))
+      (+workspace/switch-to name)
+      (apply fn module args)))
+
   ;; Submodule sections — overview + unpulled only (no duplicate @{push})
   (magit-add-section-hook 'magit-status-sections-hook
                           'magit-insert-modules-overview
@@ -95,9 +108,9 @@
     (when (magit-toplevel)
       (let ((proc (start-process "magit-fetch" nil "git" "fetch" "--all" "--quiet")))
         (set-process-sentinel proc
-          (lambda (_proc event)
-            (when (string-match-p "finished" event)
-              (magit-refresh-all))))))))
+                              (lambda (_proc event)
+                                (when (string-match-p "finished" event)
+                                  (magit-refresh-all))))))))
 
 (use-package! magit-delta
   :after magit
