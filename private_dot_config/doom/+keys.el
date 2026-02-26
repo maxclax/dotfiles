@@ -190,7 +190,8 @@
      :desc "aider: project session" "a" #'my/aider-project
      :desc "aider: code change"     "c" #'aider-function-or-region-change
      :desc "aider: ask about code"  "q" #'aider-ask-question
-     :desc "aider: commit message"  "C" #'my/aider-commit-message)
+     :desc "aider: commit message"  "C" #'my/aider-commit-message
+     :desc "aider: TDD cycle"       "t" #'aider-tdd-cycle)
 
     (:prefix ("C-c t" . "Toggles")
      :desc "Fill column" "c"           #'global-display-fill-column-indicator-mode
