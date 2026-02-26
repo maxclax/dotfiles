@@ -25,7 +25,11 @@ weak-model: ollama/gpt-oss:20b-cloud
 ########################
 # API Keys and settings:
 
-{{- if .useOp -}}
+## Set environment variables (for providers not supported by api-key above)
+set-env:
+  - OLLAMA_API_BASE=http://127.0.0.1:11434
+
+{{- if .useOp }}
 ## Specify the OpenAI API key
 openai-api-key: {{ onepasswordRead "op://Personal/OpenAI/tokens/emacs" }}
 
@@ -37,15 +41,18 @@ api-key:
   - gemini={{ onepasswordRead "op://Personal/Gemini/tokens/emacs" }}
   - deepseek={{ onepasswordRead "op://Personal/DeepSeek/tokens/emacs" }}
   - z-pu={{ onepasswordRead "op://Personal/z.ai/tokens/emacs" }}
-
-## Set environment variables (for providers not supported by api-key above)
-set-env:
-  - OLLAMA_API_BASE=http://127.0.0.1:11434
-
 {{- end }}
 
 ###############
 # Git settings:
+
+## Commit message style — conventional commits with short 1-line messages
+commit-prompt: |
+  Generate a short single-line git commit message.
+  Use one of these prefixes: feat:, fix:, dev:, nit:, docs:, refactor:, test:
+  No body, no bullet points, no period at the end.
+  No Co-authored-by or any attribution lines.
+  Examples: "feat: add dark mode toggle", "fix: prevent crash on empty input"
 
 ## Enable/disable looking for a git repo (default: True)
 git: true
@@ -61,6 +68,9 @@ architect: true
 
 ## Enable/disable auto-commits (default: True)
 auto-commits: false
+
+## Disable adding "Co-authored-by: aider" to commits
+attribute-co-author: false
 
 ## Enable/disable dirty commits (default: True)
 dirty-commits: false
