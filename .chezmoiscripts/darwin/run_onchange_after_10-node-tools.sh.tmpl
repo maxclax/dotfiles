@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Check if this is an extra user
+if [ "{{ .extraUser }}" == "true" ]; then
+  echo "Already installed by main user, skipping installation."
+  exit 0
+fi
+
+# Check if npm is available
+if ! command -v npm &> /dev/null; then
+  echo "npm is not installed, skipping node tools installation."
+  exit 0
+fi
+
+echo "Installing node tools globally..."
+
+# Set npm global prefix to a writable location
+export NPM_CONFIG_PREFIX="$HOME/.local"
+
+# Create directories if they don't exist
+mkdir -p "$HOME/.local/bin"
+mkdir -p "$HOME/.local/lib/node_modules"
+
+# Install node tools globally to user directory
+npm install -g cline
+
+echo "node tools installation completed."

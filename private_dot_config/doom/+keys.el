@@ -74,6 +74,13 @@
      :desc "LSP: Restart workspace" "R"  #'lsp-workspace-restart
      :desc "LSP: Type definition" "t"    #'+lookup/type-definition
      :desc "Sort lines"             "s"  #'sort-lines
+     (:prefix ("A" . "AI")
+      ;; gptel — inline LLM rewrite
+      :desc "Rewrite region/buffer" "r" #'gptel-rewrite
+      :desc "Switch model"          "m" #'gptel-menu
+      ;; aider — pair programming session
+      :desc "Aider project session" "a" #'my/aider-project
+      :desc "Code change (region)"  "c" #'aider-function-or-region-change)
      (:prefix ("p" . "Python")
       :desc "Copy python cmd"      "p" #'my/python-copy-python-cmd
       :desc "Copy pytest cmd"      "y" #'my/python-copy-pytest-cmd

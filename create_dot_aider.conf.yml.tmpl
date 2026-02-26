@@ -15,16 +15,12 @@
 #help: xxx
 
 #############
-# Main model:
+# Models:
 
-## Specify the model to use for the main chat
-model: sonnet
+model: ollama/qwen3-coder:480b-cloud
+editor-model: ollama/qwen3-coder:480b-cloud
+weak-model: ollama/gpt-oss:20b-cloud
 
-## Specify a weaker/faster model for simple tasks
-weak-model: haiku
-
-## Alternative models that can be used with --model switch
-# available models: sonnet, haiku, gemini, deepseek, z-pu-35, z-pu-70
 
 ########################
 # API Keys and settings:
@@ -41,6 +37,10 @@ api-key:
   - gemini={{ onepasswordRead "op://Personal/Gemini/tokens/emacs" }}
   - deepseek={{ onepasswordRead "op://Personal/DeepSeek/tokens/emacs" }}
   - z-pu={{ onepasswordRead "op://Personal/z.ai/tokens/emacs" }}
+
+## Set environment variables (for providers not supported by api-key above)
+set-env:
+  - OLLAMA_API_BASE=http://127.0.0.1:11434
 
 {{- end }}
 
@@ -87,7 +87,7 @@ stream: true
 # show-repo-map: true
 
 # ## Set maximum number of tokens for repository map (default: 1024)
-map-tokens: 4096
+map-tokens: 16384
 
 ## Set the maximum context window size (default: auto)
 max-chat-history-tokens: 32768

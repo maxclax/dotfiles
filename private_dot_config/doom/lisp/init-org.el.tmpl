@@ -1145,11 +1145,12 @@ HEIC files are auto-converted to JPEG."
 
   ;; Set default image width for org-mode inline images
   (setq org-image-actual-width '(500))  ; Fixed width of 500 pixels
-  ;; Alternative options:
-  ;; (setq org-image-actual-width t)     ; Use actual image size
-  ;; (setq org-image-actual-width nil)   ; Use #+ATTR_ORG: :width specifications
-  ;; (setq org-image-actual-width 300)   ; Fixed width of 300 pixels
-  ;; (setq org-image-actual-width '(300 600)) ; Min 300px, max 600px
+
+  ;; Prevent macOS crash with very large images — Emacs loads full image into
+  ;; memory before scaling, so huge JPGs (4000x5000+) can crash on macOS.
+  ;; max-image-size is a multiplier of frame size — images exceeding this
+  ;; won't be rendered inline (shown as a link instead, click to open).
+  (setq max-image-size 3.0)
 
   ;; Automatically display images when opening org files
   (setq org-startup-with-inline-images t)

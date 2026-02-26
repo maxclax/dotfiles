@@ -1,0 +1,19 @@
+;;; init-gptel.el --- gptel LLM integration -*- lexical-binding: t; -*-
+;; API keys are read automatically from ~/.authinfo (managed by chezmoi)
+
+(use-package! gptel
+  :commands (gptel-rewrite gptel-menu gptel-send)
+  :config
+  ;; Anthropic Claude — key from ~/.authinfo (machine api.anthropic.com)
+  (setq gptel-backend (gptel-make-anthropic "Claude" :stream t))
+  (setq gptel-model 'claude-sonnet-4-5)
+
+  ;; Ollama — local models (use with gptel-menu to switch)
+  (gptel-make-ollama "Ollama"
+    :host "localhost:11434"
+    :stream t
+    :models '(qwen2.5-coder:14b
+              qwen2.5-coder:32b
+              deepseek-coder-v2)))
+
+(provide 'init-gptel)

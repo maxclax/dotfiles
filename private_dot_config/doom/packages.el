@@ -19,6 +19,9 @@
 ;; → lisp/init-ai.el
 
 (package! copilot)                    ; GitHub Copilot AI code completion
+(package! gptel)                      ; LLM integration — inline rewrite, code transforms
+(package! aider                       ; Aider AI pair programming — region/file code changes
+  :recipe (:host github :repo "tninja/aider.el"))
 
 ;; =====================================================================
 ;; NOTE-TAKING & KNOWLEDGE MANAGEMENT
