@@ -188,6 +188,7 @@
     (:prefix ("C-c A" . "AI")
      :desc "gptel: rewrite region"  "r" #'gptel-rewrite
      :desc "aider: project session" "a" #'my/aider-project
+     :desc "aider: eat terminal"    "e" #'my/aider-eat
      :desc "aider: code change"     "c" #'aider-function-or-region-change
      :desc "aider: ask about code"  "q" #'aider-ask-question
      :desc "aider: commit message"    "C" #'my/aider-commit-message
@@ -290,7 +291,9 @@
 
 (map! "M-+" #'tempel-complete            ; Complete snippet at point
       "M-*" #'tempel-insert             ; Insert snippet by name
-      "C-o" #'my/casual-open)           ; Context-aware transient menu
+      "C-o" #'my/casual-open            ; Context-aware transient menu
+      "C-=" #'er/expand-region          ; Expand selection: word → line → block → ...
+      "C--" #'er/contract-region)       ; Shrink selection back
 
 ;; ── Mode-specific bindings ────────────────────────────────────────────────────
 

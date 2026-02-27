@@ -8,13 +8,21 @@
              aider-write-unit-test
              aider-switch-to-buffer)
   :config
-  (setq aider-args '()))
+  (setq aider-args '())
 
 (defun my/aider-project ()
   "Start aider session from the current project root."
   (interactive)
   (let ((default-directory (doom-project-root)))
     (aider-run-aider)))
+
+(defun my/aider-eat ()
+  "Start aider in eat terminal on the right side."
+  (interactive)
+  (let ((default-directory (doom-project-root)))
+    (split-window-right)
+    (other-window 1)
+    (eat "aider" t)))
 
 (defun my/aider-flymake-fix-errors ()
   "Send flymake errors in the current region or buffer to aider for fixing."

@@ -22,5 +22,4 @@
         (delete-window))))
   (add-hook 'eat-exit-hook #'my/eat-exit-handler)
 
-  ;; Force emacs state so evil doesn't intercept keypresses
-  (add-hook 'eat-mode-hook #'evil-emacs-state))
+)
