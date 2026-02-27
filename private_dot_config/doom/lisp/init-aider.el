@@ -8,7 +8,7 @@
              aider-write-unit-test
              aider-switch-to-buffer)
   :config
-  (setq aider-args '())
+  (setq aider-args '()))
 
 (defun my/aider-project ()
   "Start aider session from the current project root."
