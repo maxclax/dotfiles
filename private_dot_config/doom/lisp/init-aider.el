@@ -16,6 +16,29 @@
   (let ((default-directory (doom-project-root)))
     (aider-run-aider)))
 
+(defun my/aider-flymake-fix-errors ()
+  "Send flymake errors in the current region or buffer to aider for fixing."
+  (interactive)
+  (require 'aider-core)
+  (let* ((start (if (use-region-p) (region-beginning) (point-min)))
+         (end   (if (use-region-p) (region-end)       (point-max)))
+         (diags (flymake-diagnostics start end))
+         (errors (seq-filter (lambda (d)
+                               (eq :error (flymake-diagnostic-type d)))
+                             diags)))
+    (if (null errors)
+        (message "No flymake errors in scope.")
+      (let ((report (mapconcat
+                     (lambda (d)
+                       (format "Line %d: %s"
+                               (line-number-at-pos (flymake-diagnostic-beg d))
+                               (flymake-diagnostic-text d)))
+                     errors "\n")))
+        (aider--send-command
+         (format "Fix these errors in %s:\n%s"
+                 (buffer-file-name) report)
+         t)))))
+
 (defun my/aider-commit-message ()
   "Send /commit to the running aider session."
   (interactive)
