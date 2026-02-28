@@ -74,6 +74,7 @@
      :desc "LSP: Restart workspace" "R"  #'lsp-workspace-restart
      :desc "LSP: Type definition" "t"    #'+lookup/type-definition
      :desc "Sort lines"             "s"  #'sort-lines
+     :desc "Align regexp"           "x"  #'align-regexp
      (:prefix ("p" . "Python")
       :desc "Copy python cmd"      "p" #'my/python-copy-python-cmd
       :desc "Copy pytest cmd"      "y" #'my/python-copy-pytest-cmd
@@ -127,8 +128,7 @@
              (:prefix ("d" . "Database")
               :desc "pgmacs browser" "m"         #'my/pgmacs-connect-uri)
              :desc "Reset checklist" "r"       #'my/org-reset-checklist
-             :desc "Insert TODO" "t"          #'hl-todo-insert
-             :desc "Align regexp" "x"         #'align-regexp)
+             )
 
     (:prefix ("C-c n" . "Notes")
      :desc "Denote backlinks" "b"           #'denote-backlinks

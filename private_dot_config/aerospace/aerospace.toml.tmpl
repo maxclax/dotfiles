@@ -78,15 +78,15 @@ cmd-shift-space = 'layout floating tiling' # in i3
 cmd-alt-f = 'fullscreen' # in i3 (but no cmd)
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
-cmd-1 = 'workspace 1' # Dev (env)
-cmd-2 = 'workspace 2' # Obsidian, Drafts
-cmd-3 = 'workspace 3' # Browser
-cmd-4 = 'workspace 4' # Dev (Emacs F1)
-cmd-5 = 'workspace 5' # Dev (Emacs F2)
-cmd-6 = 'workspace 6' # AI GUI chats
-cmd-7 = 'workspace 7' # Free special
-cmd-8 = 'workspace 8' # Media (Netflix...), Communication, Musics and Undifined apps
-cmd-9 = 'workspace 9' # Terminal
+cmd-1 = 'workspace 1'  # Undifined apps
+cmd-2 = 'workspace 2'  # Obsidian, Drafts
+cmd-3 = 'workspace 3'  # Browser
+cmd-4 = 'workspace 4'  # Dev (Emacs F1)
+cmd-5 = 'workspace 5'  # Dev (Emacs F2)
+cmd-6 = 'workspace 6'  # AI GUI chats
+cmd-7 = 'workspace 7'  # Free special
+cmd-8 = 'workspace 8'  # Dev (env)
+cmd-9 = 'workspace 9'  # Terminal (extra with F12)
 cmd-0 = 'workspace 10' # AI CLI & Agents
 
 # cmd-a = 'workspace A'
@@ -161,10 +161,6 @@ cmd-ctrl-r = 'mode resize' # in i3
 
 # ---------------------------------------------------------
 [[on-window-detected]]
-if.app-id = 'org.alacritty'
-run = "move-node-to-workspace 1"
-
-[[on-window-detected]]
 if.app-id = 'com.agiletortoise.Drafts-OSX'
 run = "move-node-to-workspace 2"
 [[on-window-detected]]
@@ -195,6 +191,9 @@ run = "move-node-to-workspace 4"
 if.app-id = 'xyz.chatboxapp.app'
 run = "move-node-to-workspace 6"
 [[on-window-detected]]
+if.app-id = 'com.electron.ollama'
+run = "move-node-to-workspace 6"
+[[on-window-detected]]
 if.app-id = 'com.apple.Safari'
 run = "move-node-to-workspace 6"
 [[on-window-detected]]
@@ -203,6 +202,10 @@ run = "move-node-to-workspace 6"
 [[on-window-detected]]
 if.app-id = 'com.anthropic.claudefordesktop'
 run = "move-node-to-workspace 6"
+
+[[on-window-detected]]
+if.app-id = 'org.alacritty'
+run = "move-node-to-workspace 8"
 
 [[on-window-detected]]
 if.app-id = 'com.mitchellh.ghostty'
@@ -246,19 +249,19 @@ run = ["layout floating"]
 
 [[on-window-detected]]
 if.app-name-regex-substring = '^.*$'
-run = 'move-node-to-workspace 8'
+run = 'move-node-to-workspace 1'
 
 # ---------------------------------------------------------
 # https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
 [workspace-to-monitor-force-assignment]
-1 = 1         # Dev (env)
+1 = 1         # Undifined apps
 2 = 'main'    # GTD, Drafts
 3 = 'main'    # Browser
 4 = 'main'    # Dev (Emacs F1)
 5 = [3, 4]    # Dev (Emacs F2)
 6 = [4, 3]    # AI GUI chats
-# 7 = 'main'  # Free special
-8 = [4, 3]    # Undifined apps
+7 = [4, 3]    # Free special
+8 = [3, 4]    # Dev (env)
 9 = 'main'    # terminal
-10 = [4, 3]    # AI CLI & Agents
+10 = [4, 3]   # AI CLI & Agents
 I = [3, 1]    # Info (references, reading)

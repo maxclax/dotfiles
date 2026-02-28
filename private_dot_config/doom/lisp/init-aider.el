@@ -51,6 +51,6 @@
   "Send /commit to the running aider session."
   (interactive)
   (require 'aider-core)
-  (aider--send-command "/commit" t))
+  (aider--send-command "/commit" nil))
 
 (provide 'init-aider)
