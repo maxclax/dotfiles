@@ -40,4 +40,14 @@
       (set-window-buffer (next-window) other-buffer))))
 
 
+;; Extra frames: 1st → workspace 5, 2nd+ → workspace 7
+(defvar my/extra-frame-count 0)
+(when (eq system-type 'darwin)
+  (add-hook 'after-make-frame-functions
+            (lambda (_frame)
+              (cl-incf my/extra-frame-count)
+              (start-process "aerospace-move" nil "aerospace"
+                             "move-node-to-workspace"
+                             (if (= my/extra-frame-count 1) "5" "7")))))
+
 (provide 'init-windows)

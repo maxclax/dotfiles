@@ -1,0 +1,12 @@
+#!/bin/bash
+# -*- mode: sh; -*-
+# hash: {{ include "private_dot_config/vitamin-r/VitaminR_Workflow.applescript" | sha256sum }}
+
+set -e
+
+DEST="$HOME/Library/Application Scripts/net.publicspace.dist.vitaminr4/NotificationHandler.scpt"
+SRC="$HOME/.config/vitamin-r/VitaminR_Workflow.applescript"
+
+mkdir -p "$(dirname "$DEST")"
+osacompile -o "$DEST" "$SRC"
+echo "VitaminR_Workflow compiled to $DEST"

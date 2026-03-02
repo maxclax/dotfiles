@@ -14,7 +14,6 @@
   (plist-put minuet-openai-fim-compatible-options :api-key "TERM") ; Ollama needs any existing env var
   (minuet-set-optional-options minuet-openai-fim-compatible-options :max_tokens 256)
 
-  ;; Auto-enable in code buffers
-  (add-hook 'prog-mode-hook #'minuet-auto-suggestion-mode))
+  )
 
 (provide 'init-minuet)

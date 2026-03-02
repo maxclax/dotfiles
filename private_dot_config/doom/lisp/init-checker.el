@@ -19,10 +19,9 @@
         (warning "" compilation-warning)
         (note "" compilation-info)))
 
-;; cspell integration (requires cspell in PATH)
+;; cspell loaded but NOT hooked into flymake — use my/cspell-check-buffer on demand
 (use-package! flymake-cspell
-  :when (executable-find "cspell")
-  :hook (prog-mode . flymake-cspell-setup))
+  :when (executable-find "cspell"))
 
 (defvar my/cspell-config-file (expand-file-name "~/.config/cspell/cspell.json"))
 
