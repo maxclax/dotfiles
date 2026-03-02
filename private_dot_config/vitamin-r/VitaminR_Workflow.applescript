@@ -1,4 +1,14 @@
--- Helper: parse "OBJECTIVE:xxx|MINUTES:yyy" from spoken_message
+-- Read current objective directly from Vitamin R plist
+on readObjective()
+    try
+        set obj to do shell script "python3 ~/.config/vitamin-r/extract_objective.py"
+        return obj
+    on error
+        return ""
+    end try
+end readObjective
+
+-- Helper: parse "OBJECTIVE:xxx|MINUTES:yyy" from spoken_message (fallback)
 on parseObjective(msg)
     set obj to ""
     set startTag to "OBJECTIVE:"
@@ -37,7 +47,8 @@ end focusProfile
 
 -- Work session started
 on time_slice_start(spoken_message)
-    set obj to my parseObjective(spoken_message)
+    set obj to my readObjective()
+    if obj is "" then set obj to my parseObjective(spoken_message)
     set mins to my parseMinutes(spoken_message)
     set profile to my focusProfile(obj)
 
