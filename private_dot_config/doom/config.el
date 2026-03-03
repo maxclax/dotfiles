@@ -1,6 +1,7 @@
 ;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
 
 ;; Load all configuration modules
+(load! "lisp/init-applescript.el")
 (load! "lisp/init-dired.el")
 (load! "lisp/init-templates.el")
 (load! "lisp/init-checker.el")

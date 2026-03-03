@@ -130,3 +130,4 @@
 (package! macrostep)                  ; Inline macro expansion viewer
 (package! symbol-overlay)             ; Highlight and navigate symbol occurrences
 (package! org-cliplink)               ; Paste URL as org link fetching page title
+(package! applescript-mode)           ; Syntax highlighting for AppleScript files

@@ -8,6 +8,16 @@ on readObjective()
     end try
 end readObjective
 
+-- Read session duration directly from Vitamin R plist
+on readMinutes()
+    try
+        set secs to do shell script "defaults read net.publicspace.dist.vitaminr4 durationInSeconds"
+        return (secs as integer) div 60 as string
+    on error
+        return "25"
+    end try
+end readMinutes
+
 -- Helper: parse "OBJECTIVE:xxx|MINUTES:yyy" from spoken_message (fallback)
 on parseObjective(msg)
     set obj to ""
@@ -49,7 +59,7 @@ end focusProfile
 on time_slice_start(spoken_message)
     set obj to my readObjective()
     if obj is "" then set obj to my parseObjective(spoken_message)
-    set mins to my parseMinutes(spoken_message)
+    set mins to my readMinutes()
     set profile to my focusProfile(obj)
 
     do shell script "/run/current-system/sw/bin/aerospace workspace 4"
@@ -66,7 +76,7 @@ end time_slice_start
 -- Work session finished
 on time_slice_elapsed(spoken_message)
     say "Session done"
-    display notification "Session done" with title "Vitamin R" sound name "Glass"
+    -- display notification "Session done" with title "Vitamin R" sound name "Glass"
     do shell script "open 'focus://unfocus'"
 end time_slice_elapsed
 
@@ -92,6 +102,6 @@ end timed_break_reminder
 -- Break finished → resume with workspace switch
 on timed_break_end(spoken_message)
     say "Break done, back to work"
-    display notification "Break done" with title "Vitamin R" sound name "Ping"
+    -- display notification "Break done" with title "Vitamin R" sound name "Ping"
     do shell script "/run/current-system/sw/bin/aerospace workspace 4"
 end timed_break_end

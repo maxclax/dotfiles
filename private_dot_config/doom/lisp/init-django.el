@@ -146,8 +146,6 @@ Activated automatically in any project containing manage.py."
         (setq-local python-shell-interpreter
                     (expand-file-name ".venv/bin/python" root))
         (setq-local python-shell-interpreter-args "-i")
-        (setq-local python-black-command
-                    (expand-file-name ".venv/bin/black" root))
         (setq-local lsp-diagnostics-provider   :flymake
                     lsp-pyright-venv-path       root
                     lsp-pyright-venv-directory  ".venv"

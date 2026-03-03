@@ -6,7 +6,7 @@
         python-shell-interpreter "python3"))
 
 ;; Use ruff as the formatter (ruff also handles import sorting via `I` rules)
-(add-hook! 'python-mode-hook
+(add-hook! '(python-mode-hook python-ts-mode-hook)
   (setq-local format-all-formatters '(("Python" ruff))))
 
 ;; Highlight breakpoints on open
