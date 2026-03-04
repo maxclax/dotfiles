@@ -5,8 +5,8 @@ matches:
   - trigger: "<-"
     replace: "←"
 
-  - trigger: "-^"
+  - trigger: "-up"
     replace: "↑"
 
-  - trigger: "-v"
+  - trigger: "-do"
     replace: "↓"

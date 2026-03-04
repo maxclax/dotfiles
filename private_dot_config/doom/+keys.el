@@ -98,7 +98,6 @@
      :desc "Current file path" "F"            #'+default/insert-filepath
      :desc "Insert link from clipboard" "l"  #'org-cliplink
      :desc "Insert shell link" "L"           #'my/insert-shell-link
-     :desc "Current time [H:M]" "t"           #'my/insert-current-time
      (:prefix ("j" . "Journal")
       :desc "Start journal log entry" "s"     #'my/journal-log-start
       :desc "Finish journal log entry" "f"    #'my/journal-log-finish)
@@ -111,7 +110,8 @@
       :desc "Insert screenshot" "s"           #'org-download-screenshot
       :desc "Insert image from URL" "u"       #'org-download-image)
      (:prefix ("o" . "Org")
-      :desc "org-timestamp []" "t"            #'org-timestamp-inactive
+      :desc "Current time [H:M]" "t"          #'my/insert-current-time
+      :desc "org-timestamp []" "i"            #'org-timestamp-inactive
       :desc "org-timestamp <>" "T"            #'org-timestamp))
 
     (:prefix ("C-c l" . "Tools")
@@ -170,8 +170,8 @@
      :desc "Recent files" "r"            #'projectile-recentf
      :desc "Search project" "s"          #'+default/search-project
      (:prefix ("t" . "TODOs")
-      :desc "Insert TODO comment" "i"    #'hl-todo-insert
-      :desc "Search TODOs" "t" (lambda () (interactive)
+      :desc "Insert TODO comment" "t"    #'hl-todo-insert
+      :desc "Search TODOs" "s" (lambda () (interactive)
                                  (if (projectile-project-p)
                                      (consult-ripgrep (projectile-project-root) "TODO:")
                                    (message "Not in a project")))))
@@ -286,6 +286,12 @@
 (add-hook 'window-setup-hook #'my/setup-c-x-bindings)
 (add-hook 'window-setup-hook #'my/setup-mac-cmd-shortcuts)
 (add-hook 'window-setup-hook #'my/setup-meta-bindings)
+
+;; ── Disable arrow keys ────────────────────────────────────────────────────────
+(map! "<left>"  #'ignore
+      "<right>" #'ignore
+      "<up>"    #'ignore
+      "<down>"  #'ignore)
 
 ;; ── Global bindings ───────────────────────────────────────────────────────────
 

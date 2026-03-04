@@ -4,26 +4,26 @@
 (setq fancy-splash-image (concat doom-private-dir "assets/GNUEmacs.png"))
 
 (use-package! circadian
-              :config
-              (setq circadian-themes '(("5:00" . doom-one-light)
-                                       ("21:00" . doom-one)))
+  :config
+  (setq circadian-themes '(("5:00" . doom-one-light)
+                           ("21:00" . doom-one)))
 
-              ;; Determine the correct initial theme based on current time
-              (let* ((hour-now (string-to-number (format-time-string "%H")))
-                     (minute-now (string-to-number (format-time-string "%M")))
-                     (time-now (+ (* hour-now 60) minute-now))
-                     (light-start (+ (* 5 60) 0))   ;; 5:00 in minutes
-                     (dark-start (+ (* 18 60) 30))) ;; 18:30 in minutes
+  ;; Determine the correct initial theme based on current time
+  (let* ((hour-now (string-to-number (format-time-string "%H")))
+         (minute-now (string-to-number (format-time-string "%M")))
+         (time-now (+ (* hour-now 60) minute-now))
+         (light-start (+ (* 5 60) 0))   ;; 5:00 in minutes
+         (dark-start (+ (* 18 60) 30))) ;; 18:30 in minutes
 
-                ;; Set the initial theme based on current time
-                (setq doom-theme
-                      (if (and (>= time-now light-start)
-                               (< time-now dark-start))
-                          'doom-one-light ;; During day (5:00-18:30)
-                        'doom-one)))      ;; During night
+    ;; Set the initial theme based on current time
+    (setq doom-theme
+          (if (and (>= time-now light-start)
+                   (< time-now dark-start))
+              'doom-one-light ;; During day (5:00-18:30)
+            'doom-one)))      ;; During night
 
-              ;; Setup circadian for automatic switching
-              (circadian-setup))
+  ;; Setup circadian for automatic switching
+  (circadian-setup))
 
 ;; Perfect font + theme for emacsclient frames
 (setq display-line-numbers-type t)
@@ -173,4 +173,12 @@ word processor — soft wraps, relaxed spacing, bar cursor, flyspell."
           ("NOTE"  . ,(doom-color 'green))
           ("DEBUG"  . ,(doom-color 'red))
           ("FAIL"  . ,(doom-color 'red))
-          ("FIXME" . ,(doom-color 'red)))))
+          ("FIXME" . ,(doom-color 'red))))
+
+  ;; Always insert keyword with ": " and leave point after the space
+  (advice-add 'hl-todo-insert :after
+              (lambda (keyword)
+                (when (re-search-backward (regexp-quote keyword) (line-beginning-position) t)
+                  (goto-char (match-end 0))
+                  (unless (looking-at ":")
+                    (insert ": "))))))
