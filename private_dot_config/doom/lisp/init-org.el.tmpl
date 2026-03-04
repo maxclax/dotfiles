@@ -136,14 +136,22 @@
                             (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))))))
 
             (tags-todo "project-INBOX-hold-someday-shopping"
-                       ((org-agenda-overriding-header "🚫 Stuck Projects (no deadline/scheduled)")
+                       ((org-agenda-overriding-header "🚫 Stuck Projects (no next actions)")
                         (org-agenda-skip-function
                          '(lambda ()
-                            (or (org-agenda-skip-entry-if 'scheduled 'deadline
-                                                          'todo '("DONE" "CANCELLED" "HOLD" "NEXT" "WAITING"))
-                                ;; Skip headings without a TODO keyword
-                                (unless (org-get-todo-state)
-                                  (or (outline-next-heading) (point-max))))))
+                            (or
+                             ;; Skip completed or on-hold projects
+                             (org-agenda-skip-entry-if 'todo '("DONE" "CANCELLED" "HOLD"))
+                             ;; Skip headings without a TODO keyword
+                             (unless (org-get-todo-state)
+                               (or (outline-next-heading) (point-max)))
+                             ;; Skip if subtree has any active next actions (not stuck)
+                             (let ((end (save-excursion (org-end-of-subtree t))))
+                               (when (save-excursion
+                                       (re-search-forward
+                                        "^\\*+ +\\(?:NEXT\\|WAITING\\|INPROCESS\\|DELEGATED\\)"
+                                        end t))
+                                 (point-max))))))
                         (org-tags-match-list-sublevels t)))
 
             (tags-todo "/WAITING"
@@ -590,9 +598,9 @@
            "* TODO %?")
           ("c" "Todo with context → inbox.org (adds link + timestamp)" entry (file org-default-notes-file)
            "* TODO %?\n%U\n  %i\n  %a" :clock-resume t)
-          ("P" "Project task → ROADMAP.org in current project" entry (file (lambda ()
+          ("P" "Project task → TASKS.org in current project" entry (file (lambda ()
                                                 (if (projectile-project-p)
-                                                     (concat (projectile-project-root) "ROADMAP.org")
+                                                     (concat (projectile-project-root) "TASKS.org")
                                                    (error "Not in a projectile project"))))
            "* TODO %?\n%U\n  %i\n  %a")
           ("j" "Journal todo → today's journal Todos section" entry (file+headline my/today-journal-file "Todos")

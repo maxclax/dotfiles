@@ -1,3 +1,6 @@
+-- Track whether the previous slice just elapsed (extension detection)
+property sliceJustElapsed : false
+
 -- Read current objective directly from Vitamin R plist
 on readObjective()
     try
@@ -8,14 +11,17 @@ on readObjective()
     end try
 end readObjective
 
--- Read session duration directly from Vitamin R plist
+-- Read session duration from Vitamin R plist with retries
 on readMinutes()
-    try
-        set secs to do shell script "defaults read net.publicspace.dist.vitaminr4 durationInSeconds"
-        return (secs as integer) div 60 as string
-    on error
-        return "25"
-    end try
+    repeat 3 times
+        try
+            set secs to do shell script "defaults read net.publicspace.dist.vitaminr4 durationInSeconds"
+            set m to (secs as integer) div 60
+            if m > 0 then return m as string
+        end try
+        delay 0.4
+    end repeat
+    return "25"
 end readMinutes
 
 -- Helper: parse "OBJECTIVE:xxx|MINUTES:yyy" from spoken_message (fallback)
@@ -35,16 +41,6 @@ on parseObjective(msg)
     return obj
 end parseObjective
 
-on parseMinutes(msg)
-    set mins to "25"
-    set startTag to "MINUTES:"
-    set startPos to offset of startTag in msg
-    if startPos > 0 then
-        set mins to (characters (startPos + (length of startTag)) thru -1 of msg) as string
-    end if
-    return mins
-end parseMinutes
-
 -- Map objective name → HeyFocus profile name
 on focusProfile(obj)
     if obj contains "Monthly Report" or obj contains "Administration" then
@@ -55,12 +51,22 @@ on focusProfile(obj)
     return "deep"
 end focusProfile
 
--- Work session started
+-- Work session started (also called for 2/5 min extensions)
 on time_slice_start(spoken_message)
+    set isExtension to sliceJustElapsed
+    set sliceJustElapsed to false
+
     set obj to my readObjective()
     if obj is "" then set obj to my parseObjective(spoken_message)
-    set mins to my readMinutes()
     set profile to my focusProfile(obj)
+
+    -- For extensions plist may still hold the original session duration.
+    -- Use a short fixed focus block so HeyFocus mirrors the brief extension.
+    if isExtension then
+        set mins to "5"
+    else
+        set mins to my readMinutes()
+    end if
 
     do shell script "/run/current-system/sw/bin/aerospace workspace 4"
 
@@ -70,18 +76,19 @@ on time_slice_start(spoken_message)
         do shell script "open 'focus://focus?minutes=" & mins & "'"
     end if
 
-    say obj & " — starting " & mins & " minutes"
+    say obj
 end time_slice_start
 
 -- Work session finished
 on time_slice_elapsed(spoken_message)
+    set sliceJustElapsed to true
     say "Session done"
-    -- display notification "Session done" with title "Vitamin R" sound name "Glass"
     do shell script "open 'focus://unfocus'"
 end time_slice_elapsed
 
 -- Work session stopped early
 on time_slice_was_stopped(spoken_message)
+    set sliceJustElapsed to false
     do shell script "open 'focus://unfocus'"
 end time_slice_was_stopped
 
@@ -102,6 +109,5 @@ end timed_break_reminder
 -- Break finished → resume with workspace switch
 on timed_break_end(spoken_message)
     say "Break done, back to work"
-    -- display notification "Break done" with title "Vitamin R" sound name "Ping"
     do shell script "/run/current-system/sw/bin/aerospace workspace 4"
 end timed_break_end
