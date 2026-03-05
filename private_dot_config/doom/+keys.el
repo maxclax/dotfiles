@@ -126,6 +126,16 @@
              :desc "Reset checklist" "r"       #'my/org-reset-checklist
              )
 
+    (:prefix ("C-c m" . "Multiple cursors")
+     :desc "Edit lines" "l" #'mc/edit-lines
+     :desc "Mark next" "n" #'mc/mark-next-like-this
+     :desc "Mark previous" "N" #'mc/mark-previous-like-this
+     :desc "Mark next word" "w" #'mc/mark-next-like-this-word
+     :desc "Mark previous word" "W" #'mc/mark-previous-like-this-word
+     :desc "Mark all" "a" #'mc/mark-all-like-this
+     :desc "Edit ends of lines" "e" #'mc/edit-ends-of-lines
+     :desc "Edit beginnings of lines" "b" #'mc/edit-beginnings-of-lines)
+
     (:prefix ("C-c n" . "Notes")
      :desc "Denote backlinks" "b"           #'denote-backlinks
      :desc "Denote link after creating" "c" #'denote-link-after-creating
@@ -166,8 +176,8 @@
      :desc "Recent files" "r"            #'projectile-recentf
      :desc "Search project" "s"          #'+default/search-project
      :desc "Search project for word at point" "S" (lambda () (interactive)
-                                                     (consult-ripgrep (projectile-project-root)
-                                                                      (thing-at-point 'symbol t)))
+                                                    (consult-ripgrep (projectile-project-root)
+                                                                     (thing-at-point 'symbol t)))
      (:prefix ("t" . "TODOs")
       :desc "Insert TODO comment" "t"    #'hl-todo-insert
       :desc "Search TODOs" "s" (lambda () (interactive)
@@ -210,9 +220,10 @@
      :desc "Copilot" "a"               #'copilot-mode
      :desc "Minuet"  "A"               #'minuet-auto-suggestion-mode
      :desc "Prose mode" "P"             #'prose-mode
+     :desc "Truncate lines" "t"        #'toggle-truncate-lines
      :desc "Zen mode" "z"              #'+zen/toggle
      :desc "Zen mode (fullscreen)" "Z" #'+zen/toggle-fullscreen
-     (:prefix ("t" . "Timing")
+     (:prefix ("T" . "Timing")
       :desc "Start timer" "t"          #'tmr
       :desc "Start with details" "T"   #'tmr-with-details
       :desc "Toggle ticking sound" "s" #'my/tick-toggle
@@ -309,9 +320,10 @@
         "C-c h n" #'symbol-overlay-jump-next
         "C-c h p" #'symbol-overlay-jump-prev))
 
-(after! elisp-mode
-  (map! :map emacs-lisp-mode-map
-        "C-c m" #'macrostep-expand))
+
+;; (after! elisp-mode
+;;   (map! :map emacs-lisp-mode-map
+;;         "C-c m" #'macrostep-expand))
 
 (after! casual
   (map! :map isearch-mode-map "C-o" #'casual-isearch-tmenu)
