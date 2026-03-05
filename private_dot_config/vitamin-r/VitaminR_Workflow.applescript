@@ -1,5 +1,5 @@
--- Track whether the previous slice just elapsed (extension detection)
-property sliceJustElapsed : false
+-- Timestamp (seconds since epoch) when the last slice elapsed; 0 = none
+property sliceElapsedAt : 0
 
 -- Read current objective directly from Vitamin R plist
 on readObjective()
@@ -53,15 +53,16 @@ end focusProfile
 
 -- Work session started (also called for 2/5 min extensions)
 on time_slice_start(spoken_message)
-    set isExtension to sliceJustElapsed
-    set sliceJustElapsed to false
+    set now to (do shell script "date +%s") as integer
+    set isExtension to (sliceElapsedAt > 0 and (now - sliceElapsedAt) ≤ 60)
+    set sliceElapsedAt to 0
 
     set obj to my readObjective()
     if obj is "" then set obj to my parseObjective(spoken_message)
     set profile to my focusProfile(obj)
 
-    -- For extensions plist may still hold the original session duration.
-    -- Use a short fixed focus block so HeyFocus mirrors the brief extension.
+    -- For extensions the plist may still hold the original session duration;
+    -- use a short fixed block so Focus mirrors the brief extension.
     if isExtension then
         set mins to "5"
     else
@@ -81,14 +82,14 @@ end time_slice_start
 
 -- Work session finished
 on time_slice_elapsed(spoken_message)
-    set sliceJustElapsed to true
+    set sliceElapsedAt to (do shell script "date +%s") as integer
     say "Session done"
     do shell script "open 'focus://unfocus'"
 end time_slice_elapsed
 
 -- Work session stopped early
 on time_slice_was_stopped(spoken_message)
-    set sliceJustElapsed to false
+    set sliceElapsedAt to 0
     do shell script "open 'focus://unfocus'"
 end time_slice_was_stopped
 

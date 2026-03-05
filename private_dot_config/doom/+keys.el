@@ -66,10 +66,6 @@
      :desc "Format buffer" "f"           #'format-all-buffer
      :desc "Kill inside pair" "k"        #'my/kill-inside-pair
      :desc "LSP: Code action" "a"        #'lsp-execute-code-action
-     :desc "LSP: Definition" "g"         #'+lookup/definition
-     :desc "LSP: Implementations" "i"    #'+lookup/implementations
-     :desc "LSP: Organize imports" "o"   #'lsp-organize-imports
-     :desc "LSP: References" "G"         #'+lookup/references
      :desc "LSP: Rename symbol" "r"      #'lsp-rename
      :desc "LSP: Restart workspace" "R"  #'lsp-workspace-restart
      :desc "LSP: Type definition" "t"    #'+lookup/type-definition
@@ -169,6 +165,9 @@
      :desc "Switch project" "p"          #'projectile-switch-project
      :desc "Recent files" "r"            #'projectile-recentf
      :desc "Search project" "s"          #'+default/search-project
+     :desc "Search project for word at point" "S" (lambda () (interactive)
+                                                     (consult-ripgrep (projectile-project-root)
+                                                                      (thing-at-point 'symbol t)))
      (:prefix ("t" . "TODOs")
       :desc "Insert TODO comment" "t"    #'hl-todo-insert
       :desc "Search TODOs" "s" (lambda () (interactive)
