@@ -16,6 +16,7 @@
 (load! "lisp/init-minuet.el")
 (load! "lisp/init-gptel.el")
 (load! "lisp/init-aider.el")
+(load! "lisp/init-ollama-buddy.el")
 (load! "lisp/init-denote")
 (load! "lisp/init-bookmarks.el")
 (load! "lisp/init-whichkey.el")

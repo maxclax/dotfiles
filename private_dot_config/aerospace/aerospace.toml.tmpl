@@ -83,10 +83,10 @@ cmd-2 = 'workspace 2'  # Obsidian, Drafts
 cmd-3 = 'workspace 3'  # Browser
 cmd-4 = 'workspace 4'  # Dev (Emacs F1)
 cmd-5 = 'workspace 5'  # Dev (Emacs F2)
-cmd-6 = 'workspace 6'  # AI GUI chats
-cmd-7 = 'workspace 7'  # Free special
-cmd-8 = 'workspace 8'  # Dev (env)
-cmd-9 = 'workspace 9'  # Terminal (extra with F12)
+cmd-6 = 'workspace 6'  # Dev (Emacs F3)
+cmd-7 = 'workspace 7'  # AI GUI chats
+cmd-8 = 'workspace 8'  # Terminal (extra with F12)
+cmd-9 = 'workspace 9'  # Dev (env)
 cmd-0 = 'workspace 10' # AI CLI & Agents
 
 # cmd-a = 'workspace A'
@@ -160,12 +160,12 @@ cmd-ctrl-r = 'mode resize' # in i3
 # ---------------------------------------------------------
 
 # ---------------------------------------------------------
-[[on-window-detected]]
-if.app-id = 'com.agiletortoise.Drafts-OSX'
-run = "move-node-to-workspace 2"
-[[on-window-detected]]
-if.app-id = 'md.obsidian'
-run = "move-node-to-workspace 2"
+# [[on-window-detected]]
+# if.app-id = 'com.agiletortoise.Drafts-OSX'
+# run = "move-node-to-workspace 2"
+# [[on-window-detected]]
+# if.app-id = 'md.obsidian'
+# run = "move-node-to-workspace 2"
 [[on-window-detected]]
 if.app-id = 'com.iggsoftware.banktivity'
 run = "move-node-to-workspace 2"
@@ -189,29 +189,30 @@ if.app-id = "org.gnu.Emacs"
 run = "move-node-to-workspace 4"
 
 # Frame 2 (5)
+# Frame 3 (6)
 
 [[on-window-detected]]
 if.app-id = 'xyz.chatboxapp.app'
-run = "move-node-to-workspace 6"
+run = "move-node-to-workspace 7"
 [[on-window-detected]]
 if.app-id = 'com.electron.ollama'
-run = "move-node-to-workspace 6"
+run = "move-node-to-workspace 7"
 [[on-window-detected]]
 if.app-id = 'com.apple.Safari'
-run = "move-node-to-workspace 6"
+run = "move-node-to-workspace 7"
 [[on-window-detected]]
 if.app-id = 'com.openai.chat'
-run = "move-node-to-workspace 6"
+run = "move-node-to-workspace 7"
 [[on-window-detected]]
 if.app-id = 'com.anthropic.claudefordesktop'
-run = "move-node-to-workspace 6"
-
-[[on-window-detected]]
-if.app-id = 'org.alacritty'
-run = "move-node-to-workspace 8"
+run = "move-node-to-workspace 7"
 
 [[on-window-detected]]
 if.app-id = 'com.mitchellh.ghostty'
+run = "move-node-to-workspace 8"
+
+[[on-window-detected]]
+if.app-id = 'org.alacritty'
 run = "move-node-to-workspace 9"
 
 [[on-window-detected]]
@@ -272,10 +273,10 @@ run = 'move-node-to-workspace 1'
 3 = 'main'    # Browser
 4 = 'main'    # Dev (Emacs F1)
 5 = [3, 4]    # Dev (Emacs F2)
-6 = [4, 3]    # AI GUI chats
-7 = [4, 3]    # Free special
-8 = [3, 4]    # Dev (env)
-9 = 'main'    # terminal
+6 = [4, 3]    # Dev (Emacs F3)
+7 = [4, 3]    # AI GUI chats
+8 = 'main'    # terminal
+9 = [3, 4]    # Dev (env)
 10 = [4, 3]   # AI CLI & Agents
 I = [3, 1]    # Info (references, reading)
 M = [3, 1]    # Media, Mail

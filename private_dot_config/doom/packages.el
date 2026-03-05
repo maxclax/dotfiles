@@ -24,6 +24,7 @@
   :recipe (:host github :repo "milanglacier/minuet-ai.el"))
 (package! aider                       ; Aider AI pair programming — region/file code changes
   :recipe (:host github :repo "tninja/aider.el"))
+(package! ollama-buddy)               ; Ollama local LLM interface with web search
 
 ;; =====================================================================
 ;; NOTE-TAKING & KNOWLEDGE MANAGEMENT
