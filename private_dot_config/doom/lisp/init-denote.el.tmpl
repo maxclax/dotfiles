@@ -214,7 +214,10 @@ KEYWORD should be a string. FILE should be a full file path."
   ;; Enable calendar integration
   (require 'calendar)
   (add-hook 'calendar-today-visible-hook #'denote-journal-calendar-mark-dates)
-  (add-hook 'calendar-today-invisible-hook #'denote-journal-calendar-mark-dates))
+  (add-hook 'calendar-today-invisible-hook #'denote-journal-calendar-mark-dates)
+
+  ;; Auto-open today's journal on startup (create if not exists)
+  (add-hook 'doom-after-init-hook #'denote-journal-new-or-existing-entry))
 
 ;; Additional denote packages
 (use-package! denote-org

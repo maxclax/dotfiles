@@ -49,6 +49,9 @@ map f1 drag_drop
 # Claude terminal setup
 map shift+enter send_text normal,application \x1b\r
 
+# Fix Ctrl+B not being delivered on macOS (macOS NSTextInputClient intercepts it)
+map ctrl+b send_text normal,application \x02
+
 # Ensure Tab key works for completion
 map tab send_text normal,application \x09
 

@@ -69,6 +69,9 @@
      :desc "LSP: Rename symbol" "r"      #'lsp-rename
      :desc "LSP: Restart workspace" "R"  #'lsp-workspace-restart
      :desc "LSP: Type definition" "t"    #'+lookup/type-definition
+     :desc "LSP: Doc glance" "h"         #'lsp-ui-doc-glance
+     :desc "LSP: Peek definition" "d"    #'lsp-ui-peek-find-definitions
+     :desc "LSP: Peek references" "e"    #'lsp-ui-peek-find-references
      :desc "Sort lines"             "s"  #'sort-lines
      :desc "Align regexp"           "x"  #'align-regexp
      (:prefix ("p" . "Python")
@@ -150,8 +153,10 @@
      (:prefix ("j" . "Journal")
       :desc "Today's journal" "j"           #'denote-journal-new-or-existing-entry
       :desc "Tomorrow's journal" "t"        #'my/open-tomorrow-journal
-      :desc "Yesterday's journal" "y"       #'my/open-yesterday-journal
-      :desc "Refile to today" "r"           #'my/refile-to-today-journal)
+      :desc "Yesterday's journal" "y"       #'my/open-yesterday-journal)
+     (:prefix ("t" . "Tasks")
+      :desc "Refile to today" "r"           #'my/refile-to-today-journal
+      :desc "Refile ALL to today" "R"       #'my/refile-all-to-today-journal)
      :desc "Open Journelly" "J"             #'my/open-journelly
      :desc "Journelly by tag" "T"            #'my/journelly-search-tag
      :desc "Denote link" "l"                #'denote-link
@@ -286,9 +291,11 @@
         :desc "Switch workspace"   "M-S" #'+workspace/switch-to))
 
 ;; Prevent projectile and persp-mode from binding their keymaps to C-c p.
+;; Prevent lsp-mode from binding its keymap to C-c l (we use that for Tools).
 ;; Must be set before these modes activate.
 (setq projectile-keymap-prefix nil
-      persp-keymap-prefix (kbd "C-c P"))
+      persp-keymap-prefix (kbd "C-c P")
+      lsp-keymap-prefix "C-c L")
 
 ;; Apply early to ensure our bindings take precedence
 (add-hook 'doom-first-buffer-hook #'my/setup-clean-c-c-bindings)
