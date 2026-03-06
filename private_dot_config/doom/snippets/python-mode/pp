@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: pprint locals
+# key: pp
+# --
+from pprint import pprint; pprint(locals())

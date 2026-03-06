@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: Commit message presets
+# key: cp
+# --
+`(yas-choose-value '("dev: Update submodule to latest commit" "chore: Update dependencies" "dev: Update configuration"))`

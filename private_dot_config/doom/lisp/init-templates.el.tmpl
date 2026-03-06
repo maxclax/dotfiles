@@ -2,6 +2,10 @@
 
 ;;; Commentary:
 
+(after! yasnippet
+  ;; Use completing-read (vertico) for yas-choose-value prompts
+  (setq yas-prompt-functions '(yas-completing-prompt)))
+
 (use-package! tempel
   :defer t
   :init

@@ -85,9 +85,19 @@
   )
 
 (after! lsp-ui
-  (setq lsp-ui-doc-enable nil
-        lsp-lens-enable nil
-        lsp-ui-sideline-enable nil
+  ;; Doc popup — manual trigger only, never on hover
+  (setq lsp-ui-doc-enable t
+        lsp-ui-doc-show-with-cursor nil   ; don't auto-show on cursor move
+        lsp-ui-doc-show-with-mouse nil    ; don't auto-show on mouse hover
         lsp-ui-doc-include-signature t
+        lsp-ui-doc-position 'at-point
         lsp-ui-doc-max-height 15
-        lsp-ui-doc-max-width 100))
+        lsp-ui-doc-max-width 100)
+
+  ;; Sideline — off (flymake handles diagnostics)
+  (setq lsp-ui-sideline-enable nil)
+  (setq lsp-lens-enable nil)
+
+  ;; Peek — overlay window for definitions/references without leaving buffer
+  (setq lsp-ui-peek-enable t
+        lsp-ui-peek-always-show t))
