@@ -26,7 +26,7 @@
           (let ((inside (point-marker)))
             (if (search-forward (string close-char) nil t)
                 (progn
-                  (kill-region inside (1- (point)))
+                  (delete-region inside (1- (point)))
                   (goto-char inside))
               (message "No closing %c found" close-char))))))))
 
