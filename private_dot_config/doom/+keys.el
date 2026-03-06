@@ -115,6 +115,9 @@
               :desc "Show all buffers" "a"    #'my/erc-show-all-buffers
               :desc "Connect to IRC" "c"      #'my/erc-connect
               :desc "Join extra channels" "j" #'my/erc-join-extra)
+             (:prefix ("f" . "Frames")
+              :desc "Create 2 frames" "2" #'my/make-2-frames
+              :desc "Create 3 frames" "3" #'my/make-3-frames)
              :desc "Org store link" "l"       #'org-store-link
              (:prefix ("p" . "Process")
               :desc "List processes" "l"      #'list-processes
@@ -298,6 +301,16 @@
 (add-hook 'window-setup-hook #'my/setup-c-x-bindings)
 (add-hook 'window-setup-hook #'my/setup-mac-cmd-shortcuts)
 (add-hook 'window-setup-hook #'my/setup-meta-bindings)
+
+;; Explicitly register sub-prefix group names for C-c l (which-key doesn't
+;; always pick these up when map! nests them inside :map override)
+(after! which-key
+  (which-key-add-key-based-replacements
+    "C-c l e" "ERC IRC"
+    "C-c l f" "Frames"
+    "C-c l p" "Process"
+    "C-c l s" "Shell"
+    "C-c l d" "Database"))
 
 ;; ── Disable arrow keys ────────────────────────────────────────────────────────
 (map! "<left>"  #'ignore

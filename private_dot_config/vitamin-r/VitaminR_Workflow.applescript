@@ -41,6 +41,26 @@ on parseObjective(msg)
     return obj
 end parseObjective
 
+-- Parse "MINUTES:yyy" from spoken_message — gives the actual slice duration
+-- even for continuations where the plist still holds the original duration.
+on parseMinutesFromMsg(msg)
+    set startTag to "MINUTES:"
+    set startPos to (offset of startTag in msg)
+    if startPos > 0 then
+        set substr to (characters (startPos + (length of startTag)) thru -1 of msg) as string
+        set pipePos to offset of "|" in substr
+        if pipePos > 0 then
+            set m to text 1 thru (pipePos - 1) of substr
+        else
+            set m to substr
+        end if
+        try
+            if (m as integer) > 0 then return m
+        end try
+    end if
+    return ""
+end parseMinutesFromMsg
+
 -- Map objective name → HeyFocus profile name
 on focusProfile(obj)
     if obj contains "Monthly Report" or obj contains "Administration" then
@@ -54,19 +74,23 @@ end focusProfile
 -- Work session started (also called for 2/5 min extensions)
 on time_slice_start(spoken_message)
     set now to (do shell script "date +%s") as integer
-    set isExtension to (sliceElapsedAt > 0 and (now - sliceElapsedAt) ≤ 60)
+    -- 300 s window: covers the case where the user takes up to ~5 min to click Continue
+    set isExtension to (sliceElapsedAt > 0 and (now - sliceElapsedAt) ≤ 300)
     set sliceElapsedAt to 0
 
     set obj to my readObjective()
     if obj is "" then set obj to my parseObjective(spoken_message)
     set profile to my focusProfile(obj)
 
-    -- For extensions the plist may still hold the original session duration;
-    -- use a short fixed block so Focus mirrors the brief extension.
-    if isExtension then
-        set mins to "5"
-    else
-        set mins to my readMinutes()
+    -- Prefer the duration embedded in spoken_message (accurate for continuations).
+    -- Fall back to isExtension heuristic (plist may still hold the original duration).
+    set mins to my parseMinutesFromMsg(spoken_message)
+    if mins is "" then
+        if isExtension then
+            set mins to "5"
+        else
+            set mins to my readMinutes()
+        end if
     end if
 
     do shell script "/run/current-system/sw/bin/aerospace workspace 4"
