@@ -169,6 +169,7 @@
 
     (:prefix ("C-c o" . "Open")
      :desc "Dired jump" "-"         #'dired-jump
+     :desc "Dual panel file manager" "2" #'my/dirvish-dual-panel
      :desc "Docker" "D"             #'docker
      :desc "Reveal in Finder" "O"   #'+macos/reveal-project-in-finder
      :desc "Dirvish sidebar" "p"    #'dirvish-side
@@ -362,7 +363,15 @@
         "C-f"   #'dired-find-file
         "C-b"   #'dired-up-directory
         "TAB"   #'dirvish-subtree-toggle
-        "M-TAB" #'dirvish-layout-toggle))
+        "M-TAB" #'dirvish-layout-toggle
+        "2"     #'my/dirvish-dual-panel
+        "V"     #'my/dired-toggle-details)
+  (map! :map dired-mode-map
+        "2"     #'my/dirvish-dual-panel))
+
+(after! dired
+  (map! :map dired-mode-map
+        "V" #'my/dired-toggle-details))
 
 
 (after! verb

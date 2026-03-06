@@ -1,5 +1,48 @@
 ;;; init-dired.el -*- mode: emacs-lisp; lexical-binding: t; -*-
 
+(defun my/dirvish-dual-panel (&optional use-project)
+  "Open two dired panels side by side at the current file's directory.
+With prefix argument USE-PROJECT, open at the project root instead."
+  (interactive "P")
+  (let ((dir (if use-project
+                 (or (and (fboundp 'projectile-project-root) (projectile-project-root))
+                     (and (fboundp 'project-root) (when-let (p (project-current)) (project-root p)))
+                     default-directory)
+               default-directory)))
+    (delete-other-windows)
+    (dired dir)
+    (split-window-right)
+    (other-window 1)
+    (dired dir)
+    (other-window 1)))
+
+;; Use the other dired window as default copy/move target (dual-panel behaviour)
+(setq dired-dwim-target t)
+
+(defvar my/dired-detailed-view nil
+  "Global flag: when non-nil all dired buffers show detailed view.")
+
+(defun my/dired-apply-view-state ()
+  "Apply the global view state to the current dired buffer."
+  (if my/dired-detailed-view
+      (dired-hide-details-mode -1)
+    (dired-hide-details-mode 1)))
+
+(add-hook 'dired-mode-hook #'my/dired-apply-view-state)
+
+(defun my/dired-toggle-details ()
+  "Toggle between clean and detailed view globally (persists across directories)."
+  (interactive)
+  (setq my/dired-detailed-view (not my/dired-detailed-view))
+  (when (boundp 'dirvish-attributes)
+    (setq dirvish-attributes
+          (if my/dired-detailed-view
+              '(nerd-icons collapse file-size file-time vc-state)
+            '(nerd-icons collapse))))
+  (my/dired-apply-view-state)
+  (dired-revert)
+  (message "Dired: %s view" (if my/dired-detailed-view "detailed" "clean")))
+
 (after! dirvish
   ;; Enable dirvish globally for all dired buffers
   (dirvish-override-dired-mode)
@@ -8,8 +51,8 @@
   ;; Set after dirvish-override-dired-mode so dirvish doesn't reset it.
   (setq dired-listing-switches "-aBhl --group-directories-first")
 
-  (setq dirvish-attributes
-        '(vc-state file-size nerd-icons collapse file-time))
+  ;; Clean by default: icons + subtree only, ls detail columns hidden
+  (setq dirvish-attributes '(nerd-icons collapse))
 
   (setq dirvish-quick-access-entries
         `(("h" "~/" "Home")
