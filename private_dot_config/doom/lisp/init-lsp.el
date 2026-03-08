@@ -1,6 +1,11 @@
 ;;; +lsp.el -*- lexical-binding: t; -*-
 
 
+;; Terraform → OpenTofu
+(setq +terraform-runner "tofu")
+(after! lsp-terraform
+  (setq lsp-terraform-ls-server "tofu-ls"))
+
 ;; Typescript
 (setq lsp-clients-typescript-init-opts
       '(:importModuleSpecifierPreference "relative"))

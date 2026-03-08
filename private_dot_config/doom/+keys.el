@@ -292,6 +292,11 @@
         :desc "Display workspaces" "M-W" #'+workspace/display
         :desc "Switch workspace"   "M-S" #'+workspace/switch-to))
 
+(map! "C-x C-a l" #'doom/quickload-session
+      "C-x C-a s" #'doom/quicksave-session
+      "C-x C-a L" #'doom/load-session
+      "C-x C-a S" #'doom/save-session)
+
 ;; Prevent projectile and persp-mode from binding their keymaps to C-c p.
 ;; Prevent lsp-mode from binding its keymap to C-c l (we use that for Tools).
 ;; Must be set before these modes activate.
