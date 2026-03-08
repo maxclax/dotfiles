@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Check if this is an extra user
+if [ "{{ .extraUser }}" == "true" ]; then
+  echo "Already installed by main user, skipping installation."
+  exit 0
+fi
+
+# ── Setup ─────────────────────────────────────────────────────────────────────
+export NPM_CONFIG_PREFIX="$HOME/.local"
+mkdir -p "$HOME/.local/bin" "$HOME/.local/lib/node_modules"
+export PATH="$HOME/.local/bin:$PATH"
+
+# ── Claude Code ───────────────────────────────────────────────────────────────
+if ! command -v claude &> /dev/null; then
+  echo "Installing Claude Code..."
+  curl -fsSL https://claude.ai/install.sh | sh
+else
+  echo "Claude Code already installed: $(claude --version)"
+fi
+
+# ── npm tools ─────────────────────────────────────────────────────────────────
+if command -v npm &> /dev/null; then
+  npm install -g opencode-ai cline
+else
+  echo "npm not available, skipping npm tools installation."
+fi
