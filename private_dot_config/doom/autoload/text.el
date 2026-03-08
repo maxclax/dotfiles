@@ -31,6 +31,35 @@
               (message "No closing %c found" close-char))))))))
 
 ;;;###autoload
+(defun my/copy-inside-pair ()
+  "Copy content inside the surrounding pair into the kill ring — like vim's yi' / yi\" / yi(."
+  (interactive)
+  (let ((pairs '((?\" . ?\") (?\' . ?\') (?\` . ?\`)
+                 (?\( . ?\)) (?\[ . ?\]) (?\{ . ?\}))))
+    (let ((start nil)
+          (open-char nil))
+      (save-excursion
+        (while (and (not start) (not (bobp)))
+          (backward-char)
+          (let* ((ch (char-after))
+                 (pair (or (assq ch pairs)
+                           (rassq ch pairs))))
+            (when pair
+              (setq start (point)
+                    open-char (car pair))))))
+      (if (not start)
+          (message "No surrounding pair found")
+        (let ((close-char (cdr (assq open-char pairs))))
+          (save-excursion
+            (goto-char (1+ start))
+            (let ((inside (point)))
+              (if (search-forward (string close-char) nil t)
+                  (progn
+                    (kill-ring-save inside (1- (point)))
+                    (message "Copied inside %c...%c" open-char close-char))
+                (message "No closing %c found" close-char)))))))))
+
+;;;###autoload
 (defun my/insert-current-time ()
   "Insert current time in [H:M] format."
   (interactive)

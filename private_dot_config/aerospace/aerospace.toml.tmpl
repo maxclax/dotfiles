@@ -34,6 +34,7 @@ key-mapping.preset = 'qwerty'
 # See https://nikitabobko.github.io/AeroSpace/commands#move-mouse
 on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 on-focus-changed = "move-mouse window-lazy-center"
+exec-on-workspace-change = ['/bin/sh', '-c', 'case "$AEROSPACE_FOCUSED_WORKSPACE" in 1|2|M) /run/current-system/sw/bin/aerospace layout v_accordion ;; esac']
 
 [gaps]
 inner.horizontal = [{ monitor."Retina" = 1 }, 7]
@@ -160,12 +161,12 @@ cmd-ctrl-r = 'mode resize' # in i3
 # ---------------------------------------------------------
 
 # ---------------------------------------------------------
-# [[on-window-detected]]
-# if.app-id = 'com.agiletortoise.Drafts-OSX'
-# run = "move-node-to-workspace 2"
-# [[on-window-detected]]
-# if.app-id = 'md.obsidian'
-# run = "move-node-to-workspace 2"
+[[on-window-detected]]
+if.app-id = 'com.agiletortoise.Drafts-OSX'
+run = "move-node-to-workspace 2"
+[[on-window-detected]]
+if.app-id = 'md.obsidian'
+run = "move-node-to-workspace 2"
 [[on-window-detected]]
 if.app-id = 'com.iggsoftware.banktivity'
 run = "move-node-to-workspace 2"
@@ -272,7 +273,7 @@ run = 'move-node-to-workspace 1'
 2 = 1       # Drafts, PARA
 3 = 'main'  # Browser
 4 = 'main'  # Dev (Emacs F1)
-5 = [3, 4]  # Dev (Emacs F2)
+5 = [3, 2]  # Dev (Emacs F2)
 6 = [4, 3]  # Dev (Emacs F3)
 7 = [4, 3]  # AI GUI chats
 8 = 'main'  # terminal

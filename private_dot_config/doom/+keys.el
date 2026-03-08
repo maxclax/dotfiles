@@ -65,6 +65,7 @@
     (:prefix ("C-c c" . "Code")
      :desc "Format buffer" "f"           #'format-all-buffer
      :desc "Kill inside pair" "k"        #'my/kill-inside-pair
+     :desc "Copy inside pair" "y"        #'my/copy-inside-pair
      :desc "LSP: Code action" "a"        #'lsp-execute-code-action
      :desc "LSP: Rename symbol" "r"      #'lsp-rename
      :desc "LSP: Restart workspace" "R"  #'lsp-workspace-restart
