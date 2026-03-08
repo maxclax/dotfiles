@@ -102,7 +102,17 @@
 
             (agenda "" ((org-agenda-span 'day)
                         (org-agenda-overriding-header "📅 Today")
-                        (org-agenda-todo-list-sublevels t)))
+                        (org-agenda-todo-list-sublevels t)
+                        (org-deadline-warning-days 0)))
+
+            (agenda "" ((org-agenda-span 7)
+                        (org-agenda-start-day "+1d")
+                        (org-agenda-overriding-header "⏰ Upcoming Deadlines")
+                        (org-agenda-entry-types '(:deadline))
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (when (member "nodeadline" (org-get-tags))
+                              (or (outline-next-heading) (point-max)))))))
 
             (tags-todo "INBOX"
                        ((org-agenda-overriding-header "📥 Inbox - Process These")
