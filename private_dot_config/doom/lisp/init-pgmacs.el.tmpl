@@ -1,24 +1,34 @@
 ;;; lisp/init-pgmacs.el -*- mode: emacs-lisp; lexical-binding: t; -*-
 
-;;; Commentary:
-;; PostgreSQL client configuration using pgmacs
-
 (use-package! pgmacs
-  :defer t)
+  :defer t
+  :config
+  ;; Lighter display — fewer rows, narrower columns
+  (setq pgmacs-row-limit 50
+        pgmacs-max-column-width 40
+        pgmacs-row-list-table-name-width 15
+        pgmacs-row-list-comment-width 20)
 
-;; Function to quickly connect to PostgreSQL (interactive)
+  ;; Only keep essential buttons on table list
+  (setq pgmacs-table-list-buttons
+        (list (pgmacs-shortcut-button
+               :label "Disconnect"
+               :action #'pgmacs-disconnect)))
+
+  ;; Only keep essential buttons on row list
+  (setq pgmacs-row-list-buttons
+        (list (pgmacs-shortcut-button
+               :label "Count rows"
+               :action #'pgmacs--run-count)
+              (pgmacs-shortcut-button
+               :label "Export CSV"
+               :action #'pgmacs--table-to-csv))))
+
 (defun my/pgmacs-connect ()
-  "Connect to PostgreSQL database with pgmacs (interactive widget)."
+  "Connect to PostgreSQL (interactive widget)."
   (interactive)
   (pgmacs))
 
-;; Function to connect using connection string
-(defun my/pgmacs-connect-string ()
-  "Connect to PostgreSQL using connection string."
-  (interactive)
-  (pgmacs-open-string "host=localhost port=5432 dbname=postgres user=postgres"))
-
-;; Function to connect using URI
 (defun my/pgmacs-connect-uri ()
   "Connect to PostgreSQL using URI format."
   (interactive)

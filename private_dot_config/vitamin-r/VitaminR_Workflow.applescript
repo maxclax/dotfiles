@@ -101,13 +101,11 @@ on time_slice_start(spoken_message)
         do shell script "open 'focus://focus?minutes=" & mins & "'"
     end if
 
-    say obj
 end time_slice_start
 
 -- Work session finished
 on time_slice_elapsed(spoken_message)
     set sliceElapsedAt to (do shell script "date +%s") as integer
-    say "Session done"
     do shell script "open 'focus://unfocus'"
 end time_slice_elapsed
 
@@ -123,7 +121,6 @@ end time_slice_in_progress
 
 -- Break started
 on timed_break_start(spoken_message)
-    say "Break time"
     do shell script "open 'focus://break'"
 end timed_break_start
 
@@ -133,6 +130,5 @@ end timed_break_reminder
 
 -- Break finished → resume with workspace switch
 on timed_break_end(spoken_message)
-    say "Break done, back to work"
     do shell script "/run/current-system/sw/bin/aerospace workspace 4"
 end timed_break_end

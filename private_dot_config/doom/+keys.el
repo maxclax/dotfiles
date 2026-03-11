@@ -129,7 +129,10 @@
              (:prefix ("s" . "Shell")
               :desc "Chezmoi apply" "c" (lambda () (interactive) (let ((compilation-buffer-name-function nil)) (compile "chezmoi apply"))))
              (:prefix ("d" . "Database")
-              :desc "pgmacs browser" "m"         #'my/pgmacs-connect-uri)
+              :desc "Connect (URI)"   "d"  #'my/pgmacs-connect-uri
+              :desc "Connect (ask)"   "c"  #'my/pgmacs-connect
+              :desc "Run SQL"         "e"  #'pgmacs-run-sql
+              :desc "Table list"      "t"  #'pgmacs--switch-to-database-buffer)
              :desc "Reset checklist" "r"       #'my/org-reset-checklist
              )
 
