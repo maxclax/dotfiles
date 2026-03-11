@@ -7,10 +7,6 @@
   ;; OVERRIDE
   (advice-add #'git-link--select-remote :override #'git-link--read-remote))
 
-;; Auto-create a dedicated workspace when switching projects via projectile.
-;; 'switch means always create/switch workspace on project switch.
-(setq +workspaces-on-switch-project-behavior 'switch)
-
 (after! magit
   ;; Performance optimizations
   (setq magit-save-repository-buffers nil

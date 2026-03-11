@@ -58,9 +58,10 @@
 (setq +workspaces-on-switch-project-behavior t)
 
 ;; ── Session persistence ──────────────────────────────────────────────
-;; persp-mode handles everything: buffers, window splits, workspaces
-(setq persp-auto-resume-time 1)     ;; restore workspaces 1s after startup
-(setq persp-auto-save-opt 1)        ;; auto-save on quit
+;; Must be inside after! to override Doom's default (-1 = disabled)
+(after! persp-mode
+  (setq persp-auto-resume-time 1     ;; restore workspaces 1s after startup
+        persp-auto-save-opt 1))
 
 
 ;; Dim inactive windows for visual focus feedback
