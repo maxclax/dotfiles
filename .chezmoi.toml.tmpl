@@ -139,6 +139,8 @@ encryption = "age"
     goEnabled = {{ promptBoolOnce . "goEnabled" "Enable Go development environment?" false }}
     rustEnabled = {{ promptBoolOnce . "rustEnabled" "Enable Rust development environment?" false }}
 
+    syncthingAutostart = {{ promptBoolOnce . "syncthingAutostart" "Enable Syncthing autostart?" false }}
+
     torproxyHost = {{ promptStringOnce . "torproxyHost" "Tor proxy host" "localhost" | quote }}
     torproxyPortSocks5 = {{ promptIntOnce . "torproxyPortSocks5" "Tor proxy SOCKS5 port" 9150 }}
     torproxyPortDns = {{ promptIntOnce . "torproxyPortDns" "Tor proxy DNS port" 8893 }}

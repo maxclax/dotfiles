@@ -60,8 +60,21 @@
 ;; ── Session persistence ──────────────────────────────────────────────
 ;; Must be inside after! to override Doom's default (-1 = disabled)
 (after! persp-mode
-  (setq persp-auto-resume-time 1     ;; restore workspaces 1s after startup
-        persp-auto-save-opt 1))
+  (setq persp-auto-resume-time 0.1   ;; restore workspaces immediately after init
+        persp-auto-save-opt 1
+        persp-auto-save-num-of-backups 0)
+
+  ;; Don't save buffers that are slow or impossible to restore
+  (add-to-list 'persp-filter-save-buffers-functions
+               (lambda (buf)
+                 (with-current-buffer buf
+                   (or (null (buffer-file-name))
+                       (derived-mode-p 'magit-mode)
+                       (derived-mode-p 'dired-mode)
+                       (derived-mode-p 'compilation-mode)
+                       (derived-mode-p 'vterm-mode)
+                       (derived-mode-p 'eshell-mode)
+                       (string-prefix-p "*" (buffer-name)))))))
 
 
 ;; Dim inactive windows for visual focus feedback
@@ -172,7 +185,7 @@ word processor — soft wraps, relaxed spacing, bar cursor, flyspell."
         `(("TODO"  . ,(doom-color 'orange))
           ("DONE"  . ,(doom-color 'green))
           ("NOTE"  . ,(doom-color 'green))
-          ("DEBUG"  . ,(doom-color 'red))
+          ("DEBUG"  . ,(doom-color 'yellow))
           ("FAIL"  . ,(doom-color 'red))
           ("FIXME" . ,(doom-color 'red))))
 

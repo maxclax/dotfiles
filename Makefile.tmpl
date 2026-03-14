@@ -245,6 +245,34 @@ torproxy_ports:
 	lsof -i :{{ .torproxyPortSocks5 }}
 	lsof -i :{{ .torproxyPortDns }}
 
+# Monitoring (Prometheus + Grafana)
+MONITORING_DATA := $(HOME)/.local/share/monitoring
+PROMETHEUS_PID := $(MONITORING_DATA)/prometheus.pid
+GRAFANA_PID := $(MONITORING_DATA)/grafana.pid
+
+monitoring_start:
+	@mkdir -p $(MONITORING_DATA)/prometheus-data $(HOME)/.local/share/grafana/data $(HOME)/.local/share/grafana/logs
+	@prometheus \
+		--config.file=$(HOME)/.config/prometheus/prometheus.yml \
+		--storage.tsdb.path=$(MONITORING_DATA)/prometheus-data \
+		--storage.tsdb.retention.time=30d \
+		--web.listen-address=:9090 & echo $$! > $(PROMETHEUS_PID)
+	@grafana server \
+		--homepath=$$(nix path-info nixpkgs#grafana)/share/grafana \
+		--config=$(HOME)/.config/grafana/grafana.ini \
+		cfg:paths.data=$(HOME)/.local/share/grafana/data \
+		cfg:paths.logs=$(HOME)/.local/share/grafana/logs & echo $$! > $(GRAFANA_PID)
+	@echo "Prometheus: http://localhost:9090"
+	@echo "Grafana:    http://localhost:3000 (no login required)"
+
+monitoring_stop:
+	@if [ -f $(PROMETHEUS_PID) ]; then kill $$(cat $(PROMETHEUS_PID)) 2>/dev/null; rm $(PROMETHEUS_PID); echo "Prometheus stopped"; fi
+	@if [ -f $(GRAFANA_PID) ]; then kill $$(cat $(GRAFANA_PID)) 2>/dev/null; rm $(GRAFANA_PID); echo "Grafana stopped"; fi
+
+monitoring_status:
+	@if [ -f $(PROMETHEUS_PID) ] && kill -0 $$(cat $(PROMETHEUS_PID)) 2>/dev/null; then echo "Prometheus: running (PID $$(cat $(PROMETHEUS_PID)))"; else echo "Prometheus: stopped"; fi
+	@if [ -f $(GRAFANA_PID) ] && kill -0 $$(cat $(GRAFANA_PID)) 2>/dev/null; then echo "Grafana: running (PID $$(cat $(GRAFANA_PID)))"; else echo "Grafana: stopped"; fi
+
 ip_check:
 	@echo "ALL_PROXY: ${ALL_PROXY}"
 	@echo "HTTP_PROXY: ${HTTP_PROXY}"
@@ -259,6 +287,8 @@ ip_check:
 ##############################
 
 backup_create:
+	@echo "📦 Syncing app configs to extra-configs..."
+	@rsync -a --delete ~/Library/Application\ Support/zen/Profiles/ ~/.local/extra-configs/Zen/
 	borgmatic --verbosity 2 --progress
 	borgmatic prune --verbosity 1
 

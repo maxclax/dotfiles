@@ -2,9 +2,9 @@
 { config, pkgs, lib, ... }:
 
 {
-  # Enable syncthing service
+  # Enable syncthing service (autostart controlled by chezmoi prompt)
   services.syncthing = {
-    enable = true;
+    enable = {{ if .syncthingAutostart }}true{{ else }}false{{ end }};
 
     # Set custom data directory (optional)
     # dataDir = "{{ .chezmoi.homeDir }}/.local/syncthing";

@@ -216,14 +216,24 @@ KEYWORD should be a string. FILE should be a full file path."
   (add-hook 'calendar-today-visible-hook #'denote-journal-calendar-mark-dates)
   (add-hook 'calendar-today-invisible-hook #'denote-journal-calendar-mark-dates)
 
-  ;; Auto-open today's journal in "main" workspace after session restore
+  ;; Auto-open today's journal in "main" workspace
+  (defun my/open-journal-in-main (&rest _)
+    (when (fboundp '+workspace/switch-to)
+      (+workspace/switch-to "main"))
+    (require 'denote-journal)
+    (denote-journal-new-or-existing-entry))
+
+  ;; After session restore (slight delay to let packages load)
+  (add-hook 'persp-after-load-state-functions
+            (lambda (&rest _)
+              (run-with-timer 0.5 nil #'my/open-journal-in-main)))
+
+  ;; Fallback: no session file → open journal after init
   (add-hook 'doom-after-init-hook
             (lambda ()
-              (run-with-timer 1.5 nil
-                (lambda ()
-                  (when (fboundp '+workspace/switch-to)
-                    (+workspace/switch-to "main"))
-                  (denote-journal-new-or-existing-entry))))))
+              (unless (file-exists-p
+                       (expand-file-name "workspaces/autosave" doom-profile-data-dir))
+                (my/open-journal-in-main)))))
 
 ;; Additional denote packages
 (use-package! denote-org

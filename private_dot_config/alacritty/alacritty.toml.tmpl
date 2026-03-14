@@ -3,6 +3,9 @@
 # Fast reload
 live_config_reload = true
 
+# New windows inherit working directory
+ipc_socket = true
+
 {{ if eq .chezmoi.os "darwin" }}
 # Thema
 import = [
@@ -56,3 +59,29 @@ chars = "\u001b\r"
 key = "W"
 mods = "Alt"
 chars = "\u001bw"
+
+# New window
+[[keyboard.bindings]]
+key = "N"
+mods = "Control|Shift"
+action = "CreateNewWindow"
+
+# Font size
+[[keyboard.bindings]]
+key = "="
+mods = "Control"
+action = "IncreaseFontSize"
+
+[[keyboard.bindings]]
+key = "-"
+mods = "Control"
+action = "DecreaseFontSize"
+
+[[keyboard.bindings]]
+key = "0"
+mods = "Control"
+action = "ResetFontSize"
+
+# Auto-copy selection to clipboard
+[selection]
+save_to_clipboard = true

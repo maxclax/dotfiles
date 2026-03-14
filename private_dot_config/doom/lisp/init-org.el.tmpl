@@ -109,6 +109,7 @@
                         (org-agenda-start-day "+1d")
                         (org-agenda-overriding-header "⏰ Upcoming Deadlines")
                         (org-agenda-entry-types '(:deadline))
+                        (org-agenda-show-all-dates nil)
                         (org-agenda-skip-function
                          '(lambda ()
                             (when (member "nodeadline" (org-get-tags))
@@ -608,12 +609,7 @@
            "* TODO %?")
           ("c" "Todo with context → inbox.org (adds link + timestamp)" entry (file org-default-notes-file)
            "* TODO %?\n%U\n  %i\n  %a" :clock-resume t)
-          ("P" "Project task → TASKS.org in current project" entry (file (lambda ()
-                                                (if (projectile-project-p)
-                                                     (concat (projectile-project-root) "TASKS.org")
-                                                   (error "Not in a projectile project"))))
-           "* TODO %?\n%U\n  %i\n  %a")
-          ("j" "Journal todo → today's journal Todos section" entry (file+headline my/today-journal-file "Todos")
+("j" "Journal todo → today's journal Todos section" entry (file+headline my/today-journal-file "Todos")
            "* TODO %?" :clock-resume t)
           ("m" "Milestone → milestones.org (with start date)" entry (file my/milestones-file)
            "* %?\n:PROPERTIES:\n:STARTED: %^{Started}t\n:END:\n"
@@ -650,13 +646,55 @@
   ;; Eisenhower Matrix priority system (A=I-U, B=I-NU, C=NI-U, D=NI-NU)
   (setq org-priority-highest ?A)
   (setq org-priority-lowest ?D)
-  (setq org-priority-default ?D)
+  (setq org-priority-default ?A)
 
   ;; Priority faces for Eisenhower Matrix
   (setq org-priority-faces
         '((?A . (:foreground "red" :weight bold))    ; A = I-U (DO)
           (?B . (:foreground "orange" :weight bold)) ; B = I-NU (SCHEDULE)
           (?C . (:foreground "gray" :weight bold)))) ; C = NI-U (DELEGATE)
+
+  ;; Deadline warning — show warnings 14 days before deadline
+  (setq org-deadline-warning-days 14)
+
+  ;; Vivid deadline faces in agenda: overdue/today = bold red, approaching = orange
+  (custom-set-faces!
+   '(org-upcoming-deadline :foreground "orange" :weight bold)
+   '(org-upcoming-distant-deadline :foreground "dark orange")
+   '(org-warning :foreground "red" :weight bold)
+   '(org-imminent-deadline :foreground "red" :weight bold :underline t))
+
+  ;; Colorize DEADLINE lines in org buffers based on proximity
+  (defun my/org-deadline-fontify ()
+    "Highlight DEADLINE lines: red+bold if today/overdue, orange if within warning days."
+    (save-excursion
+      (goto-char (point-min))
+      (let ((today (org-today))
+            (warn org-deadline-warning-days))
+        (while (re-search-forward org-deadline-time-regexp nil t)
+          (let* ((ts (match-string 1))
+                 (deadline-day (org-time-string-to-absolute ts))
+                 (diff (- deadline-day today))
+                 (beg (line-beginning-position))
+                 (end (line-end-position)))
+            (remove-overlays beg end 'my-deadline t)
+            (when (<= diff warn)
+              (let ((ov (make-overlay beg end)))
+                (overlay-put ov 'my-deadline t)
+                (cond
+                 ((<= diff 0)  ; today or overdue
+                  (overlay-put ov 'face '(:foreground "red" :weight bold :underline t)))
+                 ((<= diff 3)  ; within 3 days
+                  (overlay-put ov 'face '(:foreground "red" :weight bold)))
+                 ((<= diff 7)  ; within a week
+                  (overlay-put ov 'face '(:foreground "orange" :weight bold)))
+                 (t             ; rest of warning period
+                  (overlay-put ov 'face '(:foreground "dark orange")))))))))))
+
+  (add-hook 'org-mode-hook
+            (lambda ()
+              (my/org-deadline-fontify)
+              (add-hook 'after-save-hook #'my/org-deadline-fontify nil t)))
 
   ;; Enable habit tracking
   (require 'org-habit)

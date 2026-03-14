@@ -293,12 +293,14 @@
         :desc "New workspace"      "M-N" #'+workspace/new
         :desc "Kill workspace"     "M-D" #'+workspace/kill
         :desc "Display workspaces" "M-W" #'+workspace/display
-        :desc "Switch workspace"   "M-S" #'+workspace/switch-to))
+        :desc "Switch workspace"   "M-S" #'+workspace/switch-to
+        :desc "Swap left"          "M-{" #'+workspace/swap-left
+        :desc "Swap right"         "M-}" #'+workspace/swap-right))
 
-(map! "C-x C-a l" #'doom/quickload-session
-      "C-x C-a s" #'doom/quicksave-session
-      "C-x C-a L" #'doom/load-session
-      "C-x C-a S" #'doom/save-session)
+(map! "C-x C-a l"   #'doom/quickload-session
+      "C-x C-a s"   #'doom/quicksave-session
+      "C-x C-a C-l" #'doom/load-session
+      "C-x C-a C-s" #'doom/save-session)
 
 ;; Prevent projectile and persp-mode from binding their keymaps to C-c p.
 ;; Prevent lsp-mode from binding its keymap to C-c l (we use that for Tools).
