@@ -126,58 +126,31 @@ fp() {
     "{{ .workspace_extra }}"
   )
 
-  # Create temp files for proper deduplication
-  local tmp_all tmp_zoxide tmp_final
-  tmp_all=$(mktemp)
-  tmp_zoxide=$(mktemp)
-  tmp_final=$(mktemp)
+  # Single find pass: .git dirs and files, depth-limited, deduplicated
+  local projects
+  projects=$(find "${search_paths[@]}" -maxdepth 4 -name ".git" \( -type d -o -type f \) -prune 2>/dev/null \
+    | sed 's#/\.git$##' | sort -u)
 
-  # Get all git projects (both .git dirs and .git files for worktrees/submodules) and deduplicate
-  {
-    # Find .git directories
-    find "${search_paths[@]}" -name ".git" -type d -maxdepth 5 -prune 2>/dev/null | sed 's#/\.git##'
-    # Find .git files (worktrees, submodules)
-    find "${search_paths[@]}" -name ".git" -type f -maxdepth 5 2>/dev/null | sed 's#/\.git##'
-  } | sort -u > "$tmp_all"
-
-  # Get zoxide list and filter to only include our projects
-  if command -v zoxide >/dev/null 2>&1; then
-    zoxide query --list 2>/dev/null | while IFS= read -r zdir; do
-      if [[ -n "$zdir" ]] && grep -Fxq "$zdir" "$tmp_all"; then
-        echo "$zdir"
-      fi
-    done > "$tmp_zoxide"
-  else
-    touch "$tmp_zoxide"
-  fi
-
-  # Combine: zoxide-ordered projects first, then remaining projects
-  {
-    cat "$tmp_zoxide"
-    if [[ -s "$tmp_zoxide" ]]; then
-      grep -Fvxf "$tmp_zoxide" "$tmp_all" 2>/dev/null || true
-    else
-      cat "$tmp_all"
-    fi
-  } > "$tmp_final"
-
-  # Use fzf for selection with better search behavior
+  # Prioritize by zoxide frequency
   local selected_dir
-  selected_dir=$(cat "$tmp_final" | fzf \
-    --prompt='fp> ' \
-    --header='Select project (zoxide frequency first)' \
-    --preview 'echo "📁 $(basename {})" && echo "Path: {}" && echo "" && if [[ -f {}/README.md ]]; then head -15 {}/README.md; elif [[ -f {}/readme.md ]]; then head -15 {}/readme.md; else echo "No README found"; fi' \
-    --preview-window=right:50% \
-    --scheme=path \
-    --algo=v2)
-
-  # Cleanup temp files
-  rm -f "$tmp_all" "$tmp_zoxide" "$tmp_final"
-
-  # Jump using zoxide (records usage automatically)
-  if [[ -n "$selected_dir" ]]; then
-    z "$selected_dir"
+  if command -v zoxide >/dev/null 2>&1; then
+    local zoxide_list
+    zoxide_list=$(zoxide query --list 2>/dev/null)
+    selected_dir=$(
+      {
+        echo "$zoxide_list" | grep -Fx -f <(echo "$projects") 2>/dev/null
+        echo "$projects" | grep -Fxv -f <(echo "$zoxide_list") 2>/dev/null
+      } | awk '!seen[$0]++' | fzf \
+        --prompt='fp> ' \
+        --header='Projects (recent first)' \
+        --preview 'echo "$(basename {})" && echo {} && echo "" && head -15 {}/README.md 2>/dev/null || echo "No README"' \
+        --preview-window=right:40% \
+        --scheme=path)
+  else
+    selected_dir=$(echo "$projects" | fzf --prompt='fp> ')
   fi
+
+  [[ -n "$selected_dir" ]] && z "$selected_dir"
 }
 
 
