@@ -382,6 +382,19 @@ restic_restore:
 		resticprofile --name $(profile) restore $$SNAP --target $(dest) --include "$(path)"; \
 	fi
 
+restic_browse:
+	# Usage: make restic_browse [profile=workspace]
+	@PROFILE=$(profile); \
+	if [ -z "$$PROFILE" ]; then \
+		PROFILE=$$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':' | fzf --prompt="Select profile: "); \
+	fi; \
+	if [ -z "$$PROFILE" ]; then exit 1; fi; \
+	REPO=$$(resticprofile --name $$PROFILE show 2>/dev/null | grep 'repository:' | awk '{print $$2}'); \
+	TMPFILE=$$(mktemp); \
+	echo "$$REPO" > $$TMPFILE; \
+	restic-browser --repository-file $$TMPFILE --password-command 'op read "op://Private/chezmoi-data/restic-password"'; \
+	rm -f $$TMPFILE
+
 restic_schedule:
 	# Install launchd agents for all scheduled profiles (macOS)
 	resticprofile schedule --all-profiles
