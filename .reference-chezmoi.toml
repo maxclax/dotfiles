@@ -1,3 +1,40 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# 1Password fields required by chezmoi templates
+# Vault: op://Private/chezmoi-data/<field>
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# ── Git ───────────────────────────────────────────────────────────────────────
+# git-config-name          → gitName
+# git-config-email         → gitEmail
+# github-username          → gitGithub.name
+# github-email             → gitGithub.email
+# github-access-token      → gitGithub.accessToken
+# github-signing-key       → gitGithub.gpgsign.signingKey
+#
+# ── Borg backup ───────────────────────────────────────────────────────────────
+# borg-repo                → borgRepo (chezmoi template variable)
+# borg-encryption-passphrase → used at runtime by borgmatic encryption_passcommand
+#
+# ── Restic backup ─────────────────────────────────────────────────────────────
+# restic-repo              → resticRepo (chezmoi template variable, base path)
+# restic-password          → used at runtime by resticprofile password-command
+#
+# ── Borgmatic notifications ───────────────────────────────────────────────────
+# pushover-token           → Pushover app token
+# pushover-user-key        → Pushover user key
+#
+# ── Atuin (README only, not templated) ────────────────────────────────────────
+# atuin-username           → atuin login
+# atuin-password           → atuin login
+#
+# ── AI tokens (op://Personal/<service>/tokens/emacs) ─────────────────────────
+# OpenAI, Anthropic, Gemini, DeepSeek, z.ai, Ollama → aider + authinfo
+#
+# ── SSH ───────────────────────────────────────────────────────────────────────
+# op://Personal/localhost-ssh/public key → authorized_keys
+#
+# ══════════════════════════════════════════════════════════════════════════════
+
 encryption = "age"
 [age]
 identity = ""
@@ -33,8 +70,8 @@ shell = "zsh"
 
 borgThisMachine = false
 borgRepo = ""
-borgEncryptionPassphrase = ""
 borgWithPushover = false
+resticRepo = ""
 
 fontsEnabled = false
 fontsPath = ""

@@ -1,0 +1,120 @@
+# -*- mode: conf-toml; -*-
+# Restic backup profiles — managed by chezmoi
+# Mirrors borgmatic config structure: one profile per source+repo pair
+# Docs: https://creativeprojects.github.io/resticprofile/
+
+{{- if .borgThisMachine }}
+
+includes = ["extra/*.toml"]
+
+[global]
+default-command = "snapshots"
+initialize = false
+
+# ── Base (inherited by all profiles) ──────────────────────────────────────────
+# Shared password and retention settings — override per-profile if needed
+[base]
+password-command = 'op read "op://Private/chezmoi-data/restic-password"'
+
+[base.forget]
+keep-daily   = 7
+keep-weekly  = 2
+keep-monthly = 3
+prune        = true
+
+[base.retry]
+attempts     = 3
+
+# ── Workspace ─────────────────────────────────────────────────────────────────
+[workspace]
+inherit    = "base"
+repository = {{ .resticRepo | printf "%s/workspace" | quote }}
+
+[workspace.backup]
+source  = [{{ .workspace | quote }}]
+exclude = [
+    "*/.data/*",
+    "*/backup/*",
+    "*/node_modules/*",
+    "*/.venv/*",
+    "*/.pnpm-store/*",
+    "*/.pytest_cache/*",
+    "*/.terraform/*",
+    "__pycache__",
+    "*/.cache/*",
+    "*/.mypy_cache/*",
+    "*/.tox/*",
+    "*/.DS_Store",
+]
+
+[workspace.schedule]
+schedule            = "@daily"
+schedule-permission = "user"
+schedule-log        = true
+
+# ── Git Repositories ──────────────────────────────────────────────────────────
+[git]
+inherit    = "base"
+repository = {{ .resticRepo | printf "%s/git" | quote }}
+
+[git.backup]
+source = [{{ printf "%s/.local/git" .chezmoi.homeDir | quote }}]
+
+[git.schedule]
+schedule            = "@daily"
+schedule-permission = "user"
+schedule-log        = true
+
+# ── Managed Configs ───────────────────────────────────────────────────────────
+[managed-configs]
+inherit    = "base"
+repository = {{ .resticRepo | printf "%s/managed-configs" | quote }}
+
+[managed-configs.backup]
+source = [{{ printf "%s/.local/managed-configs" .chezmoi.homeDir | quote }}]
+
+[managed-configs.schedule]
+schedule            = "@daily"
+schedule-permission = "user"
+schedule-log        = true
+
+# ── Managed Sync ──────────────────────────────────────────────────────────────
+[managed-sync]
+inherit    = "base"
+repository = {{ .resticRepo | printf "%s/managed-sync" | quote }}
+
+[managed-sync.backup]
+source  = [{{ .managed_sync | quote }}]
+exclude = [
+    ".DS_Store",
+    ".Spotlight-V100",
+    ".Trashes",
+    "*/.cache/*",
+    "*/cache/*",
+    "*/.git/*",
+    "*/node_modules/*",
+    "*/__pycache__/*",
+    "*/.venv/*",
+    "*/dist/*",
+    "*/build/*",
+]
+
+[managed-sync.schedule]
+schedule            = "@daily"
+schedule-permission = "user"
+schedule-log        = true
+
+# ── Extra Configs ─────────────────────────────────────────────────────────────
+[extra-configs]
+inherit    = "base"
+repository = {{ .resticRepo | printf "%s/extra-configs" | quote }}
+
+[extra-configs.backup]
+source = [{{ printf "%s/.local/extra-configs" .chezmoi.homeDir | quote }}]
+
+[extra-configs.schedule]
+schedule            = "@daily"
+schedule-permission = "user"
+schedule-log        = true
+
+{{- end }}

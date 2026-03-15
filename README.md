@@ -79,8 +79,10 @@ op item create --category="Secure Note" --title="chezmoi-data" \
   github-signing-key="YOUR_SSH_SIGNING_KEY" \
   github-access-token="YOUR_GITHUB_ACCESS_TOKEN" \
   key-pub-key="YOUR_AGE_PUB_KEY" \
-  borg-repo="YOUR_BORG_REPO" \
-  borg-encryption-passphrase="YOUR_BORG_ENCRYPTION_PASSPHRASE" \
+  borg-repo="YOUR_BORG_REPO_PATH" \
+  borg-encryption-passphrase="YOUR_BORG_PASSPHRASE" \
+  restic-repo="YOUR_RESTIC_BASE_REPO_PATH" \
+  restic-password="YOUR_RESTIC_PASSWORD" \
   atuin-username="YOUR_ATUIN_USERNAME" \
   atuin-password="YOUR_ATUIN_PASSWORD" \
   pushover-token="YOUR_PUSHOVER_TOKEN" \
@@ -154,49 +156,71 @@ make update_os
 - 📝 **Git configuration**: SSH signing with automated setup
 - 🐳 **Container support**: Podman/Docker development environments
 - 🔧 **Shell configurations**: Zsh, Bash with Starship prompt and Atuin history
-- 🗄️ **Automated backups**: Borgmatic with encrypted repositories
+- 🗄️ **Automated backups**: Borgmatic + Restic with encrypted repositories
 - 🖥️ **Cross-platform**: macOS and Linux support with platform detection
 
 ## Extra
 
 ### Backup
 
-#### Initialize repository
+Two backup tools run in parallel — Borgmatic (borg) and Restic. Both are silent,
+scheduled via launchd on macOS, and use 1Password for credentials.
+
+#### Borg / Borgmatic
 
 ```bash
+# Initialize repository
 borgmatic init --encryption=repokey ssh://user@your-storagebox.de:23/./backups/DIR
-```
 
-#### To manually run a backup with Borgmatic, use the following command
-
-```bash
+# Run backup
+make backup_create
+# or directly
 borgmatic --verbosity 1 --progress
-# or with a specific configuration file
-borgmatic --config ~/.config/borgmatic.d/git.yaml --dry-run --verbosity 1 --progress
-```
 
-#### Check Backup Integrity
-
-```bash
+# Check integrity
 borgmatic check
-```
 
-#### Restore from a Backup
+# List backups
+make backup_list
 
-```bash
+# Restore
 borgmatic extract --archive latest --destination /path/to/restore
-```
 
-#### List Backups
-
-```bash
-borgmatic list
-```
-
-#### Prune Old Backups
-
-```bash
+# Prune old backups
 borgmatic prune
+```
+
+#### Restic / resticprofile
+
+Config: `~/.config/resticprofile/profiles.toml` (managed by chezmoi)
+Profiles: workspace, git, managed-configs, managed-sync, extra-configs
+
+```bash
+# Initialize all repos (once per machine)
+make restic_init
+
+# Run all profiles
+make restic_backup
+
+# List snapshots
+make restic_snapshots
+# or per profile
+make restic_list profile=workspace
+
+# Restore
+make restic_restore profile=workspace dest=/tmp/restore
+make restic_restore profile=workspace dest=/tmp/restore snapshot=abc1234 path=some/subdir
+
+# Install launchd scheduled agents (daily, macOS)
+make restic_schedule
+
+# Remove scheduled agents
+make restic_unschedule
+```
+
+Browse and restore via GUI:
+```bash
+restic-browser  # opens desktop GUI, point it at any repo path
 ```
 
 ### Development Environment

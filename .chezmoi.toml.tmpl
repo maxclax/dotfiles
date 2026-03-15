@@ -69,7 +69,7 @@
 {{- $githubAccessToken := "" | quote -}}
 {{- $githubGpgsignProgram := "" | quote -}}
 {{- $borgRepo := "" | quote -}}
-{{- $borgEncryptionPassphrase := "" | quote -}}
+{{- $resticRepo := "" | quote -}}
 
 {{- $useOp := promptBoolOnce . "useOp" "Do you want to use 1Password CLI (op) for configuration?" false -}}
 {{- $gitAutoCommit := promptBoolOnce . "gitAutoCommit" "Enable automatic commits?" false -}}
@@ -78,7 +78,7 @@
 {{- if $useOp -}}
 {{-   $githubGpgsignEnabled = promptBoolOnce . "gitGithub.gpgsign.enabled" "Enable GPG signing for Git commits?" false  -}}
 {{-   $borgRepo = onepasswordRead "op://Private/chezmoi-data/borg-repo" | quote -}}
-{{-   $borgEncryptionPassphrase = onepasswordRead "op://Private/chezmoi-data/borg-encryption-passphrase" | quote -}}
+{{-   $resticRepo = onepasswordRead "op://Private/chezmoi-data/restic-repo" | quote -}}
 {{-   $name = onepasswordRead "op://Private/chezmoi-data/git-config-name" | quote -}}
 {{-   $email = onepasswordRead "op://Private/chezmoi-data/git-config-email" | quote -}}
 {{-   $githubName = onepasswordRead "op://Private/chezmoi-data/github-username" | quote -}}
@@ -123,8 +123,8 @@ encryption = "age"
 
     borgThisMachine = {{ promptBoolOnce . "borgThisMachine" "Use Borgbackups on this machine?" false }}
     borgRepo = {{ $borgRepo }}
-    borgEncryptionPassphrase = {{ $borgEncryptionPassphrase }}
     borgWithPushover = {{ promptBoolOnce . "borgWithPushover" "Use Pushover in Borgbackups?" false }}
+    resticRepo = {{ $resticRepo }}
 
     fontsEnabled = {{ promptBoolOnce . "fontsEnabled" "Enable FONTS installation (from resources dir)?" false }}
     fontsPath = {{ printf "%s/fonts" $resources | quote }}

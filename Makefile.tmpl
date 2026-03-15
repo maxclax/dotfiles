@@ -288,7 +288,7 @@ ip_check:
 
 backup_create:
 	@echo "📦 Syncing app configs to extra-configs..."
-	@rsync -a --delete ~/Library/Application\ Support/zen/Profiles/ ~/.local/extra-configs/Zen/
+	@rsync -a --delete --exclude='storage/' --exclude='zen-sessions-backup/' ~/Library/Application\ Support/zen/Profiles/ ~/.local/extra-configs/Zen/
 	borgmatic --verbosity 2 --progress
 	borgmatic prune --verbosity 1
 
@@ -328,6 +328,66 @@ backup_restore:
 		echo "Restoring path $(path) from archive $(archive) to $(dest)..."; \
 		borgmatic extract --verbosity 1 --progress --repository $(repo) --archive $(archive) --destination $(dest) --path "$(path)"; \
 	fi
+
+# ── Restic backup (via resticprofile) ─────────────────────────────────────────
+
+restic_init:
+	# Initialize all restic repos (run once per machine)
+	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':'); do \
+		echo "==> Initializing $$profile..."; \
+		resticprofile --name $$profile init || true; \
+	done
+
+restic_backup:
+	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':'); do \
+		echo "==> Backing up $$profile..."; \
+		resticprofile --name $$profile backup; \
+	done
+
+restic_forget:
+	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':'); do \
+		resticprofile --name $$profile forget; \
+	done
+
+restic_snapshots:
+	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':'); do \
+		echo "==> $$profile"; \
+		resticprofile --name $$profile snapshots; \
+	done
+
+restic_list:
+	# Usage: make restic_list profile=workspace
+	@if [ -z "$(profile)" ]; then \
+		resticprofile snapshots --all-profiles; \
+	else \
+		resticprofile --name $(profile) snapshots; \
+	fi
+
+restic_restore:
+	# Usage: make restic_restore profile=workspace dest=/tmp/restore [snapshot=latest] [path=sub/path]
+	@if [ -z "$(profile)" ] || [ -z "$(dest)" ]; then \
+		echo "Error: provide profile and dest."; \
+		echo "Usage: make restic_restore profile=<name> dest=<path> [snapshot=latest] [path=<subpath>]"; \
+		exit 1; \
+	fi
+	@SNAP=$${snapshot:-latest}; \
+	if [ -z "$(path)" ]; then \
+		resticprofile --name $(profile) restore $$SNAP --target $(dest); \
+	else \
+		resticprofile --name $(profile) restore $$SNAP --target $(dest) --include "$(path)"; \
+	fi
+
+restic_schedule:
+	# Install launchd agents for all scheduled profiles (macOS)
+	resticprofile schedule --all-profiles
+
+restic_unschedule:
+	resticprofile unschedule --all-profiles
+
+restic_status:
+	resticprofile status --all-profiles
+
+##############################
 
 # Syncthing file synchronization (Home Manager service)
 sync_start:
