@@ -291,9 +291,19 @@ backup_create:
 	@rsync -a --delete --exclude='storage/' --exclude='zen-sessions-backup/' ~/Library/Application\ Support/zen/Profiles/ ~/.local/extra-configs/Zen/
 	borgmatic --verbosity 2 --progress
 	borgmatic prune --verbosity 1
+	@echo "📦 Running restic backup..."
+	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':'); do \
+		echo "==> $$profile"; \
+		resticprofile --name $$profile backup; \
+	done
 
 backup_list:
 	borgmatic list --verbosity 1
+	@echo ""
+	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':'); do \
+		echo "==> $$profile"; \
+		resticprofile --name $$profile snapshots; \
+	done
 
 backup_list_files:
     # Usage: make backup_list_files repo=/path/to/repo archive=/path/to/archive [path=optional/path/in/archive]
@@ -338,30 +348,20 @@ restic_init:
 		resticprofile --name $$profile init || true; \
 	done
 
-restic_backup:
-	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':'); do \
-		echo "==> Backing up $$profile..."; \
-		resticprofile --name $$profile backup; \
-	done
-
 restic_forget:
 	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':'); do \
 		resticprofile --name $$profile forget; \
 	done
 
-restic_snapshots:
-	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':'); do \
-		echo "==> $$profile"; \
-		resticprofile --name $$profile snapshots; \
-	done
-
 restic_list:
 	# Usage: make restic_list profile=workspace
 	@if [ -z "$(profile)" ]; then \
-		resticprofile snapshots --all-profiles; \
-	else \
-		resticprofile --name $(profile) snapshots; \
+		echo "Error: provide profile."; \
+		echo "Usage: make restic_list profile=<name>"; \
+		echo "Use 'make backup_list' to see all profiles."; \
+		exit 1; \
 	fi
+	resticprofile --name $(profile) snapshots
 
 restic_restore:
 	# Usage: make restic_restore profile=workspace dest=/tmp/restore [snapshot=latest] [path=sub/path]
