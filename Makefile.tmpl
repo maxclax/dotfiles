@@ -291,19 +291,12 @@ backup_create:
 	@rsync -a --delete --exclude='storage/' --exclude='zen-sessions-backup/' ~/Library/Application\ Support/zen/Profiles/ ~/.local/extra-configs/Zen/
 	borgmatic --verbosity 2 --progress
 	borgmatic prune --verbosity 1
-	@echo "📦 Running restic backup..."
-	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':'); do \
-		echo "==> $$profile"; \
-		resticprofile --name $$profile backup; \
-	done
+	@$(MAKE) restic_backup
 
 backup_list:
 	borgmatic list --verbosity 1
 	@echo ""
-	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':'); do \
-		echo "==> $$profile"; \
-		resticprofile --name $$profile snapshots; \
-	done
+	@$(MAKE) restic_snapshots
 
 backup_list_files:
     # Usage: make backup_list_files repo=/path/to/repo archive=/path/to/archive [path=optional/path/in/archive]
@@ -346,6 +339,18 @@ restic_init:
 	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':'); do \
 		echo "==> Initializing $$profile..."; \
 		resticprofile --name $$profile init || true; \
+	done
+
+restic_backup:
+	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':'); do \
+		echo "==> $$profile"; \
+		resticprofile --name $$profile backup; \
+	done
+
+restic_snapshots:
+	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':'); do \
+		echo "==> $$profile"; \
+		resticprofile --name $$profile snapshots; \
 	done
 
 restic_forget:
