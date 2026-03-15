@@ -4,7 +4,8 @@
       "WebFetch(domain:github.com)",
       "Bash(gh api:*)",
       "Bash(grep:*)",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "WebSearch"
     ]
   }
 }

@@ -58,9 +58,9 @@
 (setq +workspaces-on-switch-project-behavior t)
 
 ;; ── Session persistence ──────────────────────────────────────────────
-;; Must be inside after! to override Doom's default (-1 = disabled)
+;; No auto-restore, use C-x C-a C-l to load session manually
 (after! persp-mode
-  (setq persp-auto-resume-time 0.1   ;; restore workspaces immediately after init
+  (setq persp-auto-resume-time -1    ;; disabled — load manually
         persp-auto-save-opt 1
         persp-auto-save-num-of-backups 0)
 

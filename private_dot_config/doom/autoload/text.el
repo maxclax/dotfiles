@@ -60,6 +60,13 @@
                 (message "No closing %c found" close-char)))))))))
 
 ;;;###autoload
+(defun my/copy-line ()
+  "Copy the current line to the kill ring."
+  (interactive)
+  (kill-ring-save (line-beginning-position) (line-end-position))
+  (message "Line copied"))
+
+;;;###autoload
 (defun my/insert-current-time ()
   "Insert current time in [H:M] format."
   (interactive)

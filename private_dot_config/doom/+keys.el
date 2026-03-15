@@ -16,6 +16,7 @@
     :desc "Winner undo" "C-c <left>"     #'winner-undo
     :desc "Winner redo" "C-c <right>"    #'winner-redo
     :desc "Open scratch buffer" "C-c X"      #'doom/switch-to-scratch-buffer
+    :desc "Copy line" "C-c y"                #'my/copy-line
 
     (:prefix ("C-c C-f" . "Fold")
      :desc "Toggle fold" "C-f"         #'my/fold-toggle
@@ -227,8 +228,8 @@
      :desc "Flymake" "f"               #'flymake-mode
      :desc "Indent guides" "i"         #'indent-bars-mode
      :desc "Indent style" "I"          #'doom/toggle-indent-style
-     :desc "Link display" "L"           #'org-toggle-link-display
-     :desc "Line numbers" "l"          #'doom/toggle-line-numbers
+     :desc "Link display" "l"           #'org-toggle-link-display
+     :desc "Line numbers" "L"          #'doom/toggle-line-numbers
      :desc "Inline images" "p"          #'org-toggle-inline-images
      :desc "Read-only" "r"             #'read-only-mode
      :desc "Soft line wrapping" "w"    #'+word-wrap-mode

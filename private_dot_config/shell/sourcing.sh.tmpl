@@ -84,7 +84,6 @@ if [ -f ~/.cargo/env ]; then
 	source "$HOME/.cargo/env"
 fi
 
-eval "$(direnv hook $shell)"
 eval "$(zoxide init $shell)"
 eval "$(starship init $shell)"
 eval "$(atuin init $shell)"
