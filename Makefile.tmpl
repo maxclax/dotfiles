@@ -396,14 +396,21 @@ restic_browse:
 	rm -f $$TMPFILE
 
 restic_schedule:
-	# Install launchd agents for all scheduled profiles (macOS)
-	resticprofile schedule --all-profiles
+	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':'); do \
+		echo "==> Scheduling $$profile..."; \
+		resticprofile --name $$profile schedule; \
+	done
 
 restic_unschedule:
-	resticprofile unschedule --all-profiles
+	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':'); do \
+		resticprofile --name $$profile unschedule; \
+	done
 
 restic_status:
-	resticprofile status --all-profiles
+	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':'); do \
+		echo "==> $$profile"; \
+		resticprofile --name $$profile status; \
+	done
 
 ##############################
 

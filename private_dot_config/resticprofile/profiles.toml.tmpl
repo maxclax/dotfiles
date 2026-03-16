@@ -15,6 +15,12 @@ initialize = false
 # Shared password and retention settings — override per-profile if needed
 [base]
 password-command = 'op read "op://Private/chezmoi-data/restic-password"'
+run-after        = "forget"
+
+[base.backup]
+schedule            = "02:00"
+schedule-permission = "user"
+schedule-log        = true
 
 [base.forget]
 keep-daily   = 7
@@ -47,11 +53,6 @@ exclude = [
     "*/.DS_Store",
 ]
 
-[workspace.schedule]
-schedule            = "@daily"
-schedule-permission = "user"
-schedule-log        = true
-
 # ── Git Repositories ──────────────────────────────────────────────────────────
 [git]
 inherit    = "base"
@@ -60,11 +61,6 @@ repository = {{ .resticRepo | printf "%s/git" | quote }}
 [git.backup]
 source = [{{ printf "%s/.local/git" .chezmoi.homeDir | quote }}]
 
-[git.schedule]
-schedule            = "@daily"
-schedule-permission = "user"
-schedule-log        = true
-
 # ── Managed Configs ───────────────────────────────────────────────────────────
 [managed-configs]
 inherit    = "base"
@@ -72,11 +68,6 @@ repository = {{ .resticRepo | printf "%s/managed-configs" | quote }}
 
 [managed-configs.backup]
 source = [{{ printf "%s/.local/managed-configs" .chezmoi.homeDir | quote }}]
-
-[managed-configs.schedule]
-schedule            = "@daily"
-schedule-permission = "user"
-schedule-log        = true
 
 # ── Managed Sync ──────────────────────────────────────────────────────────────
 [managed-sync]
@@ -99,11 +90,6 @@ exclude = [
     "*/build/*",
 ]
 
-[managed-sync.schedule]
-schedule            = "@daily"
-schedule-permission = "user"
-schedule-log        = true
-
 # ── Extra Configs ─────────────────────────────────────────────────────────────
 [extra-configs]
 inherit    = "base"
@@ -111,10 +97,5 @@ repository = {{ .resticRepo | printf "%s/extra-configs" | quote }}
 
 [extra-configs.backup]
 source = [{{ printf "%s/.local/extra-configs" .chezmoi.homeDir | quote }}]
-
-[extra-configs.schedule]
-schedule            = "@daily"
-schedule-permission = "user"
-schedule-log        = true
 
 {{- end }}

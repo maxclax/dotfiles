@@ -276,9 +276,10 @@
 ;; Setup M bindings
 (defun my/setup-meta-bindings ()
   (map! :desc "Other window"    "M-o" #'other-window
-        :desc "imenu"           "M-i" #'imenu
-        ;; Workspace switching — M-1..9 overrides magit's M-1..4 (show-level-all),
-        ;; which is acceptable since plain 1/2/3/4 still works in magit.
+        :desc "imenu"           "M-i" #'imenu)
+  ;; Workspace switching uses :map override to take priority over
+  ;; magit-section's M-1..4 (show-level-all). Use plain 1/2/3/4 in magit.
+  (map! :map override
         :desc "Workspace 1"    "M-1" #'+workspace/switch-to-0
         :desc "Workspace 2"    "M-2" #'+workspace/switch-to-1
         :desc "Workspace 3"    "M-3" #'+workspace/switch-to-2
