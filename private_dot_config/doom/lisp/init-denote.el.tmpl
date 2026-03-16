@@ -95,11 +95,16 @@
       (when extra-dir (push extra-dir dirs))
       (dired (cons "Denote" dirs))))
 
-  ;; Find across all denote directories
+  ;; Find across all denote directories with live preview
   (defun my/denote-find ()
-    "Find denote files across all directories."
+    "Find denote files across all directories with preview."
     (interactive)
-    (find-file (completing-read "Find note: " (my/denote-all-files) nil t)))
+    (find-file
+     (consult--read (my/denote-all-files)
+                    :prompt "Find note: "
+                    :require-match t
+                    :category 'file
+                    :state (consult--file-preview))))
 
   ;; Custom function to check if a file has a specific keyword
   (defun denote-file-has-keyword-p (file keyword)

@@ -327,6 +327,9 @@
 ;; always pick these up when map! nests them inside :map override)
 (after! which-key
   (which-key-add-key-based-replacements
+    "C-c i j" "Journal"
+    "C-c i i" "Images"
+    "C-c i o" "Org"
     "C-c l e" "ERC IRC"
     "C-c l f" "Frames"
     "C-c l p" "Process"

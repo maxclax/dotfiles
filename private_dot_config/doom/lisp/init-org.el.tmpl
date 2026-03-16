@@ -919,9 +919,10 @@ Works on single entry in org buffer or on all marked entries in agenda."
         (message "Refiled to today's journal → Todos"))))
 
   (defun my/refile-all-to-today-journal ()
-    "Refile all TODO entries to today's journal Todos heading.
-In org-agenda: refiles all TODO items visible in the view.
-In org buffer: refiles all TODO items in the current buffer."
+    "Refile all active task entries to today's journal Todos heading.
+In org-agenda: refiles all active tasks visible in the view.
+In org buffer: refiles all active tasks in the current buffer.
+Matches any non-DONE todo state (TODO, NEXT, WAIT, etc.)."
     (interactive)
     (let ((rfloc (my/today-journal-rfloc)))
       (if (eq major-mode 'org-agenda-mode)
@@ -932,28 +933,29 @@ In org buffer: refiles all TODO items in the current buffer."
                 (let ((m (org-get-at-bol 'org-marker)))
                   (when m
                     (let ((todo (org-with-point-at m (org-get-todo-state))))
-                      (when (equal todo "TODO")
+                      (when (and todo (not (member todo org-done-keywords)))
                         (push m markers)))))
                 (forward-line 1)))
             (if (null markers)
-                (message "No TODO items found in agenda")
+                (message "No active tasks found in agenda")
               (dolist (m (nreverse markers))
                 (let ((inhibit-message t))
                   (org-with-point-at m
                     (org-refile nil nil rfloc))))
               (org-agenda-redo)
-              (message "Refiled %d TODO items to today's journal → Todos" (length markers))))
+              (message "Refiled %d tasks to today's journal → Todos" (length markers))))
         (let (markers)
           (org-map-entries
            (lambda () (push (point-marker) markers))
-           "/TODO" 'file)
+           "/!" 'file)
           (if (null markers)
-              (message "No TODO items found")
+              (message "No active tasks found")
             (dolist (m (nreverse markers))
               (let ((inhibit-message t))
                 (org-with-point-at m
-                  (org-refile nil nil rfloc))))
-            (message "Refiled %d TODO items to today's journal → Todos" (length markers)))))))
+                  (unless (member (org-get-todo-state) org-done-keywords)
+                    (org-refile nil nil rfloc)))))
+            (message "Refiled %d tasks to today's journal → Todos" (length markers)))))))
 
   ;; Clock tracking configuration
   (setq org-clock-persist t)
