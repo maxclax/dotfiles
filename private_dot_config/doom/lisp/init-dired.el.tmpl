@@ -43,6 +43,25 @@ With prefix argument USE-PROJECT, open at the project root instead."
   (dired-revert)
   (message "Dired: %s view" (if my/dired-detailed-view "detailed" "clean")))
 
+;; Auto-switch workspace when opening a file from a different project via dirvish
+(defun my/maybe-switch-workspace-for-project (orig-fn &rest args)
+  "If file belongs to a different project, open it in that project's workspace."
+  (let* ((file (car args))
+         (file-dir (file-name-directory (expand-file-name file)))
+         (current-root (ignore-errors (projectile-project-root)))
+         (file-root (ignore-errors
+                      (let ((default-directory file-dir))
+                        (projectile-project-root)))))
+    (if (and current-root file-root
+             (not (string= current-root file-root)))
+        ;; Different project — open in its own workspace
+        (let ((project-name (file-name-nondirectory (directory-file-name file-root))))
+          (+workspace-switch project-name t)
+          (apply orig-fn args))
+      (apply orig-fn args))))
+
+(advice-add 'dired-find-file :around #'my/maybe-switch-workspace-for-project)
+
 (after! dirvish
   ;; Enable dirvish globally for all dired buffers
   (dirvish-override-dired-mode)

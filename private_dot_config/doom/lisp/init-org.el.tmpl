@@ -4,7 +4,45 @@
 ;; Org + PARA
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; Fix missing Doom function for attachment link preview
+(unless (fboundp '+org-preview-image-file-fn)
+  (defun +org-preview-image-file-fn (protocol link _description)
+    "Preview image for attachment LINK."
+    (when-let* ((path (org-attach-expand link)))
+      (and (image-supported-file-p path) path))))
+
 (after! org
+  ;; Register app protocols so C-c C-o opens in the right app
+  (dolist (protocol '("obsidian" "drafts" "alfred"))
+    (org-link-set-parameters protocol
+      :follow `(lambda (path _) (browse-url (concat ,protocol ":" path)))))
+
+  ;; ── org-ql: query language for org files ────────────────────────────────────
+  ;; Dynamic blocks:
+  ;;   #+BEGIN: org-ql :query (todo "NEXT")             ← current buffer only
+  ;;   #+BEGIN: org-ql-all :query (todo "NEXT")         ← all agenda files (dashboard)
+  ;; Search: M-x org-ql-search
+
+  ;; ql dblock: like org-ql but searches all agenda files (for dashboards)
+  ;; Usage: #+BEGIN: ql :query (todo "NEXT") :columns (heading todo)
+  (defvar my/ql-use-agenda-files nil)
+  (defun org-dblock-write:ql (params)
+    "org-ql dblock across all `org-agenda-files'."
+    (require 'org-ql-search)
+    (let ((my/ql-use-agenda-files t))
+      (org-dblock-write:org-ql params)))
+  (advice-add 'org-ql-query :around
+              (lambda (orig-fn &rest args)
+                (if my/ql-use-agenda-files
+                    (apply orig-fn :from (org-agenda-files)
+                           (cddr args))
+                  (apply orig-fn args))))
+  ;; Views: M-x org-ql-view
+  (use-package! org-ql
+    :commands (org-ql-search org-ql-view org-ql-query)
+    :config
+    (setq org-ql-ask-unsafe-queries nil))
+
   ;; Syntax highlighting in src blocks
   (setq org-src-fontify-natively t)
   (setq org-src-tab-acts-natively t)
@@ -128,19 +166,19 @@
             (tags-todo "visit/NEXT"
                        ((org-agenda-overriding-header "📍 Places to Visit")
                         (org-tags-match-list-sublevels t)))
-            (tags-todo "PRIORITY=\"A\""
+            (tags-todo "PRIORITY=\"A\"-someday"
                        ((org-agenda-overriding-header "🔥 Important & Urgent (Priority A)")
                         (org-agenda-skip-function
                          '(lambda ()
                             (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))))))
 
-            (tags-todo "PRIORITY=\"B\""
+            (tags-todo "PRIORITY=\"B\"-someday"
                        ((org-agenda-overriding-header "📅 Important & Not Urgent (Priority B)")
                         (org-agenda-skip-function
                          '(lambda ()
                             (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))))))
 
-            (tags-todo "PRIORITY=\"C\""
+            (tags-todo "PRIORITY=\"C\"-someday"
                        ((org-agenda-overriding-header "👥 Not Important & Urgent (Priority C)")
                         (org-agenda-skip-function
                          '(lambda ()
@@ -562,17 +600,17 @@
 
           ;; Eisenhower Matrix (using priorities)
           ("E" "Eisenhower Matrix"
-           ((tags-todo "PRIORITY=\"A\""
+           ((tags-todo "PRIORITY=\"A\"-someday"
                        ((org-agenda-overriding-header "🔥 Important & Urgent (Priority A)")
                         (org-agenda-skip-function
                          '(lambda ()
                             (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))))))
-            (tags-todo "PRIORITY=\"B\""
+            (tags-todo "PRIORITY=\"B\"-someday"
                        ((org-agenda-overriding-header "📅 Important & Not Urgent (Priority B)")
                         (org-agenda-skip-function
                          '(lambda ()
                             (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))))))
-            (tags-todo "PRIORITY=\"C\""
+            (tags-todo "PRIORITY=\"C\"-someday"
                        ((org-agenda-overriding-header "👥 Not Important & Urgent (Priority C)")
                         (org-agenda-skip-function
                          '(lambda ()
@@ -587,9 +625,7 @@
 
   (add-hook 'org-agenda-mode-hook 'hl-line-mode)
 
-  (setq org-directory (append (list {{ .org_dir | quote }})
-                              (when (file-exists-p (expand-file-name "org" {{ .workspace_extra | quote }}))
-                                (list (expand-file-name "org" {{ .workspace_extra | quote }})))))
+  (setq org-directory {{ .org_dir | quote }})
 
   (setq org-log-done nil)
   (setq org-todo-repeat-to-state "TODO")
@@ -646,7 +682,7 @@
   ;; Eisenhower Matrix priority system (A=I-U, B=I-NU, C=NI-U, D=NI-NU)
   (setq org-priority-highest ?A)
   (setq org-priority-lowest ?D)
-  (setq org-priority-default ?A)
+  (setq org-priority-default ?D)
 
   ;; Priority faces for Eisenhower Matrix
   (setq org-priority-faces
@@ -1896,5 +1932,22 @@ Shows results in a navigable buffer with dates, locations, body, and images."
 ;; org-cliplink: paste URL from clipboard as [[url][page title]] org link
 (use-package! org-cliplink
   :after org)
+
+;; org-download: paste images from clipboard as file: links (not attachments)
+(use-package! org-download
+  :after org
+  :config
+  ;; Save images in ./img/ next to the org file
+  (setq org-download-method 'directory
+        org-download-image-dir ".assets/img"
+        org-download-heading-lvl nil
+        org-download-timestamp "%Y%m%d-%H%M%S_"
+        org-download-screenshot-method "pngpaste %s"
+        ;; Insert as file: link, not attachment
+        org-download-link-format "[[file:%s]]\n"
+        org-download-abbreviate-source-url t
+        org-download-link-format-function
+        (lambda (filename)
+          (format "[[file:%s]]" (file-relative-name filename)))))
 
 (provide 'init-org)

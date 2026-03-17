@@ -14,8 +14,7 @@ initialize = false
 # ── Base (inherited by all profiles) ──────────────────────────────────────────
 # Shared password and retention settings — override per-profile if needed
 [base]
-password-command = 'op read "op://Private/chezmoi-data/restic-password"'
-run-after        = "forget"
+password-command = 'security find-generic-password -a restic -s restic-password -w'
 
 [base.backup]
 schedule            = "02:00"

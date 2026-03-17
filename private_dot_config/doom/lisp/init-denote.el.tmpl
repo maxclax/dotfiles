@@ -58,6 +58,21 @@
             (append primary-files (denote-directory-files)))
         primary-files)))
 
+  ;; Make denote-directory-files search both dirs (fixes dblocks, prompts, etc.)
+  (defvar my/denote-in-multi-dir nil "Guard against recursive advice.")
+  (advice-add 'denote-directory-files :around
+              (lambda (orig-fn &rest args)
+                "Include files from extra denote directory."
+                (if my/denote-in-multi-dir
+                    (apply orig-fn args)
+                  (let* ((my/denote-in-multi-dir t)
+                         (primary-files (apply orig-fn args))
+                         (extra-dir (my/denote-extra-dir)))
+                    (if extra-dir
+                        (let ((denote-directory extra-dir))
+                          (append primary-files (apply orig-fn args)))
+                      primary-files)))))
+
   ;; Make all denote commands that use denote-file-prompt search both dirs
   (advice-add 'denote-file-prompt :around
               (lambda (orig-fn &rest args)
@@ -86,14 +101,14 @@
             (call-interactively #'denote))
         (message "Extra workspace not mounted."))))
 
-  ;; Dired showing both denote directories
+  ;; Dirvish showing both denote directories
   (defun my/denote-dired ()
-    "Open dired with all denote directories."
+    "Open dirvish with all denote directories."
     (interactive)
     (let ((dirs (list denote-directory))
           (extra-dir (my/denote-extra-dir)))
       (when extra-dir (push extra-dir dirs))
-      (dired (cons "Denote" dirs))))
+      (dirvish (cons "Denote" dirs))))
 
   ;; Find across all denote directories with live preview
   (defun my/denote-find ()

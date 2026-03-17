@@ -12,6 +12,8 @@
    (:map override
     :desc "Org agenda" "C-c a"           #'org-agenda
     :desc "Org capture" "C-c x"          #'org-capture
+    :desc "Org-ql search" "C-c q"        #'org-ql-search
+    :desc "Org-ql views" "C-c Q"         #'org-ql-view
     :desc "Evaluate line/region" "C-c e" #'+eval/line-or-region
     :desc "Winner undo" "C-c <left>"     #'winner-undo
     :desc "Winner redo" "C-c <right>"    #'winner-redo
@@ -103,13 +105,11 @@
       :desc "Start journal log entry" "s"     #'my/journal-log-start
       :desc "Finish journal log entry" "f"    #'my/journal-log-finish)
      (:prefix ("i" . "Images")
-      :desc "Attach file" "a"                 #'my/org-attach-file-and-insert-link
-      :desc "Attach multiple files" "A"       #'my/org-attach-multiple-files-and-insert-links
-      :desc "Insert image from clipboard" "c" #'org-download-clipboard
-      :desc "Delete image" "d"                #'org-download-delete
-      :desc "Insert image from file" "f"      #'org-download-image
-      :desc "Insert screenshot" "s"           #'org-download-screenshot
-      :desc "Insert image from URL" "u"       #'org-download-image)
+      :desc "Paste from clipboard" "c" #'org-download-clipboard
+      :desc "Insert from file" "f"     #'org-download-image
+      :desc "Insert from URL" "u"      #'org-download-yank
+      :desc "Take screenshot" "s"      #'org-download-screenshot
+      :desc "Delete image" "d"         #'org-download-delete)
      (:prefix ("o" . "Org")
       :desc "Current time [H:M]" "t"          #'my/insert-current-time
       :desc "org-timestamp []" "i"            #'org-timestamp-inactive

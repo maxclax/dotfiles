@@ -47,6 +47,8 @@
 ;; delete to trash
 (setq delete-by-moving-to-trash t)
 
+
+
 ;; Increase kill ring size (default is 120)
 (setq kill-ring-max 250)
 

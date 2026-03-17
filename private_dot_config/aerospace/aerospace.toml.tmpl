@@ -34,7 +34,7 @@ key-mapping.preset = 'qwerty'
 # See https://nikitabobko.github.io/AeroSpace/commands#move-mouse
 on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 on-focus-changed = "move-mouse window-lazy-center"
-exec-on-workspace-change = ['/bin/sh', '-c', 'case "$AEROSPACE_FOCUSED_WORKSPACE" in 1|2|M) /run/current-system/sw/bin/aerospace layout v_accordion ;; esac']
+exec-on-workspace-change = ['/bin/sh', '-c', 'case "$AEROSPACE_FOCUSED_WORKSPACE" in 1|2|4|9|M|I) /run/current-system/sw/bin/aerospace layout v_accordion ;; esac']
 
 [gaps]
 inner.horizontal = [{ monitor."Retina" = 1 }, 7]
@@ -162,6 +162,10 @@ cmd-ctrl-r = 'mode resize' # in i3
 
 # ---------------------------------------------------------
 [[on-window-detected]]
+if.app-id = 'com.github.wez.wezterm'
+run = "move-node-to-workspace 1"
+
+[[on-window-detected]]
 if.app-id = 'com.agiletortoise.Drafts-OSX'
 run = "move-node-to-workspace 2"
 [[on-window-detected]]
@@ -171,15 +175,6 @@ run = "move-node-to-workspace 2"
 if.app-id = 'com.iggsoftware.banktivity'
 run = "move-node-to-workspace 2"
 
-[[on-window-detected]]
-if.app-id = 'company.thebrowser.Browser'
-run = "move-node-to-workspace 3"
-[[on-window-detected]]
-if.app-id = 'org.mozilla.firefoxdeveloperedition'
-run = "move-node-to-workspace 3"
-[[on-window-detected]]
-if.app-id = 'org.mozilla.firefox'
-run = "move-node-to-workspace 3"
 [[on-window-detected]]
 if.app-id = "app.zen-browser.zen"
 run = "move-node-to-workspace 3"
@@ -192,9 +187,6 @@ run = "move-node-to-workspace 4"
 # Frame 2 (5)
 # Frame 3 (6)
 
-[[on-window-detected]]
-if.app-id = 'xyz.chatboxapp.app'
-run = "move-node-to-workspace 7"
 [[on-window-detected]]
 if.app-id = 'com.electron.ollama'
 run = "move-node-to-workspace 7"
@@ -216,9 +208,6 @@ run = "move-node-to-workspace 8"
 if.app-id = 'org.alacritty'
 run = "move-node-to-workspace 9"
 
-[[on-window-detected]]
-if.app-id = 'com.github.wez.wezterm'
-run = "move-node-to-workspace 10"
 [[on-window-detected]]
 if.app-id = 'net.kovidgoyal.kitty'
 run = "move-node-to-workspace 10"

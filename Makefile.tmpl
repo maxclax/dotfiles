@@ -345,6 +345,7 @@ restic_backup:
 	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':'); do \
 		echo "==> $$profile"; \
 		resticprofile --name $$profile backup; \
+		resticprofile --name $$profile forget; \
 	done
 
 restic_snapshots:
@@ -392,7 +393,7 @@ restic_browse:
 	REPO=$$(resticprofile --name $$PROFILE show 2>/dev/null | grep 'repository:' | awk '{print $$2}'); \
 	TMPFILE=$$(mktemp); \
 	echo "$$REPO" > $$TMPFILE; \
-	restic-browser --repository-file $$TMPFILE --password-command 'op read "op://Private/chezmoi-data/restic-password"'; \
+	restic-browser --repository-file $$TMPFILE --password-command 'security find-generic-password -a restic -s restic-password -w'; \
 	rm -f $$TMPFILE
 
 restic_schedule:
