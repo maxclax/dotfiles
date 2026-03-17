@@ -1,6 +1,6 @@
 #!/bin/bash
 # -*- mode: sh; lexical-binding: t; -*-
-# Create Emacs .app wrappers for Alfred (Default, Org, Dev)
+# Create Emacs .app wrappers for Alfred (Extra, Org, Dev)
 # All are independent standalone Emacs processes
 # hash: {{ include "private_dot_config/doom/config.el" | sha256sum }}
 
@@ -10,7 +10,7 @@ EMACS="/Applications/Emacs.app/Contents/MacOS/Emacs"
 
 echo "🔧 Installing Emacs app wrappers..."
 
-for name in Default Org Dev; do
+for name in Extra Org Dev; do
     mkdir -p "/Applications/Emacs ${name}.app/Contents/MacOS"
     cat > "/Applications/Emacs ${name}.app/Contents/MacOS/Emacs ${name}" << INNER
 #!/bin/bash
@@ -19,4 +19,4 @@ INNER
     chmod +x "/Applications/Emacs ${name}.app/Contents/MacOS/Emacs ${name}"
 done
 
-echo "✅ Emacs Default.app, Emacs Org.app and Emacs Dev.app installed"
+echo "✅ Emacs Extra.app, Emacs Org.app and Emacs Dev.app installed"
