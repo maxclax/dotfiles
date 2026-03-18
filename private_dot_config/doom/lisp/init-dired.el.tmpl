@@ -45,19 +45,25 @@ With prefix argument USE-PROJECT, open at the project root instead."
 
 ;; Auto-switch workspace when opening a file from a different project via dirvish
 (defun my/maybe-switch-workspace-for-project (orig-fn &rest args)
-  "If file belongs to a different project, open it in that project's workspace."
-  (let* ((file (car args))
-         (file-dir (file-name-directory (expand-file-name file)))
+  "If file belongs to a different project, open it in that project's workspace.
+The file is opened in a new workspace; the current workspace stays untouched."
+  (let* ((file (or (car args) (dired-get-filename nil t)))
+         (file-dir (and file (file-name-directory (expand-file-name file))))
          (current-root (ignore-errors (projectile-project-root)))
-         (file-root (ignore-errors
-                      (let ((default-directory file-dir))
-                        (projectile-project-root)))))
+         (file-root (and file-dir
+                         (ignore-errors
+                           (let ((default-directory file-dir))
+                             (projectile-project-root))))))
     (if (and current-root file-root
              (not (string= current-root file-root)))
-        ;; Different project — open in its own workspace
-        (let ((project-name (file-name-nondirectory (directory-file-name file-root))))
-          (+workspace-switch project-name t)
-          (apply orig-fn args))
+        ;; Different project — open in its own workspace, stay in current one
+        (let* ((project-name (file-name-nondirectory (directory-file-name file-root)))
+               (current-ws (+workspace-current-name)))
+          (unless (+workspace-exists-p project-name)
+            (+workspace/new project-name))
+          (+workspace/switch-to project-name)
+          (apply orig-fn args)
+          (+workspace/switch-to current-ws))
       (apply orig-fn args))))
 
 (advice-add 'dired-find-file :around #'my/maybe-switch-workspace-for-project)

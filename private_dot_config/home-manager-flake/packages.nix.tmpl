@@ -124,7 +124,7 @@
     # ── AI & LLM Tools ──────────────────────────────────────────────────
     github-copilot-cli     # GitHub Copilot in the terminal
     goose-cli              # AI-powered coding assistant (Block)
-    aider-chat             # AI pair programming in the terminal (git-integrated)
+    (aider-chat.overridePythonAttrs (old: { doCheck = false; }))  # AI pair programming (tests flaky in nixpkgs)
     portaudio              # Audio I/O library — required for aider /voice command
 
     # ── Monitoring ──────────────────────────────────────────────────────
