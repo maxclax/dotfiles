@@ -25,18 +25,74 @@
 
   ;; ql dblock: like org-ql but searches all agenda files (for dashboards)
   ;; Usage: #+BEGIN: ql :query (todo "NEXT") :columns (heading todo)
-  (defvar my/ql-use-agenda-files nil)
   (defun org-dblock-write:ql (params)
-    "org-ql dblock across all `org-agenda-files'."
+    "org-ql dblock across all `org-agenda-files'.
+Heading links include file:path so navigation works across files."
     (require 'org-ql-search)
-    (let ((my/ql-use-agenda-files t))
-      (org-dblock-write:org-ql params)))
-  (advice-add 'org-ql-query :around
-              (lambda (orig-fn &rest args)
-                (if my/ql-use-agenda-files
-                    (apply orig-fn :from (org-agenda-files)
-                           (cddr args))
-                  (apply orig-fn args))))
+    (-let* (((&plist :query :columns :sort :ts-format :take) params)
+            (query (cl-etypecase query
+                     (string (org-ql--query-string-to-sexp query))
+                     (list (org-ql--ask-unsafe-query query) query)))
+            (columns (or columns '(heading todo (priority "P"))))
+            (format-fns
+             (list (cons 'todo (lambda (element)
+                                 (org-element-property :todo-keyword element)))
+                   (cons 'heading
+                         (lambda (element)
+                           (let* ((heading (org-element-property :raw-value element))
+                                  (file (org-element-property :file element))
+                                  (display (org-link-display-format heading)))
+                             (if file
+                                 (format "[[file:%s::*%s][%s]]" file heading display)
+                               (format "[[*%s][%s]]" heading display)))))
+                   (cons 'priority (lambda (element)
+                                     (--when-let (org-element-property :priority element)
+                                       (char-to-string it))))
+                   (cons 'deadline (lambda (element)
+                                     (--when-let (org-element-property :deadline element)
+                                       (ts-format ts-format (ts-parse-org-element it)))))
+                   (cons 'scheduled (lambda (element)
+                                      (--when-let (org-element-property :scheduled element)
+                                        (ts-format ts-format (ts-parse-org-element it)))))
+                   (cons 'closed (lambda (element)
+                                   (--when-let (org-element-property :closed element)
+                                     (ts-format ts-format (ts-parse-org-element it)))))
+                   (cons 'property (lambda (element property)
+                                     (org-element-property (intern (concat ":" (upcase property))) element)))))
+            (elements (org-ql-query :from (org-agenda-files)
+                                    :where query
+                                    :select '(let ((el (org-ql-view--resolve-element-properties
+                                                        (org-element-headline-parser (line-end-position)))))
+                                               (org-element-put-property el :file (buffer-file-name))
+                                               el)
+                                    :order-by sort)))
+      (when take
+        (setf elements (cl-etypecase take
+                         ((and integer (satisfies cl-minusp)) (-take-last (abs take) elements))
+                         (integer (-take take elements)))))
+      (cl-labels ((format-element (element)
+                    (string-join (cl-loop for column in columns
+                                          collect (or (pcase-exhaustive column
+                                                        ((pred symbolp)
+                                                         (funcall (alist-get column format-fns) element))
+                                                        (`((,column . ,args) ,_header)
+                                                         (apply (alist-get column format-fns) element args))
+                                                        (`(,column ,_header)
+                                                         (funcall (alist-get column format-fns) element)))
+                                                      ""))
+                                 " | ")))
+        (insert "| " (string-join (--map (pcase it
+                                           ((pred symbolp) (capitalize (symbol-name it)))
+                                           (`(,_ ,name) name))
+                                         columns)
+                                  " | ")
+                " |" "\n")
+        (insert "|- \n")
+        (dolist (element elements)
+          (insert "| " (format-element element) " |" "\n"))
+        (delete-char -1)
+        (org-table-align)
+        (font-lock-flush))))
   ;; Views: M-x org-ql-view
   (use-package! org-ql
     :commands (org-ql-search org-ql-view org-ql-query)
