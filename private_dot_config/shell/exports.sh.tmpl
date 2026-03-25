@@ -147,6 +147,7 @@ export LOCAL_GIT_REPOS_PATH={{ .gitLocalRepositories | quote  }} # Local Git rep
 add_to_path append "$HOME/.docker/bin"
 {{ end }}
 
+add_to_path append "$HOME/.deno/bin"
 add_to_path append "$HOME/.cargo/bin"
 add_to_path append "$HOME/go/bin"
 add_to_path append "$HOME/.rd/bin"

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Check if this is an extra user
+if [ "{{ .extraUser }}" == "true" ]; then
+  echo "Already installed by main user, skipping installation."
+  exit 0
+fi
+
+# ── Deno ─────────────────────────────────────────────────────────────────────
+if ! command -v deno &> /dev/null; then
+  echo "Installing Deno..."
+  curl -fsSL https://deno.land/install.sh | sh
+else
+  echo "Deno already installed: $(deno --version | head -1)"
+fi
