@@ -135,8 +135,6 @@
 
     # ── Backup & Security ────────────────────────────────────────────────
     _1password-cli         # 1Password CLI — secrets and credentials
-    borgbackup             # Deduplicating encrypted backup
-    borgmatic              # Wrapper for BorgBackup with YAML config
     restic                 # Fast, encrypted, deduplicated backup
     (resticprofile.overrideAttrs (old: { doCheck = false; }))  # Config profile manager (tests flaky in nixpkgs)
     restic-browser         # Desktop GUI to browse and restore restic repos

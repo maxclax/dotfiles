@@ -1,9 +1,8 @@
 # -*- mode: conf-toml; -*-
 # Restic backup profiles — managed by chezmoi
-# Mirrors borgmatic config structure: one profile per source+repo pair
 # Docs: https://creativeprojects.github.io/resticprofile/
 
-{{- if .borgThisMachine }}
+{{- if .resticRepo }}
 
 includes = ["extra/*.toml"]
 

@@ -79,14 +79,10 @@ op item create --category="Secure Note" --title="chezmoi-data" \
   github-signing-key="YOUR_SSH_SIGNING_KEY" \
   github-access-token="YOUR_GITHUB_ACCESS_TOKEN" \
   key-pub-key="YOUR_AGE_PUB_KEY" \
-  borg-repo="YOUR_BORG_REPO_PATH" \
-  borg-encryption-passphrase="YOUR_BORG_PASSPHRASE" \
   restic-repo="YOUR_RESTIC_BASE_REPO_PATH" \
   restic-password="YOUR_RESTIC_PASSWORD" \
   atuin-username="YOUR_ATUIN_USERNAME" \
-  atuin-password="YOUR_ATUIN_PASSWORD" \
-  pushover-token="YOUR_PUSHOVER_TOKEN" \
-  pushover-user-key="YOUR_PUSHOVER_USER_KEY"
+  atuin-password="YOUR_ATUIN_PASSWORD"
 ```
 
 ### 3. Sign in to 1Password CLI
@@ -150,72 +146,41 @@ make update_os
 
 ## Features
 
-- 📦 **Nix + Home Manager**: Declarative package management across platforms
-- 🔒 **Age encryption**: Encrypted sensitive data with symmetric keys
-- 🔑 **1Password integration**: Secure credential management via CLI
-- 📝 **Git configuration**: SSH signing with automated setup
-- 🐳 **Container support**: Podman/Docker development environments
-- 🔧 **Shell configurations**: Zsh, Bash with Starship prompt and Atuin history
-- 🗄️ **Automated backups**: Borgmatic + Restic with encrypted repositories
-- 🖥️ **Cross-platform**: macOS and Linux support with platform detection
+- **Nix + Home Manager**: Declarative package management across platforms
+- **Age encryption**: Encrypted sensitive data with symmetric keys
+- **1Password integration**: Secure credential management via CLI
+- **Git configuration**: SSH signing with automated setup
+- **Container support**: Podman/Docker development environments
+- **Shell configurations**: Zsh, Bash with Starship prompt and Atuin history
+- **Automated backups**: Restic with scheduled daily backups via launchd
+- **Cross-platform**: macOS and Linux support with platform detection
 
-## Extra
+## Backup
 
-### Backup
-
-Two backup tools run in parallel — Borgmatic (borg) and Restic. Both are silent,
-scheduled via launchd on macOS, and use 1Password for credentials.
-
-#### Borg / Borgmatic
-
-```bash
-# Initialize repository
-borgmatic init --encryption=repokey ssh://user@your-storagebox.de:23/./backups/DIR
-
-# Run backup
-make backup_create
-# or directly
-borgmatic --verbosity 1 --progress
-
-# Check integrity
-borgmatic check
-
-# List backups
-make backup_list
-
-# Restore
-borgmatic extract --archive latest --destination /path/to/restore
-
-# Prune old backups
-borgmatic prune
-```
-
-#### Restic / resticprofile
+Restic backups run daily at noon via launchd, using resticprofile for configuration.
+Credentials are stored in macOS Keychain (seeded from 1Password).
 
 Config: `~/.config/resticprofile/profiles.toml` (managed by chezmoi)
 Profiles: workspace, git, managed-configs, managed-sync, extra-configs
 
 ```bash
+# Run all backups
+make backup_create
+
+# List all snapshots
+make backup_list
+# or per profile
+make restic_snapshots profile=workspace
+
 # Initialize all repos (once per machine)
 make restic_init
-
-# Run all profiles
-make restic_backup
-
-# List snapshots
-make restic_snapshots
-# or per profile
-make restic_list profile=workspace
 
 # Restore
 make restic_restore profile=workspace dest=/tmp/restore
 make restic_restore profile=workspace dest=/tmp/restore snapshot=abc1234 path=some/subdir
 
-# Install launchd scheduled agents (daily, macOS)
-make restic_schedule
-
-# Remove scheduled agents
-make restic_unschedule
+# Prune old snapshots
+make restic_forget
 ```
 
 Browse and restore via GUI:
@@ -223,7 +188,7 @@ Browse and restore via GUI:
 restic-browser  # opens desktop GUI, point it at any repo path
 ```
 
-### Development Environment
+## Development Environment
 
 ```bash
 # Start tmux development environment
@@ -231,10 +196,9 @@ make env
 
 # Kill tmux session
 make tkill
-
 ```
 
-### Atuin Shell History
+## Atuin Shell History
 
 Atuin is automatically configured through Nix. To manually log in using 1Password credentials:
 

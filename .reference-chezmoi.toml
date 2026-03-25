@@ -11,17 +11,9 @@
 # github-access-token      → gitGithub.accessToken
 # github-signing-key       → gitGithub.gpgsign.signingKey
 #
-# ── Borg backup ───────────────────────────────────────────────────────────────
-# borg-repo                → borgRepo (chezmoi template variable)
-# borg-encryption-passphrase → used at runtime by borgmatic encryption_passcommand
-#
 # ── Restic backup ─────────────────────────────────────────────────────────────
 # restic-repo              → resticRepo (chezmoi template variable, base path)
 # restic-password          → used at runtime by resticprofile password-command
-#
-# ── Borgmatic notifications ───────────────────────────────────────────────────
-# pushover-token           → Pushover app token
-# pushover-user-key        → Pushover user key
 #
 # ── Atuin (README only, not templated) ────────────────────────────────────────
 # atuin-username           → atuin login
@@ -68,9 +60,6 @@ secondary_storage = ""
 editor = "emacsclient"
 shell = "zsh"
 
-borgThisMachine = false
-borgRepo = ""
-borgWithPushover = false
 resticRepo = ""
 
 fontsEnabled = false

@@ -24,7 +24,6 @@ Library/Application\ Support/lazygit/config.yml
 {{ if or (not .personal) .ephemeral .headless }}
 .ssh/
 .claude/
-.config/borgmatic.d
 {{ end }}
 
 key.txt.age

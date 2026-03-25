@@ -1,7 +1,7 @@
 #!/bin/bash
 # -*- mode: sh; lexical-binding: t; -*-
 # Copy restic password from 1Password to macOS Keychain (runs once per machine)
-{{- if and .useOp .borgThisMachine (eq .chezmoi.os "darwin") }}
+{{- if and .useOp .resticRepo (eq .chezmoi.os "darwin") }}
 
 echo "🔑 Storing restic password in macOS Keychain..."
 PASS=$(op read "op://Private/chezmoi-data/restic-password")

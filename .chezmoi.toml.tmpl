@@ -68,7 +68,6 @@
 {{- $githubGpgsignSigningKey := "" | quote -}}
 {{- $githubAccessToken := "" | quote -}}
 {{- $githubGpgsignProgram := "" | quote -}}
-{{- $borgRepo := "" | quote -}}
 {{- $resticRepo := "" | quote -}}
 
 {{- $useOp := promptBoolOnce . "useOp" "Do you want to use 1Password CLI (op) for configuration?" false -}}
@@ -77,7 +76,6 @@
 
 {{- if $useOp -}}
 {{-   $githubGpgsignEnabled = promptBoolOnce . "gitGithub.gpgsign.enabled" "Enable GPG signing for Git commits?" false  -}}
-{{-   $borgRepo = onepasswordRead "op://Private/chezmoi-data/borg-repo" | quote -}}
 {{-   $resticRepo = onepasswordRead "op://Private/chezmoi-data/restic-repo" | quote -}}
 {{-   $name = onepasswordRead "op://Private/chezmoi-data/git-config-name" | quote -}}
 {{-   $email = onepasswordRead "op://Private/chezmoi-data/git-config-email" | quote -}}
@@ -121,9 +119,6 @@ encryption = "age"
     editor = "emacsclient"
     shell = {{ $shell | quote }}
 
-    borgThisMachine = {{ promptBoolOnce . "borgThisMachine" "Use Borgbackups on this machine?" false }}
-    borgRepo = {{ $borgRepo }}
-    borgWithPushover = {{ promptBoolOnce . "borgWithPushover" "Use Pushover in Borgbackups?" false }}
     resticRepo = {{ $resticRepo }}
 
     fontsEnabled = {{ promptBoolOnce . "fontsEnabled" "Enable FONTS installation (from resources dir)?" false }}
