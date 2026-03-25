@@ -17,8 +17,8 @@ initialize = false
 password-command = 'security find-generic-password -a restic -s restic-password -w'
 
 [base.backup]
-schedule            = "02:00"
-schedule-permission = "user"
+schedule            = "12:00"
+schedule-permission = "user_logged_on"
 schedule-log        = true
 
 [base.forget]

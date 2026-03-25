@@ -10,7 +10,12 @@
   :defer t
   :init
   (setq tempel-path
-        (expand-file-name "emacs/templates/*.el" {{ printf "%s/.local/extra-configs" .chezmoi.homeDir | quote }})))
+        (expand-file-name "emacs/templates/*.el" {{ printf "%s/.local/extra-configs" .chezmoi.homeDir | quote }}))
+  :config
+  (define-key tempel-map (kbd "TAB")   #'tempel-next)
+  (define-key tempel-map (kbd "<tab>") #'tempel-next)
+  (define-key tempel-map (kbd "S-TAB")   #'tempel-previous)
+  (define-key tempel-map (kbd "<backtab>") #'tempel-previous))
 
 (defun tempel--next-friday ()
   "Return timestamp of next Friday (today if Friday)."

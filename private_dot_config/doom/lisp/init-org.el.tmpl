@@ -106,10 +106,14 @@ Heading links include file:path so navigation works across files."
   ;; Enable org-depend for sequential tasks
   (require 'org-depend)
 
-  ;; Auto-save after state changes
+  ;; Auto-save the source org buffer after toggling todo state,
+  ;; without refreshing the agenda view.
   (advice-add 'org-agenda-todo :after
               (lambda (&rest _)
-                (org-save-all-org-buffers)))
+                (when-let* ((marker (org-get-at-bol 'org-marker))
+                            (buf (marker-buffer marker)))
+                  (with-current-buffer buf
+                    (save-buffer)))))
 
   ;; Fix org-id initialization to prevent hash-table errors
   (with-eval-after-load 'org-id

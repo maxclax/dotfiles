@@ -6,6 +6,12 @@
         mac-command-modifier 'hyper))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; surround.el — add/change/delete surrounding pairs
+;; H-' as prefix (Hyper+quote), with which-key integration
+(use-package! surround
+  :bind-keymap ("M-'" . surround-keymap))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; default doom ~/.config/emacs/modules/config/default/+evil-bindings.el
 (defun my/setup-clean-c-c-bindings ()
   (map!

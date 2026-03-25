@@ -349,25 +349,21 @@ restic_backup:
 	done
 
 restic_snapshots:
-	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':'); do \
-		echo "==> $$profile"; \
-		resticprofile --name $$profile snapshots; \
-	done
+	# Usage: make restic_snapshots [profile=workspace]
+	@if [ -z "$(profile)" ]; then \
+		for p in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':'); do \
+			echo "==> $$p"; \
+			resticprofile --name $$p snapshots 2>/dev/null | tail -7; \
+			echo; \
+		done; \
+	else \
+		resticprofile --name $(profile) snapshots; \
+	fi
 
 restic_forget:
 	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':'); do \
 		resticprofile --name $$profile forget; \
 	done
-
-restic_list:
-	# Usage: make restic_list profile=workspace
-	@if [ -z "$(profile)" ]; then \
-		echo "Error: provide profile."; \
-		echo "Usage: make restic_list profile=<name>"; \
-		echo "Use 'make backup_list' to see all profiles."; \
-		exit 1; \
-	fi
-	resticprofile --name $(profile) snapshots
 
 restic_restore:
 	# Usage: make restic_restore profile=workspace dest=/tmp/restore [snapshot=latest] [path=sub/path]

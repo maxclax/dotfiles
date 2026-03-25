@@ -28,3 +28,4 @@ Library/Application\ Support/lazygit/config.yml
 {{ end }}
 
 key.txt.age
+local.resticprofile.*.log

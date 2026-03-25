@@ -130,5 +130,7 @@
 (package! ipretty)                    ; Pretty-print Elisp eval results
 (package! macrostep)                  ; Inline macro expansion viewer
 (package! symbol-overlay)             ; Highlight and navigate symbol occurrences
+(package! surround                    ; Add/change/delete surrounding pairs (parens, quotes, tags)
+  :recipe (:host github :repo "mkleehammer/surround"))
 (package! org-cliplink)               ; Paste URL as org link fetching page title
 (package! applescript-mode)           ; Syntax highlighting for AppleScript files
