@@ -298,13 +298,13 @@ backup_list:
 
 restic_init:
 	# Initialize all restic repos (run once per machine)
-	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':'); do \
+	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':' | grep -v '^base$$'); do \
 		echo "==> Initializing $$profile..."; \
 		resticprofile --name $$profile init || true; \
 	done
 
 restic_backup:
-	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':'); do \
+	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':' | grep -v '^base$$'); do \
 		echo "==> $$profile"; \
 		resticprofile --name $$profile backup; \
 		resticprofile --name $$profile forget; \
@@ -313,7 +313,7 @@ restic_backup:
 restic_snapshots:
 	# Usage: make restic_snapshots [profile=workspace]
 	@if [ -z "$(profile)" ]; then \
-		for p in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':'); do \
+		for p in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':' | grep -v '^base$$'); do \
 			echo "==> $$p"; \
 			resticprofile --name $$p snapshots 2>/dev/null | tail -7; \
 			echo; \
@@ -323,7 +323,7 @@ restic_snapshots:
 	fi
 
 restic_forget:
-	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':'); do \
+	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':' | grep -v '^base$$'); do \
 		resticprofile --name $$profile forget; \
 	done
 
@@ -355,18 +355,18 @@ restic_browse:
 	rm -f $$TMPFILE
 
 restic_schedule:
-	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':'); do \
+	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':' | grep -v '^base$$'); do \
 		echo "==> Scheduling $$profile..."; \
 		resticprofile --name $$profile schedule; \
 	done
 
 restic_unschedule:
-	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':'); do \
+	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':' | grep -v '^base$$'); do \
 		resticprofile --name $$profile unschedule; \
 	done
 
 restic_status:
-	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':'); do \
+	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':' | grep -v '^base$$'); do \
 		echo "==> $$profile"; \
 		resticprofile --name $$profile status; \
 	done
