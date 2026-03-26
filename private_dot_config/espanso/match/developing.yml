@@ -2,26 +2,30 @@ name: developing
 parent: default
 
 matches:
-  # Docker: stop rm all
-  - trigger: "'drm"
-    replace: "make rm_a"
+  # Build & Tests
+  - trigger: ";ts"
+    replace: "make pytest arg_1="
 
-  # Docker: docker rmi -f $(docker images -a -q)
-  - trigger: ";dri"
-    replace: "docker rmi -f $(docker images -a -q)"
+  # Database
+  - trigger: ";mg"
+    replace: "make migrate"
 
-  # Docker: docker-compose up -d
-  - trigger: ";dcu"
-    replace: "docker-compose up -d"
+  - trigger: ";mm"
+    replace: "make mmigrate arg_1="
 
-  # Docker: make dcr
-  - trigger: ";dcr"
-    replace: "make dcr"
+  # Logs
+  - trigger: ";lg"
+    replace: "podman logs -f --tail 100"
 
-  # Docker: make rm
-  - trigger: ";drm"
+  # Container ops
+  - trigger: ";ds"
+    replace: "make ds"
+
+  - trigger: ";rm"
     replace: "make rm"
 
-  # Docker: stop rm all containers
-  - trigger: ";dsra"
-    replace: "docker stop $(docker ps -aq); docker rm $(docker ps -a -q);"
+  - trigger: "'rm"
+    replace: "podman ps -aq | xargs -r podman stop | xargs -r podman rm"
+
+  - trigger: "'ri"
+    replace: "podman rmi -f $(docker images -a -q)"
