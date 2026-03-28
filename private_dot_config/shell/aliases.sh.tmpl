@@ -102,6 +102,20 @@ alias cpwd='pwd | tr -d "\n" | pbcopy'
 alias wget='wget --no-hsts'
 
 
+# Dev services (installed via Home Manager, started on demand)
+mailpit-start() {
+  if lsof -i :8025 &>/dev/null; then
+    echo "mailpit already running: http://localhost:8025"
+    return
+  fi
+  mailpit --database "" --max 500 &>/dev/null &
+  disown
+  echo "mailpit started — SMTP :1025 | UI http://localhost:8025"
+}
+mailpit-stop() {
+  pkill -f "mailpit" && echo "mailpit stopped" || echo "mailpit not running"
+}
+
 # Network diagnostics
 alias mtr='sudo mtr'                    # MTR with sudo
 alias myip='curl -s ipinfo.io/ip'       # Get public IP
