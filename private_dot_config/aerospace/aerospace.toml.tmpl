@@ -34,7 +34,7 @@ key-mapping.preset = 'qwerty'
 # See https://nikitabobko.github.io/AeroSpace/commands#move-mouse
 on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 on-focus-changed = "move-mouse window-lazy-center"
-exec-on-workspace-change = ['/bin/sh', '-c', 'case "$AEROSPACE_FOCUSED_WORKSPACE" in 1|2|4|9|M|I) /run/current-system/sw/bin/aerospace layout v_accordion ;; esac']
+exec-on-workspace-change = ['/bin/sh', '-c', 'case "$AEROSPACE_FOCUSED_WORKSPACE" in 1|2|4|9|M|I) /run/current-system/sw/bin/aerospace layout h_accordion ;; esac']
 
 [gaps]
 inner.horizontal = [{ monitor."Retina" = 1 }, 7]
@@ -46,8 +46,8 @@ outer.right = [{ monitor."Retina" = 1 }, 7]
 
 [mode.main.binding]
 cmd-enter = 'exec-and-forget open -n /Applications/Ghostty.app'
-cmd-h = []                                                    # Disable "hide application" - commented to allow focus
-cmd-alt-h = []                                                  # Disable "hide others"
+cmd-h = []     # Disable "hide application" - commented to allow focus
+cmd-alt-h = [] # Disable "hide others"
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#focus (Emacs style)
 cmd-b = 'focus left'    # backward
