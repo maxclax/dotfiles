@@ -109,14 +109,14 @@ endif
 
 
 # Environment setup
-env:
+e:
 	tmuxinator main;
 
 # Kill tmux session
-tkill:
+tke:
 	@tmux kill-session -t main || echo "Session 'main' does not exist."
 
-tkill_all:
+tkea:
 	pkill -f tmux
 
 
