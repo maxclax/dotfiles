@@ -250,7 +250,7 @@ MONITORING_DATA := $(HOME)/.local/share/monitoring
 PROMETHEUS_PID := $(MONITORING_DATA)/prometheus.pid
 GRAFANA_PID := $(MONITORING_DATA)/grafana.pid
 
-monitoring_start:
+grafana_start:
 	@mkdir -p $(MONITORING_DATA)/prometheus-data $(HOME)/.local/share/grafana/data $(HOME)/.local/share/grafana/logs
 	@prometheus \
 		--config.file=$(HOME)/.config/prometheus/prometheus.yml \
@@ -265,11 +265,11 @@ monitoring_start:
 	@echo "Prometheus: http://localhost:9090"
 	@echo "Grafana:    http://localhost:3000 (no login required)"
 
-monitoring_stop:
+grafana_stop:
 	@if [ -f $(PROMETHEUS_PID) ]; then kill $$(cat $(PROMETHEUS_PID)) 2>/dev/null; rm $(PROMETHEUS_PID); echo "Prometheus stopped"; fi
 	@if [ -f $(GRAFANA_PID) ]; then kill $$(cat $(GRAFANA_PID)) 2>/dev/null; rm $(GRAFANA_PID); echo "Grafana stopped"; fi
 
-monitoring_status:
+grafana_status:
 	@if [ -f $(PROMETHEUS_PID) ] && kill -0 $$(cat $(PROMETHEUS_PID)) 2>/dev/null; then echo "Prometheus: running (PID $$(cat $(PROMETHEUS_PID)))"; else echo "Prometheus: stopped"; fi
 	@if [ -f $(GRAFANA_PID) ] && kill -0 $$(cat $(GRAFANA_PID)) 2>/dev/null; then echo "Grafana: running (PID $$(cat $(GRAFANA_PID)))"; else echo "Grafana: stopped"; fi
 

@@ -726,7 +726,7 @@ Heading links include file:path so navigation works across files."
   (setq org-todo-keywords
         '((sequence "TODO(t)" "NEXT(n)" "INPROCESS(i)" "|" "DONE(d)")
           (sequence "PROJECT(p)" "|" "DONE(d)" "CANCELLED(c)")
-          (sequence "WAITING(w)" "DELEGATED(D)" "HOLD(h)" "|" "CANCELLED(c)")))
+          (sequence "WAITING(w)" "DELEGATED(D)" "HOLD(h)" "|" "CANCELLED(c)" "SKIP(s)")))
 
   ;; Stuck projects detection (projects without NEXT, WAITING, or DELEGATED actions)
   (setq org-stuck-projects '("project-INBOX" ("NEXT" "WAITING" "DELEGATED") nil ""))
@@ -737,7 +737,8 @@ Heading links include file:path so navigation works across files."
           ("INPROCESS" :inherit success)
           ("PROJECT" :inherit font-lock-string-face)
           ("WAITING" :inherit font-lock-keyword-face)
-          ("HOLD" :inherit font-lock-comment-face)))
+          ("HOLD" :inherit font-lock-comment-face)
+          ("SKIP" :inherit font-lock-comment-face)))
 
   ;; Eisenhower Matrix priority system (A=I-U, B=I-NU, C=NI-U, D=NI-NU)
   (setq org-priority-highest ?A)

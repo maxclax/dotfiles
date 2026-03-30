@@ -103,7 +103,7 @@ alias wget='wget --no-hsts'
 
 
 # Dev services (installed via Home Manager, started on demand)
-mps() {
+mailpit_start() {
   if lsof -i :8025 &>/dev/null; then
     echo "mailpit already running: http://localhost:8025"
     return
@@ -112,7 +112,7 @@ mps() {
   disown
   echo "mailpit started — SMTP :1025 | UI http://localhost:8025"
 }
-mpk() {
+mailpit_kill() {
   pkill -f "mailpit" && echo "mailpit stopped" || echo "mailpit not running"
 }
 
