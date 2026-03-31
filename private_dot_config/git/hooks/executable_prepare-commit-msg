@@ -1,0 +1,25 @@
+#!/usr/bin/env sh
+
+# Rewrite auto-generated merge commit messages to Doom commit style.
+# Git passes: $1 = message file, $2 = source type, $3 = SHA (for some sources).
+
+COMMIT_MSG_FILE="$1"
+COMMIT_SOURCE="$2"
+
+# Only act on merge commits (source is "merge")
+if [ "$COMMIT_SOURCE" = "merge" ]; then
+  MSG=$(cat "$COMMIT_MSG_FILE")
+  # Rewrite "Merge ..." to "dev: merge ..."
+  case "$MSG" in
+    Merge*)
+      NEW_MSG="dev: $(echo "$MSG" | head -1 | sed 's/^Merge /merge /')"
+      # Preserve any additional lines (conflict list, etc.)
+      REST=$(echo "$MSG" | tail -n +2)
+      if [ -n "$REST" ]; then
+        printf '%s\n%s\n' "$NEW_MSG" "$REST" > "$COMMIT_MSG_FILE"
+      else
+        printf '%s\n' "$NEW_MSG" > "$COMMIT_MSG_FILE"
+      fi
+      ;;
+  esac
+fi
