@@ -1,0 +1,11 @@
+#!/bin/bash -e
+
+# Delete all kind clusters
+clusters=$(kind get clusters 2>/dev/null)
+
+if [ -n "$clusters" ]; then
+  kind delete clusters --all
+  echo "All kind clusters deleted."
+else
+  echo "No kind clusters found."
+fi

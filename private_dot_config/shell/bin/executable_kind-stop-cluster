@@ -1,0 +1,13 @@
+#!/bin/bash -e
+
+# Stop all kind containers without deleting them
+kind_containers=$(podman ps --filter "name=kind-" --filter "status=running" --format '{{.Names}}' 2>/dev/null)
+
+if [ -n "$kind_containers" ]; then
+  for container in $kind_containers; do
+    podman stop "$container" >/dev/null
+    echo "Stopped $container"
+  done
+else
+  echo "No running kind containers found."
+fi

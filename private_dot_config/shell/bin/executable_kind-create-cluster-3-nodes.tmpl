@@ -9,7 +9,7 @@ kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
   - role: control-plane
-    extraMounts:
+    extraMounts: &mounts
       - hostPath: {{ .gitLocalRepositories }}
         containerPath: /mnt/host/git
         readOnly: true
@@ -33,25 +33,7 @@ nodes:
         hostPort: 30443
         protocol: TCP
   - role: worker
-    extraMounts:
-      - hostPath: {{ .gitLocalRepositories }}
-        containerPath: /mnt/host/git
-        readOnly: true
-      - hostPath: /Users
-        containerPath: /mnt/host/Users
-        readOnly: true
-      - hostPath: /Volumes
-        containerPath: /mnt/host/Volumes
-        readOnly: true
+    extraMounts: *mounts
   - role: worker
-    extraMounts:
-      - hostPath: {{ .gitLocalRepositories }}
-        containerPath: /mnt/host/git
-        readOnly: true
-      - hostPath: /Users
-        containerPath: /mnt/host/Users
-        readOnly: true
-      - hostPath: /Volumes
-        containerPath: /mnt/host/Volumes
-        readOnly: true
+    extraMounts: *mounts
 EOF
