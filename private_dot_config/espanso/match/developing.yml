@@ -25,7 +25,7 @@ matches:
     replace: "make rm"
 
   - trigger: "'rm"
-    replace: "podman ps -aq | xargs -r podman stop | xargs -r podman rm"
+    replace: "podman ps -a --format '{{.ID}} {{.Names}}' | grep -v 'kind-' | awk '{print $1}' | xargs -r podman stop | xargs -r podman rm"
 
   - trigger: "'ri"
     replace: "podman rmi -f $(docker images -a -q)"
