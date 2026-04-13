@@ -184,7 +184,11 @@ run = "move-node-to-workspace 3"
 if.app-id = "org.gnu.Emacs"
 run = "move-node-to-workspace 4"
 
-# Frame 2 (5)
+# Frame 2 + extra (5)
+[[on-window-detected]]
+if.app-id = "com.iggsoftware.banktivity"
+run = "move-node-to-workspace 5"
+
 # Frame 3 (6)
 
 [[on-window-detected]]
