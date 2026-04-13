@@ -6,7 +6,9 @@
       "Bash(grep:*)",
       "Bash(git:*)",
       "WebSearch",
-      "Bash(gh search:*)"
+      "Bash(gh search:*)",
+      "Read(//Users/dev/.config/**)",
+      "Read(//nix/store/**)"
     ]
   }
 }
