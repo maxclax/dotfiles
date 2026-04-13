@@ -9,3 +9,7 @@ item = "id_ed25519"
 [[ssh-keys]]
 vault = "Private"
 item = "github"
+
+[[ssh-keys]]
+vault = "Private"
+item = "rp-stage"
