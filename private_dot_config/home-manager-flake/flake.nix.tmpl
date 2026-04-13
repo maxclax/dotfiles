@@ -32,7 +32,7 @@
     in {
 {{- if and (eq .chezmoi.os "darwin") (not .extraUser) }}
       # nix-darwin configuration for macOS (only for main user)
-      darwinConfigurations."{{ .chezmoi.hostname }}" = nix-darwin.lib.darwinSystem {
+      darwinConfigurations."{{ .hostname }}" = nix-darwin.lib.darwinSystem {
         inherit system;
         modules = [
           ./darwin-configuration.nix
@@ -54,7 +54,7 @@
               chezmoi = {
                 os = "{{ .chezmoi.os }}";
                 arch = "{{ .chezmoi.arch }}";
-                hostname = "{{ .chezmoi.hostname }}";
+                hostname = "{{ .hostname }}";
                 username = "{{ .chezmoi.username }}";
                 homeDir = "{{ .chezmoi.homeDir }}";
               };
