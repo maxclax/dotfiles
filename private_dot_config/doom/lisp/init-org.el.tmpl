@@ -381,10 +381,39 @@ Heading links include file:path so navigation works across files."
                    (org-agenda-sorting-strategy '(priority-down alpha-up))
                    (org-agenda-remove-tags t)
                    (org-agenda-max-entries 10)
-                   (org-agenda-prefix-format "  %i%(my/agenda-bold-prefix)%?-12t %s"))))
+                   (org-agenda-prefix-format "  %i%(my/agenda-bold-prefix)%?-12t %s")))
+
+            (tags-todo "TODO={TODO}"
+                       ((org-agenda-overriding-header "💳 Subscriptions")
+                        (org-agenda-files '({{ .org_dir | quote }}))
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (unless (string-match-p "subscriptions"
+                                                    (buffer-file-name))
+                              (or (outline-next-heading) (point-max)))))
+                        (org-agenda-sorting-strategy '(deadline-up))
+                        (org-agenda-prefix-format "  %-22(or (org-entry-get nil \"COST\") \"\") %-10(my/sub-deadline-info) ")
+                        (org-agenda-todo-keyword-format "")
+                        (org-agenda-remove-tags t))))
            ((org-agenda-finalize-hook '(my/agenda-apply-bold-prefix
                                         my/agenda-style-tags
                                         my/agenda-goto-top))))
+
+          ;; Active Subscriptions
+          ("$" "Subscriptions"
+           ((tags-todo "TODO={TODO}"
+                       ((org-agenda-overriding-header "💳 Active Subscriptions")
+                        (org-agenda-files '({{ .org_dir | quote }}))
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (unless (string-match-p "subscriptions"
+                                                    (buffer-file-name))
+                              (or (outline-next-heading) (point-max)))))
+                        (org-agenda-sorting-strategy '(deadline-up))
+                        (org-agenda-prefix-format "  %-22(or (org-entry-get nil \"COST\") \"\") %-10(my/sub-deadline-info) ")
+                        (org-agenda-todo-keyword-format "")
+                        (org-agenda-remove-tags t))))
+           ((org-agenda-finalize-hook '(my/agenda-goto-top))))
 
           ;; Graveyard — RIP entries
           ("g" "Graveyard" agenda ""
@@ -888,6 +917,18 @@ Heading links include file:path so navigation works across files."
     (format-time-string "[%Y-%m-%d %a]"))
 
   ;; ──────────────────────────────────────────────────────────────
+  (defun my/sub-deadline-info ()
+    "Return days until deadline as a string for subscription agenda."
+    (let ((dl (org-get-deadline-time (point))))
+      (if dl
+          (let ((days (- (time-to-days dl) (time-to-days (current-time)))))
+            (cond
+             ((< days 0) (format "%dd overdue" (abs days)))
+             ((= days 0) "today")
+             ((< days 30) (format "in %dd" days))
+             (t (format "in %dm" (/ days 30)))))
+        "")))
+
   ;; Make filename/title BOLD in agenda – guaranteed to work
   ;; ──────────────────────────────────────────────────────────────
   (defun my/agenda-bold-prefix ()
@@ -1067,6 +1108,14 @@ Matches any non-DONE todo state (TODO, NEXT, WAIT, etc.)."
   ;; Archive configuration - use dedicated archive directory
   (setq org-archive-location "archive/%s_archive::")
   (setq org-archive-save-context-info '(time file ltags itags todo category olpath))
+
+  ;; Respect per-file #+ARCHIVE: keyword by making it buffer-local
+  (defun my/org-archive-location-from-keyword ()
+    "Set buffer-local `org-archive-location' from #+ARCHIVE keyword if present."
+    (let ((archive (org-entry-get nil "ARCHIVE" t)))
+      (when archive
+        (setq-local org-archive-location archive))))
+  (add-hook 'org-mode-hook #'my/org-archive-location-from-keyword)
 
   ;; Archive all DONE items in directory
   (defun org-archive-all-done-in-directory (directory)
