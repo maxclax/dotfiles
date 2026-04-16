@@ -36,9 +36,10 @@ map ctrl+shift+n new_os_window_with_cwd
 map ctrl+shift+enter new_window_with_cwd
 map ctrl+shift+t new_tab_with_cwd
 
-# Drag and drop support
+# Emacs-style clipboard: select auto-copies, C-y pastes
 strip_trailing_spaces smart
 copy_on_select yes
+map ctrl+y paste_from_clipboard
 
 # File drop support
 open_url_with default
