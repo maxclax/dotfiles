@@ -392,7 +392,7 @@ Heading links include file:path so navigation works across files."
                                                     (buffer-file-name))
                               (or (outline-next-heading) (point-max)))))
                         (org-agenda-sorting-strategy '(deadline-up))
-                        (org-agenda-prefix-format "  %-22(or (org-entry-get nil \"COST\") \"\") %-10(my/sub-deadline-info) ")
+                        (org-agenda-prefix-format "  %2(my/sub-rating)  %-22(or (org-entry-get nil \"COST\") \"\") %-10(my/sub-deadline-info) ")
                         (org-agenda-todo-keyword-format "")
                         (org-agenda-remove-tags t))))
            ((org-agenda-finalize-hook '(my/agenda-apply-bold-prefix
@@ -410,7 +410,7 @@ Heading links include file:path so navigation works across files."
                                                     (buffer-file-name))
                               (or (outline-next-heading) (point-max)))))
                         (org-agenda-sorting-strategy '(deadline-up))
-                        (org-agenda-prefix-format "  %-22(or (org-entry-get nil \"COST\") \"\") %-10(my/sub-deadline-info) ")
+                        (org-agenda-prefix-format "  %2(my/sub-rating)  %-22(or (org-entry-get nil \"COST\") \"\") %-10(my/sub-deadline-info) ")
                         (org-agenda-todo-keyword-format "")
                         (org-agenda-remove-tags t))))
            ((org-agenda-finalize-hook '(my/agenda-goto-top))))
@@ -928,6 +928,17 @@ Heading links include file:path so navigation works across files."
              ((< days 30) (format "in %dd" days))
              (t (format "in %dm" (/ days 30)))))
         "")))
+
+  (defun my/sub-rating ()
+    "Return rating emoji for current subscription based on RATING property.
+Scale: great=🤩 good=👍 ok=🙂 meh=😕 bad=💀"
+    (pcase (org-entry-get nil "RATING")
+      ("great" "🤩")
+      ("good"  "👍")
+      ("ok"    "🙂")
+      ("meh"   "😕")
+      ("bad"   "💀")
+      (_       "  ")))
 
   ;; Make filename/title BOLD in agenda – guaranteed to work
   ;; ──────────────────────────────────────────────────────────────
