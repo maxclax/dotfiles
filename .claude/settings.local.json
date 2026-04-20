@@ -8,7 +8,9 @@
       "WebSearch",
       "Bash(gh search:*)",
       "Read(//Users/dev/.config/**)",
-      "Read(//nix/store/**)"
+      "Read(//nix/store/**)",
+      "Bash(nix eval:*)",
+      "Bash(nix search:*)"
     ]
   }
 }
