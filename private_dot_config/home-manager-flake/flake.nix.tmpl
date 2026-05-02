@@ -38,11 +38,15 @@
           ./darwin-configuration.nix
           home-manager.darwinModules.home-manager
           {
-            # Workaround: deno 2.6.10 has a renamed test target in nixpkgs-unstable.
-            # Skip checks until nixpkgs is patched.
+            # Drop kvazaar/chromaprint from ffmpeg-full — their tests SIGKILL
+            # in the macOS build sandbox, and pydub (the only consumer here,
+            # via aider-chat) doesn't need those codecs.
             nixpkgs.overlays = [
               (final: prev: {
-                deno = prev.deno.overrideAttrs (_: { doCheck = false; });
+                ffmpeg-full = prev.ffmpeg-full.override {
+                  withKvazaar = false;
+                  withChromaprint = false;
+                };
               })
             ];
 
