@@ -4,7 +4,6 @@
   "permissions": {
     "allow": [],
     "deny": [
-      "Bash(curl:*)",
       "Read(./.env)",
       "Read(./.env.*)",
       "Read(**/.env)",
@@ -19,7 +18,20 @@
       "Read(**/kubeconfig.*)",
       "Read(**/.kube/config)",
       "Read(**/values/**)",
-      "Read({{ .workspace_extra }}/**)"
+      "Read({{ .workspace_extra }}/**)",
+      "Bash(**/.env)",
+      "Bash(**/.env.*)",
+      "Bash(**/secrets/**)",
+      "Bash(**/*.pem)",
+      "Bash(**/*.key)",
+      "Bash(**/id_rsa)",
+      "Bash(**/id_ed25519)",
+      "Bash(./secrets/**)",
+      "Bash(**/kubeconfig)",
+      "Bash(**/kubeconfig.*)",
+      "Bash(**/.kube/config)",
+      "Bash(**/values/**)",
+      "Bash({{ .workspace_extra }}/**)"
     ]
   },
   "enabledPlugins": {
