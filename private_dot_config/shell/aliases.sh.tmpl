@@ -93,8 +93,20 @@ alias la='ls -all'
 alias ll='ls -lG'
 alias lst='ls -T'
 
-# Copy path to clipboard
-alias cpwd='pwd | tr -d "\n" | pbcopy'
+# Copy path to clipboard — emacs kill-ring-save (M-w)
+alias wpwd='pwd | tr -d "\n" | pbcopy'
+
+# Yank (paste) clipboard path and cd into it — emacs yank (C-y), counterpart to wpwd
+ypwd() {
+  local dir
+  dir="$(pbpaste | tr -d '\n')"
+  if [[ -d "$dir" ]]; then
+    cd "$dir" || return
+  else
+    echo "ypwd: not a directory: $dir" >&2
+    return 1
+  fi
+}
 
 # Stop wget from creating ~/.wget-hsts file. I don't care about HSTS (HTTP
 # Strict Transport Security) for wget; it's not as if I'm logging into my bank
