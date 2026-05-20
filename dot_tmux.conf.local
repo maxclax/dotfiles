@@ -52,6 +52,26 @@ bind -r N resize-pane -D 2     # C-x N (Shift+n) - resize down
 bind -r B resize-pane -L 2     # C-x B (Shift+b) - resize left
 bind -r F resize-pane -R 2     # C-x F (Shift+f) - resize right
 
+# === SESSION MANAGEMENT (Emacs-style) ===
+# C-x C-l = toggle last session (mirrors C-x C-f/C-b for windows)
+bind C-l switch-client -l
+
+# C-x s = fuzzy session picker, zoomed
+bind s choose-tree -Zs
+
+# C-x S = rename current session
+bind S command-prompt -I "#S" "rename-session '%%'"
+
+# === NO-PREFIX SESSION SHORTCUTS (fastest) ===
+# M-s = last session toggle, one keystroke total
+bind -n M-s switch-client -l
+
+# M-S = session picker without prefix
+bind -n M-S choose-tree -Zs
+
+# M-t = fzf popup picker (all sessions)
+bind -n M-t display-popup -E -w 60% -h 50% "tmux list-sessions | cut -d: -f1 | fzf --reverse --prompt='session> ' | xargs -r tmux switch-client -t"
+
 # === EMACS-STYLE COPY MODE ===
 # Enter copy mode with C-x [
 bind [ copy-mode
