@@ -375,8 +375,9 @@
   (with-eval-after-load 'calc-alg
     (when (boundp 'calc-alg-map)
       (map! :map calc-alg-map "C-o" #'casual-calc-tmenu)))
-  (with-eval-after-load 'ediff
-    (map! :map ediff-mode-map "C-o" #'casual-ediff-tmenu)))
+  (add-hook 'ediff-keymap-setup-hook
+            (lambda ()
+              (define-key ediff-mode-map (kbd "C-o") #'casual-ediff-tmenu))))
 
 (after! dirvish
   (map! :map dirvish-mode-map
