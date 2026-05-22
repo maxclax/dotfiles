@@ -41,12 +41,18 @@
             # Drop kvazaar/chromaprint from ffmpeg-full — their tests SIGKILL
             # in the macOS build sandbox, and pydub (the only consumer here,
             # via aider-chat) doesn't need those codecs.
+            #
+            # matio's darwin build leaves libhdf5 unresolvable (@rpath),
+            # which crashes vips at its gobject-introspection step. Build
+            # matio without HDF5 — vips needs matio, but not MATLAB .mat
+            # (MAT 7.3) support, which is the only thing HDF5 provides here.
             nixpkgs.overlays = [
               (final: prev: {
                 ffmpeg-full = prev.ffmpeg-full.override {
                   withKvazaar = false;
                   withChromaprint = false;
                 };
+                matio = prev.matio.override { hdf5 = null; };
               })
             ];
 
