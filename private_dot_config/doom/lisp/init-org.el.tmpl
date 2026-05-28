@@ -103,6 +103,21 @@ Heading links include file:path so navigation works across files."
   (setq org-src-fontify-natively t)
   (setq org-src-tab-acts-natively t)
 
+  ;; Auto-align org tables inside :results: drawers after src block execution.
+  ;; Org doesn't fontify tables inside drawers, so without this they appear as
+  ;; raw "| col | col |" text until you Tab on each one manually.
+  (defun my/org-align-result-tables ()
+    "Walk the result drawer of the just-executed src block and align any tables."
+    (let ((res (org-babel-where-is-src-block-result)))
+      (when res
+        (save-excursion
+          (goto-char res)
+          (forward-line)
+          (while (re-search-forward "^[ \t]*|" nil t)
+            (org-table-align)
+            (goto-char (org-table-end)))))))
+  (add-hook 'org-babel-after-execute-hook #'my/org-align-result-tables)
+
   ;; Enable org-depend for sequential tasks
   (require 'org-depend)
 
@@ -784,6 +799,27 @@ Heading links include file:path so navigation works across files."
   ;; Deadline warning — show warnings 14 days before deadline
   (setq org-deadline-warning-days 14)
 
+  ;; Deadline-first agenda: distinct leaders, repeater display, and a global
+  ;; sort that puts deadlines at the top of each day.
+  ;; Adapted from https://whhone.com/posts/refining-org-mode-deadlines/
+  (setq org-agenda-scheduled-leaders '("Sched" "S.%2dx"))
+  (setq org-agenda-deadline-leaders  '("🔴 0d" "🔴%2dd" "🔴-%1dd"))
+
+  (setq org-agenda-sorting-strategy
+        '((agenda deadline-up habit-down time-up priority-down category-keep)
+          (todo   priority-down category-keep)
+          (tags   priority-down category-keep)
+          (search category-keep)))
+
+  ;; Show the repeater (++7d, +1m, …) inline in the agenda for deadlines
+  ;; and scheduled items, so a glance tells me whether something recurs.
+  (defun my/org-agenda-repeater ()
+    "Repeater shown in org-agenda-prefix for agenda entries."
+    (let ((pom (org-get-at-bol 'org-marker)))
+      (if (or (org-get-scheduled-time pom) (org-get-deadline-time pom))
+          (format "%5s" (or (org-get-repeat) ""))
+        "     ")))
+
   ;; Vivid deadline faces in agenda: overdue/today = bold red, approaching = orange
   (custom-set-faces!
    '(org-upcoming-deadline :foreground "orange" :weight bold)
@@ -841,7 +877,6 @@ Heading links include file:path so navigation works across files."
   ;; Today navigation and highlighting
   (setq org-agenda-include-diary nil)                     ; Don't include diary
   (setq org-agenda-skip-scheduled-if-deadline-is-shown t) ; Avoid duplicate entries
-  (setq org-deadline-warning-days 7)
   (setq org-scheduled-past-days 365)    ; Show past scheduled items for 365 days
   (setq org-deadline-past-days 365)     ; Show past deadline items for 365 days
   (setq org-scheduled-delay-days 365)   ; Show overdue scheduled items for 365 days
@@ -985,7 +1020,7 @@ Scale: great=🤩 good=👍 ok=🙂 meh=😕 bad=💀"
   (add-hook 'org-agenda-finalize-hook #'my/agenda-style-tags)
 
   (setq org-agenda-prefix-format
-        '((agenda . " %i%(my/agenda-bold-prefix)%?-12t% s")
+        '((agenda . " %i%(my/agenda-bold-prefix)%?-12t% s %(my/org-agenda-repeater)")
           (todo   . " %i%(my/agenda-bold-prefix)")
           (tags   . " %i%(my/agenda-bold-prefix)")
           (search . " %i%(my/agenda-bold-prefix)")))
