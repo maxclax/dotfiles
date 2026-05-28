@@ -1,0 +1,57 @@
+# -*- mode: conf-toml; -*-
+# Grok Build global configuration
+# Source: {{ .chezmoi.sourceDir }}/dot_grok/config.toml.tmpl
+#
+# This file provides access control rules (permissions) for Grok Build.
+# It is intentionally minimal.
+#
+# Skills, hooks, commands, and MCP servers are currently inherited from
+# ~/.claude/ via Grok Build's built-in Claude Code compatibility layer.
+# We are not duplicating those yet.
+
+[ui]
+# "ask" is the safest default — matches Claude Code behavior.
+# Change to "always-approve" only if you want fewer prompts (not recommended).
+permission_mode = "ask"
+
+# ----------------------------------------------------------------------
+# Access rules (translated from Claude Code permissions)
+#
+# Deny rules always take precedence.
+# These protect sensitive files and dangerous operations.
+# ----------------------------------------------------------------------
+rules = [
+  # Environment files
+  { action = "deny", tool = "read",  pattern = "**/.env" },
+  { action = "deny", tool = "read",  pattern = "**/.env.*" },
+  { action = "deny", tool = "bash",  pattern = "**/.env*" },
+
+  # Secrets directories
+  { action = "deny", tool = "read",  pattern = "**/secrets/**" },
+  { action = "deny", tool = "bash",  pattern = "**/secrets/**" },
+
+  # Cryptographic material
+  { action = "deny", tool = "read",  pattern = "**/*.pem" },
+  { action = "deny", tool = "bash",  pattern = "**/*.pem" },
+  { action = "deny", tool = "read",  pattern = "**/*.key" },
+  { action = "deny", tool = "bash",  pattern = "**/*.key" },
+  { action = "deny", tool = "read",  pattern = "**/id_rsa" },
+  { action = "deny", tool = "bash",  pattern = "**/id_rsa" },
+  { action = "deny", tool = "read",  pattern = "**/id_ed25519" },
+  { action = "deny", tool = "bash",  pattern = "**/id_ed25519" },
+
+  # Kubernetes configuration
+  { action = "deny", tool = "read",  pattern = "**/kubeconfig" },
+  { action = "deny", tool = "read",  pattern = "**/kubeconfig.*" },
+  { action = "deny", tool = "bash",  pattern = "**/kubeconfig*" },
+  { action = "deny", tool = "read",  pattern = "**/.kube/config" },
+  { action = "deny", tool = "bash",  pattern = "**/.kube/config" },
+
+  # Helm / deployment values
+  { action = "deny", tool = "read",  pattern = "**/values/**" },
+  { action = "deny", tool = "bash",  pattern = "**/values/**" },
+
+  # Personal extra workspace (from chezmoi data)
+  { action = "deny", tool = "read",  pattern = "{{ .workspace_extra }}/**" },
+  { action = "deny", tool = "bash",  pattern = "{{ .workspace_extra }}/**" },
+]

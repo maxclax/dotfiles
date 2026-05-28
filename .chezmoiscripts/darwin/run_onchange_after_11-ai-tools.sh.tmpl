@@ -19,6 +19,14 @@ else
   echo "Claude Code already installed: $(claude --version)"
 fi
 
+# ── Grok Build (official xAI CLI) ─────────────────────────────────────────────
+if ! command -v grok &> /dev/null; then
+  echo "Installing Grok Build..."
+  curl -fsSL https://x.ai/cli/install.sh | bash
+else
+  echo "Grok Build already installed: $(grok --version 2>/dev/null || echo 'version unknown')"
+fi
+
 # ── npm tools ─────────────────────────────────────────────────────────────────
 if command -v npm &> /dev/null; then
   npm install -g opencode-ai cline
