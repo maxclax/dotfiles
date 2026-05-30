@@ -416,12 +416,17 @@ Heading links include file:path so navigation works across files."
                         (org-agenda-sorting-strategy '(deadline-up))
                         (org-agenda-prefix-format "  %2(my/sub-rating)  %-22(or (org-entry-get nil \"COST\") \"\") %-10(my/sub-deadline-info) ")
                         (org-agenda-todo-keyword-format "")
-                        (org-agenda-remove-tags t))))
+                        (org-agenda-remove-tags t)))
+
+            ;; Review queue — notes still tagged draft/redraft, awaiting a real
+            ;; PARA keyword. Function block; vanishes when the queue is empty.
+            (my/agenda-drafts-block ""))
            ((org-agenda-finalize-hook '(my/agenda-apply-bold-prefix
                                         my/agenda-style-tags
                                         my/agenda-remove-empty-blocks
                                         my/agenda-compact-separators
                                         my/agenda-uppercase-headers
+                                        my/agenda-insert-quote
                                         my/agenda-goto-top))))
 
           ;; Active Subscriptions
@@ -1057,6 +1062,107 @@ Scale: great=🤩 good=👍 ok=🙂 meh=😕 bad=💀"
   (defun my/agenda-goto-top ()
     "Move cursor to the top of the agenda buffer after finalization."
     (goto-char (point-min)))
+
+  ;; ── Dashboard review queue: notes still tagged draft/redraft ──────────────
+  ;; `redraft' (and `draft') are a note-level inbox: a note I've touched but not
+  ;; yet placed into a real PARA keyword. This block surfaces them on the GTD
+  ;; dashboard so they nag until each is given its real keyword (resource/area/
+  ;; project) or archived. It is a *function block* — org calls it via
+  ;; `(funcall type match)' and it APPENDS to the agenda buffer (never erases).
+  (defun my/denote-draft-jump ()
+    "Open the draft note on the current agenda line."
+    (interactive)
+    (let ((f (get-text-property (point) 'denote-draft-file)))
+      (if f (find-file-other-window f)
+        (message "No draft note on this line"))))
+
+  (defvar my/denote-draft-jump-map
+    (let ((m (make-sparse-keymap)))
+      (define-key m (kbd "RET")   #'my/denote-draft-jump)
+      (define-key m (kbd "TAB")   #'my/denote-draft-jump)
+      (define-key m (kbd "<tab>") #'my/denote-draft-jump)
+      m)
+    "Keymap active on draft lines in the agenda review block.")
+
+  ;; ── Random quote banner ───────────────────────────────────────────────────
+  ;; Tag any org heading `:quote:' and one is picked at random and shown,
+  ;; citation-styled (small italic), at the very top of the dashboard. Put the
+  ;; attribution right in the heading, e.g. "The obstacle is the way — Marcus".
+  (defun my/agenda-quotes-collect ()
+    "Collect quote strings from the org directory, without org-ql (no warnings).
+A heading counts as a quote if the file has a `:quote:' filetag, or the
+heading itself carries a `:quote:' tag. Trailing :tags: are stripped.
+Scans the filesystem fresh (not the cached `org-agenda-files') so a newly
+added quotes file is always picked up."
+    (let ((quotes '())
+          (files (append
+                  (ignore-errors
+                    (directory-files-recursively {{ .org_dir | quote }} "\\.org\\'"))
+                  (when (and (fboundp 'my/denote-extra-dir) (my/denote-extra-dir))
+                    (ignore-errors
+                      (directory-files-recursively (my/denote-extra-dir) "\\.org\\'"))))))
+      (dolist (f (seq-filter (lambda (x) (string-match-p "\\.org\\'" x)) files))
+        (when (file-readable-p f)
+          (with-temp-buffer
+            (insert-file-contents f)
+            ;; Cheap skip: only parse files that mention :quote: at all.
+            (when (save-excursion (goto-char (point-min))
+                                  (search-forward ":quote:" nil t))
+              (let ((file-quote
+                     (save-excursion
+                       (goto-char (point-min))
+                       (re-search-forward "^#\\+filetags:.*:quote:" 2000 t))))
+                (goto-char (point-min))
+                (while (re-search-forward "^\\*+[ \t]+\\(.*\\)$" nil t)
+                  (let ((heading (match-string 1)))
+                    (when (or file-quote (string-match-p ":quote:" heading))
+                      (let ((clean (string-trim
+                                    (replace-regexp-in-string
+                                     "[ \t]+:[[:alnum:]_@#%:]+:[ \t]*$" "" heading))))
+                        (when (org-string-nw-p clean)
+                          (push clean quotes)))))))))))
+      quotes))
+
+  (defun my/agenda-insert-quote ()
+    "Prepend a random `:quote:' heading to the top of the agenda buffer.
+Runs as a finalize hook (after all blocks render) so it can't be wiped by
+block setup the way a leading function block can."
+    (let ((quotes (my/agenda-quotes-collect))
+          (inhibit-read-only t))
+      (when quotes
+        (let ((q (nth (random (length quotes)) quotes)))
+          (save-excursion
+            (goto-char (point-min))
+            (insert (propertize (concat "  ❝ " q " ❞")
+                                'face '(:height 0.9 :slant italic :foreground "#9aa0a6")))
+            (insert "\n\n"))))))
+
+  (defun my/agenda-drafts-block (&optional _match)
+    "Agenda block listing notes still tagged draft/redraft (awaiting a keyword).
+Inserts nothing when the queue is empty, so the block disappears at zero."
+    (let* ((files (seq-filter
+                   (lambda (f)
+                     (let ((kw (denote-extract-keywords-from-path f)))
+                       (or (member "draft" kw) (member "redraft" kw))))
+                   (my/denote-all-files)))
+           (inhibit-read-only t))
+      (when files
+        (goto-char (point-max))
+        ;; block separator to match the other blocks (compacted in finalize)
+        (unless (bobp)
+          (insert "\n" (make-string (max 1 (1- (window-width))) ?─) "\n"))
+        (insert (propertize (format "📝 To Finalize (%d)\n" (length files))
+                            'face 'org-agenda-structure))
+        (dolist (f (sort (copy-sequence files) #'string<))
+          (let* ((title (or (ignore-errors
+                              (denote-retrieve-front-matter-title-value f 'org))
+                            (file-name-base f)))
+                 (kw (denote-extract-keywords-from-path f))
+                 (mark (if (member "redraft" kw) "redraft" "draft"))
+                 (start (point)))
+            (insert (format "  %-8s %s\n" mark title))
+            (put-text-property start (point) 'denote-draft-file f)
+            (put-text-property start (point) 'keymap my/denote-draft-jump-map))))))
 
   (add-hook 'org-agenda-finalize-hook #'my/agenda-apply-bold-prefix)
   (add-hook 'org-agenda-finalize-hook #'my/agenda-style-tags)
