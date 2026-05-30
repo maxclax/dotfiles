@@ -60,6 +60,15 @@
             (append primary-files (denote-directory-files)))
         primary-files)))
 
+  ;; Files to offer in *search* prompts: everything except journal entries.
+  ;; Journal is hidden from find/search/link prompts but stays fully indexed
+  ;; in `denote-directory-files', so links, backlinks and the agenda are
+  ;; unaffected — only the noise in note-search goes away.
+  (defun my/denote-search-files ()
+    "Like `my/denote-all-files' but excluding journal entries."
+    (seq-remove (lambda (f) (string-match-p "/journal/" f))
+                (my/denote-all-files)))
+
   ;; Make denote-directory-files search both dirs (fixes dblocks, prompts, etc.)
   (defvar my/denote-in-multi-dir nil "Guard against recursive advice.")
   (advice-add 'denote-directory-files :around
@@ -78,8 +87,8 @@
   ;; Make all denote commands that use denote-file-prompt search both dirs
   (advice-add 'denote-file-prompt :around
               (lambda (orig-fn &rest args)
-                "Override denote-file-prompt to search all directories."
-                (let ((all-files (my/denote-all-files)))
+                "Override denote-file-prompt to search all directories (no journal)."
+                (let ((all-files (my/denote-search-files)))
                   (completing-read (or (cadr args) "Select note: ")
                                    all-files nil t nil 'denote-file-history))))
 
@@ -114,10 +123,10 @@
 
   ;; Find across all denote directories with live preview
   (defun my/denote-find ()
-    "Find denote files across all directories with preview."
+    "Find denote files across all directories with preview (journal excluded)."
     (interactive)
     (find-file
-     (consult--read (my/denote-all-files)
+     (consult--read (my/denote-search-files)
                     :prompt "Find note: "
                     :require-match t
                     :category 'file

@@ -1037,11 +1037,18 @@ Scale: great=🤩 good=👍 ok=🙂 meh=😕 bad=💀"
                (end (match-end 1))
                (tag-str (buffer-substring-no-properties beg end))
                (tags (split-string tag-str ":" t))
-               (styled (mapconcat (lambda (tag)
-                                    (propertize (concat " " tag " ")
-                                                'face '(:foreground "#5B6268" :background "#e8e8e8"
-                                                         :weight light :height 0.85)))
-                                  tags " ")))
+               (styled (mapconcat
+                        (lambda (tag)
+                          (propertize
+                           (concat " " tag " ")
+                           'face `(:foreground "#5B6268" :background "#e8e8e8"
+                                   :weight light :height 0.8
+                                   ;; vertical-only box in the page background
+                                   ;; colour: invisible padding that keeps badges
+                                   ;; on adjacent lines from touching.
+                                   :box (:line-width (0 . 3)
+                                         :color ,(face-background 'default nil t)))))
+                        tags " ")))
           (let ((inhibit-read-only t))
             (delete-region beg end)
             (goto-char beg)
@@ -1167,8 +1174,10 @@ Scale: great=🤩 good=👍 ok=🙂 meh=😕 bad=💀"
   ;; Single horizontal rule between agenda blocks — visible split, no padding
   (setq org-agenda-block-separator ?─)
 
-  ;; Enable multiline agenda items to show full task content
-  (setq org-agenda-tags-column -80)
+  ;; Right-align tags to the window edge so the tag badges form one clean
+  ;; vertical column across all blocks, regardless of line length. A fixed
+  ;; column (e.g. -80) looks ragged because long items push their tags past it.
+  (setq org-agenda-tags-column 'auto)
   (setq org-agenda-window-setup 'current-window)
   (setq org-agenda-restore-windows-after-quit t)
 
