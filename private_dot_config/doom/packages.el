@@ -91,7 +91,12 @@
 (package! circadian)                  ; Automatic theme switching (day/night modes)
 (package! beacon)                     ; Highlight cursor position after scrolling/jumping
 (package! keycast)                    ; Display current command/key sequence in mode line
-(package! page-break-lines)           ; Display ^L characters as horizontal lines
+(package! page-break-lines
+  :recipe (:host github
+           :repo "purcell/page-break-lines"
+           :branch "main"))           ; Display ^L characters as horizontal lines
+                                      ; (pinned to 'main' because upstream renamed from 'master')
+
 
 ;; =====================================================================
 ;; GIT INTEGRATION & VERSION CONTROL
@@ -107,6 +112,12 @@
 (package! prodigy)                    ; Process management for development servers/services
 (package! format-all)                 ; Universal code formatter supporting many languages
 (package! consult-todo)               ; Browse and jump to TODO items using consult
+
+;; Chess (emacs-chess)
+;; Play online via ICS, local network, or IRC.
+;; See: https://en.andros.dev/blog/d8b3a759/playing-chess-online-with-emacs/
+;; Config in lisp/init-chess.el
+(package! chess)
 
 ;; =====================================================================
 ;; DATABASE TOOLS

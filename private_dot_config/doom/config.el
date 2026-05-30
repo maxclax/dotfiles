@@ -27,6 +27,7 @@
 (load! "lisp/init-tramp.el")
 (load! "lisp/init-docker.el")
 (load! "lisp/init-eat.el")
+(load! "lisp/init-chess.el")
 (load! "lisp/init-casual.el")
 (load! "lisp/init-http.el")
 (load! "lisp/init-django.el")
