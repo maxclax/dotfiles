@@ -746,7 +746,9 @@ Heading links include file:path so navigation works across files."
   (setq org-agenda-file-regexp "\\`[^.].*\\.org\\'") ;; Exclude files starting with "."
   (setq org-agenda-files
         (seq-filter (lambda (file)
-                      (not (string-match-p "/templates/" file)))
+                      (not (or (string-match-p "/templates/" file)
+                               ;; PARA archive silo — never scan archived notes
+                               (string-match-p "/archive/" file))))
                     (append (directory-files-recursively {{ .org_dir | quote }} "\\.org$")
                             (when (file-exists-p (expand-file-name "org" {{ .workspace_extra | quote }}))
                               (directory-files-recursively (expand-file-name "org" {{ .workspace_extra | quote }}) "\\.org$"))

@@ -12,7 +12,9 @@
   (setq denote-directory {{ .org_dir | quote }})
 
   ;; Exclude certain directories from being scanned for notes (e.g., data, attachments)
-  (setq denote-excluded-directories-regexp ".attach\\|data\\|images")
+  ;; `archive' is the PARA archive silo — archived notes live in archive/ and are
+  ;; hidden from all Denote search/prompt/consult-notes operations.
+  (setq denote-excluded-directories-regexp ".attach\\|data\\|images\\|archive")
 
   ;; Lifecycle keywords (inspired by EWS)
   (setq denote-known-keywords
@@ -399,5 +401,149 @@ Press RET or TAB on any entry to open it for editing."
         (local-set-key (kbd "o") #'my/denote-feed-open-entry)))
     (switch-to-buffer buf)
     (message "Journal feed: %d entries — RET/TAB to open" (length sorted))))
+
+;; PARA archiving: move the current note into the archive/ silo, where it is
+;; hidden from search (denote-excluded-directories-regexp) and the agenda.
+;; Archived notes go in archive/notes/ — kept separate from archive/ itself,
+;; which org uses for subtree `.org_archive' dumps. Works across BOTH denote
+;; workspaces (primary `denote-directory' and the extra one): a note is always
+;; archived within its OWN workspace, never moved across workspaces.
+(defun my/denote-workspace-of (file)
+  "Return the denote workspace directory (primary or extra) that FILE lives in."
+  (let ((extra (my/denote-extra-dir)))
+    (if (and extra
+             (string-prefix-p (file-name-as-directory (expand-file-name extra))
+                              (expand-file-name file)))
+        extra
+      denote-directory)))
+
+(defun my/denote-archive-note ()
+  "Move the current Denote note into archive/notes/ of its own workspace.
+Archived notes drop out of search and the agenda. Note: denote links
+from active notes to an archived note will no longer resolve."
+  (interactive)
+  (let ((file (buffer-file-name)))
+    (unless (and file (string-match-p "\\.org\\'" file))
+      (user-error "Not visiting an .org note"))
+    (let ((archive-dir (expand-file-name "archive/notes" (my/denote-workspace-of file))))
+      (make-directory archive-dir t)
+      (let ((new (expand-file-name (file-name-nondirectory file) archive-dir)))
+        (save-buffer)
+        (rename-file file new 1)
+        (set-visited-file-name new t t)
+        (message "Archived → archive/notes/%s" (file-name-nondirectory new))))))
+
+(defun my/denote-unarchive-note ()
+  "Move the current archived note back into its workspace's main directory."
+  (interactive)
+  (let ((file (buffer-file-name)))
+    (unless (and file (string-match-p "/archive/notes/" file))
+      (user-error "This note is not in an archive/notes/ silo"))
+    ;; base = the workspace dir that contains this archive/notes/ silo
+    (let* ((d (file-name-directory file))
+           (base (file-name-directory
+                  (directory-file-name
+                   (file-name-directory (directory-file-name d)))))
+           (new (expand-file-name (file-name-nondirectory file) base)))
+      (save-buffer)
+      (rename-file file new 1)
+      (set-visited-file-name new t t)
+      (message "Unarchived → %s" (file-name-nondirectory new)))))
+
+;; The archive is excluded from normal search — this is the dedicated way back
+;; in. Fuzzy-search ONLY archived notes (across BOTH workspaces) with live
+;; preview, so the silo is never a black hole: type a word and open it.
+(defun my/denote-find-archive ()
+  "Find an archived note across all workspaces' archive/notes/ silos."
+  (interactive)
+  (let* ((dirs (delq nil (list (expand-file-name "archive/notes" denote-directory)
+                               (when (my/denote-extra-dir)
+                                 (expand-file-name "archive/notes" (my/denote-extra-dir))))))
+         (files (cl-loop for d in dirs
+                         when (file-directory-p d)
+                         append (directory-files-recursively d "\\.org\\'"))))
+    (unless files (user-error "No archived notes found"))
+    (find-file
+     (consult--read files
+                    :prompt "Find archived note: "
+                    :require-match t
+                    :category 'file
+                    :state (consult--file-preview)))))
+
+;; ──────────────────────────────────────────────────────────────────────────
+;; Clean auto-created but unused journal entries.
+;;
+;; denote-journal creates a file on every startup; many never get filled in and
+;; are left as the bare template (frontmatter + empty `* Todos' / `* Journal').
+;; A file is "unused" iff, beneath the frontmatter, every non-blank line is an
+;; EMPTY level-1 heading — i.e. no body text and no level-2+ entries such as
+;; `** TODO' / `** DONE'. This keeps anything you actually wrote and is far
+;; safer than detecting by file size (a 15-line file can be full of real
+;; outcomes; a 9-line one could hold a genuine one-line entry).
+(defun my/denote-journal-empty-p (file)
+  "Return non-nil if FILE is an unused journal (only empty level-1 headings)."
+  (with-temp-buffer
+    (insert-file-contents file)
+    (goto-char (point-min))
+    ;; Skip the leading #+keyword frontmatter.
+    (while (and (not (eobp)) (looking-at "^#\\+"))
+      (forward-line 1))
+    (let ((unused t))
+      (while (and unused (not (eobp)))
+        (let ((line (string-trim
+                     (buffer-substring-no-properties
+                      (line-beginning-position) (line-end-position)))))
+          (cond
+           ((string-empty-p line))                 ; blank — fine
+           ((string-match-p "\\`\\* [^ ]" line))    ; empty level-1 heading — fine
+           (t (setq unused nil))))                  ; text or `**'+ entry = content
+        (forward-line 1))
+      unused)))
+
+(defun my/denote-journal-empty-entries ()
+  "List of unused journal files in `denote-journal-directory'."
+  (when (file-directory-p denote-journal-directory)
+    (seq-filter #'my/denote-journal-empty-p
+                (directory-files denote-journal-directory t "\\.org\\'"))))
+
+(defun my/denote-journal-list-empty ()
+  "Preview which journal entries `my/denote-journal-clean-empty' would remove."
+  (interactive)
+  (let ((empties (my/denote-journal-empty-entries)))
+    (if (null empties)
+        (message "No unused journal entries.")
+      (with-current-buffer (get-buffer-create "*Empty Journal Entries*")
+        (let ((inhibit-read-only t))
+          (erase-buffer)
+          (insert (format "%d unused journal entries (template-only):\n\n"
+                          (length empties)))
+          (dolist (f empties) (insert "  " (file-name-nondirectory f) "\n")))
+        (goto-char (point-min))
+        (read-only-mode 1)
+        (display-buffer (current-buffer))))))
+
+(defun my/denote-journal-clean-empty ()
+  "Move unused (template-only) journal entries to the system trash.
+Recoverable — uses the trash, not a hard delete. Skips any file with
+unsaved changes. Run `my/denote-journal-list-empty' first to preview."
+  (interactive)
+  (let ((empties (seq-filter
+                  (lambda (f)
+                    (let ((buf (get-file-buffer f)))
+                      (not (and buf (buffer-modified-p buf)))))
+                  (my/denote-journal-empty-entries))))
+    (if (null empties)
+        (message "No unused journal entries to clean.")
+      (when (yes-or-no-p
+             (format "Trash %d unused journal entr%s? "
+                     (length empties)
+                     (if (= (length empties) 1) "y" "ies")))
+        (let ((delete-by-moving-to-trash t))
+          (dolist (f empties)
+            (when-let ((buf (get-file-buffer f))) (kill-buffer buf))
+            (move-file-to-trash f)))
+        (message "Trashed %d unused journal entr%s (recoverable from Trash)."
+                 (length empties)
+                 (if (= (length empties) 1) "y" "ies"))))))
 
 (provide 'init-denote)
