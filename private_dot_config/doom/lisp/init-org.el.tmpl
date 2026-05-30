@@ -197,7 +197,21 @@ Heading links include file:path so navigation works across files."
 
           ;; GTD Full Review with Journal Integration
           ("d" "Dashboard (GTD)"
-           ((tags-todo "INBOX"
+           ((tags "pinned-INBOX"
+                  ((org-agenda-overriding-header "📌 Pinned")
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let ((first-heading
+                              (save-excursion
+                                (goto-char (point-min))
+                                (when (re-search-forward "^\\* " nil t)
+                                  (line-beginning-position)))))
+                         (unless (and (= (org-current-level) 1)
+                                      (= (line-beginning-position) first-heading))
+                           (or (outline-next-heading) (point-max))))))
+                   (org-tags-match-list-sublevels nil)))
+
+            (tags-todo "INBOX"
                        ((org-agenda-overriding-header "📥 Inbox - Process These")
                         (org-tags-match-list-sublevels nil)))
 
@@ -223,11 +237,17 @@ Heading links include file:path so navigation works across files."
                         (org-agenda-todo-list-sublevels t)
                         (org-deadline-warning-days 0)))
 
-            (agenda "" ((org-agenda-span 7)
+            (agenda "" ((org-agenda-span 5)
                         (org-agenda-start-day "+1d")
                         (org-agenda-overriding-header "⏰ Upcoming Deadlines")
                         (org-agenda-entry-types '(:deadline))
+                        (org-deadline-warning-days 0)
                         (org-agenda-show-all-dates nil)
+                        ;; Each deadline shows under its own due date, so the
+                        ;; built-in leader would read 0d everywhere — use a
+                        ;; days-from-today badge instead.
+                        (org-agenda-prefix-format
+                         '((agenda . " %i%(my/agenda-bold-prefix)%?-12t %(my/deadline-days-from-today) %(my/org-agenda-repeater)")))
                         (org-agenda-skip-function
                          '(lambda ()
                             (when (member "nodeadline" (org-get-tags))
@@ -365,20 +385,6 @@ Heading links include file:path so navigation works across files."
                            (or (outline-next-heading) (point-max))))))
                    (org-tags-match-list-sublevels nil)))
 
-            (tags "pinned-INBOX"
-                  ((org-agenda-overriding-header "📌 Pinned Notes")
-                   (org-agenda-skip-function
-                    '(lambda ()
-                       (let ((first-heading
-                              (save-excursion
-                                (goto-char (point-min))
-                                (when (re-search-forward "^\\* " nil t)
-                                  (line-beginning-position)))))
-                         (unless (and (= (org-current-level) 1)
-                                      (= (line-beginning-position) first-heading))
-                           (or (outline-next-heading) (point-max))))))
-                   (org-tags-match-list-sublevels nil)))
-
             (tags-todo "-INBOX/HOLD"
                        ((org-agenda-overriding-header "⏸️ On Hold")
                         (org-agenda-skip-function
@@ -413,6 +419,9 @@ Heading links include file:path so navigation works across files."
                         (org-agenda-remove-tags t))))
            ((org-agenda-finalize-hook '(my/agenda-apply-bold-prefix
                                         my/agenda-style-tags
+                                        my/agenda-remove-empty-blocks
+                                        my/agenda-compact-separators
+                                        my/agenda-uppercase-headers
                                         my/agenda-goto-top))))
 
           ;; Active Subscriptions
@@ -817,7 +826,26 @@ Heading links include file:path so navigation works across files."
     "Repeater shown in org-agenda-prefix for agenda entries."
     (let ((pom (org-get-at-bol 'org-marker)))
       (if (or (org-get-scheduled-time pom) (org-get-deadline-time pom))
-          (format "%5s" (or (org-get-repeat) ""))
+          (format "%5s " (or (org-get-repeat) ""))
+        "      ")))
+
+  ;; Days-from-TODAY badge for calendar-style deadline blocks.
+  ;; In a multi-day deadline view each entry appears under its own due date,
+  ;; so the built-in deadline leader (%s) always reads "0d". This computes the
+  ;; distance from today instead, matching `org-agenda-deadline-leaders' style.
+  (defun my/deadline-days-from-today ()
+    "Return a 🔴 badge with whole days from today until this entry's deadline."
+    ;; During %(…) prefix eval point sits at the entry in the source org
+    ;; buffer, so `org-get-at-bol' returns nil here; pass it through and let
+    ;; `org-get-deadline-time' fall back to point (same as the repeater).
+    (let* ((pom (org-get-at-bol 'org-marker))
+           (dl  (org-get-deadline-time (or pom (point)))))
+      (if dl
+          (let ((diff (- (time-to-days dl) (org-today))))
+            (cond
+             ((> diff 0) (format "🔴%2dd" diff))
+             ((= diff 0) "🔴 0d")
+             (t          (format "🔴-%dd" (- diff)))))
         "     ")))
 
   ;; Vivid deadline faces in agenda: overdue/today = bold red, approaching = orange
@@ -825,7 +853,12 @@ Heading links include file:path so navigation works across files."
    '(org-upcoming-deadline :foreground "orange" :weight bold)
    '(org-upcoming-distant-deadline :foreground "dark orange")
    '(org-warning :foreground "red" :weight bold)
-   '(org-imminent-deadline :foreground "red" :weight bold :underline t))
+   '(org-imminent-deadline :foreground "red" :weight bold :underline t)
+   ;; Block headers (overriding-header) — larger, bold, with a light full-width
+   ;; background bar (:extend fills to the window edge when the face also
+   ;; covers the trailing newline; see `my/agenda-uppercase-headers').
+   '(org-agenda-structure :weight bold :height 1.05
+     :background "#fdf8e1" :extend t))
 
   ;; Colorize DEADLINE lines in org buffers based on proximity
   (defun my/org-deadline-fontify ()
@@ -1019,11 +1052,118 @@ Scale: great=🤩 good=👍 ok=🙂 meh=😕 bad=💀"
   (add-hook 'org-agenda-finalize-hook #'my/agenda-apply-bold-prefix)
   (add-hook 'org-agenda-finalize-hook #'my/agenda-style-tags)
 
+  ;; Hide agenda blocks that have no matching entries (just the header line).
+  ;; Walks the rendered buffer, splits on the block separator, and drops any
+  ;; region whose only non-empty, non-separator line is the overriding header.
+  (defun my/agenda-remove-empty-blocks ()
+    "Remove agenda blocks that contain only their header."
+    (let ((inhibit-read-only t)
+          (sep-re "^─+$"))
+      (save-excursion
+        (goto-char (point-min))
+        (let ((more t))
+          (while more
+            (let* ((block-start (point))
+                   (sep-found (re-search-forward sep-re nil t))
+                   (block-end (if sep-found (match-beginning 0) (point-max)))
+                   (content 0))
+              (save-excursion
+                (goto-char block-start)
+                (while (< (point) block-end)
+                  (let ((s (string-trim
+                            (buffer-substring-no-properties
+                             (line-beginning-position)
+                             (line-end-position)))))
+                    (when (and (not (string-empty-p s))
+                               (not (string-match-p sep-re s)))
+                      (cl-incf content)))
+                  (forward-line 1)))
+              (if (<= content 1)
+                  (let ((del-end (if sep-found
+                                     (save-excursion
+                                       (goto-char block-end)
+                                       (forward-line 1)
+                                       (point))
+                                   (point-max))))
+                    (delete-region block-start del-end)
+                    (goto-char block-start))
+                (when sep-found
+                  (goto-char block-end)
+                  (forward-line 1)))
+              (unless sep-found (setq more nil))))))))
+
+  (add-hook 'org-agenda-finalize-hook #'my/agenda-remove-empty-blocks)
+
+  ;; Org inserts a blank line above every block separator ("\n" + sep + "\n").
+  ;; Strip that blank line so blocks butt right up against the separator,
+  ;; while leaving intra-block day gaps (blank lines not next to a separator)
+  ;; untouched.
+  (defun my/agenda-compact-separators ()
+    "Remove the blank line org inserts above each block separator."
+    (let ((inhibit-read-only t))
+      (save-excursion
+        (goto-char (point-min))
+        (while (re-search-forward "^[ \t]*\n\\(─+\\)$" nil t)
+          (replace-match "\\1")))))
+
+  (add-hook 'org-agenda-finalize-hook #'my/agenda-compact-separators)
+
+  ;; Style block header lines (those drawn with the `org-agenda-structure'
+  ;; face) so each block reads like a section title: uppercase the text and
+  ;; add a few pixels of breathing room below — not a full blank line. Date
+  ;; headers and item lines use other faces and are left untouched.
+  (defun my/agenda-uppercase-headers ()
+    "Uppercase agenda block headers and add a small pixel margin below them."
+    (let ((inhibit-read-only t))
+      (save-excursion
+        (goto-char (point-min))
+        (while (not (eobp))
+          (let* ((beg (line-beginning-position))
+                 (face (get-text-property beg 'face)))
+            (when (or (eq face 'org-agenda-structure)
+                      (and (listp face) (memq 'org-agenda-structure face)))
+              ;; Uppercase in place — `upcase-region' keeps text properties
+              ;; (face, bold, height) intact, unlike `upcase' on a string.
+              (upcase-region beg (line-end-position))
+              (let ((eol (line-end-position)))
+                (when (< eol (point-max))
+                  ;; Set the newline's face cleanly (not a merge) to
+                  ;; `org-agenda-structure' so its :extend t fills the light
+                  ;; background bar all the way to the window edge…
+                  (put-text-property eol (1+ eol) 'face 'org-agenda-structure)
+                  ;; …and add a few pixels of breathing room below it.
+                  (put-text-property eol (1+ eol) 'line-spacing 3)))))
+          (forward-line 1)))))
+
+  (add-hook 'org-agenda-finalize-hook #'my/agenda-uppercase-headers)
+
   (setq org-agenda-prefix-format
         '((agenda . " %i%(my/agenda-bold-prefix)%?-12t% s %(my/org-agenda-repeater)")
           (todo   . " %i%(my/agenda-bold-prefix)")
           (tags   . " %i%(my/agenda-bold-prefix)")
           (search . " %i%(my/agenda-bold-prefix)")))
+
+  ;; Blank line BETWEEN day groups inside an agenda block, but not before
+  ;; the first day. Stateful flag is reset before each block by advising
+  ;; `org-agenda-list` (called once per (agenda "" …) block).
+  (defvar my/agenda-block-first-day t
+    "Non-nil if the next date header is the first in the current agenda block.")
+
+  (defun my/agenda-reset-first-day (&rest _)
+    "Reset `my/agenda-block-first-day` before each agenda block renders."
+    (setq my/agenda-block-first-day t))
+
+  (advice-add 'org-agenda-list :before #'my/agenda-reset-first-day)
+
+  (setq org-agenda-format-date
+        (lambda (date)
+          (prog1
+              (concat (if my/agenda-block-first-day "" "\n")
+                      (org-agenda-format-date-aligned date))
+            (setq my/agenda-block-first-day nil))))
+
+  ;; Single horizontal rule between agenda blocks — visible split, no padding
+  (setq org-agenda-block-separator ?─)
 
   ;; Enable multiline agenda items to show full task content
   (setq org-agenda-tags-column -80)
