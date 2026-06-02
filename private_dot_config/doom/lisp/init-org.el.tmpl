@@ -1088,6 +1088,43 @@ Scale: great=🤩 good=👍 ok=🙂 meh=😕 bad=💀"
   ;; Tag any org heading `:quote:' and one is picked at random and shown,
   ;; citation-styled (small italic), at the very top of the dashboard. Put the
   ;; attribution right in the heading, e.g. "The obstacle is the way — Marcus".
+  (defun my/agenda-quotes-from-journelly ()
+    "Collect `#quote' entries from Journelly.org.
+Journelly uses markdown-style #hashtags instead of org `:tags:', and the
+text lives in the entry body (the heading is just `* [timestamp] location').
+Returns a list of quote strings with the tag, file links and properties
+stripped and whitespace collapsed to a single line."
+    (let* ((journelly-file (expand-file-name "Journelly.org" {{ .org_dir | quote }}))
+           (quotes '()))
+      (when (file-readable-p journelly-file)
+        (with-temp-buffer
+          (insert-file-contents journelly-file)
+          ;; Cheap skip: only walk the file if it mentions #quote at all.
+          (when (save-excursion (goto-char (point-min))
+                                (search-forward "#quote" nil t))
+            (goto-char (point-min))
+            (while (re-search-forward
+                    "^\\* \\[\\([0-9-]+ [A-Za-z]+ [0-9:]+\\)\\]\\(.*\\)" nil t)
+              (let* ((location (string-trim (or (match-string 2) "")))
+                     (content-start (point))
+                     (content-end (or (save-excursion
+                                        (when (re-search-forward "^\\* " nil t)
+                                          (line-beginning-position)))
+                                      (point-max)))
+                     (raw (buffer-substring-no-properties content-start content-end)))
+                (when (string-match-p "#quote\\b" (concat location " " raw))
+                  (let ((clean (replace-regexp-in-string
+                                "#quote\\b" ""
+                                (replace-regexp-in-string
+                                 "\\[\\[file:[^]]*\\]\\]" ""
+                                 (replace-regexp-in-string
+                                  ":PROPERTIES:[\n\r]\\(.\\|\n\\)*?:END:" "" raw)))))
+                    (setq clean (string-trim
+                                 (replace-regexp-in-string "[ \t\n\r]+" " " clean)))
+                    (when (org-string-nw-p clean)
+                      (push clean quotes)))))))))
+      (nreverse quotes)))
+
   (defun my/agenda-quotes-collect ()
     "Collect quote strings from the org directory, without org-ql (no warnings).
 A heading counts as a quote if the file has a `:quote:' filetag, or the
@@ -1121,7 +1158,8 @@ added quotes file is always picked up."
                                      "[ \t]+:[[:alnum:]_@#%:]+:[ \t]*$" "" heading))))
                         (when (org-string-nw-p clean)
                           (push clean quotes)))))))))))
-      quotes))
+      ;; Fold in Journelly's markdown-style #quote entries.
+      (append quotes (my/agenda-quotes-from-journelly))))
 
   (defun my/agenda-insert-quote ()
     "Prepend a random `:quote:' heading to the top of the agenda buffer.
