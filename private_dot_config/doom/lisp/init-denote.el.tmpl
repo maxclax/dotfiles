@@ -189,6 +189,57 @@ KEYWORD should be a string. FILE should be a full file path."
   ;; Enable live preview
   (consult-notes-org-headings-mode 1))
 
+;; A tagless "daily quote" for new journal entries. Reuses the agenda quote pool
+;; (org `:quote:' headings + Journelly `#quote'), but inserts ONLY the text — no
+;; tag — so the inserted line is never itself collected as a quote. Called by the
+;; `daily-journal' tempel template via (my/daily-quote). The quote is wrapped to a
+;; narrow width and right-aligned, so it reads as a floating citation.
+(defvar my/daily-quote-width 50
+  "Wrap width (columns) for the daily journal quote text.")
+
+(defvar my/daily-quote-right-column 78
+  "Column the right edge of the wrapped daily quote is aligned to.")
+
+(defun my/daily-quote ()
+  "Return a random quote for a new journal entry: wrapped and right-aligned.
+Inserts only the quote text (no tag), so it won't be re-collected as a quote.
+Returns an empty string when there are no quotes or org isn't loaded yet."
+  (if (fboundp 'my/agenda-quotes-collect)
+      (let ((quotes (ignore-errors (my/agenda-quotes-collect))))
+        (if quotes
+            (let* ((q (concat "❝ " (nth (random (length quotes)) quotes) " ❞"))
+                   (lines (with-temp-buffer
+                            (insert q)
+                            (let ((fill-column my/daily-quote-width))
+                              (fill-region (point-min) (point-max)))
+                            (split-string (buffer-string) "\n"))))
+              ;; Indent the whole block by a constant so it floats to the right
+              ;; with a STRAIGHT left edge (readable), not ragged right-alignment.
+              (let ((pad (make-string
+                          (max 0 (- my/daily-quote-right-column
+                                    my/daily-quote-width))
+                          ?\s)))
+                (mapconcat (lambda (l) (concat pad l)) lines "\n")))
+          ""))
+    ""))
+
+;; Render the ❝…❞ daily quote smaller and muted — Emacs only. The file stays
+;; plain text, so phone apps (Orgro/beorg) show it at normal size.
+(defface my/daily-quote-face
+  '((t :height 0.85 :slant italic :foreground "#9aa0a6"))
+  "Face for the wrapped daily-quote block in journal buffers.")
+
+(defun my/journal-fontify-quote ()
+  "In journal buffers, shrink and mute the ❝…❞ daily-quote block."
+  (when (and buffer-file-name (string-match-p "/journal/" buffer-file-name))
+    (setq-local font-lock-multiline t)
+    (font-lock-add-keywords
+     nil '(("❝\\(?:.\\|\n\\)*?❞" 0 'my/daily-quote-face prepend)) 'append)
+    (when (bound-and-true-p font-lock-mode)
+      (font-lock-flush)
+      (font-lock-ensure))))
+(add-hook 'org-mode-hook #'my/journal-fontify-quote)
+
 (use-package! denote-journal
   :after denote
   :config
