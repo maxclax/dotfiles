@@ -16,6 +16,17 @@
                                 "type": "basic"
                             }
                         ]
+                    },
+                    {
+                        "description": "Caps Lock → Escape (tap) / Control (hold)",
+                        "manipulators": [
+                            {
+                                "from": { "key_code": "caps_lock", "modifiers": { "optional": ["any"] } },
+                                "to": [{ "key_code": "left_control" }],
+                                "to_if_alone": [{ "key_code": "escape" }],
+                                "type": "basic"
+                            }
+                        ]
                     }
                 ]
             },
@@ -53,6 +64,17 @@
                                     "modifiers": { "mandatory": ["left_command"] }
                                 },
                                 "to": [{ "shell_command": "~/.config/karabiner/assets/scripts/profile_switcher.sh" }],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
+                        "description": "Caps Lock → Escape (tap) / Control (hold)",
+                        "manipulators": [
+                            {
+                                "from": { "key_code": "caps_lock", "modifiers": { "optional": ["any"] } },
+                                "to": [{ "key_code": "left_control" }],
+                                "to_if_alone": [{ "key_code": "escape" }],
                                 "type": "basic"
                             }
                         ]
