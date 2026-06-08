@@ -2418,19 +2418,25 @@ Shows results in a navigable buffer with dates, locations, body, and images."
           (format "[[file:%s]]" (file-relative-name filename)))))
 
 ;; Export the current Org buffer and put it on the macOS clipboard as BOTH
-;; rich HTML (what Medium and any web editor paste) and clean plain text (what a
-;; shell pastes). No file left behind. Bound in +keys.el (C-c n m).
+;; rich HTML (what any web editor pastes) and clean plain text (what a shell
+;; pastes). No file left behind. Bound in +keys.el (C-c n m).
 ;; RTF was the old approach — it only pasted into RTF apps and garbled, so we set
 ;; the public.html + plain-text pasteboard flavors directly via NSPasteboard.
 (defun my/org-copy-rich-html ()
   "Copy the current Org buffer to the clipboard as HTML (rich) + plain text.
-Paste into Medium (or any browser) to keep headings, bold, italic, links and
-lists; paste into a shell to get clean text. For code-heavy posts the browser
-route (C-c C-e h o) still renders code blocks most faithfully."
+Paste into any web editor to keep headings, bold, italic, links and lists; paste
+into a shell to get clean text. For code-heavy posts the browser route
+(C-c C-e h o) still renders code blocks most faithfully."
   (interactive)
   (unless (derived-mode-p 'org-mode)
     (user-error "Run this in an Org buffer"))
-  (let* ((html (org-export-as 'html nil nil t))    ; body-only HTML
+  (let* (;; No section numbers / TOC — web editors add their own structure, and
+         ;; the numbered "1, 2, 3.1" outline is noise in a pasted article.
+         (org-export-with-section-numbers nil)
+         (org-export-with-toc nil)
+         (org-export-with-author nil)
+         (org-export-with-title nil)
+         (html (org-export-as 'html nil nil t))    ; body-only HTML
          (txt  (org-export-as 'ascii nil nil t))   ; clean plain-text fallback
          (hf (make-temp-file "orgclip" nil ".html"))
          (tf (make-temp-file "orgclip" nil ".txt")))

@@ -175,7 +175,7 @@
      :desc "Denote rename" "r"              #'denote-rename-file
      :desc "Consult notes" "s"              #'consult-notes
      :desc "Search all notes" "S"           #'consult-notes-search-in-all-notes
-     :desc "Copy as Medium (rich text)" "m" #'my/org-copy-rich-html)
+     :desc "Copy as rich text (HTML)" "m"   #'my/org-copy-rich-html)
 
     (:prefix ("C-c o" . "Open")
      :desc "Dired jump" "-"         #'dired-jump
