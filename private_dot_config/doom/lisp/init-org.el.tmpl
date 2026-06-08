@@ -197,7 +197,36 @@ Heading links include file:path so navigation works across files."
 
           ;; GTD Full Review with Journal Integration
           ("d" "Dashboard (GTD)"
-           ((tags "pinned-INBOX"
+           (;; 🏆 Daily Outcomes — today's three outcomes, shown first so they
+            ;; sit right under the random-quote banner. A freshly created
+            ;; journal still carries the template placeholders ("1." "2." "3.");
+            ;; those are skipped, the block empties out, and
+            ;; `my/agenda-remove-empty-blocks' drops it until a real outcome is
+            ;; written — so a brand-new day's journal shows no block at all.
+            (todo "TODO"
+                  ((org-agenda-overriding-header (concat "🏆 Daily Outcomes → " (my/get-today-date)))
+                   ;; Today's journal only. A missing file yields no entries,
+                   ;; which (same as all-placeholder) drops the block.
+                   (org-agenda-files (list (my/today-journal-file)))
+                   (org-agenda-sorting-strategy '(timestamp-down))
+                   (org-agenda-max-entries 15)
+                   (org-agenda-remove-tags t)
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let ((outline-path (org-get-outline-path t))
+                             (heading (org-get-heading t t t t)))
+                         (or
+                          ;; Not under a Daily Outcomes heading
+                          (unless (cl-some (lambda (h) (string-match-p "Daily Outcomes" h))
+                                           outline-path)
+                            (or (outline-next-heading) (point-max)))
+                          ;; Parked for later
+                          (when (member "someday" (org-get-tags))
+                            (or (outline-next-heading) (point-max)))
+                          ;; Untouched template placeholder ("1." "2." "3.")
+                          (when (string-match-p "\\`[0-9]+\\.?[ \t]*\\'" (or heading ""))
+                            (or (outline-next-heading) (point-max)))))))))
+            (tags "pinned-INBOX"
                   ((org-agenda-overriding-header "📌 Pinned")
                    (org-agenda-skip-function
                     '(lambda ()
@@ -214,23 +243,6 @@ Heading links include file:path so navigation works across files."
             (tags-todo "INBOX"
                        ((org-agenda-overriding-header "📥 Inbox - Process These")
                         (org-tags-match-list-sublevels nil)))
-
-            ;; Daily Outcomes — disabled, not in use at the moment
-            ;; (todo "TODO"
-            ;;       ((org-agenda-overriding-header (concat "🏆 Daily Outcomes → " (my/get-today-date)))
-            ;;        (org-agenda-files (directory-files-recursively
-            ;;                           (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))
-            ;;        (org-agenda-sorting-strategy '(timestamp-down))
-            ;;        (org-agenda-max-entries 15)
-            ;;        (org-agenda-skip-function
-            ;;         '(lambda ()
-            ;;            (let ((outline-path (org-get-outline-path t)))
-            ;;              (or (when (member "someday" (org-get-tags))
-            ;;                    (or (outline-next-heading) (point-max)))
-            ;;                  (unless (cl-some (lambda (heading)
-            ;;                                     (string-match-p "Daily Outcomes" heading))
-            ;;                                   outline-path)
-            ;;                    (or (outline-next-heading) (point-max)))))))))
 
             (agenda "" ((org-agenda-span 'day)
                         (org-agenda-overriding-header "📅 Today")
@@ -2394,12 +2406,51 @@ Shows results in a navigable buffer with dates, locations, body, and images."
         org-download-image-dir ".assets/img"
         org-download-heading-lvl nil
         org-download-timestamp "%Y%m%d-%H%M%S_"
-        org-download-screenshot-method "pngpaste %s"
+        ;; Interactive region capture (macOS crosshair) straight into the buffer —
+        ;; one keypress (C-c i i s), no clipboard chord needed. Use C-c i i c
+        ;; (org-download-clipboard) when an image is already in the clipboard.
+        org-download-screenshot-method "screencapture -i %s"
         ;; Insert as file: link, not attachment
         org-download-link-format "[[file:%s]]\n"
         org-download-abbreviate-source-url t
         org-download-link-format-function
         (lambda (filename)
           (format "[[file:%s]]" (file-relative-name filename)))))
+
+;; Export the current Org buffer and put it on the macOS clipboard as BOTH
+;; rich HTML (what Medium and any web editor paste) and clean plain text (what a
+;; shell pastes). No file left behind. Bound in +keys.el (C-c n m).
+;; RTF was the old approach — it only pasted into RTF apps and garbled, so we set
+;; the public.html + plain-text pasteboard flavors directly via NSPasteboard.
+(defun my/org-copy-rich-html ()
+  "Copy the current Org buffer to the clipboard as HTML (rich) + plain text.
+Paste into Medium (or any browser) to keep headings, bold, italic, links and
+lists; paste into a shell to get clean text. For code-heavy posts the browser
+route (C-c C-e h o) still renders code blocks most faithfully."
+  (interactive)
+  (unless (derived-mode-p 'org-mode)
+    (user-error "Run this in an Org buffer"))
+  (let* ((html (org-export-as 'html nil nil t))    ; body-only HTML
+         (txt  (org-export-as 'ascii nil nil t))   ; clean plain-text fallback
+         (hf (make-temp-file "orgclip" nil ".html"))
+         (tf (make-temp-file "orgclip" nil ".txt")))
+    (with-temp-file hf (insert html))
+    (with-temp-file tf (insert txt))
+    (call-process
+     "osascript" nil nil nil "-l" "JavaScript" "-e"
+     (format
+      (concat
+       "ObjC.import('AppKit');"
+       "var e=$.NSUTF8StringEncoding;"
+       "var h=$.NSString.stringWithContentsOfFileEncodingError('%s',e,$());"
+       "var t=$.NSString.stringWithContentsOfFileEncodingError('%s',e,$());"
+       "var pb=$.NSPasteboard.generalPasteboard;"
+       "pb.clearContents;"
+       "pb.setStringForType(h,'public.html');"
+       "pb.setStringForType(t,'public.utf8-plain-text');")
+      hf tf))
+    (delete-file hf)
+    (delete-file tf)
+    (message "Copied to clipboard (HTML + text).")))
 
 (provide 'init-org)
