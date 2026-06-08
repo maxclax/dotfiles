@@ -84,23 +84,31 @@ The `Highlight (Color)` label decides what each highlight becomes. Match the col
 as a literal string. Org tags go at the END of the heading line; for `TODO` the
 keyword goes right after the stars.
 
+The Kindle Scribe Colorsoft highlighter has exactly five colors — Yellow, Orange,
+Green, Aqua, Pink — and the export labels each literally as `Highlight (<Color>)`.
+
 | Color  | Becomes                                  | Heading shape |
 |--------|------------------------------------------|---------------|
-| Green  | a quote (surfaces in the agenda banner)  | `* <text> — <attr>   :quote:` |
-| Blue   | an actionable follow-up (shows in agenda)| `* TODO <text> — <attr>` |
-| Pink   | a key idea                               | `* <text> — <attr>   :idea:` |
-| Orange | a term/definition to look up             | `* <text> — <attr>   :vocab:` |
 | Yellow | a plain highlight                        | `* <text> — <attr>` |
+| Orange | a question / something to research       | `* TODO <text> — <attr>   :research:` |
+| Green  | a quote (surfaces in the agenda banner)  | `* <text> — <attr>   :quote:` |
+| Aqua   | an actionable follow-up                  | `* TODO <text> — <attr>` |
+| Pink   | a key idea                               | `* TODO <text> — <attr>   :idea:` |
+
+Three colors become agenda items as `TODO`: Aqua (plain action), Pink (`:idea:`),
+and Orange (`:research:`). The tag distinguishes them so I can filter. Green is the
+quote (no TODO — it feeds the quote banner); Yellow is just a plain highlight.
 
 `<attr>` = `<Surname>, <Book Title> (p.NN)`.
 
 Notes:
-- Use org-native tags (`:quote:`, `:idea:`, `:vocab:`) — NOT `#hashtags`. The
+- Use org-native tags (`:quote:`, `:idea:`, `:research:`) — NOT `#hashtags`. The
   agenda quote banner (`my/agenda-quotes-collect`) and the rest of my system read
   org tags; the `#quote` hashtag form is only parsed inside `Journelly.org`.
 - `:quote:` is the one that matters most — it puts the line in the random quote
   banner at the top of my dashboard.
-- Blue → `TODO` makes book follow-ups appear in my Org agenda like any task.
+- `TODO` keyword (Aqua/Pink/Orange) makes book follow-ups appear in my Org agenda
+  like any task; the `:idea:` / `:research:` tag tells them apart from a plain action.
 - Any color not listed (or unlabeled) → treat as a plain highlight.
 
 ### Handwritten notes
@@ -113,20 +121,20 @@ or any "not transcribed" line. Only highlights go in the file.
 1. Resolve the PDF path (argument, else newest in the Kindle Scribe folder).
 2. Read the PDF and extract: title, author, ASIN/source link, and every
    annotation with its page, type, color, text, and date.
-3. Build the Org content, applying the color rules above (Green→quote, Blue→TODO,
-   Pink→idea, Orange→vocab, Yellow→plain).
+3. Build the Org content, applying the color rules above (Green→:quote:,
+   Aqua→TODO, Pink→TODO :idea:, Orange→TODO :research:, Yellow→plain).
 4. Compute `IDENTIFIER` (`date +%Y%m%dT%H%M%S`) and write the file with the Denote
    name **into the same directory as the PDF**.
 5. Report: book title, output filename, and a per-color breakdown
-   (quotes / todos / ideas / vocab / plain). Remind that Hazel will move it
+   (quotes / actions / ideas / research / plain). Remind that Hazel will move it
    to the Denote dir.
 
 ## Rules
 
 - Write the `.org` file beside the PDF. Do NOT move it and do NOT touch the org dir.
 - One note per book; never split a book across files.
-- Apply the color rules exactly: Green→`:quote:`, Blue→`TODO`, Pink→`:idea:`,
-  Orange→`:vocab:`, Yellow/other→plain highlight.
+- Apply the color rules exactly: Green→`:quote:`, Aqua→`TODO`, Pink→`TODO :idea:`,
+  Orange→`TODO :research:`, Yellow→plain highlight.
 - Ignore handwritten notes entirely — no Notes section, no placeholder lines.
 - Preserve highlighted text verbatim (curly quotes, em dashes, etc.).
 - Do not move, rename, or delete the source PDF.
