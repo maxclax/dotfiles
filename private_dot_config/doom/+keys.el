@@ -141,6 +141,7 @@
               :desc "Run SQL"         "e"  #'pgmacs-run-sql
               :desc "Table list"      "t"  #'pgmacs--switch-to-database-buffer)
              :desc "Reset checklist" "r"       #'my/org-reset-checklist
+             :desc "X (Twitter)" "T"           #'my/x
              )
 
     (:prefix ("C-c m" . "Multiple cursors")
@@ -165,9 +166,6 @@
       :desc "Today's journal" "j"           #'denote-journal-new-or-existing-entry
       :desc "Tomorrow's journal" "t"        #'my/open-tomorrow-journal
       :desc "Yesterday's journal" "y"       #'my/open-yesterday-journal)
-     (:prefix ("t" . "Tasks")
-      :desc "Refile to today" "r"           #'my/refile-to-today-journal
-      :desc "Refile ALL to today" "R"       #'my/refile-all-to-today-journal)
      :desc "Open Journelly" "J"             #'my/open-journelly
      :desc "Journelly by tag" "T"            #'my/journelly-search-tag
      :desc "Denote link" "l"                #'denote-link
@@ -176,7 +174,8 @@
      :desc "New denote (extra)" "N"          #'my/denote-create-in-extra
      :desc "Denote rename" "r"              #'denote-rename-file
      :desc "Consult notes" "s"              #'consult-notes
-     :desc "Search all notes" "S"           #'consult-notes-search-in-all-notes)
+     :desc "Search all notes" "S"           #'consult-notes-search-in-all-notes
+     :desc "Copy as Medium (rich text)" "m" #'my/org-copy-rich-html)
 
     (:prefix ("C-c o" . "Open")
      :desc "Dired jump" "-"         #'dired-jump
@@ -399,6 +398,12 @@
 
 (after! verb
   (map! :map org-mode-map "C-c C-r" verb-command-map))
+
+;; Refile prefix — org buffers only (C-c r)
+(map! :map org-mode-map
+      (:prefix ("C-c r" . "Refile")
+       :desc "Refile to today" "t"      #'my/refile-to-today-journal
+       :desc "Refile ALL to today" "T"  #'my/refile-all-to-today-journal))
 
 (after! copilot
   (map! :map copilot-completion-map

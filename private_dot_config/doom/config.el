@@ -31,6 +31,7 @@
 (load! "lisp/init-casual.el")
 (load! "lisp/init-http.el")
 (load! "lisp/init-django.el")
+(load! "lisp/init-x.el")
 (load! "+misc")
 (load! "+ui")
 (load! "+keys")

@@ -123,6 +123,11 @@ export HOMEBREW_NO_ANALYTICS=1      # Disable Homebrew's analytics collection
 # NPM configuration - use user directory for global packages
 export NPM_CONFIG_PREFIX="$HOME/.local"
 
+# X (Twitter) API token for the `x` CLI / init-x.el. A 1Password reference
+# (resolved at runtime via `op read`), so no secret is written to disk. The
+# token lives in the chezmoi-data item, like restic et al.
+export X_BEARER_OP_REF="op://Private/chezmoi-data/x-api-bearer-token"
+
 # ============================================================================
 # Editor Configuration
 # ============================================================================
