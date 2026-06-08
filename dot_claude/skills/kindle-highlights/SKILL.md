@@ -72,12 +72,14 @@ Example: `20260602T170000--the-ikigai-journey__book_highlights.org`
   The filename keywords are therefore always `__book_highlights`.
 
 ### Body — highlights in reading order
-One heading per highlight, in the order they appear, with page attribution:
+One heading per highlight, in the order they appear, with attribution:
 ```
-* <highlight text>  — <Surname>, <Book Title> (p.NN)
+* <highlight text>  — <Surname>, <Book Title>
 ```
+Put a BLANK LINE between every heading, so the list breathes and is easy to scan.
+Do NOT include page numbers — no "(p.27)", no "p.41". Never truncate highlight text.
 If the PDF shows part/section headers (e.g. "Part One: …"), keep them as `*`
-headings and nest highlights under them as `**`. Never truncate highlight text.
+headings and nest highlights under them as `**`.
 
 ### Color rules (the important part)
 The `Highlight (Color)` label decides what each highlight becomes. Match the color
@@ -99,7 +101,7 @@ Three colors become agenda items as `TODO`: Aqua (plain action), Pink (`:idea:`)
 and Orange (`:research:`). The tag distinguishes them so I can filter. Green is the
 quote (no TODO — it feeds the quote banner); Yellow is just a plain highlight.
 
-`<attr>` = `<Surname>, <Book Title> (p.NN)`.
+`<attr>` = `<Surname>, <Book Title>` (no page number). One blank line between headings.
 
 Notes:
 - Use org-native tags (`:quote:`, `:idea:`, `:research:`) — NOT `#hashtags`. The
