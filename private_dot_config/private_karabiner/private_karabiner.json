@@ -8,11 +8,9 @@
                         "description": "Cycle through profiles",
                         "manipulators": [
                             {
-                                "from": {
-                                    "key_code": "spacebar",
-                                    "modifiers": { "mandatory": ["left_command"] }
-                                },
-                                "to": [{ "shell_command": "~/.config/karabiner/assets/scripts/profile_switcher.sh" }],
+                                "from": { "key_code": "fn" },
+                                "to": [{ "key_code": "fn" }],
+                                "to_if_alone": [{ "shell_command": "~/.config/karabiner/assets/scripts/profile_switcher.sh" }],
                                 "type": "basic"
                             }
                         ]
@@ -24,6 +22,17 @@
                                 "from": { "key_code": "caps_lock", "modifiers": { "optional": ["any"] } },
                                 "to": [{ "key_code": "left_control" }],
                                 "to_if_alone": [{ "key_code": "escape" }],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
+                        "description": "Spacebar → Space (tap) / Control (hold)",
+                        "manipulators": [
+                            {
+                                "from": { "key_code": "spacebar", "modifiers": { "optional": ["any"] } },
+                                "to": [{ "key_code": "left_control", "lazy": true }],
+                                "to_if_alone": [{ "key_code": "spacebar" }],
                                 "type": "basic"
                             }
                         ]
@@ -49,7 +58,7 @@
                     "ignore": false
                 }
             ],
-            "name": "Off",
+            "name": "A",
             "virtual_hid_keyboard": { "keyboard_type_v2": "ansi" }
         },
         {
@@ -59,11 +68,9 @@
                         "description": "Cycle through profiles",
                         "manipulators": [
                             {
-                                "from": {
-                                    "key_code": "spacebar",
-                                    "modifiers": { "mandatory": ["left_command"] }
-                                },
-                                "to": [{ "shell_command": "~/.config/karabiner/assets/scripts/profile_switcher.sh" }],
+                                "from": { "key_code": "fn" },
+                                "to": [{ "key_code": "fn" }],
+                                "to_if_alone": [{ "shell_command": "~/.config/karabiner/assets/scripts/profile_switcher.sh" }],
                                 "type": "basic"
                             }
                         ]
@@ -75,6 +82,17 @@
                                 "from": { "key_code": "caps_lock", "modifiers": { "optional": ["any"] } },
                                 "to": [{ "key_code": "left_control" }],
                                 "to_if_alone": [{ "key_code": "escape" }],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
+                        "description": "Spacebar → Space (tap) / Control (hold)",
+                        "manipulators": [
+                            {
+                                "from": { "key_code": "spacebar", "modifiers": { "optional": ["any"] } },
+                                "to": [{ "key_code": "left_control", "lazy": true }],
+                                "to_if_alone": [{ "key_code": "spacebar" }],
                                 "type": "basic"
                             }
                         ]
@@ -1945,7 +1963,7 @@
                     "ignore": true
                 }
             ],
-            "name": "Dvorak",
+            "name": "DV",
             "selected": true,
             "virtual_hid_keyboard": { "keyboard_type_v2": "ansi" }
         }
