@@ -1,2 +1,6 @@
 .dist
 .aider*
+
+# Claude Code local project state (per-machine; not managed dotfiles).
+# The managed ~/.claude lives in dot_claude/, which IS tracked.
+.claude/
