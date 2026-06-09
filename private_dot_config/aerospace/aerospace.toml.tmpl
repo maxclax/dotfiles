@@ -34,7 +34,7 @@ key-mapping.preset = 'qwerty'
 # See https://nikitabobko.github.io/AeroSpace/commands#move-mouse
 on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 on-focus-changed = "move-mouse window-lazy-center"
-exec-on-workspace-change = ['/bin/sh', '-c', 'case "$AEROSPACE_FOCUSED_WORKSPACE" in 1|2|4|9|M|I) /run/current-system/sw/bin/aerospace layout h_accordion ;; esac']
+exec-on-workspace-change = ['/bin/sh', '-c', 'case "$AEROSPACE_FOCUSED_WORKSPACE" in 1|2|4|9|M|I) /run/current-system/sw/bin/aerospace layout v_accordion ;; esac']
 
 [gaps]
 inner.horizontal = [{ monitor."Retina" = 1 }, 7]
@@ -79,11 +79,11 @@ cmd-shift-space = 'layout floating tiling' # in i3
 cmd-alt-f = 'fullscreen' # in i3 (but no cmd)
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
-cmd-1 = 'workspace 1'  # Undifined apps
+cmd-1 = 'workspace 1'  # Undifined apps + dev: logs with console
 cmd-2 = 'workspace 2'  # Drafts, PARA
 cmd-3 = 'workspace 3'  # Browser
 cmd-4 = 'workspace 4'  # Dev (Emacs F1)
-cmd-5 = 'workspace 5'  # Dev (Emacs F2)
+cmd-5 = 'workspace 5'  # Dev (Emacs F2) + Accountants
 cmd-6 = 'workspace 6'  # Dev (Emacs F3)
 cmd-7 = 'workspace 7'  # AI GUI chats
 cmd-8 = 'workspace 8'  # Terminal (extra with F12)
@@ -96,8 +96,8 @@ cmd-0 = 'workspace 10' # AI CLI & Agents
 # alt-d = 'workspace D'
 # alt-e = 'workspace E'
 # alt-g = 'workspace G'
-cmd-i = 'workspace I'
-cmd-m = 'workspace M'
+cmd-i = 'workspace I' # Finder & Timing (pomodoro, vitamin-r)
+cmd-m = 'workspace M' # Media
 # alt-n = 'workspace N'
 # alt-o = 'workspace O'
 # alt-p = 'workspace P'
@@ -171,9 +171,6 @@ run = "move-node-to-workspace 2"
 [[on-window-detected]]
 if.app-id = 'md.obsidian'
 run = "move-node-to-workspace 2"
-[[on-window-detected]]
-if.app-id = 'com.apple.finder'
-run = "move-node-to-workspace 2"
 
 [[on-window-detected]]
 if.app-id = "app.zen-browser.zen"
@@ -218,6 +215,9 @@ if.app-id = 'net.kovidgoyal.kitty'
 run = "move-node-to-workspace 10"
 
 [[on-window-detected]]
+if.app-id = 'com.apple.finder'
+run = "move-node-to-workspace I"
+[[on-window-detected]]
 if.app-id = 'net.publicspace.dist.vitaminr4'
 run = ["layout tiling", "move-node-to-workspace I"]
 
@@ -226,6 +226,9 @@ if.app-id = 'com.apple.mail'
 run = ["layout tiling", "move-node-to-workspace M"]
 [[on-window-detected]]
 if.app-id = 'com.apple.Preview'
+run = ["layout tiling", "move-node-to-workspace M"]
+[[on-window-detected]]
+if.app-id = 'com.apple.Photos'
 run = ["layout tiling", "move-node-to-workspace M"]
 [[on-window-detected]]
 if.app-id = 'com.apple.Music'
