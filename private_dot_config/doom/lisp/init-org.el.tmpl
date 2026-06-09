@@ -1999,13 +1999,28 @@ Returns list of (years-ago year location body source images)."
       (propertize " Denote " 'face '(:foreground "#5B6268" :background "#d4eaff" :height 0.85))))
 
   (defun my/on-this-day-insert-images (images)
-    "Insert inline images from IMAGES list into current buffer."
-    (dolist (img images)
-      (when (and img (file-exists-p img)
-                 (string-match-p "\\.\\(jpg\\|jpeg\\|png\\|gif\\|bmp\\|webp\\)$" (downcase img)))
-        (let ((start (point)))
-          (insert-image (create-image img nil nil :width 300))
-          (insert "\n")))))
+    "Insert inline images from IMAGES list into current buffer.
+Size them like Org's own inline images by honoring `org-image-actual-width'
+the way `org-display-inline-images' does — a bare number forces that width,
+a (NUMBER) list caps the width while preserving aspect ratio, and t shows
+the actual size. This makes a picture look the same here as it does in the
+Journelly file (currently capped at 500px), instead of being squeezed to a
+fixed 300px."
+    ;; The caller indents the first image with "  "; match that on every
+    ;; following image so the whole stack shares one left margin.
+    (let ((first t))
+      (dolist (img images)
+        (when (and img (file-exists-p img)
+                   (string-match-p "\\.\\(jpg\\|jpeg\\|png\\|gif\\|bmp\\|webp\\)$" (downcase img)))
+          (let* ((w org-image-actual-width)
+                 (props (cond ((integerp w) (list :width w))
+                              ((and (consp w) (integerp (car w))) (list :max-width (car w)))
+                              (t nil))))
+            (unless first (insert "  "))
+            (setq first nil)
+            (insert-image (apply #'create-image img nil nil props))
+            ;; Blank line between stacked images so they don't butt together.
+            (insert "\n\n"))))))
 
   (defun my/on-this-day-open-source ()
     "Open the source file for the entry at point."
@@ -2077,7 +2092,7 @@ Returns list of (years-ago year location body source images)."
               (insert (format "\n  %s\n" (nth 3 e)))
               (when images
                 (insert "  ")
-                (my/on-this-day-insert-images (seq-take images 2)))
+                (my/on-this-day-insert-images images))
               (put-text-property entry-start (point) 'otd-file file)
               (put-text-property entry-start (point) 'otd-pos pos)
               (put-text-property entry-start (point) 'keymap my/on-this-day-map)))
@@ -2259,7 +2274,7 @@ Returns list of (date-str body images file pos) sorted newest first."
                                     first-line))))))
             (when images
               (insert "  ")
-              (my/on-this-day-insert-images (seq-take images 2)))
+              (my/on-this-day-insert-images images))
             (insert "\n")
             (put-text-property entry-start (point) 'otd-file file)
             (put-text-property entry-start (point) 'otd-pos pos)
@@ -2340,10 +2355,13 @@ Shows results in a navigable buffer with dates, locations, body, and images."
                   (insert "\n")
                   (let ((body (nth 2 e)))
                     (when (and body (not (string-empty-p body)))
-                      (insert (format "  %s\n" body))))
+                      ;; Indent every line of a multi-line body, not just the
+                      ;; first, so wrapped text and #hashtag lines keep the
+                      ;; same left margin as the date and images.
+                      (insert "  " (replace-regexp-in-string "\n" "\n  " body) "\n")))
                   (when (nth 3 e)
                     (insert "  ")
-                    (my/on-this-day-insert-images (seq-take (nth 3 e) 2)))
+                    (my/on-this-day-insert-images (nth 3 e)))
                   (put-text-property entry-start (point) 'otd-file (nth 4 e))
                   (put-text-property entry-start (point) 'otd-pos (nth 5 e))
                   (put-text-property entry-start (point) 'keymap my/on-this-day-map)
