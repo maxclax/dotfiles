@@ -111,6 +111,10 @@
       autoUpdate = true;
       upgrade = true;
       cleanup = "zap";
+      # Homebrew now refuses `brew bundle install --cleanup` without explicit
+      # confirmation; --force-cleanup lets the unattended activation prune
+      # casks/formulae not in this Brewfile (matches cleanup = "zap").
+      extraFlags = [ "--force-cleanup" ];
     };
 
     taps = [
