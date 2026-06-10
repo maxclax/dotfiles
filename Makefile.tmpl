@@ -258,7 +258,7 @@ grafana_start:
 		--storage.tsdb.retention.time=30d \
 		--web.listen-address=:9090 & echo $$! > $(PROMETHEUS_PID)
 	@grafana server \
-		--homepath=$$(nix path-info nixpkgs#grafana)/share/grafana \
+		--homepath=$$(brew --prefix grafana)/share/grafana \
 		--config=$(HOME)/.config/grafana/grafana.ini \
 		cfg:paths.data=$(HOME)/.local/share/grafana/data \
 		cfg:paths.logs=$(HOME)/.local/share/grafana/logs & echo $$! > $(GRAFANA_PID)

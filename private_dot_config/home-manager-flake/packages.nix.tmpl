@@ -134,7 +134,10 @@
     portaudio              # Audio I/O library — required for aider /voice command
 
     # ── Monitoring ──────────────────────────────────────────────────────
-    grafana                # Metrics dashboards and visualization
+    # grafana — moved to homebrew.brews (darwin-configuration.nix). The
+    # nixpkgs build fails from source on aarch64-darwin (yarn/TypeScript
+    # "EBADF: bad file descriptor" in the sandbox), which blocked the whole
+    # darwin-rebuild on a fresh machine.
     prometheus             # Metrics collection and time-series DB
 
     # ── Backup & Security ────────────────────────────────────────────────
