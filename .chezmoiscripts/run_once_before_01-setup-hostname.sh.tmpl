@@ -85,32 +85,37 @@ case $choice in
     echo "This may require sudo password."
     echo ""
 
-    # Use the existing hostname-set script
-    # Try different possible paths for the hostname-set script
+    # Locate the hostname-set script. This runs BEFORE chezmoi writes any
+    # dotfiles, so on a fresh machine ~/.config/shell/bin/hostname-set does
+    # not exist yet — prefer the copy in the chezmoi source dir, which is
+    # always present during install.
+    src_hostname_set="{{ .chezmoi.sourceDir }}/private_dot_config/shell/bin/executable_hostname-set"
     hostname_script=""
-    if [ -f "$HOME/.config/shell/bin/hostname-set" ]; then
+    if [ -f "$src_hostname_set" ]; then
+      hostname_script="$src_hostname_set"
+    elif [ -f "$HOME/.config/shell/bin/hostname-set" ]; then
       hostname_script="$HOME/.config/shell/bin/hostname-set"
-    elif [ -f "{{ .chezmoi.homeDir }}/.config/shell/bin/hostname-set" ]; then
-      hostname_script="{{ .chezmoi.homeDir }}/.config/shell/bin/hostname-set"
     elif command -v hostname-set >/dev/null 2>&1; then
-      hostname_script="hostname-set"
+      hostname_script="$(command -v hostname-set)"
     else
       echo -e "${RED}✗ hostname-set script not found!${NC}"
       echo "Searched in:"
+      echo "  - $src_hostname_set"
       echo "  - $HOME/.config/shell/bin/hostname-set"
-      echo "  - {{ .chezmoi.homeDir }}/.config/shell/bin/hostname-set"
       echo "  - PATH"
       exit 1
     fi
 
-    "$hostname_script" "$new_hostname"
+    # Run via bash so it works regardless of the file's executable bit.
+    bash "$hostname_script" "$new_hostname"
 
     echo ""
     echo -e "${GREEN}✓ Hostname changed successfully!${NC}"
-    echo -e "${YELLOW}Reloading shell to pick up new hostname...${NC}"
-
-    # Reload shell environment to pick up new hostname
-    exec $SHELL
+    # NOTE: do not `exec $SHELL` here — this script runs inside `chezmoi apply`,
+    # and replacing the process would abort the rest of the run. chezmoi already
+    # read .chezmoi.hostname at startup, so templates still use the OLD hostname
+    # this run; re-run `chezmoi init`/`chezmoi apply` to regenerate them.
+    echo -e "${YELLOW}Re-run 'chezmoi apply' so templates pick up the new hostname.${NC}"
     ;;
   *)
     echo -e "${RED}✗ Invalid choice. Exiting.${NC}"
