@@ -929,9 +929,13 @@ Heading links include file:path so navigation works across files."
   ;; Today navigation and highlighting
   (setq org-agenda-include-diary nil)                     ; Don't include diary
   (setq org-agenda-skip-scheduled-if-deadline-is-shown t) ; Avoid duplicate entries
-  (setq org-scheduled-past-days 365)    ; Show past scheduled items for 365 days
+  (setq org-scheduled-past-days 365)    ; Show past (overdue) scheduled items for 365 days
   (setq org-deadline-past-days 365)     ; Show past deadline items for 365 days
-  (setq org-scheduled-delay-days 365)   ; Show overdue scheduled items for 365 days
+  ;; NOTE: org-scheduled-delay-days is NOT "how long to keep overdue items".
+  ;; A positive value DELAYS every scheduled item, hiding it until that many
+  ;; days AFTER its scheduled date — 365 hid all scheduled items for a year.
+  ;; Overdue visibility is org-scheduled-past-days (above); keep delay at 0.
+  (setq org-scheduled-delay-days 0)
 
   ;; Fast date selection
   (setq org-popup-calendar-for-date-selection t) ; Show popup calendar for date selection
