@@ -58,6 +58,11 @@
 
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
+            # Back up pre-existing dotfiles (e.g. the ~/.zprofile Homebrew's
+            # installer writes) instead of aborting activation with
+            # "Existing file would be clobbered". Files are renamed to
+            # <name>.backup on first activation.
+            home-manager.backupFileExtension = "backup";
             home-manager.users."{{ .chezmoi.username }}" = import ./home.nix;
             home-manager.extraSpecialArgs = {
               inherit system;
