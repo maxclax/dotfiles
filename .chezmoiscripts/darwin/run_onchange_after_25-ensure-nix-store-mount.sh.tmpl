@@ -1,0 +1,75 @@
+#!/bin/bash
+# -*- mode: sh; lexical-binding: t; -*-
+# Make /nix (the Nix Store APFS volume) auto-mount on every boot AND survive a
+# reboot. An ENCRYPTED Nix volume is the trap: it mounts right after install
+# but disappears on the next reboot (it can't be unlocked at early boot). So we
+# decrypt it first, then the simple boot daemon mounts it reliably.
+
+set -e
+
+VOL="Nix Store"
+PLIST="/Library/LaunchDaemons/org.nixos.darwin-store.plist"
+
+/usr/sbin/diskutil info "$VOL" >/dev/null 2>&1 || exit 0
+uuid="$(/usr/sbin/diskutil info "$VOL" | awk '/Volume UUID/{print $NF}')"
+[ -n "$uuid" ] || exit 0
+
+encrypted() { /usr/sbin/diskutil info "$VOL" | grep -qi 'FileVault: *Yes'; }
+
+# Decrypt if needed — otherwise /nix is gone after the next reboot.
+if encrypted; then
+  echo "🔓 '$VOL' is encrypted — decrypting so /nix survives reboots..."
+  pw="$(sudo security find-generic-password -a "$VOL" -w /Library/Keychains/System.keychain 2>/dev/null || true)"
+  if [ -n "$pw" ] && diskutil apfs decryptVolume "$VOL" -passphrase "$pw"; then
+    echo "   Decrypting in the background — let it finish before you reboot"
+    echo "   (watch: diskutil info \"$VOL\" | grep FileVault)."
+  else
+    echo "   ⚠️  Couldn't auto-decrypt. Do it once manually, then reboot:"
+    echo "       PW=\$(sudo security find-generic-password -a \"$VOL\" -w /Library/Keychains/System.keychain)"
+    echo "       diskutil apfs decryptVolume \"$VOL\" -passphrase \"\$PW\""
+  fi
+fi
+
+# Boot-mount daemon already in place? report and stop (no sudo on healthy machines).
+if [ -f "$PLIST" ] && grep -q "$uuid" "$PLIST"; then
+  echo "✓ /nix boot daemon already configured."
+  encrypted && echo "  (volume still encrypted/decrypting — /nix mounts reliably once that completes)"
+  exit 0
+fi
+
+# Otherwise set up the three boot-mount pieces.
+grep -q '^nix$' /etc/synthetic.conf 2>/dev/null \
+  || printf 'nix\n' | sudo tee -a /etc/synthetic.conf >/dev/null
+
+grep -q "$uuid" /etc/fstab 2>/dev/null \
+  || printf 'UUID=%s /nix apfs rw,noauto,nobrowse,nosuid,noatime,owners\n' "$uuid" \
+     | sudo tee -a /etc/fstab >/dev/null
+
+sudo tee "$PLIST" >/dev/null <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>Label</key>
+  <string>org.nixos.darwin-store</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/sbin/diskutil</string>
+    <string>mount</string>
+    <string>-mountPoint</string>
+    <string>/nix</string>
+    <string>$uuid</string>
+  </array>
+</dict>
+</plist>
+EOF
+sudo chown root:wheel "$PLIST"
+sudo chmod 644 "$PLIST"
+sudo launchctl bootstrap system "$PLIST" 2>/dev/null || true
+
+echo "✅ /nix boot-mount configured (Nix Store $uuid)."
+encrypted \
+  && echo "   Finish decryption before rebooting, or /nix won't mount that boot." \
+  || echo "   /nix will mount on every boot."
