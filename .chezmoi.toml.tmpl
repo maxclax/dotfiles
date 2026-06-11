@@ -45,6 +45,13 @@
 {{- end -}}
 
 {{- $hostname := .chezmoi.hostname -}}
+{{/* .chezmoi.hostname can be polluted by network DNS (a DHCP-provided domain
+     gets picked up instead of the real machine name). On macOS take the name
+     from scutil so the nix flake's darwinConfigurations.<hostname> key matches
+     what darwin-rebuild selects. */}}
+{{- if eq .chezmoi.os "darwin" -}}
+{{-   $hostname = output "scutil" "--get" "LocalHostName" | trim -}}
+{{- end -}}
 {{- if not $ephemeral -}}
 {{-   if or (eq $hostname "space") (contains "space-" $hostname) -}}
 {{-     $personal = true -}}
