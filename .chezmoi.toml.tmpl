@@ -1,6 +1,6 @@
 {{- $workspace := promptStringOnce . "workspace" "workspace directory" (printf "%s/workspace" .chezmoi.homeDir) -}}
 {{- $workspace_extra := promptStringOnce . "workspace_extra" "extra workspace directory" (printf "%s/workspace_extra" .chezmoi.homeDir) -}}
-{{- $resources := promptStringOnce . "resources" "resources directory" (printf "%s/workspace/resources" .chezmoi.homeDir) -}}
+{{- $resources := promptStringOnce . "resources" "resources directory" (printf "%s/.local/extra-configs/resources" .chezmoi.homeDir) -}}
 {{- $managed_sync := promptStringOnce . "managed_sync" "managed sync storage" (printf "%s/.local/managed-sync" .chezmoi.homeDir) -}}
 {{- $org_dir := promptStringOnce . "org_dir" "org directory" (printf "%s/.local/managed-sync/org" .chezmoi.homeDir) -}}
 {{- $primary_storage := promptStringOnce . "primary_storage" "primary storage" (printf "%s/primary_storage" .chezmoi.homeDir) -}}
