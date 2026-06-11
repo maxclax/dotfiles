@@ -1,20 +1,9 @@
 {
-    "global": { "show_profile_name_in_menu_bar": true },
+    "global": { "show_in_menu_bar": false, "show_profile_name_in_menu_bar": false },
     "profiles": [
         {
             "complex_modifications": {
                 "rules": [
-                    {
-                        "description": "Cycle through profiles",
-                        "manipulators": [
-                            {
-                                "from": { "key_code": "fn" },
-                                "to": [{ "key_code": "fn" }],
-                                "to_if_alone": [{ "shell_command": "~/.config/karabiner/assets/scripts/profile_switcher.sh" }],
-                                "type": "basic"
-                            }
-                        ]
-                    },
                     {
                         "description": "Caps Lock → Escape (tap) / Control (hold)",
                         "manipulators": [
@@ -31,8 +20,9 @@
                         "manipulators": [
                             {
                                 "from": { "key_code": "spacebar", "modifiers": { "optional": ["any"] } },
-                                "to": [{ "key_code": "left_control", "lazy": true }],
+                                "to_if_held_down": [{ "key_code": "left_control" }],
                                 "to_if_alone": [{ "key_code": "spacebar" }],
+                                "parameters": { "basic.to_if_held_down_threshold_milliseconds": 150 },
                                 "type": "basic"
                             }
                         ]
@@ -58,23 +48,12 @@
                     "ignore": false
                 }
             ],
-            "name": "A",
+            "name": "Off",
             "virtual_hid_keyboard": { "keyboard_type_v2": "ansi" }
         },
         {
             "complex_modifications": {
                 "rules": [
-                    {
-                        "description": "Cycle through profiles",
-                        "manipulators": [
-                            {
-                                "from": { "key_code": "fn" },
-                                "to": [{ "key_code": "fn" }],
-                                "to_if_alone": [{ "shell_command": "~/.config/karabiner/assets/scripts/profile_switcher.sh" }],
-                                "type": "basic"
-                            }
-                        ]
-                    },
                     {
                         "description": "Caps Lock → Escape (tap) / Control (hold)",
                         "manipulators": [
@@ -91,8 +70,9 @@
                         "manipulators": [
                             {
                                 "from": { "key_code": "spacebar", "modifiers": { "optional": ["any"] } },
-                                "to": [{ "key_code": "left_control", "lazy": true }],
+                                "to_if_held_down": [{ "key_code": "left_control" }],
                                 "to_if_alone": [{ "key_code": "spacebar" }],
+                                "parameters": { "basic.to_if_held_down_threshold_milliseconds": 150 },
                                 "type": "basic"
                             }
                         ]
@@ -106,6 +86,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "grave_accent_and_tilde" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -114,6 +95,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "1" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -122,6 +104,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "2" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -130,6 +113,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "4" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -138,6 +122,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "5" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -146,6 +131,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "6" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -154,6 +140,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "7" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -162,6 +149,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "8" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -170,6 +158,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "9" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -178,6 +167,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "0" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -186,6 +176,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "open_bracket" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -194,6 +185,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "close_bracket" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -202,6 +194,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "quote" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -210,6 +203,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "comma" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -218,6 +212,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "period" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -226,6 +221,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "p" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -234,6 +230,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "y" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -242,6 +239,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "f" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -250,6 +248,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "g" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -258,6 +257,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "c" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -266,6 +266,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "r" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -274,6 +275,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "l" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -282,6 +284,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "slash" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -290,6 +293,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "equal_sign" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -298,6 +302,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "backslash" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -306,6 +311,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "a" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -314,6 +320,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "o" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -322,6 +329,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "e" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -330,6 +338,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "u" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -338,6 +347,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "i" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -346,6 +356,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "d" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -354,6 +365,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "h" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -362,6 +374,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "t" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -370,6 +383,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "n" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -378,6 +392,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "s" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -386,6 +401,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "hyphen" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -394,6 +410,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "semicolon" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -402,6 +419,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "q" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -410,6 +428,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "j" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -418,6 +437,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "k" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -426,6 +446,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "x" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -434,6 +455,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "b" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -442,6 +464,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "m" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -450,6 +473,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "w" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -458,6 +482,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "v" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -466,6 +491,7 @@
                                     "modifiers": { "optional": ["caps_lock", "left_command", "left_control", "left_option", "right_command", "right_control", "right_option"] }
                                 },
                                 "to": [{ "key_code": "z" }],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -482,6 +508,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -498,6 +525,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -514,6 +542,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -530,6 +559,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -546,6 +576,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -562,6 +593,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -578,6 +610,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -594,6 +627,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -610,6 +644,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -626,6 +661,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -642,6 +678,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -658,6 +695,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -674,6 +712,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -690,6 +729,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -706,6 +746,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -722,6 +763,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -738,6 +780,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -754,6 +797,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -770,6 +814,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -786,6 +831,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -802,6 +848,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -818,6 +865,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -834,6 +882,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -850,6 +899,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -866,6 +916,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -882,6 +933,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -898,6 +950,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -914,6 +967,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -930,6 +984,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -946,6 +1001,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -962,6 +1018,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -978,6 +1035,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -994,6 +1052,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1010,6 +1069,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1026,6 +1086,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1042,6 +1103,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1058,6 +1120,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1074,6 +1137,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1090,6 +1154,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1106,6 +1171,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1122,6 +1188,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1138,6 +1205,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1154,6 +1222,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1170,6 +1239,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1186,6 +1256,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1202,6 +1273,7 @@
                                         "modifiers": ["left_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1218,6 +1290,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1234,6 +1307,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1250,6 +1324,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1266,6 +1341,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1282,6 +1358,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1298,6 +1375,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1314,6 +1392,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1330,6 +1409,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1346,6 +1426,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1362,6 +1443,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1378,6 +1460,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1394,6 +1477,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1410,6 +1494,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1426,6 +1511,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1442,6 +1528,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1458,6 +1545,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1474,6 +1562,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1490,6 +1579,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1506,6 +1596,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1522,6 +1613,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1538,6 +1630,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1554,6 +1647,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1570,6 +1664,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1586,6 +1681,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1602,6 +1698,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1618,6 +1715,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1634,6 +1732,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1650,6 +1749,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1666,6 +1766,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1682,6 +1783,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1698,6 +1800,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1714,6 +1817,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1730,6 +1834,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1746,6 +1851,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1762,6 +1868,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1778,6 +1885,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1794,6 +1902,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1810,6 +1919,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1826,6 +1936,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1842,6 +1953,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1858,6 +1970,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1874,6 +1987,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1890,6 +2004,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1906,6 +2021,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1922,6 +2038,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             },
                             {
@@ -1938,6 +2055,7 @@
                                         "modifiers": ["right_shift"]
                                     }
                                 ],
+                                "conditions": [{ "type": "input_source_if", "input_sources": [{ "input_source_id": "^com\\.apple\\.keylayout\\.ABC$" }] }],
                                 "type": "basic"
                             }
                         ]
@@ -1963,7 +2081,7 @@
                     "ignore": true
                 }
             ],
-            "name": "DV",
+            "name": "Dvorak",
             "selected": true,
             "virtual_hid_keyboard": { "keyboard_type_v2": "ansi" }
         }
