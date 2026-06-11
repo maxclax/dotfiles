@@ -294,6 +294,30 @@ backup_create:
 backup_list:
 	@$(MAKE) restic_snapshots
 
+# Restore configs FROM extra-configs into their live locations (inverse of backup_create).
+# Per-config blocks so more can be added later. profile='<dir>' picks the Zen default.
+restore_configs:
+	@echo "♻️  Restoring configs from extra-configs/ ..."
+{{- if eq .chezmoi.os "darwin" }}
+	@pgrep -fq "Zen.app/Contents/MacOS" && { echo "❌ Quit Zen first (Cmd-Q)."; exit 1; }; \
+	B="$$HOME/Library/Application Support/zen"; SRC="$$HOME/.local/extra-configs/Zen"; \
+	INI="$$B/profiles.ini"; INST="$$B/installs.ini"; \
+	{ [ -d "$$SRC" ] && [ -f "$$INI" ]; } || { echo "  • Zen: nothing to restore (launch Zen once if new)."; exit 0; }; \
+	PROFS=$$(find "$$SRC" -mindepth 1 -maxdepth 1 -type d ! -name '.*'); \
+	[ -n "$$PROFS" ] || { echo "  • Zen: no profiles in backup."; exit 0; }; \
+	cp "$$INI" "$$INI.bak"; [ -f "$$INST" ] && cp "$$INST" "$$INST.bak"; \
+	DEF="$(profile)"; [ -z "$$DEF" ] && [ "$$(printf '%s\n' "$$PROFS" | wc -l)" -eq 1 ] && DEF=$$(basename "$$PROFS"); \
+	printf '%s\n' "$$PROFS" | while IFS= read -r P; do P=$$(basename "$$P"); echo "  • Zen: $$P"; \
+	  rsync -a --delete --exclude=storage/ --exclude=zen-sessions-backup/ "$$SRC/$$P/" "$$B/Profiles/$$P/"; \
+	  rm -f "$$B/Profiles/$$P/.parentlock" "$$B/Profiles/$$P/lock" "$$B/Profiles/$$P/compatibility.ini"; \
+	  grep -qF "Path=Profiles/$$P" "$$INI" || printf '\n[Profile%s]\nName=%s\nIsRelative=1\nPath=Profiles/%s\n' "$$(grep -c '^\[Profile' "$$INI")" "$${P#*.}" "$$P" >> "$$INI"; \
+	done; \
+	[ -n "$$DEF" ] && { for f in "$$INI" "$$INST"; do [ -f "$$f" ] && { sed "s|^Default=Profiles/.*|Default=Profiles/$$DEF|" "$$f" > "$$f.tmp" && mv "$$f.tmp" "$$f"; }; done; echo "  • Zen default → $$DEF"; } \
+	  || echo "  • Zen: pick default with: make restore_configs profile='<dir>'"
+{{- else }}
+	@echo "  • No restore steps for this OS yet."
+{{- end }}
+
 # ── Restic backup (via resticprofile) ─────────────────────────────────────────
 
 restic_init:
