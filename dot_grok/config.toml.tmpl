@@ -9,16 +9,15 @@
 # ~/.claude/ via Grok Build's built-in Claude Code compatibility layer.
 # We are not duplicating those yet.
 
-[ui]
-# "ask" is the safest default — matches Claude Code behavior.
-# Change to "always-approve" only if you want fewer prompts (not recommended).
-permission_mode = "ask"
-
 # ----------------------------------------------------------------------
 # Access rules (translated from Claude Code permissions)
 #
-# Deny rules always take precedence.
-# These protect sensitive files and dangerous operations.
+# IMPORTANT: `rules` is a TOP-LEVEL key and must stay ABOVE the [ui] table.
+# In TOML, any key after a [table] header belongs to that table — if `rules`
+# were placed below [ui] it would parse as `ui.rules` and Grok would ignore
+# it (silently disabling every deny rule).
+#
+# Deny rules always take precedence. These protect sensitive files.
 # ----------------------------------------------------------------------
 rules = [
   # Environment files
@@ -51,7 +50,19 @@ rules = [
   { action = "deny", tool = "read",  pattern = "**/values/**" },
   { action = "deny", tool = "bash",  pattern = "**/values/**" },
 
+  # Auth-source credentials (Emacs .authinfo, netrc)
+  { action = "deny", tool = "read",  pattern = "**/.authinfo" },
+  { action = "deny", tool = "read",  pattern = "**/.authinfo.gpg" },
+  { action = "deny", tool = "read",  pattern = "**/.netrc" },
+  { action = "deny", tool = "bash",  pattern = "**/.authinfo*" },
+  { action = "deny", tool = "bash",  pattern = "**/.netrc" },
+
   # Personal extra workspace (from chezmoi data)
   { action = "deny", tool = "read",  pattern = "{{ .workspace_extra }}/**" },
   { action = "deny", tool = "bash",  pattern = "{{ .workspace_extra }}/**" },
 ]
+
+[ui]
+# "ask" is the safest default — matches Claude Code behavior.
+# Change to "always-approve" only if you want fewer prompts (not recommended).
+permission_mode = "ask"

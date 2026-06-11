@@ -18,6 +18,9 @@
       "Read(**/kubeconfig.*)",
       "Read(**/.kube/config)",
       "Read(**/values/**)",
+      "Read(**/.authinfo)",
+      "Read(**/.authinfo.gpg)",
+      "Read(**/.netrc)",
       "Read({{ .workspace_extra }}/**)",
       "Bash(**/.env)",
       "Bash(**/.env.*)",
@@ -31,6 +34,9 @@
       "Bash(**/kubeconfig.*)",
       "Bash(**/.kube/config)",
       "Bash(**/values/**)",
+      "Bash(**/.authinfo)",
+      "Bash(**/.authinfo.gpg)",
+      "Bash(**/.netrc)",
       "Bash({{ .workspace_extra }}/**)"
     ]
   },
