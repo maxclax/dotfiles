@@ -200,10 +200,15 @@ KEYWORD should be a string. FILE should be a full file path."
 (defvar my/daily-quote-right-column 78
   "Column the right edge of the wrapped daily quote is aligned to.")
 
-(defun my/daily-quote ()
-  "Return a random quote for a new journal entry: wrapped and right-aligned.
-Inserts only the quote text (no tag), so it won't be re-collected as a quote.
-Returns an empty string when there are no quotes or org isn't loaded yet."
+(defvar-local my/daily-quote--cache nil
+  "Per-buffer cache of the chosen daily quote.
+A new journal entry is created with a reactive tempel template, which
+re-evaluates `(my/daily-quote)' on every keystroke while the template session is
+active — without caching, that re-randomizes the quote as you type. A fresh
+journal buffer starts with an empty cache, so it still gets a new random quote.")
+
+(defun my/daily-quote--pick ()
+  "Pick and format one random quote, or \"\" if none are available yet."
   (if (fboundp 'my/agenda-quotes-collect)
       (let ((quotes (ignore-errors (my/agenda-quotes-collect))))
         (if quotes
@@ -222,6 +227,17 @@ Returns an empty string when there are no quotes or org isn't loaded yet."
                 (mapconcat (lambda (l) (concat pad l)) lines "\n")))
           ""))
     ""))
+
+(defun my/daily-quote ()
+  "Return the daily journal quote (wrapped, right-aligned), cached per buffer.
+Inserts only the quote text (no tag), so it won't be re-collected as a quote.
+Memoized via `my/daily-quote--cache' so a reactive tempel re-eval keeps the same
+quote instead of re-randomizing it on each keystroke. Keeps re-picking only
+while empty (e.g. org not loaded yet), then freezes the first real quote."
+  (when (or (null my/daily-quote--cache)
+            (string-empty-p my/daily-quote--cache))
+    (setq my/daily-quote--cache (my/daily-quote--pick)))
+  my/daily-quote--cache)
 
 ;; Render the ❝…❞ daily quote smaller and muted — Emacs only. The file stays
 ;; plain text, so phone apps (Orgro/beorg) show it at normal size.
