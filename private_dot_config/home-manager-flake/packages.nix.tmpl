@@ -20,9 +20,9 @@
 
     # ── Version Control ──────────────────────────────────────────────────
     git                    # Distributed version control system
-    git-lfs                # Git extension for large binary files
     gh                     # GitHub CLI — PRs, issues, repos from terminal
     git-absorb             # Auto-absorb staged changes into prior commits
+    git-lfs                # Git extension for large binary files
     lazygit                # TUI for git — staging, branching, diffing
     delta                  # Syntax-highlighting pager for git diffs
 
@@ -108,7 +108,7 @@
     # ── Kubernetes ───────────────────────────────────────────────────────
     kubectl                # Kubernetes CLI for cluster management
     kubectx                # Switch between k8s clusters and namespaces
-    kubernetes-helm        # Kubernetes package manager (Helm charts)
+    (kubernetes-helm.overrideAttrs (old: { doCheck = false; }))  # Helm (test phase broken in nixpkgs)
 
     # ── Fonts ────────────────────────────────────────────────────────────
     fira-code              # Monospaced font with programming ligatures
@@ -134,10 +134,6 @@
     portaudio              # Audio I/O library — required for aider /voice command
 
     # ── Monitoring ──────────────────────────────────────────────────────
-    # grafana — moved to homebrew.brews (darwin-configuration.nix). The
-    # nixpkgs build fails from source on aarch64-darwin (yarn/TypeScript
-    # "EBADF: bad file descriptor" in the sandbox), which blocked the whole
-    # darwin-rebuild on a fresh machine.
     prometheus             # Metrics collection and time-series DB
 
     # ── Backup & Security ────────────────────────────────────────────────
