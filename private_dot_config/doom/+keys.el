@@ -399,11 +399,18 @@
 (after! verb
   (map! :map org-mode-map "C-c C-r" verb-command-map))
 
-;; Refile prefix — org buffers only (C-c r)
+;; Refile prefix (C-c r) — in org buffers AND the agenda. The refile commands are
+;; state-agnostic (work on TODO, NEXT, WAIT, plain headings — anything at point).
 (map! :map org-mode-map
       (:prefix ("C-c r" . "Refile")
        :desc "Refile to today" "t"      #'my/refile-to-today-journal
        :desc "Refile ALL to today" "T"  #'my/refile-all-to-today-journal))
+
+(after! org-agenda
+  (map! :map org-agenda-mode-map
+        (:prefix ("C-c r" . "Refile")
+         :desc "Refile to today" "t"      #'my/refile-to-today-journal
+         :desc "Refile ALL to today" "T"  #'my/refile-all-to-today-journal)))
 
 (after! copilot
   (map! :map copilot-completion-map

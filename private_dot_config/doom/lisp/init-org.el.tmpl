@@ -1399,9 +1399,9 @@ Works on single entry in org buffer or on all marked entries in agenda."
     (interactive)
     (let ((rfloc (my/today-journal-rfloc)))
       (if (and (eq major-mode 'org-agenda-mode)
-               (org-agenda-bulk-marked-entries))
+               org-agenda-bulk-marked-entries)
           ;; Bulk refile all marked entries
-          (let ((marked (reverse (org-agenda-bulk-marked-entries))))
+          (let ((marked (reverse org-agenda-bulk-marked-entries)))
             (dolist (entry marked)
               (let ((inhibit-message t))
                 (org-with-point-at entry
