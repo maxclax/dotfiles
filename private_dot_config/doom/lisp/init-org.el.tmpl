@@ -247,7 +247,15 @@ Heading links include file:path so navigation works across files."
             (agenda "" ((org-agenda-span 'day)
                         (org-agenda-overriding-header "📅 Today")
                         (org-agenda-todo-list-sublevels t)
-                        (org-deadline-warning-days 0)))
+                        (org-deadline-warning-days 0)
+                        ;; A Denote note tagged :notoday: is fully hidden from
+                        ;; the Today block. The denote keyword becomes a
+                        ;; #+filetags entry, which Org inherits onto every
+                        ;; heading, so `org-get-tags' sees it on each item.
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (when (member "notoday" (org-get-tags))
+                              (or (outline-next-heading) (point-max)))))))
 
             (agenda "" ((org-agenda-span 5)
                         (org-agenda-start-day "+1d")
