@@ -178,6 +178,17 @@
     ffmpegthumbnailer      # Video thumbnail generator (used by ranger)
     imagemagick            # Convert, resize, edit images from CLI
     poppler                # PDF rendering library (used by ranger preview)
+    # PDF CLI tools (pdftoppm/pdfinfo) for dirvish previews. lowPrio resolves a
+    # duplicate libpoppler-glib dylib it shares with `poppler` (the glib build).
+    (lib.lowPrio poppler-utils)
+    # epdfinfo on PATH for Emacs pdf-tools. nixpkgs builds the server but buries
+    # it in site-lisp (never on PATH), so we symlink just the binary into bin.
+    # Pulling pdf-tools as a build input (not a top-level package) also keeps
+    # poppler-glib out of the env, avoiding a dylib clash with poppler-utils.
+    (runCommandLocal "epdfinfo" { } ''
+      mkdir -p $out/bin
+      ln -s ${emacsPackages.pdf-tools}/share/emacs/site-lisp/elpa/pdf-tools-*/epdfinfo $out/bin/epdfinfo
+    '')
     vips                   # High-performance image processing library
     pngpaste               # Paste PNG from clipboard to file (macOS)
 

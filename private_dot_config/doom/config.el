@@ -8,6 +8,7 @@
 (load! "lisp/init-lsp.el")
 (load! "lisp/init-python.el")
 (load! "lisp/init-reading.el")
+(load! "lisp/init-pdf.el")
 (load! "lisp/init-git.el")
 (load! "lisp/init-org.el")
 (load! "lisp/init-timing.el")
