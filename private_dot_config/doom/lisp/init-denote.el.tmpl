@@ -26,6 +26,11 @@
   ;; Sort keywords for consistency
   (setq denote-sort-keywords t)
 
+  ;; (denote-backlinks-show-context was removed: obsolete in denote 4.0 — the
+  ;; C-c n b buffer is now an xref grep view. For a clean in-file "Linked
+  ;; References" view with RENDERED context, use C-c n B
+  ;; (`my/denote-insert-backlinks-context', defined in the denote-org block).)
+
   ;; Enable buffer renaming to show clean [D] prefix instead of long filename
   (denote-rename-buffer-mode 1)
 
@@ -142,9 +147,40 @@ KEYWORD should be a string. FILE should be a full file path."
 (use-package! denote-explore
   :after denote
   :config
-  ;; Network visualization for note connections
-  (setq denote-explore-network-filename "denote-network.html")
-  (setq denote-explore-network-directory denote-directory))
+  ;; Roam/Logseq-style graph of note connections. `denote-explore-network'
+  ;; (C-c n G g) renders an interactive, draggable/zoomable force-directed
+  ;; graph in the browser; nodes are notes, edges are denote: links.
+  (setq denote-explore-network-format 'd3.js) ; interactive HTML (graphviz `dot' stays available as a static fallback)
+  (setq denote-explore-network-filename "denote-network") ; base name, sans extension — denote-explore appends .html/.dot itself
+  ;; Write graphs to a no-space cache dir OUTSIDE the notes tree. Two reasons:
+  ;;  1. Keeps regenerable HTML/JSON out of the iCloud Denote directory, so they
+  ;;     never get treated as notes or synced.
+  ;;  2. The notes dir lives under "~/Library/Mobile Documents/…" — that space
+  ;;     gets percent-encoded to %20 by `browse-url', and macOS `open' then
+  ;;     can't find the file, so the graph was written but never opened.
+  (setq denote-explore-network-directory
+        (expand-file-name "denote-explore/" doom-cache-dir))
+  (make-directory denote-explore-network-directory t)
+
+  ;; Declutter the *Keywords* graph: list noisy/structural keywords here to drop
+  ;; them as nodes (catch-all tags that link almost everything to everything add
+  ;; edges without signal). For the notes graphs below, the analogous knob is
+  ;; `denote-explore-network-regex-ignore' (a filename regex).
+  (setq denote-explore-network-keywords-ignore '()) ; e.g. '("reference" "draft")
+
+  ;; One-keystroke notes graph (C-c n G g): the Community graph of ALL notes —
+  ;; nodes are notes, edges are real denote: links. This is the Roam/Logseq-style
+  ;; "connected pages" map; it skips the type/regex prompts of the dispatcher
+  ;; (still on C-c n G G for the keyword/neighbourhood/sequence graphs). The body
+  ;; mirrors `denote-explore-network': generate → save → view.
+  (defun my/denote-graph-notes (&optional text-only)
+    "Generate and open the Community graph of ALL notes.
+With prefix arg TEXT-ONLY, exclude attachments from the graph."
+    (interactive "P")
+    (setq denote-explore-network-previous '("Community" ""))
+    (let ((graph (denote-explore-network-community-graph "" text-only)))
+      (denote-explore--network-save graph)
+      (denote-explore-network-view))))
 
 (use-package! consult-notes
   :config
@@ -322,12 +358,152 @@ while empty (e.g. org not loaded yet), then freezes the first real quote."
 
 ;; Additional denote packages
 (use-package! denote-org
-  :after denote)
+  :after denote
+  :config
+  ;; ── Logseq-style "Linked References" (in-file, links to the referencing
+  ;;    section) ───────────────────────────────────────────────────────────────
+  ;; The built-in `denote-backlinks' dblock prints note titles only (journal
+  ;; backlinks therefore show as bare dates), and the C-c n b buffer is a raw
+  ;; xref grep dump showing the literal `Backlink: [[…]]' line. Neither shows the
+  ;; meaningful unit: the *heading* the backlink sits under (e.g. "Зміни у
+  ;; тарифній сітці"). This dynamic block finds, for each note that links here,
+  ;; the enclosing Org heading of every link and renders it as a `denote:…::*'
+  ;; link — so each entry reads as the referencing section's title and clicking
+  ;; jumps straight to that heading.
+  ;;
+  ;;   #+BEGIN: denote-backlinks-context :reverse-sort t
+  ;;   #+END:        ← C-c C-c refreshes, or use C-c n B to insert one
+  (defun my/denote--section-preview (n)
+    "At a heading, return up to N cleaned, non-trivial body lines of its section.
+Skips blank lines, property drawers, #+keywords, and the `Backlink:' pointer,
+and strips leading heading stars so the teaser reads as plain text."
+    (save-excursion
+      (org-back-to-heading t)
+      (let ((end (save-excursion (org-end-of-subtree t t) (point)))
+            (lines '()))
+        (forward-line 1)
+        (while (and (< (point) end) (< (length lines) n))
+          (let ((line (string-trim (buffer-substring-no-properties
+                                    (line-beginning-position) (line-end-position)))))
+            (cond
+             ((string-empty-p line))                    ; blank
+             ((string-prefix-p ":" line))               ; drawer line
+             ((string-prefix-p "#+" line))              ; keyword (TBLFM, etc.)
+             ((string-match-p "\\`Backlink:" line))     ; the pointer line itself
+             (t (push (replace-regexp-in-string "\\`\\*+[ \t]+" "" line) lines))))
+          (forward-line 1))
+        (nreverse lines))))
+
+  (defun my/denote--backlink-refs (file id n)
+    "Return (HEADING . PREVIEW) for each link to denote ID in FILE.
+HEADING is the enclosing Org heading title (nil if none); PREVIEW is up to N
+cleaned body lines. Order-preserving, deduplicated by heading. Reads FILE in a
+temp buffer, so no source files are opened."
+    (with-temp-buffer
+      (insert-file-contents file)
+      (delay-mode-hooks (org-mode))
+      (let ((seen '()) (refs '()))
+        (goto-char (point-min))
+        (while (re-search-forward (concat "denote:" (regexp-quote id)) nil t)
+          (save-excursion
+            (if (ignore-errors (org-back-to-heading t) t)
+                (let ((heading (org-get-heading t t t t)))
+                  (unless (member heading seen)
+                    (push heading seen)
+                    (push (cons heading (my/denote--section-preview n)) refs)))
+              (unless (member nil seen)
+                (push nil seen)
+                (push (cons nil nil) refs)))))
+        (nreverse refs))))
+
+  (defun org-dblock-write:denote-backlinks-context (params)
+    "Insert backlinks as links to the referencing heading, each with a short
+preview of that section. PARAMS may include `:reverse-sort t' (newest first)
+and `:preview-lines N' (lines of preview per backlink; default 2, 0 to disable)."
+    (let* ((file (buffer-file-name))
+           (id (and file (denote-retrieve-filename-identifier file)))
+           (backlinks (and id (denote-get-backlinks file)))
+           (n (or (plist-get params :preview-lines) 2)))
+      (cond
+       ((not id) (insert "/Not a Denote file./"))
+       ((not backlinks) (insert "/No backlinks yet./"))
+       (t
+        (when (plist-get params :reverse-sort)
+          (setq backlinks (nreverse backlinks)))
+        (let ((out '()))
+          (dolist (bl backlinks)
+            (let* ((bid (denote-retrieve-filename-identifier bl))
+                   (date (denote-id-to-date bid))
+                   (ftitle (denote-retrieve-title-or-filename
+                            bl (denote-filetype-heuristics bl))))
+              (dolist (ref (my/denote--backlink-refs bl id n))
+                (let* ((heading (car ref))
+                       (preview (cdr ref))
+                       (bullet (if heading
+                                   (format "- [[denote:%s::*%s][%s]] /%s/" bid heading heading date)
+                                 (format "- [[denote:%s][%s]] /%s/" bid ftitle date))))
+                  ;; preview lines as fixed-width `: ' lines — monospace teaser
+                  ;; that never disturbs the outline (a stray `*' or `|' stays inert).
+                  (push (concat bullet
+                                (mapconcat (lambda (l) (concat "\n  : " l)) preview ""))
+                        out)))))
+          (insert (string-join (nreverse out) "\n")))))))
+
+  (defun my/denote-insert-backlinks-context ()
+    "Insert a backlinks block: heading links + a short section preview."
+    (interactive)
+    (org-create-dblock (list :name "denote-backlinks-context" :reverse-sort t :preview-lines 2))
+    (org-update-dblock))
+
+  ;; ── Virtual backlinks preview (read-only side buffer, nothing written) ─────
+  ;; Same heading-link + section-preview as the in-file block, but rendered in a
+  ;; throwaway buffer — your note stays untouched and no source files are opened.
+  ;; C-c n v (prefix arg sets preview length, e.g. C-u 3 → 3 lines; default 5).
+  (defun my/denote-backlinks-preview (&optional preview-lines)
+    "Show this file's backlinks (heading link + preview) in a read-only side
+buffer. PREVIEW-LINES (prefix arg) sets lines per backlink; default 5."
+    (interactive "P")
+    (let* ((file (buffer-file-name))
+           (id (and file (denote-retrieve-filename-identifier file)))
+           (n (if preview-lines (prefix-numeric-value preview-lines) 5)))
+      (unless id (user-error "Not a Denote file"))
+      (let ((backlinks (denote-get-backlinks file))
+            (src-title (denote-retrieve-title-or-filename
+                        file (denote-filetype-heuristics file)))
+            (buf (get-buffer-create "*denote-backlinks-preview*")))
+        (with-current-buffer buf
+          (let ((inhibit-read-only t))
+            (erase-buffer)
+            (delay-mode-hooks (org-mode))
+            (insert (format "#+title: Linked references → %s\n\n" src-title))
+            (if (not backlinks)
+                (insert "No backlinks yet.\n")
+              (dolist (bl (reverse backlinks)) ; newest first
+                (let* ((bid (denote-retrieve-filename-identifier bl))
+                       (date (denote-id-to-date bid))
+                       (ftitle (denote-retrieve-title-or-filename
+                                bl (denote-filetype-heuristics bl))))
+                  (dolist (ref (my/denote--backlink-refs bl id n))
+                    (let ((heading (car ref)) (preview (cdr ref)))
+                      (insert (if heading
+                                  (format "- [[denote:%s::*%s][%s]] /%s/\n" bid heading heading date)
+                                (format "- [[denote:%s][%s]] /%s/\n" bid ftitle date)))
+                      (dolist (l preview) (insert (format "  : %s\n" l)))))))))
+          (goto-char (point-min))
+          (setq-local buffer-read-only t)
+          ;; q buries the window; links still follow with RET / C-c C-o
+          (use-local-map (make-composed-keymap
+                          (let ((m (make-sparse-keymap)))
+                            (define-key m "q" #'quit-window)
+                            m)
+                          org-mode-map)))
+        (display-buffer buf '((display-buffer-in-side-window)
+                              (side . right)
+                              (window-width . 0.4))))))
+
+  )
 
 (use-package! denote-sequence
-  :after denote)
-
-(use-package! denote-explore
   :after denote)
 
 ;; Consult-Notes for easy access to notes

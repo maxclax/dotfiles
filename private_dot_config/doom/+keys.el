@@ -155,12 +155,21 @@
      :desc "Edit beginnings of lines" "b" #'mc/edit-beginnings-of-lines)
 
     (:prefix ("C-c n" . "Notes")
-     :desc "Denote backlinks" "b"           #'denote-backlinks
+     :desc "Denote backlinks (xref)" "b"    #'denote-backlinks
+     :desc "Backlinks + preview" "B"        #'my/denote-insert-backlinks-context
+     :desc "Backlinks preview (virtual)" "v" #'my/denote-backlinks-preview
      :desc "Denote link after creating" "c" #'denote-link-after-creating
      :desc "Denote dired" "d"               #'my/denote-dired
      :desc "Denote feed" "e"                #'my/denote-feed
      :desc "Denote find" "f"                #'my/denote-find
      :desc "Denote grep" "g"                #'denote-grep
+     (:prefix ("G" . "Graph")
+      :desc "Notes graph (browser)" "g"     #'my/denote-graph-notes
+      :desc "Graph (choose type)" "G"       #'denote-explore-network
+      :desc "Regenerate graph" "r"          #'denote-explore-network-regenerate
+      :desc "Orphan notes" "o"              #'denote-explore-isolated-files
+      :desc "Keyword barchart" "k"          #'denote-explore-barchart-keywords
+      :desc "Random note" "n"               #'denote-explore-random-note)
      :desc "Open inbox" "i"                 #'my/open-inbox
      (:prefix ("j" . "Journal")
       :desc "Today's journal" "j"           #'denote-journal-new-or-existing-entry

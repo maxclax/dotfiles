@@ -813,6 +813,37 @@ Heading links include file:path so navigation works across files."
           ("HOLD" :inherit font-lock-comment-face)
           ("SKIP" :inherit font-lock-comment-face)))
 
+  ;; Kindle highlight colour code → Org tag colours. The same accent carries a
+  ;; highlight's meaning all the way through: Pink THINK → :idea:, Orange FIND
+  ;; → :research: (Aqua DO becomes a plain TODO, so it has no tag to colour).
+  ;; `my/agenda-style-tags' reads this same alist so the agenda badges match.
+  (defvar my/tag-colors
+    '(;; Kindle highlight colour code
+      ("idea"      . "#d33682")  ; Pink   — THINK
+      ("research"  . "#cb4b16")  ; Orange — FIND
+      ("do"        . "#2aa198")  ; Aqua   — DO (only if a :do: tag is used)
+      ;; PARA / workflow tags
+      ("journal"   . "#268bd2")  ; Blue   — daily journal
+      ("finance"   . "#859900")  ; Green  — money / finance
+      ("reference" . "#6c71c4")  ; Violet — reference material
+      ("pinned"    . "#dc322f")) ; Red    — pinned to top
+    "Tag → accent colour, mirroring the Kindle highlight colour code.")
+
+  ;; Colour the tags at the end of headlines in org buffers.
+  (setq org-tag-faces
+        (mapcar (lambda (tc)
+                  (cons (car tc) (list :foreground (cdr tc) :weight 'bold)))
+                my/tag-colors))
+
+  ;; Blend a hex colour toward white by FRACTION (0 = colour, 1 = white) to get
+  ;; a pale badge background that keeps the accent legible on the light agenda.
+  (defun my/color-tint (hex fraction)
+    "Return HEX lightened toward white by FRACTION as a #rrggbb string."
+    (require 'color)
+    (let* ((rgb (color-name-to-rgb hex))
+           (mix (mapcar (lambda (c) (+ c (* fraction (- 1.0 c)))) rgb)))
+      (apply #'color-rgb-to-hex (append mix '(2)))))
+
   ;; Eisenhower Matrix priority system (A=I-U, B=I-NU, C=NI-U, D=NI-NU)
   (setq org-priority-highest ?A)
   (setq org-priority-lowest ?D)
@@ -1060,15 +1091,22 @@ Scale: great=🤩 good=👍 ok=🙂 meh=😕 bad=💀"
                (tags (split-string tag-str ":" t))
                (styled (mapconcat
                         (lambda (tag)
-                          (propertize
-                           (concat " " tag " ")
-                           'face `(:foreground "#5B6268" :background "#e8e8e8"
-                                   :weight light :height 0.8
-                                   ;; vertical-only box in the page background
-                                   ;; colour: invisible padding that keeps badges
-                                   ;; on adjacent lines from touching.
-                                   :box (:line-width (0 . 3)
-                                         :color ,(face-background 'default nil t)))))
+                          ;; Tags in `my/tag-colors' (idea/research/…) get their
+                          ;; Kindle accent colour and a tint of it as background;
+                          ;; every other tag keeps the neutral grey badge.
+                          (let ((color (cdr (assoc tag my/tag-colors))))
+                            (propertize
+                             (concat " " tag " ")
+                             'face `(:foreground ,(or color "#5B6268")
+                                     :background ,(if color
+                                                      (my/color-tint color 0.85)
+                                                    "#e8e8e8")
+                                     :weight ,(if color 'semibold 'light) :height 0.8
+                                     ;; vertical-only box in the page background
+                                     ;; colour: invisible padding that keeps badges
+                                     ;; on adjacent lines from touching.
+                                     :box (:line-width (0 . 3)
+                                           :color ,(face-background 'default nil t))))))
                         tags " ")))
           (let ((inhibit-read-only t))
             (delete-region beg end)
