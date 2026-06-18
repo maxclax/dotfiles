@@ -1,7 +1,7 @@
 [user]
 	name = {{ .gitName }}
 	email = {{ .gitEmail }}
-[includeIf "gitdir:{{ .workspace }}/**/.git"]
+[includeIf "gitdir:{{ .workspace }}/"]
 	name = {{ .gitGithub.name }}
 	email = {{ .gitGithub.email }}
 [color]
