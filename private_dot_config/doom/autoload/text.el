@@ -67,6 +67,82 @@
   (message "Line copied"))
 
 ;;;###autoload
+(defun my/copy-to-end-of-line ()
+  "Copy text from point to the end of the line into the kill ring."
+  (interactive)
+  (kill-ring-save (point) (line-end-position))
+  (message "Copied to end of line"))
+
+;;;###autoload
+(defun my/copy-value (&optional whole)
+  "Copy the value after the first `key SEP value' separator on the current line.
+SEP is a colon (`Key: value', `:PROP: value'), or a space-padded -, =, or |
+\(`Key - value'). Requiring spaces around -/=/| means hyphenated words like
+`triada-d1-set-week' are never split (and em-dashes in prose are left alone).
+With no separator — or with prefix arg WHOLE — the whole trimmed line is
+copied. Works from anywhere on the line."
+  (interactive "P")
+  (let* ((line (string-trim
+                (buffer-substring-no-properties
+                 (line-beginning-position) (line-end-position))))
+         (val (cond
+               (whole line)
+               ;; colon: tight is fine (key:value, :PROP: value)
+               ((string-match "\\`:?[^:\n]+:[ \t]*\\(.*\\)\\'" line)
+                (match-string 1 line))
+               ;; -, =, | : only when space-padded (so words aren't split)
+               ((string-match "\\`.+?[ \t]+[-=|][ \t]+\\(.*\\)\\'" line)
+                (match-string 1 line))
+               (t line))))
+    (setq val (string-trim val))
+    (if (string-empty-p val)
+        (user-error "Nothing to copy on this line")
+      (kill-new val)
+      (message "Copied: %s" val))))
+
+;;;###autoload
+(defun my/denote-copy-title ()
+  "Copy the current note's title to the kill ring.
+Uses the `#+title:' value (without the keyword), falling back to the
+Denote title derived from the file name."
+  (interactive)
+  (let ((title (or (and (derived-mode-p 'org-mode)
+                        (cadr (assoc "TITLE" (org-collect-keywords '("TITLE")))))
+                   (and (buffer-file-name)
+                        (fboundp 'denote-retrieve-title-or-filename)
+                        (denote-retrieve-title-or-filename
+                         (buffer-file-name)
+                         (denote-filetype-heuristics (buffer-file-name)))))))
+    (if (and title (not (string-empty-p (string-trim title))))
+        (progn (kill-new title)
+               (message "Copied title: %s" title))
+      (user-error "No title found in this buffer"))))
+
+;;;###autoload
+(defun my/org-copy-block ()
+  "Copy the contents of the Org block at point to the kill ring.
+Works from anywhere inside a #+BEGIN_…/#+END_… block — SRC, EXAMPLE, EXPORT,
+QUOTE, VERSE, CENTER, COMMENT, special, or dynamic blocks — copying just the
+body, without the #+BEGIN/#+END lines."
+  (interactive)
+  (require 'org-element)
+  (let ((el (org-element-lineage
+             (org-element-context)
+             '(src-block example-block export-block comment-block
+               quote-block verse-block special-block center-block dynamic-block)
+             t)))
+    (unless el (user-error "Point is not inside an Org block"))
+    (let* ((raw (or (org-element-property :value el) ; src/example/export/comment
+                    (let ((b (org-element-property :contents-begin el))
+                          (e (org-element-property :contents-end el)))
+                      (when (and b e) (buffer-substring-no-properties b e)))))
+           (text (and raw (string-trim-right raw))))
+      (if (and text (not (string-empty-p (string-trim text))))
+          (progn (kill-new text)
+                 (message "Copied block contents (%d chars)" (length text)))
+        (user-error "Block is empty")))))
+
+;;;###autoload
 (defun my/insert-current-time ()
   "Insert current time in [H:M] format."
   (interactive)

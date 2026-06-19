@@ -24,7 +24,23 @@
     :desc "Winner undo" "C-c <left>"     #'winner-undo
     :desc "Winner redo" "C-c <right>"    #'winner-redo
     :desc "Open scratch buffer" "C-c X"      #'doom/switch-to-scratch-buffer
-    :desc "Copy line" "C-c y"                #'my/copy-line
+    ;; Copy (non-destructive). `w' mirrors Emacs's own copy key, M-w.
+    (:prefix ("C-c w" . "Copy")
+     :desc "Copy line" "l"                    #'my/copy-line
+     :desc "Copy to end of line" "e"          #'my/copy-to-end-of-line
+     :desc "Copy value (: - = |)" "v"         #'my/copy-value
+     :desc "Copy org block contents" "b"      #'my/org-copy-block
+     :desc "Copy note title" "t"              #'my/denote-copy-title
+     :desc "Copy inside pair" "p"             #'my/copy-inside-pair
+     (:prefix ("f" . "File")
+      :desc "Copy file name" "n"              #'my/kill-buffer-filename
+      :desc "Copy file path" "p"              #'my/kill-buffer-filepath))
+
+    ;; Kill / cut (deletes + saves to the ring). `k' mirrors C-k.
+    (:prefix ("C-c k" . "Kill (cut)")
+     :desc "Kill whole line" "l"              #'kill-whole-line
+     :desc "Kill to end of line" "e"          #'kill-line
+     :desc "Kill inside pair" "p"             #'my/kill-inside-pair)
 
     (:prefix ("C-c C-f" . "Fold")
      :desc "Toggle fold" "C-f"         #'my/fold-toggle
@@ -93,8 +109,6 @@
     (:prefix ("C-c f" . "Files")
      :desc "Copy this file" "C"           #'doom/copy-this-file
      :desc "Delete this file" "d"         #'doom/delete-this-file
-     :desc "Kill (copy) filename" "k"     #'my/kill-buffer-filename
-     :desc "Kill (copy) full path" "K"    #'my/kill-buffer-filepath
      :desc "Rename/move this file" "m"    #'doom/move-this-file
      :desc "Recent files" "r"             #'consult-recent-file
      :desc "Open file at point" "p"       #'ffap
