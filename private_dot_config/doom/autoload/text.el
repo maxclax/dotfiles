@@ -74,6 +74,13 @@
   (message "Copied to end of line"))
 
 ;;;###autoload
+(defun my/copy-buffer ()
+  "Copy the entire buffer contents to the kill ring, as-is."
+  (interactive)
+  (kill-new (buffer-substring-no-properties (point-min) (point-max)))
+  (message "Copied whole buffer (%d chars)" (- (point-max) (point-min))))
+
+;;;###autoload
 (defun my/copy-value (&optional whole)
   "Copy the value after the first `key SEP value' separator on the current line.
 SEP is a colon (`Key: value', `:PROP: value'), or a space-padded -, =, or |

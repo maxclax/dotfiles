@@ -29,7 +29,8 @@
      :desc "Copy line" "l"                    #'my/copy-line
      :desc "Copy to end of line" "e"          #'my/copy-to-end-of-line
      :desc "Copy value (: - = |)" "v"         #'my/copy-value
-     :desc "Copy org block contents" "b"      #'my/org-copy-block
+     :desc "Copy whole buffer" "b"            #'my/copy-buffer
+     :desc "Copy org block contents" "B"      #'my/org-copy-block
      :desc "Copy note title" "t"              #'my/denote-copy-title
      :desc "Copy inside pair" "p"             #'my/copy-inside-pair
      (:prefix ("f" . "File")
