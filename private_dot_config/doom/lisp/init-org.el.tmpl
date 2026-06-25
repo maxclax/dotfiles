@@ -2519,6 +2519,12 @@ into a shell to get clean text. For code-heavy posts the browser route
          (txt  (org-export-as 'ascii nil nil t))   ; clean plain-text fallback
          (hf (make-temp-file "orgclip" nil ".html"))
          (tf (make-temp-file "orgclip" nil ".txt")))
+    ;; Org wraps section text in <div class="outline-text-N"> and code in
+    ;; <div class="org-src-container">. Web editors (Medium) turn each wrapper
+    ;; div into an EMPTY block — a phantom code box after every snippet and a
+    ;; blank gap after every heading. Strip the wrapper divs; the real block
+    ;; elements (h2/p/pre/ul…) are all the editor needs.
+    (setq html (replace-regexp-in-string "</?div[^>]*>[ \t]*\n?" "" html))
     (with-temp-file hf (insert html))
     (with-temp-file tf (insert txt))
     (call-process
