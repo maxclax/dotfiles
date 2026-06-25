@@ -1,5 +1,16 @@
 ;;; +git.el -*- lexical-binding: t; -*-
 
+;; Make Emacs subprocesses (magit push/pull over SSH, TRAMP) authenticate with
+;; the 1Password SSH agent. GUI Emacs is launched without a login shell, so it
+;; doesn't inherit the agent socket the way a terminal does — without this,
+;; magit's `ssh' can't offer the GitHub key and push fails with "failed to push
+;; some refs". Point SSH_AUTH_SOCK straight at the 1Password agent.
+(let ((op-agent (expand-file-name
+                 "Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+                 (getenv "HOME"))))
+  (when (file-exists-p op-agent)
+    (setenv "SSH_AUTH_SOCK" op-agent)))
+
 (after! git-link
   (setq git-link-open-in-browser nil
         git-link-use-commit t)
