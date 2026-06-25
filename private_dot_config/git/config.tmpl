@@ -16,6 +16,12 @@
 	editor = emacs
 	autocrlf = false
 	hooksPath = ~/.config/git/hooks
+	pager = delta
+[interactive]
+	diffFilter = delta --color-only
+[delta]
+	navigate = true        # n / N to jump between diff sections
+	line-numbers = true
 [push]
 	default = current
 [init]
