@@ -88,7 +88,7 @@ hm_generations:
 
 hm_clean:
 	@echo "🧹 Cleaning up old generations..."
-	home-manager expire-generations '-5 days'
+	home-manager expire-generations '-2 days'
 	nix-collect-garbage -d
 	@echo "✅ Cleanup complete!"
 
