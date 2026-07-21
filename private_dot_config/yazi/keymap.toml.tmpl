@@ -28,6 +28,22 @@ prepend_keymap = [
 	{ on = "<C-s>", run = "find --smart",            desc = "Find next (C-s)" },
 	{ on = "<C-r>", run = "find --previous --smart", desc = "Find previous (C-r)" },
 
+	# --- Goto (mirrors ranger g-bindings; g h/c/d are yazi defaults) ---
+	{ on = [ "g", "D" ], run = "cd ~/Desktop", desc = "Go ~/Desktop" },
+	{ on = [ "g", "l" ], run = "cd ~/.local",  desc = "Go ~/.local" },
+	{ on = [ "g", "C" ], run = 'cd "{{ .chezmoi.homeDir }}/Library/Mobile Documents"', desc = "Go iCloud" },
+	{ on = [ "g", "w" ], run = 'cd "{{ .workspace }}"',       desc = "Go workspace" },
+	{ on = [ "g", "W" ], run = 'cd "{{ .workspace_extra }}"', desc = "Go workspace extra" },
+	{ on = [ "g", "r" ], run = 'cd "{{ .resources }}"',       desc = "Go resources" },
+	{ on = [ "g", "s" ], run = 'cd "{{ .managed_sync }}"',    desc = "Go managed sync" },
+	{ on = [ "g", "p" ], run = 'cd "{{ .primary_storage }}"',         desc = "Go primary storage" },
+	{ on = [ "g", "i" ], run = 'cd "{{ .primary_storage }}/0-Inbox"', desc = "Go primary inbox" },
+	{ on = [ "g", "P" ], run = 'cd "{{ .playground }}"',      desc = "Go playground" },
+{{- if .secondary_storage }}
+	{ on = [ "g", "S" ], run = 'cd "{{ .secondary_storage }}"',         desc = "Go secondary storage" },
+	{ on = [ "g", "I" ], run = 'cd "{{ .secondary_storage }}/0-Inbox"', desc = "Go secondary inbox" },
+{{- end }}
+
 	# --- Quit ---
 	{ on = [ "<C-x>", "<C-c>" ], run = "quit", desc = "Quit (C-x C-c)" },
 

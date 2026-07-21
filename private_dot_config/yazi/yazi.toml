@@ -3,6 +3,13 @@
 [mgr]
 sort_dir_first = true
 
+# Open text files in Emacs (client frame in the terminal; -a "" starts
+# a daemon if none is running). Overrides the default ${EDITOR:-vi} opener.
+[opener]
+edit = [
+	{ run = 'emacsclient -t -a "" "$@"', block = true, for = "unix" },
+]
+
 # git.yazi — show git status in the file list
 [[plugin.prepend_fetchers]]
 id    = "git"
