@@ -186,6 +186,7 @@
       :desc "Keyword barchart" "k"          #'denote-explore-barchart-keywords
       :desc "Random note" "n"               #'denote-explore-random-note)
      :desc "Open inbox" "i"                 #'my/open-inbox
+     :desc "Insert tag index" "#"           #'my/denote-insert-tag-index
      (:prefix ("j" . "Journal")
       :desc "Today's journal" "j"           #'denote-journal-new-or-existing-entry
       :desc "Tomorrow's journal" "t"        #'my/open-tomorrow-journal
@@ -327,6 +328,21 @@
         :desc "Switch workspace"   "M-S" #'+workspace/switch-to
         :desc "Swap left"          "M-{" #'+workspace/swap-left
         :desc "Swap right"         "M-}" #'+workspace/swap-right))
+
+  ;; ── Consult (M-s prefix) — better search / navigation ────────────────────────
+  (map! :map override
+        :desc "consult-line (current buffer)"      "M-s l" #'consult-line
+        :desc "consult-line-multi (all buffers)"   "M-s L" #'consult-line-multi
+        :desc "consult-ripgrep (dir/project)"      "M-s r" #'consult-ripgrep
+        :desc "consult-outline (headings)"         "M-s O" #'consult-outline
+        :desc "consult-buffer"                     "M-s b" #'consult-buffer
+        :desc "consult-imenu (symbols in buffer)"  "M-s i" #'consult-imenu
+        :desc "consult-imenu-multi"                "M-s I" #'consult-imenu-multi
+        :desc "consult-mark"                       "M-s m" #'consult-mark
+        :desc "consult-global-mark"                "M-s M" #'consult-global-mark
+        :desc "consult-kmacro"                     "M-s k" #'consult-kmacro
+        :desc "consult-find / fd"                  "M-s f" #'consult-find
+        :desc "consult-recent-file"                "M-s R" #'consult-recent-file)
 
 (map! "C-x C-a l"   #'doom/quickload-session
       "C-x C-a s"   #'doom/quicksave-session

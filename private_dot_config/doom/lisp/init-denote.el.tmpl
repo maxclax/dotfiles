@@ -502,6 +502,20 @@ buffer. PREVIEW-LINES (prefix arg) sets lines per backlink; default 5."
                               (side . right)
                               (window-width . 0.4))))))
 
+  ;; ── Tag index / Map-of-Content (C-c n #) ───────────────────────────────────
+  ;; Insert a `denote-links' dblock in a note named after a topic to auto-list
+  ;; every note that carries that keyword — Denote's tag-page pattern. The
+  ;; keyword is matched precisely in file names (`_KEY' bounded by `_' or `.'),
+  ;; so `idea' never matches `idea2'. Refresh with C-c C-c as you tag more notes.
+  (defun my/denote-insert-tag-index (keyword)
+    "Insert a dynamic block listing every note that carries KEYWORD."
+    (interactive (list (completing-read "Tag index for keyword: "
+                                        (denote-keywords) nil nil)))
+    (org-create-dblock (list :name "denote-links"
+                             :regexp (format "_%s[._]" (regexp-quote keyword))
+                             :sort-by-component 'title))
+    (org-update-dblock))
+
   )
 
 (use-package! denote-sequence
