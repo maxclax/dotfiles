@@ -1,0 +1,15 @@
+{{- if (not .ephemeral) -}}
+#!/bin/bash
+# run_onchange_after_20-yazi-plugins.sh -*- mode: sh; lexical-binding: t; -*-
+
+# Re-run when the yazi package list changes:
+# package.toml hash: {{ include "private_dot_config/yazi/package.toml" | sha256sum }}
+
+if ! command -v ya >/dev/null 2>&1; then
+  echo "ya (yazi package manager) not found, skipping yazi plugin install."
+  exit 0
+fi
+
+echo "📦 Installing yazi plugins..."
+ya pkg install
+{{ end -}}

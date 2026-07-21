@@ -1,0 +1,17 @@
+#:schema https://yazi-rs.github.io/schemas/yazi.json
+
+[mgr]
+sort_dir_first = true
+
+# git.yazi — show git status in the file list
+[[plugin.prepend_fetchers]]
+id    = "git"
+url   = "*"
+run   = "git"
+group = "git"
+
+[[plugin.prepend_fetchers]]
+id    = "git"
+url   = "*/"
+run   = "git"
+group = "git"
