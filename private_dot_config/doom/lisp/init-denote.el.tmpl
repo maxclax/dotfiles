@@ -43,6 +43,86 @@
   ;; Dired integration
   (add-hook 'dired-mode-hook #'denote-dired-mode)
 
+  ;; Hide denote ID prefixes ("20260213T181344--") in dired/dirvish listings —
+  ;; display only, filenames and operations untouched. Overlay-based, so it
+  ;; survives diredfl/dirvish font-lock (denote-dired-mode's own fontification
+  ;; never matches inside dirvish buffers). Toggle with ")" in dired.
+  (defvar my/denote-dired-id-style 'date
+    "How denote ID prefixes render in dired: `date', `hidden' or `full'.
+`date' shows a dimmed \"2026-02-13\" (keeps sort order explainable),
+`hidden' drops the prefix entirely, `full' shows the raw ID dimmed.")
+
+  (defconst my/denote-id-re
+    "\\([0-9]\\{4\\}\\)\\([0-9]\\{2\\}\\)\\([0-9]\\{2\\}\\)T[0-9]\\{6\\}\\(?:--\\|__\\|==\\)"
+    "Denote identifier prefix (date parts grouped), including separator.")
+
+  (defun my/denote--id-replacement ()
+    "Collapse-string replacement for the current ID style."
+    (pcase my/denote-dired-id-style
+      ('date "\\1-\\2-\\3 ")
+      ('hidden "")
+      (_ nil)))
+
+  (defun my/denote-dired-id-overlays (&rest _)
+    "Render denote ID prefixes per `my/denote-dired-id-style'."
+    (remove-overlays (point-min) (point-max) 'my/denote-id t)
+    ;; Careful: when the spec is `t' (dirvish parent/preview buffers rely on
+    ;; that to hide ls detail columns), adding to it converts it to a list
+    ;; and un-hides the details. Under `t' our overlays hide anyway.
+    (unless (eq buffer-invisibility-spec t)
+      (add-to-invisibility-spec 'my/denote-id))
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward my/denote-id-re nil t)
+        (let ((ov (make-overlay (match-beginning 0) (match-end 0))))
+          (overlay-put ov 'my/denote-id t)
+          (overlay-put ov 'evaporate t)
+          (pcase my/denote-dired-id-style
+            ('date (overlay-put ov 'display
+                                (propertize
+                                 (format "%s-%s-%s " (match-string 1)
+                                         (match-string 2) (match-string 3))
+                                 'face 'shadow)))
+            ('hidden (overlay-put ov 'invisible 'my/denote-id))
+            (_ (overlay-put ov 'face 'shadow)))))))
+
+  (add-hook 'dired-after-readin-hook #'my/denote-dired-id-overlays)
+
+  (after! dirvish
+    ;; Same treatment in the collapse attribute ("archive|20260213T…--title")
+    (advice-add 'dirvish-collapse--cache :filter-return
+                (defun my/denote-collapse-strip-ids-a (cache)
+                  (let ((rep (my/denote--id-replacement)))
+                    (if (and rep (consp cache)
+                             (stringp (car cache)) (stringp (cdr cache)))
+                        (cons (replace-regexp-in-string my/denote-id-re rep (car cache))
+                              (replace-regexp-in-string my/denote-id-re rep (cdr cache)))
+                      cache))))
+    ;; Subtree expansion inserts lines after dired-after-readin — re-overlay
+    (advice-add 'dirvish-subtree--insert :after #'my/denote-dired-id-overlays)
+    ;; Parent panes are dirvish-directory-view-mode buffers (not dired) —
+    ;; apply the same ID treatment after each one is (re)built
+    (advice-add 'dirvish--create-parent-buffer :filter-return
+                (defun my/denote-parent-buffer-ids-a (buf)
+                  (when (buffer-live-p buf)
+                    (with-current-buffer buf
+                      (my/denote-dired-id-overlays)))
+                  buf)))
+
+  (defun my/denote-dired-toggle-ids ()
+    "Cycle denote ID prefix rendering: date → hidden → full."
+    (interactive)
+    (setq my/denote-dired-id-style
+          (pcase my/denote-dired-id-style
+            ('date 'hidden) ('hidden 'full) (_ 'date)))
+    (dolist (buf (buffer-list))
+      (with-current-buffer buf
+        (when (derived-mode-p 'dired-mode)
+          (my/denote-dired-id-overlays))))
+    (message "Denote IDs: %s" my/denote-dired-id-style))
+
+  (map! :map dired-mode-map ")" #'my/denote-dired-toggle-ids)
+
   ;; File type defaults
   (setq denote-file-type 'org)
 
