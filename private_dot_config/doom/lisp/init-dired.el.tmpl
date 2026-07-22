@@ -85,7 +85,8 @@ The file is opened in a new workspace; the current workspace stays untouched."
   ;; Set after dirvish-override-dired-mode so dirvish doesn't reset it.
   ;; -A drops the ./.. entries; C collation gives treemacs-like ASCII order
   ;; (dot-dirs before _dist) instead of locale order (_dist first).
-  (setq dired-listing-switches "-ABhl --group-directories-first")
+  (setq dired-listing-switches
+        "-ABhl --group-directories-first --ignore=.DS_Store")
   (advice-add 'insert-directory :around
               (defun my/dired-c-collation-a (fn &rest args)
                 (let ((process-environment
@@ -94,6 +95,59 @@ The file is opened in a new workspace; the current workspace stays untouched."
 
   ;; Clean by default: icons + subtree only, ls detail columns hidden
   (setq dirvish-attributes '(nerd-icons collapse))
+
+  ;; Preview directories with real formatting (faces, denote date prefixes,
+  ;; .DS_Store filtering) — dirvish's default runs a child Emacs and shows
+  ;; its raw ls text. Render in an undisplayed dired buffer, then COPY the
+  ;; propertized text into dirvish's own preview buffer: displaying a live
+  ;; dired buffer in the preview window makes dirvish adopt it as a session
+  ;; root and navigation (C-b up) bounces right back. Ditto the raw
+  ;; `dired-noselect', which is advised to register roots — use the
+  ;; internal constructor.
+  (dirvish-define-preview my/dired-dir (file)
+    "Preview directory FILE as propertized dired-rendered text."
+    (when (file-directory-p file)
+      (with-current-buffer (dired-internal-noselect
+                            (file-name-as-directory (expand-file-name file)))
+        (font-lock-ensure)
+        `(my/dired-str . ,(buffer-string)))))
+  (add-to-list 'dirvish-preview-dispatchers 'my/dired-dir)
+
+  (defun my/dirvish-preview-add-icons ()
+    "Prepend nerd-icons to each file line in a copied dired listing."
+    (when (require 'nerd-icons nil t)
+      (save-excursion
+        (goto-char (point-min))
+        (while (not (eobp))
+          (when-let* ((beg (text-property-any
+                            (line-beginning-position) (line-end-position)
+                            'dired-filename t))
+                      (end (or (text-property-not-all
+                                beg (line-end-position) 'dired-filename t)
+                               (line-end-position)))
+                      (name (buffer-substring-no-properties beg end)))
+            (let* ((dirp (string-match-p
+                          "\\` *d" (buffer-substring-no-properties
+                                    (line-beginning-position) beg)))
+                   (icon (if dirp
+                             (nerd-icons-icon-for-dir name)
+                           (nerd-icons-icon-for-file name))))
+              (goto-char beg)
+              (insert icon " ")))
+          (forward-line 1)))))
+
+  (cl-defmethod dirvish-preview-dispatch ((recipe (head my/dired-str)) dv)
+    "Insert dired-rendered directory text into DV's preview buffer."
+    (let ((buf (dirvish--special-buffer 'preview dv t)))
+      (with-current-buffer buf
+        (let (buffer-read-only)
+          (erase-buffer) (remove-overlays)
+          (insert (cdr recipe))
+          (my/dirvish-preview-add-icons)
+          (when (fboundp 'my/denote-dired-id-overlays)
+            (my/denote-dired-id-overlays))
+          (goto-char (point-min)))
+        buf)))
 
   ;; Grey folder icons like treemacs. Dir icons carry no face of their own and
   ;; inherit the (blue) dired-directory name color; give them the theme's grey.
