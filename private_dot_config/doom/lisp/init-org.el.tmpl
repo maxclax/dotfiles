@@ -166,14 +166,16 @@ Heading links include file:path so navigation works across files."
   ;; Use the proper hook that runs after repeat processing
   (add-hook 'org-todo-repeat-hook #'my/reset-repeating-subtasks)
 
-  ;; org-agenda uses text properties for faces, not font-lock.
-  ;; On first open after startup theme faces aren't fully resolved — redo once.
-  (defvar my/org-agenda-initial-redo t)
-  (add-hook 'org-agenda-mode-hook
-            (lambda ()
-              (when my/org-agenda-initial-redo
-                (setq my/org-agenda-initial-redo nil)
-                (run-with-idle-timer 0.3 nil #'org-agenda-redo))))
+  ;; org-agenda styles via text properties, not font-lock. Something sets
+  ;; font-lock-defaults in the first agenda buffer after startup, which lets
+  ;; global-font-lock enable jit-lock there — and jit-lock STRIPS all the
+  ;; face properties on display (agenda renders unstyled; `g' can't fix it).
+  ;; Kill font-lock on every finalize; advice (not hook) because the custom
+  ;; commands let-bind org-agenda-finalize-hook.
+  (advice-add 'org-agenda-finalize :before
+              (defun my/agenda-disable-font-lock-a (&rest _)
+                (setq-local font-lock-defaults nil)
+                (font-lock-mode -1)))
 
   ;; Dim blocked tasks
   (setq org-agenda-dim-blocked-tasks t)
