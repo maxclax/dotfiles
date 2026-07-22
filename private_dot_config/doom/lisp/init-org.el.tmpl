@@ -166,12 +166,17 @@ Heading links include file:path so navigation works across files."
   ;; Use the proper hook that runs after repeat processing
   (add-hook 'org-todo-repeat-hook #'my/reset-repeating-subtasks)
 
-  ;; org-agenda styles via text properties, not font-lock. Something sets
-  ;; font-lock-defaults in the first agenda buffer after startup, which lets
-  ;; global-font-lock enable jit-lock there — and jit-lock STRIPS all the
-  ;; face properties on display (agenda renders unstyled; `g' can't fix it).
-  ;; Kill font-lock on every finalize; advice (not hook) because the custom
-  ;; commands let-bind org-agenda-finalize-hook.
+  ;; org-agenda styles via text properties, not font-lock — but Doom's
+  ;; indent-guides module enables indent-bars-mode in agenda buffers, whose
+  ;; font-lock setup (font-lock-defaults '(nil t)) lets jit-lock STRIP all
+  ;; the agenda's face properties (renders unstyled; `g' can't fix it).
+  ;; Keep indent-bars out of agenda buffers entirely…
+  (add-hook '+indent-guides-inhibit-functions
+            (defun my/indent-guides-inhibit-agenda-h ()
+              (derived-mode-p 'org-agenda-mode)))
+  ;; …and belt-and-braces: kill font-lock on finalize should anything else
+  ;; ever enable it. Advice, not hook — the custom commands let-bind
+  ;; org-agenda-finalize-hook.
   (advice-add 'org-agenda-finalize :before
               (defun my/agenda-disable-font-lock-a (&rest _)
                 (setq-local font-lock-defaults nil)
