@@ -32,8 +32,12 @@
 (defun my/apply-gui-settings (&optional frame)
   "Apply font and current theme to FRAME (or current frame)."
   (when (display-graphic-p frame)
-    (when (bound-and-true-p circadian--current-theme)
-      (load-theme circadian--current-theme t))
+    ;; Fall back to `doom-theme' when circadian hasn't applied a theme yet
+    ;; (e.g. the daemon's first GUI frame) — otherwise that frame keeps
+    ;; half-applied faces and the first agenda renders unstyled.
+    (when-let ((theme (or (bound-and-true-p circadian--current-theme)
+                          doom-theme)))
+      (load-theme theme t))
     (set-face-attribute 'default nil
                         :font "Berkeley Mono Variable-18"
                         :weight 'normal)))
@@ -70,7 +74,9 @@
 (after! persp-mode
   (setq persp-auto-resume-time -1    ;; disabled — load manually
         persp-auto-save-opt 1
-        persp-auto-save-num-of-backups 0
+        ;; Keep rotated autosave generations — lets you load not just
+        ;; yesterday's exit state but a couple of days back
+        persp-auto-save-num-of-backups 2
         ;; Save the WHOLE session into the file chosen at the prompt, instead
         ;; of scattering each workspace back to the file it was loaded from
         persp-auto-save-persps-to-their-file nil)
