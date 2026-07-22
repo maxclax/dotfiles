@@ -75,7 +75,11 @@ The file is opened in a new workspace; the current workspace stays untouched."
             (when-let ((root (projectile-project-root)))
               (require 'dirvish-side)
               (unless (dirvish-side-session-visible-p)
-                (save-selected-window (dirvish-side root))))))
+                (save-selected-window
+                  (dirvish-side root)
+                  ;; attrs (icons etc.) render on window-selection change,
+                  ;; which save-selected-window suppresses — render manually
+                  (dirvish--render-attrs (selected-window)))))))
 
 (after! dirvish
   ;; Enable dirvish globally for all dired buffers
