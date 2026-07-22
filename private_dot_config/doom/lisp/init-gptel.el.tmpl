@@ -5,19 +5,22 @@
   :commands (gptel-rewrite gptel-menu gptel-send)
   :config
   ;; Anthropic Claude — key from ~/.authinfo (machine api.anthropic.com)
-  (gptel-make-anthropic "Claude" :stream t)
-
-  ;; Ollama — local + cloud models (default backend)
+  ;; Default backend
   (setq gptel-backend
-        (gptel-make-ollama "Ollama"
-          :host "localhost:11434"
+        (gptel-make-anthropic "Claude"
           :stream t
-          :models '(qwen2.5-coder:14b
-                    qwen3-coder:480b-cloud
-                    qwen3-coder-next:cloud
-                    deepseek-v3.1:671b-cloud
-                    kimi-k2.5:cloud)))
-  (setq gptel-model 'qwen3-coder-next:cloud)
+          :models '(claude-opus-4-8 claude-sonnet-5 claude-haiku-4-5)))
+  (setq gptel-model 'claude-opus-4-8)
+
+  ;; Ollama — local + cloud models (switch via gptel-menu)
+  (gptel-make-ollama "Ollama"
+    :host "localhost:11434"
+    :stream t
+    :models '(qwen2.5-coder:14b
+              qwen3-coder:480b-cloud
+              qwen3-coder-next:cloud
+              deepseek-v3.1:671b-cloud
+              kimi-k2.5:cloud))
   (setq gptel-default-mode 'org-mode))
 
 (provide 'init-gptel)
