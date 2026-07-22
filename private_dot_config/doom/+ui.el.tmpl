@@ -57,12 +57,31 @@
 ;; Create workspace only on explicit project switch, not on magit/dired/etc.
 (setq +workspaces-on-switch-project-behavior t)
 
+;; Let C-x o / M-o cycle into the treemacs window like any other
+;; (Doom defaults this to t, making the sidebar unreachable by other-window)
+(after! treemacs
+  (setq treemacs-is-never-other-window nil))
+;; ace-window additionally blacklists treemacs-mode on its own
+(after! ace-window
+  (setq aw-ignored-buffers (delq 'treemacs-mode aw-ignored-buffers)))
+
 ;; ── Session persistence ──────────────────────────────────────────────
 ;; No auto-restore, use C-x C-a C-l to load session manually
 (after! persp-mode
   (setq persp-auto-resume-time -1    ;; disabled — load manually
         persp-auto-save-opt 1
-        persp-auto-save-num-of-backups 0)
+        persp-auto-save-num-of-backups 0
+        ;; Save the WHOLE session into the file chosen at the prompt, instead
+        ;; of scattering each workspace back to the file it was loaded from
+        persp-auto-save-persps-to-their-file nil)
+
+  ;; +workspace/save serializes the window layout captured at last
+  ;; switch-away (unlike session save, which snapshots live frames first),
+  ;; so saving the CURRENT workspace writes a stale layout. Refresh first.
+  (advice-add '+workspace-save :before
+              (defun my/workspace-save-refresh-wconf-a (name)
+                (when-let ((persp (persp-get-by-name name *persp-hash* nil)))
+                  (persp-save-state persp))))
 
   ;; Don't save buffers that are slow or impossible to restore
   (add-to-list 'persp-filter-save-buffers-functions
