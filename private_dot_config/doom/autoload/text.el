@@ -150,24 +150,6 @@ body, without the #+BEGIN/#+END lines."
         (user-error "Block is empty")))))
 
 ;;;###autoload
-(defun my/insert-current-time ()
-  "Insert current time in [H:M] format."
-  (interactive)
-  (insert (format-time-string "[%H:%M]")))
-
-;;;###autoload
-(defun my/insert-current-date ()
-  "Insert current date in YYYY-MM-DD format."
-  (interactive)
-  (insert (format-time-string "%Y-%m-%d")))
-
-;;;###autoload
-(defun my/insert-timestamp ()
-  "Insert current timestamp in [YYYY-MM-DD H:M] format."
-  (interactive)
-  (insert (format-time-string "[%Y-%m-%d %H:%M]")))
-
-;;;###autoload
 (defun my/journal-log-finish ()
   "Add finish time and calculate duration for current journal entry."
   (interactive)

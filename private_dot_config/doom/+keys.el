@@ -116,6 +116,8 @@
      :desc "Sudo this file" "u"           #'doom/sudo-this-file
      :desc "Sudo find file" "U"           #'doom/sudo-find-file)
 
+    ;; Date/time stamps: use org natives — C-c ! for [] (C-u adds time),
+    ;; C-c . for <>
     (:prefix ("C-c i" . "Insert")
      :desc "Emoji" "e"                        #'emoji-insert
      :desc "Current file name" "f"            #'+default/insert-filename
@@ -130,11 +132,7 @@
       :desc "Insert from file" "f"     #'org-download-image
       :desc "Insert from URL" "u"      #'org-download-yank
       :desc "Take screenshot" "s"      #'org-download-screenshot
-      :desc "Delete image" "d"         #'org-download-delete)
-     (:prefix ("o" . "Org")
-      :desc "Current time [H:M]" "t"          #'my/insert-current-time
-      :desc "org-timestamp []" "i"            #'org-timestamp-inactive
-      :desc "org-timestamp <>" "T"            #'org-timestamp))
+      :desc "Delete image" "d"         #'org-download-delete))
 
     (:prefix ("C-c l" . "Tools")
              (:prefix ("e" . "ERC IRC")
