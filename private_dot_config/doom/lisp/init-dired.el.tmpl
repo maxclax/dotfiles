@@ -68,16 +68,40 @@ The file is opened in a new workspace; the current workspace stays untouched."
 
 (advice-add 'dired-find-file :around #'my/maybe-switch-workspace-for-project)
 
+;; Auto-open the dirvish sidebar when switching to a project (C-c p p),
+;; keeping focus in the file window.
+(add-hook 'projectile-after-switch-project-hook
+          (defun my/dirvish-side-on-project-switch ()
+            (when-let ((root (projectile-project-root)))
+              (require 'dirvish-side)
+              (unless (dirvish-side-session-visible-p)
+                (save-selected-window (dirvish-side root))))))
+
 (after! dirvish
   ;; Enable dirvish globally for all dired buffers
   (dirvish-override-dired-mode)
 
   ;; GNU ls (Nix coreutils) supports --group-directories-first; BSD ls does not.
   ;; Set after dirvish-override-dired-mode so dirvish doesn't reset it.
-  (setq dired-listing-switches "-aBhl --group-directories-first")
+  ;; -A drops the ./.. entries; C collation gives treemacs-like ASCII order
+  ;; (dot-dirs before _dist) instead of locale order (_dist first).
+  (setq dired-listing-switches "-ABhl --group-directories-first")
+  (advice-add 'insert-directory :around
+              (defun my/dired-c-collation-a (fn &rest args)
+                (let ((process-environment
+                       (cons "LC_COLLATE=C" process-environment)))
+                  (apply fn args))))
 
   ;; Clean by default: icons + subtree only, ls detail columns hidden
   (setq dirvish-attributes '(nerd-icons collapse))
+
+  ;; Grey folder icons like treemacs. Dir icons carry no face of their own and
+  ;; inherit the (blue) dired-directory name color; give them the theme's grey.
+  (advice-add 'nerd-icons-icon-for-dir :around
+              (defun my/nerd-icons-grey-dir-a (fn dir &rest args)
+                (if (plist-member args :face)
+                    (apply fn dir args)
+                  (apply fn dir :face 'shadow args))))
 
   (setq dirvish-quick-access-entries
         `(("h" "~/" "Home")
