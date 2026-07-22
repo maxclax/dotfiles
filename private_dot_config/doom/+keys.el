@@ -244,9 +244,7 @@
      :desc "aider: ask about code"  "q" #'aider-ask-question
      :desc "aider: commit message"    "C" #'my/aider-commit-message
      :desc "aider: fix flymake errors" "F" #'my/aider-flymake-fix-errors
-     :desc "aider: TDD cycle"          "t" #'aider-tdd-cycle
-     :desc "ollama-buddy: roles"    "o" #'ollama-buddy-role-transient-menu
-     :desc "ollama-buddy: main menu" "O" #'ollama-buddy-transient-menu-wrapper)
+     :desc "aider: TDD cycle"          "t" #'aider-tdd-cycle)
 
     (:prefix ("C-c t" . "Toggles")
      :desc "Fill column" "c"           #'global-display-fill-column-indicator-mode
@@ -262,7 +260,6 @@
      :desc "Read-only" "r"             #'read-only-mode
      :desc "Soft line wrapping" "w"    #'+word-wrap-mode
      :desc "Copilot" "a"               #'copilot-mode
-     :desc "Minuet"  "A"               #'minuet-auto-suggestion-mode
      :desc "Prose mode" "P"             #'prose-mode
      :desc "Truncate lines" "t"        #'toggle-truncate-lines
      :desc "Zen mode" "z"              #'+zen/toggle
@@ -459,13 +456,3 @@
         "M-n"     #'copilot-next-completion
         "M-p"     #'copilot-previous-completion))
 
-;; Minuet keybindings (copilot-style inline completions)
-(after! minuet
-  (map! :map minuet-active-mode-map
-        "<tab>"   #'minuet-accept-suggestion
-        "TAB"     #'minuet-accept-suggestion
-        "C-TAB"   #'minuet-accept-suggestion-line
-        "C-<tab>" #'minuet-accept-suggestion-line
-        "M-n"     #'minuet-next-suggestion
-        "M-p"     #'minuet-previous-suggestion
-        "M-e"     #'minuet-dismiss-suggestion))
