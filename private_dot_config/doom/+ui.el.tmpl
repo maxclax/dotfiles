@@ -61,6 +61,15 @@
 ;; Create workspace only on explicit project switch, not on magit/dired/etc.
 (setq +workspaces-on-switch-project-behavior t)
 
+;; Native tabs (C-x t …) per workspace: doom saves/restores each workspace's
+;; tab set and persists them in session files — but only while tab-bar-mode
+;; is on. Must enable AFTER persp-mode loads: doom registers its tab-bar
+;; integration on tab-bar-mode-hook from persp's config, so enabling earlier
+;; fires the hook before the listener exists and tabs never restore.
+(setq tab-bar-show 1)
+(after! persp-mode
+  (tab-bar-mode 1))
+
 ;; Let C-x o / M-o cycle into the treemacs window like any other
 ;; (Doom defaults this to t, making the sidebar unreachable by other-window)
 (after! treemacs
