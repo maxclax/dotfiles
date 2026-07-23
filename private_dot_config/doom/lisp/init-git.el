@@ -101,9 +101,10 @@
                           'magit-insert-modules-unpulled-from-upstream
                           'magit-insert-stashes t)
 
-  ;; Show date in right margin of status buffer recent commits section.
-  ;; magit-status-margin is separate from magit-log-margin (log buffers only).
-  (customize-set-variable 'magit-status-margin '(t "%Y-%m-%d %H:%M" magit-log-margin-width nil 0))
+  ;; Right margin: author + absolute datetime, in status recent-commits
+  ;; AND log buffers alike (format: (INIT STYLE WIDTH AUTHOR AUTHOR-WIDTH))
+  (customize-set-variable 'magit-status-margin '(t "%Y-%m-%d %H:%M" magit-log-margin-width t 12))
+  (customize-set-variable 'magit-log-margin '(t "%Y-%m-%d %H:%M" magit-log-margin-width t 12))
 
   ;; Auto-save WIP to hidden refs — never lose uncommitted work
   (magit-wip-mode 1)
