@@ -104,34 +104,75 @@ workspace; the current tab stays selected."
                   ;; which save-selected-window suppresses — render manually
                   (dirvish--render-attrs (selected-window)))))))
 
-;; Persist the sidebar across workspace switches. Doom's dired module quits
-;; every dirvish session right before a switch (+dired--cleanup-dirvish-h on
-;; persp-before-switch-functions), so the sidebar never survives. Remember
-;; its visibility per workspace BEFORE that cleanup runs (add-hook prepends,
-;; so ours fires first) and re-open it when switching back.
+;; ── Sidebar persistence, per TAB ─────────────────────────────────────────
+;; Two forces kill the sidebar: doom quits every dirvish session right
+;; before a workspace switch (+dired--cleanup-dirvish-h on
+;; persp-before-switch-functions), and tab-bar layout restore silently
+;; drops side windows. So track visibility ourselves: a persp parameter
+;; holds the tab names whose tab showed a sidebar (serialized into
+;; workspace/session files). Record before every tab/workspace switch,
+;; reapply after.
+(defun my/dirvish-side-record-tab (&rest _)
+  "Record sidebar visibility for the current tab in a persp parameter."
+  (when-let ((persp (get-current-persp)))
+    (let ((names (persp-parameter 'dirvish-side-tabs persp))
+          (name (alist-get 'name (tab-bar--current-tab))))
+      (setq names (delete name names))
+      (when (and (fboundp 'dirvish-side-session-visible-p)
+                 (dirvish-side-session-visible-p))
+        (push name names))
+      (set-persp-parameter 'dirvish-side-tabs names persp))))
+
+(defun my/dirvish-side-apply-tab (&rest _)
+  "Open or close the sidebar to match the current tab's recorded state."
+  (require 'dirvish-side)
+  (when-let ((persp (get-current-persp)))
+    (let* ((names (persp-parameter 'dirvish-side-tabs persp))
+           (name (alist-get 'name (tab-bar--current-tab)))
+           (want (and (member name names) t))
+           (win (dirvish-side-session-visible-p)))
+      (cond ((and want (not win))
+             (save-selected-window
+               (dirvish-side (or (ignore-errors (projectile-project-root))
+                                 default-directory))
+               (dirvish--render-attrs (selected-window))))
+            ((and win (not want))
+             (ignore-errors (delete-window win)))))))
+
+(defun my/dirvish-side-apply-tab-deferred (&rest _)
+  "Reapply sidebar state once the window layout has settled."
+  (run-at-time 0 nil #'my/dirvish-side-apply-tab))
+
+;; tab switches: record the tab being left, reapply for the one entered
+;; (post-select runs my/tab-fix-dead-side-windows below, which reapplies)
+(advice-add 'tab-bar-select-tab :before #'my/dirvish-side-record-tab)
+(advice-add 'tab-bar-new-tab :before #'my/dirvish-side-record-tab)
+
+;; workspace switches: record before doom's dirvish cleanup runs (add-hook
+;; prepends, so ours fires before +dired--cleanup-dirvish-h), reapply after
+;; the workspace's window config is restored
 (after! persp-mode
   (add-hook 'persp-before-switch-functions
             (defun my/dirvish-side-remember-h (&rest _)
-              (when-let ((persp (get-current-persp)))
-                (set-persp-parameter
-                 'dirvish-side-visible
-                 (and (fboundp 'dirvish-side-session-visible-p)
-                      (dirvish-side-session-visible-p)
-                      t)
-                 persp))))
+              (my/dirvish-side-record-tab)))
   (add-hook 'persp-activated-functions
             (defun my/dirvish-side-restore-h (_)
-              (when (persp-parameter 'dirvish-side-visible)
-                ;; defer: the workspace's window config is still being restored
-                (run-at-time
-                 0 nil
-                 (lambda ()
-                   (require 'dirvish-side)
-                   (unless (dirvish-side-session-visible-p)
-                     (save-selected-window
-                       (dirvish-side (or (ignore-errors (projectile-project-root))
-                                         default-directory))
-                       (dirvish--render-attrs (selected-window))))))))))
+              (my/dirvish-side-apply-tab-deferred))))
+
+;; Selecting a tab can also restore a DEAD side window (" *Old buffer
+;; *SIDE…" placeholder pointing at a killed dirvish buffer). Delete the
+;; corpses, then reapply the recorded per-tab sidebar state.
+(defun my/tab-fix-dead-side-windows (&rest _)
+  (dolist (win (window-list))
+    (when (window-parameter win 'window-side)
+      (let ((buf (window-buffer win)))
+        (when (or (not (buffer-live-p buf))
+                  (string-prefix-p " *Old buffer" (buffer-name buf))
+                  (with-current-buffer buf
+                    (and (fboundp 'dirvish-curr) (not (dirvish-curr)))))
+          (ignore-errors (delete-window win))))))
+  (my/dirvish-side-apply-tab-deferred))
+(add-hook 'tab-bar-tab-post-select-functions #'my/tab-fix-dead-side-windows)
 
 (after! dirvish
   ;; Enable dirvish globally for all dired buffers
