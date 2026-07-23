@@ -309,18 +309,20 @@
 (defun my/setup-meta-bindings ()
   (map! :desc "Other window"    "M-o" #'other-window
         :desc "imenu"           "M-i" #'imenu)
-  ;; Workspace switching uses :map override to take priority over
-  ;; magit-section's M-1..4 (show-level-all). Use plain 1/2/3/4 in magit.
+  ;; Uses :map override to take priority over magit-section's M-1..4
+  ;; (show-level-all). Use plain 1/2/3/4 in magit.
+  ;; TEMPORARY: M-1..9 select TABS while testing the submodules-as-tabs
+  ;; flow; to revert, point the digits back at +workspace/switch-to-N.
   (map! :map override
-        :desc "Workspace 1"    "M-1" #'+workspace/switch-to-0
-        :desc "Workspace 2"    "M-2" #'+workspace/switch-to-1
-        :desc "Workspace 3"    "M-3" #'+workspace/switch-to-2
-        :desc "Workspace 4"    "M-4" #'+workspace/switch-to-3
-        :desc "Workspace 5"    "M-5" #'+workspace/switch-to-4
-        :desc "Workspace 6"    "M-6" #'+workspace/switch-to-5
-        :desc "Workspace 7"    "M-7" #'+workspace/switch-to-6
-        :desc "Workspace 8"    "M-8" #'+workspace/switch-to-7
-        :desc "Workspace 9"    "M-9" #'+workspace/switch-to-8
+        :desc "Tab 1"          "M-1" (cmd! (tab-bar-select-tab 1))
+        :desc "Tab 2"          "M-2" (cmd! (tab-bar-select-tab 2))
+        :desc "Tab 3"          "M-3" (cmd! (tab-bar-select-tab 3))
+        :desc "Tab 4"          "M-4" (cmd! (tab-bar-select-tab 4))
+        :desc "Tab 5"          "M-5" (cmd! (tab-bar-select-tab 5))
+        :desc "Tab 6"          "M-6" (cmd! (tab-bar-select-tab 6))
+        :desc "Tab 7"          "M-7" (cmd! (tab-bar-select-tab 7))
+        :desc "Tab 8"          "M-8" (cmd! (tab-bar-select-tab 8))
+        :desc "Tab 9"          "M-9" (cmd! (tab-bar-select-tab 9))
         :desc "Prev workspace" "M-[" #'+workspace/switch-left
         :desc "Next workspace" "M-]" #'+workspace/switch-right
         :desc "Last workspace" "M-`" #'+workspace/other
@@ -346,10 +348,18 @@
         :desc "consult-find / fd"                  "M-s f" #'consult-find
         :desc "consult-recent-file"                "M-s R" #'consult-recent-file)
 
-(map! "C-x C-a l"   #'doom/quickload-session
-      "C-x C-a s"   #'doom/quicksave-session
-      "C-x C-a C-l" #'doom/load-session
-      "C-x C-a C-s" #'doom/save-session)
+;; C-x C-a: sessions on plain letters (lowercase = quick, capitals = named
+;; files); workspace commands ALL Ctrl-held, so the whole chord flows
+;; without releasing Ctrl (C-x C-a C-s = save workspace, etc.)
+(map! "C-x C-a s"   #'doom/quicksave-session
+      "C-x C-a l"   #'doom/quickload-session
+      "C-x C-a S"   #'doom/save-session
+      "C-x C-a L"   #'doom/load-session
+      "C-x C-a C-n" #'+workspace/new
+      "C-x C-a C-r" #'+workspace/rename
+      "C-x C-a C-k" #'+workspace/kill
+      "C-x C-a C-s" #'+workspace/save
+      "C-x C-a C-l" #'+workspace/load)
 
 ;; Prevent projectile and persp-mode from binding their keymaps to C-c p.
 ;; Prevent lsp-mode from binding its keymap to C-c l (we use that for Tools).
@@ -443,16 +453,6 @@
   :repeat t
   "n" #'hl-todo-next
   "p" #'hl-todo-previous)
-
-;; Workspace commands flat on the persp prefix, next to the session keys:
-;; lowercase = quick session + workspace lifecycle, C- = named sessions,
-;; capitals = single-workspace files
-(map! (:prefix "C-x C-a"
-       "n" #'+workspace/new
-       "r" #'+workspace/rename
-       "k" #'+workspace/kill
-       "S" #'+workspace/save
-       "L" #'+workspace/load))
 
 (after! verb
   (map! :map org-mode-map "C-c C-r" verb-command-map))
