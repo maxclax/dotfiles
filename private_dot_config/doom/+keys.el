@@ -119,6 +119,7 @@
     ;; Date/time stamps: use org natives — C-c ! for [] (C-u adds time),
     ;; C-c . for <>
     (:prefix ("C-c i" . "Insert")
+     :desc "TODO comment" "t"                 #'hl-todo-insert
      :desc "Emoji" "e"                        #'emoji-insert
      :desc "Current file name" "f"            #'+default/insert-filename
      :desc "Current file path" "F"            #'+default/insert-filepath
@@ -221,7 +222,8 @@
                                                     (consult-ripgrep (projectile-project-root)
                                                                      (thing-at-point 'symbol t)))
      (:prefix ("t" . "TODOs")
-      :desc "Insert TODO comment" "t"    #'hl-todo-insert
+      :desc "Next TODO in buffer" "n"    #'hl-todo-next
+      :desc "Prev TODO in buffer" "p"    #'hl-todo-previous
       :desc "Search TODOs" "s" (lambda () (interactive)
                                  (if (projectile-project-p)
                                      (consult-ripgrep (projectile-project-root) "TODO:")
@@ -430,6 +432,12 @@
   (map! :map dired-mode-map
         "V" #'my/dired-toggle-details))
 
+
+;; After one C-c p t n/p, keep jumping between TODOs with bare n/p (repeat-mode)
+(defvar-keymap my/hl-todo-repeat-map
+  :repeat t
+  "n" #'hl-todo-next
+  "p" #'hl-todo-previous)
 
 ;; Workspace commands flat on the persp prefix, next to the session keys:
 ;; lowercase = quick session + workspace lifecycle, C- = named sessions,
