@@ -81,6 +81,21 @@
         ;; of scattering each workspace back to the file it was loaded from
         persp-auto-save-persps-to-their-file nil)
 
+  ;; The exit autosave can fail silently (persp asks "exit anyway?" and a
+  ;; reflexive `y' loses the session). Log every failure with the real error
+  ;; so losses are diagnosable: ~/.config/emacs/.local/persp-save-errors.log
+  (advice-add 'persp-save-state-to-file :around
+              (defun my/persp-save-log-errors-a (fn &rest args)
+                (condition-case e
+                    (apply fn args)
+                  (error
+                   (write-region
+                    (format "%s persp save FAILED: %S\n"
+                            (format-time-string "%F %T") e)
+                    nil (concat doom-local-dir "persp-save-errors.log")
+                    'append 'silent)
+                   (signal (car e) (cdr e))))))
+
   ;; +workspace/save serializes the window layout captured at last
   ;; switch-away (unlike session save, which snapshots live frames first),
   ;; so saving the CURRENT workspace writes a stale layout. Refresh first.
