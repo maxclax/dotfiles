@@ -4,6 +4,11 @@
 ;; Which-key configuration for better key discovery and paging
 
 (after! which-key
+  ;; Show full command names (doom elides namespaces to "…/" by default)
+  (setq which-key-replacement-alist
+        (cl-remove-if (lambda (r) (eq (cdr r) 'doom-which-key-truncate-prefixes))
+                      which-key-replacement-alist))
+
   ;; Enable C-h commands in which-key
   (setq which-key-use-C-h-commands t)
 

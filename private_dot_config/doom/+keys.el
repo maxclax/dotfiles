@@ -448,11 +448,11 @@
 ;; lowercase = quick session + workspace lifecycle, C- = named sessions,
 ;; capitals = single-workspace files
 (map! (:prefix "C-x C-a"
-       :desc "New workspace" "n"       #'+workspace/new
-       :desc "Rename workspace" "r"    #'+workspace/rename
-       :desc "Kill workspace" "k"      #'+workspace/kill
-       :desc "Save workspace file" "S" #'+workspace/save
-       :desc "Load workspace file" "L" #'+workspace/load))
+       "n" #'+workspace/new
+       "r" #'+workspace/rename
+       "k" #'+workspace/kill
+       "S" #'+workspace/save
+       "L" #'+workspace/load))
 
 (after! verb
   (map! :map org-mode-map "C-c C-r" verb-command-map))
