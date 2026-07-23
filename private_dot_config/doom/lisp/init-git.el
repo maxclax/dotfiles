@@ -103,8 +103,8 @@
 
   ;; Right margin: author + absolute datetime + relative age, in status
   ;; recent-commits AND log buffers (format: (INIT STYLE WIDTH AUTHOR AUTHOR-W))
-  (customize-set-variable 'magit-status-margin '(t "%Y-%m-%d %H:%M" 37 t 12))
-  (customize-set-variable 'magit-log-margin '(t "%Y-%m-%d %H:%M" 37 t 12))
+  (customize-set-variable 'magit-status-margin '(t "%Y-%m-%d %H:%M" 30 t 7))
+  (customize-set-variable 'magit-log-margin '(t "%Y-%m-%d %H:%M" 30 t 7))
 
   ;; Append "(2d)"-style age after the datetime. Magit's stock renderer does
   ;; datetime OR age, never both — this override (copy of
