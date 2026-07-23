@@ -66,7 +66,30 @@ The file is opened in a new workspace; the current workspace stays untouched."
           (+workspace/switch-to current-ws))
       (apply orig-fn args))))
 
-(advice-add 'dired-find-file :around #'my/maybe-switch-workspace-for-project)
+(defun my/maybe-open-in-project-tab (orig-fn &rest args)
+  "If file belongs to a different project, open it in that project's tab.
+Tab variant of `my/maybe-switch-workspace-for-project': the file opens in a
+native tab named after its project (created on demand) inside the current
+workspace; the current tab stays selected."
+  (let* ((file (or (car args) (dired-get-filename nil t)))
+         (file-dir (and file (file-name-directory (expand-file-name file))))
+         (current-root (ignore-errors (projectile-project-root)))
+         (file-root (and file-dir
+                         (ignore-errors
+                           (let ((default-directory file-dir))
+                             (projectile-project-root))))))
+    (if (and current-root file-root
+             (not (string= current-root file-root)))
+        (let ((project-name (file-name-nondirectory (directory-file-name file-root)))
+              (current-tab (alist-get 'name (tab-bar--current-tab))))
+          (tab-bar-switch-to-tab project-name)
+          (apply orig-fn args)
+          (tab-bar-switch-to-tab current-tab))
+      (apply orig-fn args))))
+
+;; Testing the tab-based flow; roll back by advising
+;; `my/maybe-switch-workspace-for-project' instead.
+(advice-add 'dired-find-file :around #'my/maybe-open-in-project-tab)
 
 ;; Auto-open the dirvish sidebar when switching to a project (C-c p p),
 ;; keeping focus in the file window.

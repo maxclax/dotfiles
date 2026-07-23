@@ -84,14 +84,24 @@
         ;; Show branch information
         magit-status-show-hashes-in-headers t)
 
-  ;; Open submodule in its own dedicated workspace when navigating to it.
-  (defadvice! my/magit-submodule-in-workspace (fn module &rest args)
-    :around #'magit-submodule-visit
+  ;; Submodule visit strategies — exactly ONE of these advised at a time.
+  ;; Workspace-per-submodule (previous behavior, kept for easy rollback):
+  (defun my/magit-submodule-in-workspace (fn module &rest args)
     (let ((name (file-name-nondirectory (directory-file-name module))))
       (unless (+workspace-exists-p name)
         (+workspace/new name))
       (+workspace/switch-to name)
       (apply fn module args)))
+
+  ;; Tab-per-submodule (testing): submodule opens in a native tab inside
+  ;; the current workspace. `tab-bar-switch-to-tab' creates the tab when
+  ;; it doesn't exist yet. Roll back by advising the workspace fn instead.
+  (defun my/magit-submodule-in-tab (fn module &rest args)
+    (let ((name (file-name-nondirectory (directory-file-name module))))
+      (tab-bar-switch-to-tab name)
+      (apply fn module args)))
+
+  (advice-add 'magit-submodule-visit :around #'my/magit-submodule-in-tab)
 
   ;; Submodule sections — overview + unpulled only (no duplicate @{push})
   (magit-add-section-hook 'magit-status-sections-hook
