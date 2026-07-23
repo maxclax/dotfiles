@@ -431,13 +431,15 @@
         "V" #'my/dired-toggle-details))
 
 
-;; Workspace-level commands under C-x C-a w, next to the session keys
-;; (l/s = quick session, C-l/C-s = named session, w = single workspace)
-(map! (:prefix ("C-x C-a w" . "Workspace")
-       :desc "Rename" "r"          #'+workspace/rename
-       :desc "Save to file" "s"    #'+workspace/save
-       :desc "Load from file" "l"  #'+workspace/load
-       :desc "Kill workspace" "k"  #'+workspace/kill))
+;; Workspace commands flat on the persp prefix, next to the session keys:
+;; lowercase = quick session + workspace lifecycle, C- = named sessions,
+;; capitals = single-workspace files
+(map! (:prefix "C-x C-a"
+       :desc "New workspace" "n"       #'+workspace/new
+       :desc "Rename workspace" "r"    #'+workspace/rename
+       :desc "Kill workspace" "k"      #'+workspace/kill
+       :desc "Save workspace file" "S" #'+workspace/save
+       :desc "Load workspace file" "L" #'+workspace/load))
 
 (after! verb
   (map! :map org-mode-map "C-c C-r" verb-command-map))
