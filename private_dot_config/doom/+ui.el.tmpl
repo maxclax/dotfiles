@@ -66,7 +66,8 @@
 ;; is on. Must enable AFTER persp-mode loads: doom registers its tab-bar
 ;; integration on tab-bar-mode-hook from persp's config, so enabling earlier
 ;; fires the hook before the listener exists and tabs never restore.
-(setq tab-bar-show 1)
+(setq tab-bar-show 1
+      tab-bar-tab-hints t) ; show "1 name" etc. — targets for M-1..9
 (after! persp-mode
   (tab-bar-mode 1))
 
@@ -105,25 +106,134 @@
                     'append 'silent)
                    (signal (car e) (cdr e))))))
 
-  ;; +workspace/save serializes the window layout captured at last
-  ;; switch-away (unlike session save, which snapshots live frames first),
-  ;; so saving the CURRENT workspace writes a stale layout. Refresh first.
-  (advice-add '+workspace-save :before
-              (defun my/workspace-save-refresh-wconf-a (name)
-                (when-let ((persp (persp-get-by-name name *persp-hash* nil)))
-                  (persp-save-state persp))))
+  ;; +workspace/save needs three repairs:
+  ;; 1. it serializes the layout captured at last switch-away (session save
+  ;;    snapshots live frames first) — refresh so the CURRENT layout is saved;
+  ;; 2. persp-save-to-file-by-names skips the
+  ;;    persp-before-save-state-to-file-functions hook where doom sanitizes
+  ;;    tab-bar data, so the raw tab param (with live #<window-configuration>
+  ;;    objects) is unserializable and tabs silently vanish from the file —
+  ;;    filter it here;
+  ;; 3. winner-ring / tab-bar-closed-tabs params can never serialize and just
+  ;;    spam "can't be saved" — drop them for the write, restore after.
+  (advice-add '+workspace-save :around
+              (defun my/workspace-save-clean-a (fn name)
+                (let* ((persp (persp-get-by-name name *persp-hash* nil))
+                       (winner (and persp (persp-parameter 'winner-ring persp)))
+                       (closed (and persp (persp-parameter 'tab-bar-closed-tabs persp))))
+                  (when persp
+                    (persp-save-state persp)
+                    (let ((tabs (if (and (eq persp (get-current-persp))
+                                         (bound-and-true-p tab-bar-mode))
+                                    (tab-bar-tabs)
+                                  (persp-parameter 'tab-bar-tabs persp))))
+                      (when tabs
+                        (set-persp-parameter
+                         'tab-bar-tabs
+                         (frameset-filter-tabs (copy-tree tabs) nil nil t)
+                         persp)))
+                    (delete-persp-parameter 'winner-ring persp)
+                    (delete-persp-parameter 'tab-bar-closed-tabs persp))
+                  (unwind-protect (funcall fn name)
+                    (when persp
+                      (when winner
+                        (set-persp-parameter 'winner-ring winner persp))
+                      (when closed
+                        (set-persp-parameter 'tab-bar-closed-tabs closed persp)))))))
 
-  ;; Don't save buffers that are slow or impossible to restore
-  (add-to-list 'persp-filter-save-buffers-functions
-               (lambda (buf)
-                 (with-current-buffer buf
-                   (or (null (buffer-file-name))
-                       (derived-mode-p 'magit-mode)
-                       (derived-mode-p 'dired-mode)
-                       (derived-mode-p 'compilation-mode)
-                       (derived-mode-p 'vterm-mode)
-                       (derived-mode-p 'eshell-mode)
-                       (string-prefix-p "*" (buffer-name)))))))
+  ;; Don't save buffers that are slow or impossible to restore. eat
+  ;; terminals are exempt — they get a save/load handler below. (setq, not
+  ;; add-to-list: persp's DEFAULT filter also drops all *star* buffers,
+  ;; which would filter eat out before its handler ever ran.)
+  (setq persp-filter-save-buffers-functions
+        (list
+         (defun my/persp-filter-unsavable-buffers (buf)
+           (with-current-buffer buf
+             (unless (derived-mode-p 'eat-mode 'org-agenda-mode)
+               (or (null (buffer-file-name))
+                   (derived-mode-p 'magit-mode)
+                   (derived-mode-p 'dired-mode)
+                   (derived-mode-p 'compilation-mode)
+                   (derived-mode-p 'vterm-mode)
+                   (derived-mode-p 'eshell-mode)
+                   (string-prefix-p "*" (buffer-name))))))))
+
+  ;; eat and org-agenda open via the popup system, which skips doom's
+  ;; add-to-workspace tracking — without membership they never get saved.
+  ;; But NOT while a workspace/session file is loading: the load recreates
+  ;; these buffers while some OTHER workspace is still current, and the
+  ;; hook would leak them into it.
+  (defvar my/persp--loading nil)
+  (advice-add 'persp-load-state-from-file :around
+              (defun my/persp-note-loading-a (fn &rest args)
+                (let ((my/persp--loading t)) (apply fn args))))
+  (advice-add 'persp-load-from-file-by-names :around #'my/persp-note-loading-a)
+  (defun my/add-buffer-to-workspace-h ()
+    (when (and (get-current-persp) (not my/persp--loading))
+      (persp-add-buffer (current-buffer))))
+  (add-hook 'eat-mode-hook #'my/add-buffer-to-workspace-h)
+  (add-hook 'org-agenda-mode-hook #'my/add-buffer-to-workspace-h)
+
+  ;; Doom's magit-status restore handler calls (magit-status dir), which
+  ;; DISPLAYS the buffer in the selected window mid-load — hijacking
+  ;; whatever workspace you're looking at. Re-register the handler (ours
+  ;; lands in front) with display suppressed.
+  (persp-def-buffer-save/load
+   :mode 'magit-status-mode :tag-symbol 'def-magit-status-buffer
+   :save-vars '(major-mode default-directory)
+   :load-function
+   (lambda (savelist &rest _)
+     (when-let ((dir (alist-get 'default-directory (caddr savelist))))
+       (when (file-directory-p dir)
+         (save-window-excursion
+           (magit-status dir)
+           (current-buffer))))))
+
+  ;; org-agenda buffers: persist the command that generated them and
+  ;; regenerate on load. org-agenda-redo-command is NOT buffer-local (org
+  ;; sets it globally), so :save-vars can't capture it — use an explicit
+  ;; save function.
+  (persp-def-buffer-save/load
+   :mode 'org-agenda-mode :tag-symbol 'def-agenda-buffer
+   :save-function
+   (lambda (buffer tag _vars)
+     (with-current-buffer buffer
+       (let ((cmd org-agenda-redo-command)) ; buffer-local or global
+         (list tag (buffer-name buffer)
+               (when (and cmd (persp-elisp-object-readable-p cmd))
+                 (list (cons 'major-mode major-mode)
+                       (cons 'org-agenda-redo-command cmd)))))))
+   :load-function
+   (lambda (savelist &rest _)
+     (cl-destructuring-bind (buffer-name vars &rest _rest) (cdr savelist)
+       (when-let ((cmd (alist-get 'org-agenda-redo-command vars)))
+         (require 'org-agenda)
+         (save-window-excursion
+           (ignore-errors (eval cmd t))
+           (when-let ((buf (cl-find-if
+                            (lambda (b)
+                              (with-current-buffer b
+                                (derived-mode-p 'org-agenda-mode)))
+                            (buffer-list))))
+             (with-current-buffer buf
+               (unless (equal (buffer-name) buffer-name)
+                 (rename-buffer buffer-name t))
+               (current-buffer))))))))
+
+  ;; eat terminals: persist buffer name + working directory; loading spawns
+  ;; a fresh shell there (scrollback/history can't be serialized)
+  (persp-def-buffer-save/load
+   :mode 'eat-mode :tag-symbol 'def-eat-buffer
+   :save-vars '(major-mode default-directory)
+   :load-function
+   (lambda (savelist &rest _)
+     (cl-destructuring-bind (buffer-name vars &rest _rest) (cdr savelist)
+       (let ((default-directory (or (alist-get 'default-directory vars) "~/")))
+         (require 'eat)
+         (save-window-excursion
+           (eat-make (string-trim buffer-name "\\*" "\\*")
+                     (or explicit-shell-file-name shell-file-name
+                         (getenv "SHELL")))))))))
 
 
 ;; Dim inactive windows for visual focus feedback
