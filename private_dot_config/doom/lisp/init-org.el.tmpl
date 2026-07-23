@@ -918,12 +918,22 @@ Heading links include file:path so navigation works across files."
    '(org-upcoming-deadline :foreground "orange" :weight bold)
    '(org-upcoming-distant-deadline :foreground "dark orange")
    '(org-warning :foreground "red" :weight bold)
-   '(org-imminent-deadline :foreground "red" :weight bold :underline t)
-   ;; Block headers (overriding-header) — larger, bold, with a light full-width
-   ;; background bar (:extend fills to the window edge when the face also
-   ;; covers the trailing newline; see `my/agenda-uppercase-headers').
-   '(org-agenda-structure :weight bold :height 1.05
-     :background "#fdf8e1" :extend t))
+   '(org-imminent-deadline :foreground "red" :weight bold :underline t))
+
+  ;; Block headers (overriding-header) — larger, bold, with a full-width
+  ;; background bar (:extend fills to the window edge when the face also
+  ;; covers the trailing newline; see `my/agenda-uppercase-headers').
+  ;; The bar must follow the theme: cream on light, raised bg-alt on dark —
+  ;; a hardcoded light cream glares after circadian switches to dark.
+  (defun my/agenda-structure-face-h (&rest _)
+    (custom-set-faces!
+     `(org-agenda-structure
+       :weight bold :height 1.05 :extend t
+       :background ,(if (eq (frame-parameter nil 'background-mode) 'light)
+                        "#fdf8e1"
+                      (doom-color 'bg-alt)))))
+  (my/agenda-structure-face-h)
+  (add-hook 'doom-load-theme-hook #'my/agenda-structure-face-h)
 
   ;; Colorize DEADLINE lines in org buffers based on proximity
   (defun my/org-deadline-fontify ()
