@@ -101,10 +101,41 @@
                           'magit-insert-modules-unpulled-from-upstream
                           'magit-insert-stashes t)
 
-  ;; Right margin: author + absolute datetime, in status recent-commits
-  ;; AND log buffers alike (format: (INIT STYLE WIDTH AUTHOR AUTHOR-WIDTH))
-  (customize-set-variable 'magit-status-margin '(t "%Y-%m-%d %H:%M" magit-log-margin-width t 12))
-  (customize-set-variable 'magit-log-margin '(t "%Y-%m-%d %H:%M" magit-log-margin-width t 12))
+  ;; Right margin: author + absolute datetime + relative age, in status
+  ;; recent-commits AND log buffers (format: (INIT STYLE WIDTH AUTHOR AUTHOR-W))
+  (customize-set-variable 'magit-status-margin '(t "%Y-%m-%d %H:%M" 37 t 12))
+  (customize-set-variable 'magit-log-margin '(t "%Y-%m-%d %H:%M" 37 t 12))
+
+  ;; Append "(2d)"-style age after the datetime. Magit's stock renderer does
+  ;; datetime OR age, never both — this override (copy of
+  ;; `magit-log-format-author-margin' from the pinned magit) adds the suffix.
+  (advice-add 'magit-log-format-author-margin :override
+              (defun my/magit-margin-datetime+age-a (author date)
+                (pcase-let ((`(,_ ,style ,width ,details ,details-width)
+                             (or magit--right-margin-config
+                                 (symbol-value (magit--right-margin-option))
+                                 (error "No margin format specified for %s" major-mode))))
+                  (magit-make-margin-overlay
+                   (concat (and details
+                                (concat (magit--propertize-face
+                                         (truncate-string-to-width
+                                          (or author "") details-width nil ?\s
+                                          (magit--ellipsis 'margin))
+                                         'magit-log-author)
+                                        " "))
+                           (magit--propertize-face
+                            (if (stringp style)
+                                (concat
+                                 (format-time-string
+                                  style (seconds-to-time (string-to-number date)))
+                                 (pcase-let ((`(,cnt ,unit) (magit--age date t)))
+                                   (format " (%d%c)" cnt unit)))
+                              (pcase-let* ((abbr (eq style 'age-abbreviated))
+                                           (`(,cnt ,unit) (magit--age date abbr)))
+                                (format (format (if abbr "%%2d%%-%dc" "%%2d %%-%ds")
+                                                (- width (if details (1+ details-width) 0)))
+                                        cnt unit)))
+                            'magit-log-date))))))
 
   ;; Auto-save WIP to hidden refs — never lose uncommitted work
   (magit-wip-mode 1)
@@ -123,3 +154,14 @@
 (use-package! magit-delta
   :after magit
   :hook (magit-mode . magit-delta-mode))
+
+;; TODO/FIXME/NOTE items from the repo as a section in magit status.
+;; Keywords and colors come from hl-todo (configured in +ui.el).
+(use-package! magit-todos
+  :after magit
+  :config
+  (setq magit-todos-insert-after '(bottom)   ; last section, below recent commits
+        magit-todos-max-items 15
+        magit-todos-exclude-globs '(".git/" "node_modules/" "vendor/" "vendors/"
+                                    "dist/" "*.min.js" "*.min.css" "*.map"))
+  (magit-todos-mode 1))

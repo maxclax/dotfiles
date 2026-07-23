@@ -134,6 +134,7 @@
 (package! verb)                       ; HTTP client integrated with org-mode
 (package! eat)                        ; Terminal emulator package for running shells
 (package! magit-delta)                ; Delta syntax highlighting in Magit diffs
+(package! magit-todos)                ; TODO/FIXME items as a magit status section
 (package! dimmer)                     ; Dim inactive windows for focus
 (package! ipretty)                    ; Pretty-print Elisp eval results
 (package! macrostep)                  ; Inline macro expansion viewer
