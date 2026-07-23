@@ -226,7 +226,12 @@
       :desc "Prev TODO in buffer" "p"    #'hl-todo-previous
       :desc "Search TODOs" "s" (lambda () (interactive)
                                  (if (projectile-project-p)
-                                     (consult-ripgrep (projectile-project-root) "TODO:")
+                                     (consult-ripgrep
+                                      (projectile-project-root)
+                                      ;; every hl-todo keyword, |-joined as
+                                      ;; an rg alternation pattern
+                                      (mapconcat (lambda (k) (concat (car k) ":"))
+                                                 hl-todo-keyword-faces "|"))
                                    (message "Not in a project")))))
 
     (:prefix ("C-c v" . "Versioning")
