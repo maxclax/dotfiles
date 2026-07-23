@@ -81,6 +81,35 @@ The file is opened in a new workspace; the current workspace stays untouched."
                   ;; which save-selected-window suppresses — render manually
                   (dirvish--render-attrs (selected-window)))))))
 
+;; Persist the sidebar across workspace switches. Doom's dired module quits
+;; every dirvish session right before a switch (+dired--cleanup-dirvish-h on
+;; persp-before-switch-functions), so the sidebar never survives. Remember
+;; its visibility per workspace BEFORE that cleanup runs (add-hook prepends,
+;; so ours fires first) and re-open it when switching back.
+(after! persp-mode
+  (add-hook 'persp-before-switch-functions
+            (defun my/dirvish-side-remember-h (&rest _)
+              (when-let ((persp (get-current-persp)))
+                (set-persp-parameter
+                 'dirvish-side-visible
+                 (and (fboundp 'dirvish-side-session-visible-p)
+                      (dirvish-side-session-visible-p)
+                      t)
+                 persp))))
+  (add-hook 'persp-activated-functions
+            (defun my/dirvish-side-restore-h (_)
+              (when (persp-parameter 'dirvish-side-visible)
+                ;; defer: the workspace's window config is still being restored
+                (run-at-time
+                 0 nil
+                 (lambda ()
+                   (require 'dirvish-side)
+                   (unless (dirvish-side-session-visible-p)
+                     (save-selected-window
+                       (dirvish-side (or (ignore-errors (projectile-project-root))
+                                         default-directory))
+                       (dirvish--render-attrs (selected-window))))))))))
+
 (after! dirvish
   ;; Enable dirvish globally for all dired buffers
   (dirvish-override-dired-mode)
@@ -99,6 +128,47 @@ The file is opened in a new workspace; the current workspace stays untouched."
 
   ;; Clean by default: icons + subtree only, ls detail columns hidden
   (setq dirvish-attributes '(nerd-icons collapse))
+
+  ;; ── Sidebar cosmetics: -10% font, tinted background, content-fit width ──
+  ;; Keyed off the buffer being shown in an actual SIDE WINDOW, not the
+  ;; session type: a side session promoted to full layout (M-TAB) reuses the
+  ;; same buffers, so cosmetics must apply/remove as the layout flips.
+  (defvar-local my/dirvish-side--tint nil)
+
+  (defun my/dirvish-side-cosmetics ()
+    "Apply or remove sidebar cosmetics based on the displaying window."
+    (let* ((win (get-buffer-window (current-buffer)))
+           (sidep (and win (window-parameter win 'window-side))))
+      (cond
+       (sidep
+        (setq-local text-scale-mode-step 1.1) ; one step ≈ -10%
+        (text-scale-set -1)
+        (unless my/dirvish-side--tint
+          (setq my/dirvish-side--tint
+                (face-remap-add-relative
+                 'default :background
+                 (if (eq (frame-parameter nil 'background-mode) 'light)
+                     "#fefcf0"
+                   (doom-color 'bg-alt)))))
+        ;; width follows content, clamped 20–30 columns
+        (let* ((longest (cadr (buffer-line-statistics)))
+               (target (min 30 (max 20 (+ longest 4))))
+               (delta (- target (window-total-width win))))
+          (unless (zerop delta)
+            (ignore-errors (window-resize win delta t t)))))
+       (t ; not in a side window — strip everything
+        (when (bound-and-true-p text-scale-mode)
+          (text-scale-set 0))
+        (when my/dirvish-side--tint
+          (face-remap-remove-relative my/dirvish-side--tint)
+          (setq my/dirvish-side--tint nil))))))
+
+  (setq dirvish-side-width 30)
+  (add-hook 'dirvish-setup-hook #'my/dirvish-side-cosmetics)
+  ;; layout toggle reuses the buffer without re-running setup — re-evaluate
+  (advice-add 'dirvish-layout-toggle :after
+              (defun my/dirvish-side-cosmetics-a (&rest _)
+                (my/dirvish-side-cosmetics)))
 
   ;; Preview directories with real formatting (faces, denote date prefixes,
   ;; .DS_Store filtering) — dirvish's default runs a child Emacs and shows
