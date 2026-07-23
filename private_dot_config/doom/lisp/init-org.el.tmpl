@@ -481,7 +481,7 @@ Heading links include file:path so navigation works across files."
             (org-agenda-finalize-hook '(my/agenda-graveyard-full))))
 
           ;; Milestones — life counters
-          ("m" "Milestones" agenda ""
+          ("l" "Life Milestones" agenda ""
            ((org-agenda-span 1)
             (org-agenda-files nil)
             (org-agenda-entry-types nil)
@@ -763,7 +763,7 @@ Heading links include file:path so navigation works across files."
                             (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))))))))
 
           ;; Shopping & Selling Lists
-          ("S" "Shopping & Selling"
+          ("b" "Buy & Sell"
            ((tags-todo "shopping"
                        ((org-agenda-overriding-header "🛒 Shopping List")))
             (tags-todo "selling"
