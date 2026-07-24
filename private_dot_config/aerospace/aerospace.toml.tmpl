@@ -224,9 +224,7 @@ run = "move-node-to-workspace 10"
 if.app-id = 'com.github.wez.wezterm'
 run = "move-node-to-workspace D"
 
-[[on-window-detected]]
-if.app-id = 'com.apple.finder'
-run = "move-node-to-workspace I"
+
 [[on-window-detected]]
 if.app-id = 'net.publicspace.dist.vitaminr4'
 run = ["layout tiling", "move-node-to-workspace I"]
@@ -251,6 +249,9 @@ run = "move-node-to-workspace U"
 
 # ---------------------------------------------------------
 
+[[on-window-detected]]
+if.app-id = 'com.apple.finder'
+run = ["layout floating"]
 [[on-window-detected]]
 if.app-id = "com.federicoterzi.espanso"
 run = ["layout floating"]
