@@ -289,6 +289,7 @@ ip_check:
 backup_create:
 	@echo "📦 Syncing app configs to extra-configs..."
 	@rsync -a --delete --exclude='storage/' --exclude='zen-sessions-backup/' ~/Library/Application\ Support/zen/Profiles/ ~/.local/extra-configs/Zen/
+	@rsync -a --delete --exclude='*.sock' --exclude='*.log' ~/.config/herdr/ ~/.local/extra-configs/herdr/
 	@$(MAKE) restic_backup
 
 backup_list:
@@ -314,6 +315,12 @@ restore_configs:
 	done; \
 	[ -n "$$DEF" ] && { for f in "$$INI" "$$INST"; do [ -f "$$f" ] && { sed "s|^Default=Profiles/.*|Default=Profiles/$$DEF|" "$$f" > "$$f.tmp" && mv "$$f.tmp" "$$f"; }; done; echo "  • Zen default → $$DEF"; } \
 	  || echo "  • Zen: pick default with: make restore_configs profile='<dir>'"
+	@SRC="$$HOME/.local/extra-configs/herdr"; DST="$$HOME/.config/herdr"; \
+	[ -d "$$SRC" ] || { echo "  • herdr: nothing to restore."; exit 0; }; \
+	pgrep -qx herdr && { echo "❌ Stop herdr first (herdr server stop)."; exit 1; }; \
+	mkdir -p "$$DST"; \
+	rsync -a --exclude='*.sock' --exclude='*.log' "$$SRC/" "$$DST/"; \
+	echo "  • herdr: config + session restored"
 {{- else }}
 	@echo "  • No restore steps for this OS yet."
 {{- end }}
