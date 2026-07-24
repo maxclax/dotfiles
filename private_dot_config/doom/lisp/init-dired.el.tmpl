@@ -233,6 +233,16 @@ workspace; the current tab stays selected."
   (advice-add 'dirvish-layout-toggle :after
               (defun my/dirvish-side-cosmetics-a (&rest _)
                 (my/dirvish-side-cosmetics)))
+  ;; the tint remap stores a literal color, so a theme change (circadian
+  ;; morning/evening flip) leaves stale backgrounds — recompute them
+  (add-hook 'doom-load-theme-hook
+            (defun my/dirvish-side-retint-h (&rest _)
+              (dolist (buf (buffer-list))
+                (with-current-buffer buf
+                  (when (bound-and-true-p my/dirvish-side--tint)
+                    (face-remap-remove-relative my/dirvish-side--tint)
+                    (setq my/dirvish-side--tint nil)
+                    (my/dirvish-side-cosmetics))))))
 
   ;; Preview directories with real formatting (faces, denote date prefixes,
   ;; .DS_Store filtering) — dirvish's default runs a child Emacs and shows
