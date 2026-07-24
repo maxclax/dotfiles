@@ -21,4 +21,14 @@
               (add-to-list 'copilot-indentation-alist '(closure-mode 2))
               (add-to-list 'copilot-indentation-alist '(emacs-lisp-mode 2)))
 
+;; Auto-enable copilot for code under the main workspace tree only —
+;; keeps it out of notes, dotfiles, and random files elsewhere
+(defun my/copilot-maybe-enable-h ()
+  (when (and buffer-file-name
+             (string-prefix-p (expand-file-name {{ .workspace | quote }})
+                              (expand-file-name buffer-file-name)))
+    (copilot-mode 1)))
+(add-hook 'prog-mode-hook #'my/copilot-maybe-enable-h)
+(add-hook 'conf-mode-hook #'my/copilot-maybe-enable-h)
+
 (provide 'init-copilot)
