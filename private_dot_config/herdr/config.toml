@@ -35,6 +35,13 @@ settings = "prefix+comma"
 # t like the treemacs/tree-panel toggle habit
 toggle_sidebar = "prefix+t"
 
+# agent navigation: C-x o (default) jumps to the latest notification;
+# a / A cycle agents in panel order (= priority queue: most urgent first);
+# C-x M-1..9 jump straight to agent row N
+next_agent = "prefix+a"
+previous_agent = "prefix+shift+a"
+focus_agent = "prefix+alt+1..9"
+
 [ui]
 show_agent_labels_on_pane_borders = true
 # narrower sidebar, auto-scaled to workspace names within these bounds
