@@ -1,0 +1,59 @@
+onboarding = false
+
+# tmux-parity (~/.tmux.conf.local): C-x prefix, Emacs-style windows/panes.
+# tmux windows ≈ herdr tabs; tmux sessions ≈ herdr workspaces.
+[keys]
+prefix = "ctrl+x"
+detach = "prefix+d"
+
+# windows → tabs: C-x C-f / C-x C-b like next/previous-window
+next_tab = "prefix+ctrl+f"
+previous_tab = "prefix+ctrl+b"
+# free the digit row for Emacs-style pane keys below
+switch_tab = ""
+
+# panes, Emacs-style: C-x 2/3 split, C-x 0 close, C-x f/b/n/p focus
+split_horizontal = "prefix+2"
+split_vertical = "prefix+3"
+close_pane = "prefix+0"
+focus_pane_right = "prefix+f"
+focus_pane_left = "prefix+b"
+focus_pane_down = "prefix+n"
+focus_pane_up = "prefix+p"
+# navigate-mode letters follow the same f/b/n/p scheme
+navigate_pane_left = "b"
+navigate_pane_down = "n"
+navigate_pane_up = "p"
+navigate_pane_right = "f"
+
+# sessions → workspaces: C-x s picker, C-x S rename (settings moved to ,)
+workspace_picker = "prefix+s"
+rename_workspace = "prefix+shift+s"
+settings = "prefix+comma"
+
+# sidebar toggle: default prefix+b collides with focus_pane_left above —
+# t like the treemacs/tree-panel toggle habit
+toggle_sidebar = "prefix+t"
+
+[ui]
+show_agent_labels_on_pane_borders = true
+# narrower sidebar, auto-scaled to workspace names within these bounds
+sidebar_width = 16
+sidebar_min_width = 12
+sidebar_max_width = 18
+
+agent_panel_sort = "spaces"
+[experimental]
+pane_history = true
+
+switch_ascii_input_source_in_prefix = true
+[ui.toast]
+delivery = "herdr"
+
+# Agent rows: show the PANE name (publisher/dotfiles badges), not just the
+# space — several agents in one space were indistinguishable otherwise.
+[ui.sidebar.agents]
+rows = [["state_icon", "agent"]]
+# claude reports its current task via the terminal title — show it live
+[ui.sidebar.agents.rows_by_agent]
+claude = [["state_icon", "terminal_title_stripped"]]
