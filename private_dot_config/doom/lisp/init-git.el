@@ -103,6 +103,20 @@
 
   (advice-add 'magit-submodule-visit :around #'my/magit-submodule-in-tab)
 
+  ;; RET on a submodule line in unstaged/staged sections goes through
+  ;; magit-diff-visit-file, not magit-submodule-visit — give it the same
+  ;; open-in-tab behavior.
+  (defun my/magit-visit-submodule-in-tab-a (orig-fn &rest args)
+    (let* ((file (magit-file-at-point))
+           (abs (and file (expand-file-name file (magit-toplevel)))))
+      (if (and abs (file-directory-p abs)
+               (file-exists-p (expand-file-name ".git" abs)))
+          (let ((name (file-name-nondirectory (directory-file-name abs))))
+            (tab-bar-switch-to-tab name)
+            (magit-status-setup-buffer abs))
+        (apply orig-fn args))))
+  (advice-add 'magit-diff-visit-file :around #'my/magit-visit-submodule-in-tab-a)
+
   ;; Submodule sections — overview + unpulled only (no duplicate @{push})
   (magit-add-section-hook 'magit-status-sections-hook
                           'magit-insert-modules-overview
@@ -173,5 +187,5 @@
   (setq magit-todos-insert-after '(bottom)   ; last section, below recent commits
         magit-todos-max-items 15
         magit-todos-exclude-globs '(".git/" "node_modules/" "vendor/" "vendors/"
-                                    "dist/" "*.min.js" "*.min.css" "*.map"))
+                                    "dist/" "docs/" "*.min.js" "*.min.css" "*.map"))
   (magit-todos-mode 1))
