@@ -141,6 +141,8 @@
               :desc "Connect to IRC" "c"      #'my/erc-connect
               :desc "Join extra channels" "j" #'my/erc-join-extra)
              (:prefix ("f" . "Frames")
+              :desc "Close others, main on 5" "0" #'my/close-other-frames
+              :desc "Create 1 frame"  "1" #'my/make-1-frame
               :desc "Create 2 frames" "2" #'my/make-2-frames
               :desc "Create 3 frames" "3" #'my/make-3-frames)
              :desc "Org store link" "l"       #'org-store-link
