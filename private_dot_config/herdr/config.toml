@@ -53,7 +53,7 @@ delivery = "herdr"
 # Agent rows: show the PANE name (publisher/dotfiles badges), not just the
 # space — several agents in one space were indistinguishable otherwise.
 [ui.sidebar.agents]
-rows = [["state_icon", "agent"]]
+rows = [["state_icon", "workspace"], ["agent"]]
 # claude reports its current task via the terminal title — show it live
 [ui.sidebar.agents.rows_by_agent]
-claude = [["state_icon", "terminal_title_stripped"]]
+claude = [["state_icon", "workspace"], ["terminal_title_stripped"], ["agent"]]
