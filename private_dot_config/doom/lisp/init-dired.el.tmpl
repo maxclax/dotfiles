@@ -157,20 +157,46 @@ workspace; the current tab stays selected."
               (my/dirvish-side-record-tab)))
   (add-hook 'persp-activated-functions
             (defun my/dirvish-side-restore-h (_)
-              (my/dirvish-side-apply-tab-deferred))))
+              ;; via the cleanup: workspace loads can restore broken
+              ;; sidebars in the current tab too. Double pass — during
+              ;; startup the layout (frames/tabs/theme) settles late and
+              ;; the first pass can style a window that gets rebuilt.
+              (run-at-time 0 nil #'my/tab-fix-dead-side-windows)
+              (run-at-time 1.5 nil #'my/tab-fix-dead-side-windows))))
 
-;; Selecting a tab can also restore a DEAD side window (" *Old buffer
-;; *SIDE…" placeholder pointing at a killed dirvish buffer). Delete the
-;; corpses, then reapply the recorded per-tab sidebar state.
+;; new client frames (daemon startup) render before sidebar styling has
+;; anywhere to hook — settle pass once the frame is up
+(add-hook 'server-after-make-frame-hook
+          (defun my/dirvish-side-frame-fix-h ()
+            (run-at-time 2 nil
+                         (lambda ()
+                           (when (fboundp 'my/tab-fix-dead-side-windows)
+                             (my/tab-fix-dead-side-windows))))))
+
+;; Selecting a tab can also restore BROKEN sidebars in two flavors: a dead
+;; side window (" *Old buffer *SIDE…" placeholder pointing at a killed
+;; dirvish buffer), or a side-session buffer put back into a NORMAL window
+;; (restore drops the window-side parameter, so styling and side-window
+;; behavior are lost). Delete both, then reapply the recorded per-tab
+;; sidebar state, which reopens a proper side window.
 (defun my/tab-fix-dead-side-windows (&rest _)
   (dolist (win (window-list))
-    (when (window-parameter win 'window-side)
-      (let ((buf (window-buffer win)))
+    (let ((buf (window-buffer win)))
+      (cond
+       ((window-parameter win 'window-side)
         (when (or (not (buffer-live-p buf))
                   (string-prefix-p " *Old buffer" (buffer-name buf))
                   (with-current-buffer buf
                     (and (fboundp 'dirvish-curr) (not (dirvish-curr)))))
-          (ignore-errors (delete-window win))))))
+          (ignore-errors (delete-window win))))
+       ((and (buffer-live-p buf)
+             (with-current-buffer buf
+               (when-let ((dv (and (fboundp 'dirvish-curr) (dirvish-curr))))
+                 ;; side session in a plain window; a full dirvish layout
+                 ;; (promoted via M-TAB) has curr-layout set — leave those
+                 (and (eq (dv-type dv) 'side)
+                      (null (dv-curr-layout dv))))))
+        (ignore-errors (delete-window win))))))
   (my/dirvish-side-apply-tab-deferred))
 (add-hook 'tab-bar-tab-post-select-functions #'my/tab-fix-dead-side-windows)
 
@@ -214,9 +240,11 @@ workspace; the current tab stays selected."
                  (if (eq (frame-parameter nil 'background-mode) 'light)
                      "#fefcf0"
                    (doom-color 'bg-alt)))))
-        ;; width follows content, clamped 20–30 columns
+        ;; width follows content, clamped 18–25 columns. The text is scaled
+        ;; to ~90% but window-resize counts full-size columns, so correct
+        ;; the char count by the scale factor or the fit runs ~10% wide.
         (let* ((longest (cadr (buffer-line-statistics)))
-               (target (min 30 (max 20 (+ longest 4))))
+               (target (min 25 (max 18 (+ (ceiling (* 0.91 longest)) 2))))
                (delta (- target (window-total-width win))))
           (unless (zerop delta)
             (ignore-errors (window-resize win delta t t)))))
@@ -227,8 +255,19 @@ workspace; the current tab stays selected."
           (face-remap-remove-relative my/dirvish-side--tint)
           (setq my/dirvish-side--tint nil))))))
 
-  (setq dirvish-side-width 30)
+  (setq dirvish-side-width 25)
   (add-hook 'dirvish-setup-hook #'my/dirvish-side-cosmetics)
+  ;; Navigating the sidebar to another dir creates the new buffer BEFORE
+  ;; the window displays it, so the setup-hook's side-window check fails
+  ;; and styling is skipped — restyle when a side window swaps buffers
+  (add-hook 'window-buffer-change-functions
+            (defun my/dirvish-side-restyle-h (frame)
+              (dolist (w (window-list (and (framep frame) frame)))
+                (when (window-parameter w 'window-side)
+                  (with-current-buffer (window-buffer w)
+                    (when (and (derived-mode-p 'dired-mode)
+                               (not my/dirvish-side--tint))
+                      (my/dirvish-side-cosmetics)))))))
   ;; layout toggle reuses the buffer without re-running setup — re-evaluate
   (advice-add 'dirvish-layout-toggle :after
               (defun my/dirvish-side-cosmetics-a (&rest _)
