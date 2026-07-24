@@ -325,8 +325,6 @@
         :desc "Tab 7"          "M-7" (cmd! (tab-bar-select-tab 7))
         :desc "Tab 8"          "M-8" (cmd! (tab-bar-select-tab 8))
         :desc "Tab 9"          "M-9" (cmd! (tab-bar-select-tab 9))
-        :desc "Prev workspace" "M-[" #'+workspace/switch-left
-        :desc "Next workspace" "M-]" #'+workspace/switch-right
         :desc "Last workspace" "M-`" #'+workspace/other
         :desc "New workspace"      "M-N" #'+workspace/new
         :desc "Kill workspace"     "M-D" #'+workspace/kill
