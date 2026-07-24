@@ -1,3 +1,9 @@
+config-version = 2
+
+# v2 no longer infers persistent workspaces from the keybindings —
+# they must be declared explicitly or empty workspaces disappear
+persistent-workspaces = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',  'D', 'I', 'M', 'U']
+
 after-login-command = []
 after-startup-command = []
 start-at-login = true
@@ -82,18 +88,18 @@ cmd-alt-f = 'fullscreen' # in i3 (but no cmd)
 cmd-1 = 'workspace 1'  # Undifined apps + dev: logs with console
 cmd-2 = 'workspace 2'  # Drafts, PARA
 cmd-3 = 'workspace 3'  # Browser
-cmd-4 = 'workspace 4'  # Dev (Emacs F1)
-cmd-5 = 'workspace 5'  # Dev (Emacs F2) + Accountants
-cmd-6 = 'workspace 6'  # Dev (Emacs F3)
+cmd-4 = 'workspace 4'  # Dev (Emacs)
+cmd-5 = 'workspace 5'  # Dev (Emacs)
+cmd-6 = 'workspace 6'  # Dev (Emacs)
 cmd-7 = 'workspace 7'  # AI GUI chats
 cmd-8 = 'workspace 8'  # Terminal (extra with F12)
 cmd-9 = 'workspace 9'  # Dev (env)
 cmd-0 = 'workspace 10' # AI CLI & Agents
 
-# cmd-a = 'workspace A'
+# cmd-a = 'workspace A' !!!
 # alt-b = 'workspace B'
 # alt-c = 'workspace C'
-# alt-d = 'workspace D'
+cmd-d = 'workspace D' # Dev
 # alt-e = 'workspace E'
 # alt-g = 'workspace G'
 cmd-i = 'workspace I' # Finder & Timing (pomodoro, vitamin-r)
@@ -105,7 +111,7 @@ cmd-m = 'workspace M' # Media
 # alt-r = 'workspace R'
 # alt-s = 'workspace S'
 # alt-t = 'workspace T'
-# alt-u = 'workspace U'
+cmd-u = 'workspace U' #
 # alt-v = 'workspace V'
 # alt-w = 'workspace W'
 # alt-x = 'workspace X'
@@ -128,7 +134,7 @@ cmd-ctrl-0 = 'move-node-to-workspace 10'
 # cmd-ctrl-a = 'move-node-to-workspace A'
 # cmd-ctrl-b = 'move-node-to-workspace B'
 # cmd-ctrl-c = 'move-node-to-workspace C'
-# cmd-ctrl-d = 'move-node-to-workspace D'
+cmd-ctrl-d = 'move-node-to-workspace D'
 # cmd-ctrl-e = 'move-node-to-workspace E'
 # cmd-ctrl-g = 'move-node-to-workspace G'
 cmd-ctrl-i = 'move-node-to-workspace I'
@@ -140,7 +146,7 @@ cmd-ctrl-m = 'move-node-to-workspace M'
 # cmd-ctrl-r = 'move-node-to-workspace R'
 # cmd-ctrl-s = 'move-node-to-workspace S'
 # cmd-ctrl-t = 'move-node-to-workspace T'
-# cmd-ctrl-u = 'move-node-to-workspace U'
+cmd-ctrl-u = 'move-node-to-workspace U'
 # cmd-ctrl-v = 'move-node-to-workspace V'
 # cmd-ctrl-w = 'move-node-to-workspace W'
 # cmd-ctrl-x = 'move-node-to-workspace X'
@@ -161,9 +167,9 @@ cmd-ctrl-r = 'mode resize' # in i3
 # ---------------------------------------------------------
 
 # ---------------------------------------------------------
-[[on-window-detected]]
-if.app-id = 'com.github.wez.wezterm'
-run = "move-node-to-workspace 1"
+
+# Undefined apps (1)
+
 
 [[on-window-detected]]
 if.app-id = 'com.agiletortoise.Drafts-OSX'
@@ -179,18 +185,12 @@ run = "move-node-to-workspace 3"
 if.app-id = "com.vivaldi.Vivaldi"
 run = "move-node-to-workspace 3"
 
-# Frame 1
+# Emacs (4)
+# Emacs (main) (5)
 [[on-window-detected]]
 if.app-id = "org.gnu.Emacs"
-run = "move-node-to-workspace 4"
-
-
-# Frame 2 + extra (5)
-[[on-window-detected]]
-if.app-id = "com.iggsoftware.banktivity"
 run = "move-node-to-workspace 5"
-
-# Frame 3 (6)
+# Emacs (6)
 
 [[on-window-detected]]
 if.app-id = 'com.electron.ollama'
@@ -221,6 +221,10 @@ if.app-id = 'com.cmuxterm.app'
 run = "move-node-to-workspace 10"
 
 [[on-window-detected]]
+if.app-id = 'com.github.wez.wezterm'
+run = "move-node-to-workspace D"
+
+[[on-window-detected]]
 if.app-id = 'com.apple.finder'
 run = "move-node-to-workspace I"
 [[on-window-detected]]
@@ -239,6 +243,11 @@ run = ["layout tiling", "move-node-to-workspace M"]
 [[on-window-detected]]
 if.app-id = 'com.apple.Music'
 run = ["layout tiling", "move-node-to-workspace M"]
+
+# Utilities, etc.
+[[on-window-detected]]
+if.app-id = "com.iggsoftware.banktivity"
+run = "move-node-to-workspace U"
 
 # ---------------------------------------------------------
 
@@ -269,15 +278,17 @@ run = 'move-node-to-workspace 1'
 # ---------------------------------------------------------
 # https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
 [workspace-to-monitor-force-assignment]
-1 = 1       # Undifined apps
-2 = 1       # Drafts, PARA
-3 = 'main'  # Browser
-4 = 'main'  # Dev (Emacs F1)
-5 = ['iPad', 'main']  # Dev (Emacs F2)
-6 = [4, 3]  # Dev (Emacs F3)
-7 = [4, 3]  # AI GUI chats
-8 = 'main'  # terminal
-9 = [3, 4]  # Dev (env)
-10 = [4, 3] # AI CLI & Agents
-I = ['iPad', 'Retina']  # Info (references, reading)
-M = [3, 1]  # Media, Mail
+1  = 1                  # Undifined apps
+2  = 1                  # Drafts, PARA
+3  = 'main'             # Browser
+4  = 1                  # Dev (Emacs)
+5  = 'main'             # Dev (Emacs F1)
+6  = [4, 3]             # Dev (Emacs)
+7  = [4, 3]             # AI GUI chats
+8  = 'main'             # terminal
+9  = [3, 4]             # Dev (env)
+10 = [4, 3]             # AI CLI & Agents
+# D  = [4, 3]             # Dev
+I  = ['iPad', 'Retina'] # Info (references, reading)
+M  = [3, 1]             # Media, Mail
+# U  = 'main'             # Utilities, etc.
