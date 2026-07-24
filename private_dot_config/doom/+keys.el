@@ -331,9 +331,7 @@
         :desc "New workspace"      "M-N" #'+workspace/new
         :desc "Kill workspace"     "M-D" #'+workspace/kill
         :desc "Display workspaces" "M-W" #'+workspace/display
-        :desc "Switch workspace"   "M-S" #'+workspace/switch-to
-        :desc "Swap left"          "M-{" #'+workspace/swap-left
-        :desc "Swap right"         "M-}" #'+workspace/swap-right))
+        :desc "Switch workspace"   "M-S" #'+workspace/switch-to))
 
   ;; ── Consult (M-s prefix) — better search / navigation ────────────────────────
   (map! :map override
