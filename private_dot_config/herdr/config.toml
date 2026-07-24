@@ -54,13 +54,13 @@ sidebar_width = 16
 sidebar_min_width = 12
 sidebar_max_width = 18
 
-agent_panel_sort = "spaces"
+agent_panel_sort = "priority"
 [experimental]
 pane_history = true
 
 switch_ascii_input_source_in_prefix = true
 [ui.toast]
-delivery = "terminal"
+delivery = "herdr"
 
 # Agent rows: show the PANE name (publisher/dotfiles badges), not just the
 # space — several agents in one space were indistinguishable otherwise.
