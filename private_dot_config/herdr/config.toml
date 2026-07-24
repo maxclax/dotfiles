@@ -42,6 +42,11 @@ next_agent = "prefix+a"
 previous_agent = "prefix+shift+a"
 focus_agent = "prefix+alt+1..9"
 
+# navigate/picker overlay: Emacs C-n/C-p to move through spaces
+# (plain n/p there already mean pane focus; arrows still work too)
+navigate_workspace_up = "ctrl+p"
+navigate_workspace_down = "ctrl+n"
+
 [ui]
 show_agent_labels_on_pane_borders = true
 # narrower sidebar, auto-scaled to workspace names within these bounds
@@ -55,7 +60,7 @@ pane_history = true
 
 switch_ascii_input_source_in_prefix = true
 [ui.toast]
-delivery = "herdr"
+delivery = "terminal"
 
 # Agent rows: show the PANE name (publisher/dotfiles badges), not just the
 # space — several agents in one space were indistinguishable otherwise.
