@@ -15,3 +15,13 @@
       (setq display-line-numbers-type nil)
     (setq display-line-numbers-type t))
   (revert-buffer-no-confirm))
+
+;;;###autoload
+(defun my/workspace-kill-others ()
+  "Kill every workspace except the current one (like C-x 1 for workspaces)."
+  (interactive)
+  (let ((current (+workspace-current-name)))
+    (dolist (name (+workspace-list-names))
+      (unless (string= name current)
+        (+workspace-kill name)))
+    (+workspace/display)))

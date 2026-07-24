@@ -358,6 +358,7 @@
       "C-x C-a C-n" #'+workspace/new
       "C-x C-a C-r" #'+workspace/rename
       "C-x C-a C-k" #'+workspace/kill
+      "C-x C-a C-1" #'my/workspace-kill-others
       "C-x C-a C-s" #'+workspace/save
       "C-x C-a C-l" #'+workspace/load)
 
