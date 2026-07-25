@@ -43,7 +43,9 @@
      :desc "Kill to end of line" "e"          #'kill-line
      :desc "Kill inside pair" "p"             #'my/kill-inside-pair)
 
-    (:prefix ("C-c C-f" . "Fold")
+    ;; Shifted F: plain C-c C-f must stay free for major modes (org: forward
+    ;; heading same level); org folding itself is TAB, this is for other langs
+    (:prefix ("C-c F" . "Fold")
      :desc "Toggle fold" "C-f"         #'my/fold-toggle
      :desc "Open fold" "C-u"           #'+fold/open
      :desc "Close fold" "C-c"          #'+fold/close
@@ -326,7 +328,6 @@
         :desc "Tab 8"          "M-8" (cmd! (tab-bar-select-tab 8))
         :desc "Tab 9"          "M-9" (cmd! (tab-bar-select-tab 9))
         :desc "Last workspace" "M-`" #'+workspace/other
-        :desc "New workspace"      "M-N" #'+workspace/new
         :desc "Kill workspace"     "M-D" #'+workspace/kill
         :desc "Display workspaces" "M-W" #'+workspace/display
         :desc "Switch workspace"   "M-S" #'+workspace/switch-to))

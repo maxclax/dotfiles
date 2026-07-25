@@ -774,6 +774,8 @@ Heading links include file:path so navigation works across files."
   (setq org-directory {{ .org_dir | quote }})
 
   (setq org-log-done nil)
+  ;; single-key commands with point on a heading star: n/p/f/b/u nav, t todo, ? list
+  (setq org-use-speed-commands t)
   (setq org-todo-repeat-to-state "TODO")
   (setq org-agenda-file-regexp "\\`[^.].*\\.org\\'") ;; Exclude files starting with "."
   (setq org-agenda-files
