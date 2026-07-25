@@ -36,11 +36,12 @@ settings = "prefix+comma"
 toggle_sidebar = "prefix+t"
 
 # agent navigation: C-x o (default) jumps to the latest notification;
-# a / A cycle agents in panel order (= priority queue: most urgent first);
-# C-x M-1..9 jump straight to agent row N
-next_agent = "prefix+a"
-previous_agent = "prefix+shift+a"
-focus_agent = "prefix+alt+1..9"
+# ctrl+tab / ctrl+shift+tab cycle agents browser-style, no prefix needed
+# (panel order = priority queue: most urgent first);
+# M-1..9 jump straight to agent row N, no prefix (like M-1..9 tabs in Emacs)
+next_agent = "ctrl+tab"
+previous_agent = "ctrl+shift+tab"
+focus_agent = "alt+1..9"
 
 # navigate/picker overlay: Emacs C-n/C-p to move through spaces
 # (plain n/p there already mean pane focus; arrows still work too)
