@@ -186,6 +186,43 @@
   :config
   (setq magit-todos-insert-after '(bottom)   ; last section, below recent commits
         magit-todos-max-items 15
+        ;; the branch-list scan pipes `git diff <merge-base>' through Emacs —
+        ;; 100MB+ on big repos, freezing every magit refresh ("Running…" forever)
+        magit-todos-branch-list nil
+        ;; `magit-todos-keywords' needs its custom :set — plain setq is
+        ;; ignored, so set the derived list the scanners actually read
+        magit-todos-keywords-list '("TODO" "FIXME" "FAIL" "DEBUG")
+        ;; static/**/plugins = vendored js libs (amcharts etc.); own static
+        ;; assets outside plugins/ still get scanned
         magit-todos-exclude-globs '(".git/" "node_modules/" "vendor/" "vendors/"
-                                    "dist/" "docs/" "*.min.js" "*.min.css" "*.map"))
+                                    "dist/" "docs/" "static/**/plugins/"
+                                    "*.min.js" "*.min.css" "*.map"))
+
+  ;; Stock scanners are comment-blind: python `if DEBUG:' matches same as a
+  ;; `# DEBUG:' comment. This scanner requires the keyword right after a
+  ;; comment marker (annotation style), so commented-out code like
+  ;; `# if settings.DEBUG:' doesn't count; org `* TODO' headings still match.
+  (magit-todos-defscanner "rg comments"
+    :availablep (lambda () (executable-find "rg"))
+    :directory-form (if (equal directory default-directory)
+                        nil ; prevent leading "./" in filenames
+                      (f-relative directory default-directory))
+    :allow-exit-codes (0 1)
+    :command (let ((kws (mapconcat #'regexp-quote magit-todos-keywords-list "|")))
+               (list "rg" "--no-heading" "--line-number"
+                     (when depth
+                       (list "--maxdepth" (1+ depth)))
+                     (when magit-todos-ignore-case
+                       "--ignore-case")
+                     (when magit-todos-exclude-globs
+                       (--map (list "--glob" (concat "!" it))
+                              magit-todos-exclude-globs))
+                     (unless magit-todos-submodule-list
+                       (--map (list "--glob" (concat "!" it))
+                              (magit-list-module-paths)))
+                     extra-args
+                     (format "(?:^\\*+[ \\t]+(?:%s)[ \\t])|(?:(?:#+|/{2,}|;+|-{2,}|/\\*+|<!--|^[ \\t]*\\*+)[ \\t]*(?:%s)(?:[\\[(][^\\])]*[)\\]])?:)"
+                             kws kws)
+                     directory)))
+  (setq magit-todos-scanner #'magit-todos--scan-with-rg-comments)
   (magit-todos-mode 1))
