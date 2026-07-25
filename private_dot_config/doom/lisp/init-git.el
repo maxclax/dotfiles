@@ -177,7 +177,14 @@
 
 (use-package! magit-delta
   :after magit
-  :hook (magit-mode . magit-delta-mode))
+  :hook (magit-mode . magit-delta-mode)
+  :config
+  ;; --no-gitconfig: gitconfig `delta.line-numbers' leaks through --color-only
+  ;; and replaces the -/+ markers magit parses — sections collapse and diff
+  ;; text lands orphaned at the buffer bottom (terminal delta is unaffected)
+  (setq magit-delta-delta-args
+        '("--max-line-distance" "0.6" "--true-color" "always"
+          "--color-only" "--no-gitconfig")))
 
 ;; TODO/FIXME/NOTE items from the repo as a section in magit status.
 ;; Keywords and colors come from hl-todo (configured in +ui.el).

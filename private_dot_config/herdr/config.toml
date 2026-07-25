@@ -12,7 +12,9 @@ previous_tab = "prefix+ctrl+b"
 # free the digit row for Emacs-style pane keys below
 switch_tab = ""
 
-# panes, Emacs-style: C-x 2/3 split, C-x 0 close, C-x f/b/n/p focus
+# panes, Emacs-style: C-x 1 close others in tab (custom command below),
+# C-x 2/3 split, C-x 0 close, C-x z zoom toggle, C-x f/b/n/p focus
+zoom = "prefix+z"
 split_horizontal = "prefix+2"
 split_vertical = "prefix+3"
 close_pane = "prefix+0"
@@ -47,6 +49,13 @@ focus_agent = "alt+1..9"
 # (plain n/p there already mean pane focus; arrows still work too)
 navigate_workspace_up = "ctrl+p"
 navigate_workspace_down = "ctrl+n"
+
+# Emacs C-x 1: close all OTHER panes in the current tab (destructive,
+# unlike zoom — their processes are killed)
+[[keys.command]]
+key = "prefix+1"
+type = "shell"
+command = "cur=$(herdr pane current); pid=$(printf '%s' \"$cur\" | jq -r .result.pane.pane_id); tid=$(printf '%s' \"$cur\" | jq -r .result.pane.tab_id); ws=$(printf '%s' \"$cur\" | jq -r .result.pane.workspace_id); herdr pane list --workspace \"$ws\" | jq -r --arg tid \"$tid\" --arg pid \"$pid\" '.result.panes[] | select(.tab_id == $tid and .pane_id != $pid) | .pane_id' | while read -r p; do herdr pane close \"$p\"; done"
 
 [ui]
 show_agent_labels_on_pane_borders = true
