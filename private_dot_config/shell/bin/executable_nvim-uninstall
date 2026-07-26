@@ -30,11 +30,4 @@ read -r response
 if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
 	rm -rf ~/.config/LunarVim
 	rm -rf ~/.config/LazyVim
-	rm -rf ~/.config/NvChad
-	rm -rf ~/.config/AstroNvim
-	rm -rf ~/.config/kickstart.nvim
-	rm -rf ~/.config/kickstart-modular.nvim
-	rm -rf ~/.config/NormalNvim
-	rm -rf ~/.config/neovim-for-newbs
 fi
-

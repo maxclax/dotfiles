@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: Conventional Commit Message
+# key: cm
+# --
+`(yas-choose-value '("dev" "docs" "feat" "fix" "nit" "perf" "refactor" "revert" "test" "tweak"))`: $1

@@ -1,0 +1,55 @@
+#!/bin/bash
+
+set -eufo pipefail
+
+# Skip dock configuration for extra users
+{{- if .extraUser }}
+echo "Skipping dock configuration for extraUser installation"
+exit 0
+{{- end }}
+
+trap 'killall Dock' EXIT
+
+declare -a remove_labels=(
+	Safari
+	Launchpad
+	Messages
+	Mail
+	Maps
+	Photos
+	FaceTime
+	Calendar
+	Contacts
+	Reminders
+	Notes
+	Freeform
+	TV
+	Music
+	Keynote
+	Numbers
+	Pages
+	"App Store"
+	"System Settings"
+	"iPhone Mirroring"
+	"Send to Kindle"
+)
+
+for label in "${remove_labels[@]}"; do
+	dockutil --no-restart --remove "${label}" || true
+done
+
+# Add applications to the dock
+declare -a add_apps=(
+	"/Applications/Obsidian.app"
+	"/Applications/Zen.app"
+	"/Applications/Calendar.app"
+	"/Applications/Drafts.app"
+	"/Applications/Mail.app"
+)
+
+for app in "${add_apps[@]}"; do
+	dockutil --no-restart --add "${app}" || true
+done
+
+# Add a directory with applications near the trash
+dockutil --no-restart --add '/Applications' --view grid --display folder --sort name --position end || true

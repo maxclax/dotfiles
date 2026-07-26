@@ -10,7 +10,7 @@ Setup podman environment with custom resources.
 
 Options:
     -c, --cpu NUM        Number of CPUs (default: 4)
-    -m, --memory NUM     Memory in MB (default: 6144)
+    -m, --memory NUM     Memory in MB (default: 4096)
     -d, --disk NUM       Disk size in GB (default: 50)
     -h, --help          Show this help message
 
@@ -21,7 +21,7 @@ EOF
 
 # Default values
 CPU=6
-MEM=8192
+MEM=4096
 DISK_SIZE=100
 
 # Parse command line arguments

@@ -1,29 +1,28 @@
 {{- $workspace := promptStringOnce . "workspace" "workspace directory" (printf "%s/workspace" .chezmoi.homeDir) -}}
 {{- $workspace_extra := promptStringOnce . "workspace_extra" "extra workspace directory" (printf "%s/workspace_extra" .chezmoi.homeDir) -}}
-{{- $resources := promptStringOnce . "resources" "resources directory" (printf "%s/workspace/resources" .chezmoi.homeDir) -}}
-
-{{- $nvimType := "default" -}}
-{{- if stdinIsATTY -}}
-  {{- $choices := list "default" "nvim-custom" "kickstart.nvim" "kickstart-modular.nvim" "LunarVim" "LazyVim" "NvChad" "AstroNvim" "NormalNvim" "neovim-for-newbs" -}}
-  {{- $nvimType = promptChoiceOnce . "nvimType" "What type of NeoVim are you on" $choices -}}
-{{- end -}}
+{{- $resources := promptStringOnce . "resources" "resources directory" (printf "%s/.local/extra-configs/resources" .chezmoi.homeDir) -}}
+{{- $managed_sync := promptStringOnce . "managed_sync" "managed sync storage" (printf "%s/.local/managed-sync" .chezmoi.homeDir) -}}
+{{- $org_dir := promptStringOnce . "org_dir" "org directory" (printf "%s/.local/managed-sync/org" .chezmoi.homeDir) -}}
+{{- $primary_storage := promptStringOnce . "primary_storage" "primary storage" (printf "%s/primary_storage" .chezmoi.homeDir) -}}
+{{- $secondary_storage := promptStringOnce . "secondary_storage" "secondary storage" (printf "%s/secondary_storage" .chezmoi.homeDir) -}}
 
 {{- $emacsType := "default" -}}
 {{- if stdinIsATTY -}}
-  {{- $choices := list "default" "Doom" "Spacemacs" "prelude" "purcell" -}}
+  {{- $choices := list "default" "Doom" "purcell" -}}
   {{- $emacsType = promptChoiceOnce . "emacsType" "What type of Emacs are you on" $choices -}}
 {{- end -}}
 
-{{- $editor := "vim" -}}
+{{- $shell := "zsh" -}}
 {{- if stdinIsATTY -}}
-  {{- $choices := list "vim" "emacsclient" -}}
-  {{- $editor = promptChoiceOnce . "editor" "Which editor do you want to use as default" $choices -}}
+  {{- $choices := list "sh" "zsh" "fish" -}}
+  {{- $shell = promptChoiceOnce . "shell" "Which shell do you want to use as default" $choices -}}
 {{- end -}}
 
 {{/* boolean feature tags */}}
 {{- $ephemeral := false -}}{{/* true if this machine is ephemeral, e.g. a cloud, VM or for short time */}}
 {{- $headless := false -}}{{/* true if this machine does not have a screen and keyboard */}}
 {{- $personal :=  false -}}{{/* true if this machine should have personal secrets */}}
+{{- $nixosContainer := false -}}{{/* true if running in nixos/nix container with pre-installed packages */}}
 {{- "" -}}
 
 {{- $osID := .chezmoi.os -}}
@@ -31,17 +30,28 @@
 {{-   $osID = printf "%s-%s" .chezmoi.os .chezmoi.osRelease.id -}}
 {{- end -}}
 
-{{/* detect GitHub codespaces, VSCode remote containers, Docker containers, Multipass VMs, and Vagrant boxes */}}
-{{- if or (env "CODESPACES") (env "REMOTE_CONTAINERS_IPC") (eq .chezmoi.username "root" "ubuntu" "debian" "vagrant" "vscode") -}}
-{{-   $ephemeral = true -}}
-{{-   $headless = true -}}
-{{- end -}}
-
 {{- if eq .chezmoi.os "windows" -}}
 {{-   $ephemeral = true -}}
 {{- end -}}
 
+{{/* Detect environment with pre-installed nix-env packages that conflict with Home Manager */}}
+{{- if and (eq .chezmoi.os "linux") (stat "/nix/store") -}}
+{{-   $hasConflictingPackages := output "sh" "-c" "nix-env -q 2>/dev/null | grep -E '^(bash-interactive|git-minimal|coreutils-full)' | wc -l" | trim -}}
+{{-   if and (not (stat "/etc/NIXOS")) (gt ($hasConflictingPackages | int) 0) -}}
+{{-     $nixosContainer = true -}}
+{{-     $ephemeral = true -}}
+{{-     $headless = true -}}
+{{-   end -}}
+{{- end -}}
+
 {{- $hostname := .chezmoi.hostname -}}
+{{/* .chezmoi.hostname can be polluted by network DNS (a DHCP-provided domain
+     gets picked up instead of the real machine name). On macOS take the name
+     from scutil so the nix flake's darwinConfigurations.<hostname> key matches
+     what darwin-rebuild selects. */}}
+{{- if eq .chezmoi.os "darwin" -}}
+{{-   $hostname = output "scutil" "--get" "LocalHostName" | trim -}}
+{{- end -}}
 {{- if not $ephemeral -}}
 {{-   if or (eq $hostname "space") (contains "space-" $hostname) -}}
 {{-     $personal = true -}}
@@ -65,15 +75,15 @@
 {{- $githubGpgsignSigningKey := "" | quote -}}
 {{- $githubAccessToken := "" | quote -}}
 {{- $githubGpgsignProgram := "" | quote -}}
-{{- $borgRepo := "" | quote -}}
-{{- $borgEncryptionPassphrase := "" | quote -}}
+{{- $resticRepo := "" | quote -}}
 
-{{- $useOp := promptBoolOnce . "useOp" "Do you want to use 1Password CLI (op) for configuration?" true -}}
+{{- $useOp := promptBoolOnce . "useOp" "Do you want to use 1Password CLI (op) for configuration?" false -}}
+{{- $gitAutoCommit := promptBoolOnce . "gitAutoCommit" "Enable automatic commits?" false -}}
+{{- $gitAutoPush := promptBoolOnce . "gitAutoPush" "Enable automatic push?" false -}}
 
 {{- if $useOp -}}
 {{-   $githubGpgsignEnabled = promptBoolOnce . "gitGithub.gpgsign.enabled" "Enable GPG signing for Git commits?" false  -}}
-{{-   $borgRepo = onepasswordRead "op://Private/chezmoi-data/borg-repo" | quote -}}
-{{-   $borgEncryptionPassphrase = onepasswordRead "op://Private/chezmoi-data/borg-encryption-passphrase" | quote -}}
+{{-   $resticRepo = onepasswordRead "op://Private/chezmoi-data/restic-repo" | quote -}}
 {{-   $name = onepasswordRead "op://Private/chezmoi-data/git-config-name" | quote -}}
 {{-   $email = onepasswordRead "op://Private/chezmoi-data/git-config-email" | quote -}}
 {{-   $githubName = onepasswordRead "op://Private/chezmoi-data/github-username" | quote -}}
@@ -98,45 +108,40 @@ encryption = "age"
     hostname = {{ $hostname | quote }}
     personal = {{ $personal }}
     osid = {{ $osID | quote }}
+    nixosContainer = {{ $nixosContainer }}
     unameArch = {{ output "uname" "-m" | trim | quote }}
     extraUser = {{ promptBoolOnce . "extraUser" "Extra user? True if all were instaled by main user" false }}
+    useOp = {{ $useOp }}
+    gitAutoCommit = {{ $gitAutoCommit }}
+    gitAutoPush = {{ $gitAutoPush }}
 
     workspace = {{ $workspace | quote }}
     workspace_extra = {{ $workspace_extra | quote }}
     resources = {{ $resources | quote }}
     playground = {{ printf "%s/playground" $workspace | quote }}
-    jupyter = {{ printf "%s/jupyter" $workspace | quote }}
-    editor = {{ $editor | quote }}
+    managed_sync = {{ $managed_sync | quote }}
+    org_dir = {{ $org_dir | quote }}
+    primary_storage = {{ $primary_storage | quote }}
+    secondary_storage = {{ $secondary_storage | quote }}
+    editor = "emacsclient"
+    shell = {{ $shell | quote }}
 
-    borgThisMachine = {{ promptBoolOnce . "borgThisMachine" "Use Borgbackups on this machine?" true }}
-    borgRepo = {{ $borgRepo }}
-    borgEncryptionPassphrase = {{ $borgEncryptionPassphrase }}
-    borgWithPushover = {{ promptBoolOnce . "borgWithPushover" "Use Pushover in Borgbackups?" true }}
+    resticRepo = {{ $resticRepo }}
 
-    fontsEnabled = {{ promptBoolOnce . "fontsEnabled" "Enable FONTS installation?" false }}
+    fontsEnabled = {{ promptBoolOnce . "fontsEnabled" "Enable FONTS installation (from resources dir)?" false }}
     fontsPath = {{ printf "%s/fonts" $resources | quote }}
 
-    nvimType = {{ $nvimType | quote }}
-    nvimLoadAllDistros = {{ promptBoolOnce . "nvimLoadAllDistros" "Load all NeoVim distributions?" true }}
-
     emacsType = {{ $emacsType | quote }}
-    emacsEnabledClient = {{ promptBoolOnce . "emacsEnabledClient" "Enable Emacs client?" true }}
-    emacsLoadAllDistros = {{ promptBoolOnce . "emacsLoadAllDistros" "Load all Emacs distributions?" true }}
+    emacsEnabledClient = {{ promptBoolOnce . "emacsEnabledClient" "Enable Emacs client?" false }}
 
-    podmanEnabled = {{ promptBoolOnce . "podmanEnabled" "Enable Podman container engine?" true }}
+    podmanEnabled = {{ promptBoolOnce . "podmanEnabled" "Enable Podman container engine?" false }}
     dockerEnabled = {{ promptBoolOnce . "dockerEnabled" "Enable Docker container engine?" false }}
     containerEngine = {{ promptStringOnce . "containerEngine" "Container engine to use (podman or docker)" "podman" | quote }}
 
     goEnabled = {{ promptBoolOnce . "goEnabled" "Enable Go development environment?" false }}
-    
     rustEnabled = {{ promptBoolOnce . "rustEnabled" "Enable Rust development environment?" false }}
 
-    pythonEnabled = {{ promptBoolOnce . "pythonEnabled" "Enable Python development environment?" false }}
-    pythonVersion = {{ promptStringOnce . "pythonVersion" "Python version" "3.13.1" | quote}}
-
-    ollamaPidFile = {{ promptStringOnce . "ollamaPidFile" "Ollama PID file location" "/tmp/ollama.pid" | quote }}
-    ollamaPort = {{ promptIntOnce . "ollamaPort" "Ollama API port" 11434 }}
-    ollamaModel = {{ promptStringOnce . "ollamaModel" "Ollama model to use" "llama3.2:latest" | quote }}
+    syncthingAutostart = {{ promptBoolOnce . "syncthingAutostart" "Enable Syncthing autostart?" false }}
 
     torproxyHost = {{ promptStringOnce . "torproxyHost" "Tor proxy host" "localhost" | quote }}
     torproxyPortSocks5 = {{ promptIntOnce . "torproxyPortSocks5" "Tor proxy SOCKS5 port" 9150 }}
@@ -154,5 +159,5 @@ encryption = "age"
 
 
 [git]
-  autoCommit = {{ promptBoolOnce . "gitAutoCommit" "Enable automatic commits?" false }}
-  autoPush = {{ promptBoolOnce . "gitAutoPush" "Enable automatic push?" false }}
+  autoCommit = {{ $gitAutoCommit }}
+  autoPush = {{ $gitAutoPush }}

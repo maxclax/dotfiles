@@ -1,5 +1,8 @@
 # -*- mode: makefile; -*-
 
+# Suppress directory change messages
+MAKEFLAGS += --no-print-directory
+
 # Detect the OS
 UNAME_S := $(shell uname -s)
 UNAME_M := $(shell uname -m)
@@ -27,13 +30,67 @@ dotfiles_apply_extra:
 dotfiles_update:
 	$(CHEZMOI) update
 
-extra_exports:
-	@echo "To export API keys to your current shell, run this command:"
-	@echo ""
-	@echo "    source ~/extra-exports.sh"
-	@echo ""
-	@echo "NOTE: You must run this command directly in your terminal, not through make,"
-	@echo "      because environment variables can't be exported from a Makefile to your shell."
+# Home Manager management commands
+
+hm_diff:
+	@echo "📋 Checking what will change..."
+{{- if and (eq .chezmoi.os "darwin") (not .extraUser) }}
+	cd ~/.config/home-manager-flake && sudo darwin-rebuild build --flake ~/.config/home-manager-flake
+	nix store diff-closures /run/current-system ~/.config/home-manager-flake/result
+{{- else }}
+	cd ~/.config/home-manager-flake && home-manager build --flake ~/.config/home-manager-flake
+	nix store diff-closures ~/.local/state/nix/profiles/home-manager ~/.config/home-manager-flake/result
+{{- end }}
+
+hm_update:
+	@echo "🔄 Updating flake..."
+	cd ~/.config/home-manager-flake && nix flake update
+	@echo "📋 Building and diffing changes..."
+{{- if and (eq .chezmoi.os "darwin") (not .extraUser) }}
+	cd ~/.config/home-manager-flake && sudo darwin-rebuild build --flake . && \
+		nix store diff-closures /run/current-system ./result && \
+		rm -f ./result
+{{- else }}
+	cd ~/.config/home-manager-flake && home-manager build --flake . && \
+		nix store diff-closures ~/.local/state/nix/profiles/home-manager ./result && \
+		rm -f ./result
+{{- end }}
+	@printf "Apply changes? [y/N] " && read confirm && [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ] || \
+		(echo "❌ Cancelled — restoring flake.lock" && cd ~/.config/home-manager-flake && git checkout flake.lock && exit 1)
+{{- if and (eq .chezmoi.os "darwin") (not .extraUser) }}
+	@echo "🍎 Applying nix-darwin configuration (requires password)..."
+	sudo darwin-rebuild switch --flake ~/.config/home-manager-flake
+{{- else }}
+	@echo "👤 Applying Home Manager configuration (user-only)..."
+	home-manager switch --flake ~/.config/home-manager-flake
+{{- end }}
+	@echo "✅ Update complete! Run 'make hm_commit' to commit the changes"
+
+hm_commit:
+	@echo "📄 Syncing flake.lock to dotfiles..."
+	chezmoi add ~/.config/home-manager-flake/flake.lock
+	@echo "📝 Committing updated flake.lock to dotfiles..."
+	cd {{ .chezmoi.sourceDir }} && git commit --only private_dot_config/home-manager-flake/flake.lock -m "dev: update Home Manager flake.lock - $(shell date '+%Y-%m-%d')"
+	@echo "✅ flake.lock changes committed!"
+
+hm_list:
+	@echo "📦 Home Manager packages:"
+	@home-manager packages | sort
+
+hm_rollback:
+	@echo "🔄 Rolling back Home Manager..."
+	home-manager rollback
+	@echo "✅ Rollback complete!"
+
+hm_generations:
+	@echo "📋 Home Manager generations:"
+	home-manager generations
+
+hm_clean:
+	@echo "🧹 Cleaning up old generations..."
+	home-manager expire-generations '-2 days'
+	nix-collect-garbage -d
+	@echo "✅ Cleanup complete!"
 
 ########################################
 
@@ -52,14 +109,14 @@ endif
 
 
 # Environment setup
-env:
+e:
 	tmuxinator main;
 
 # Kill tmux session
-tkill:
+tke:
 	@tmux kill-session -t main || echo "Session 'main' does not exist."
 
-tkill_all:
+tkea:
 	pkill -f tmux
 
 
@@ -81,29 +138,59 @@ else
 	@echo "Login items command is specific to macOS."
 endif
 
-# macOS-specific updates
-update_macos:
+update_os:
 ifeq ($(UNAME_S), Darwin)
 	@echo "Updating macOS software..."
 	softwareupdate -i -a
+else ifeq ($(UNAME_S), Linux)
+	@echo "Updating Linux system packages..."
+	@if command -v apt >/dev/null 2>&1; then \
+		sudo apt update && sudo apt upgrade -y; \
+	elif command -v dnf >/dev/null 2>&1; then \
+		sudo dnf upgrade -y; \
+	elif command -v pacman >/dev/null 2>&1; then \
+		sudo pacman -Syu --noconfirm; \
+	elif command -v zypper >/dev/null 2>&1; then \
+		sudo zypper update -y; \
+	else \
+		echo "No supported package manager found (apt/dnf/pacman/zypper)"; \
+	fi
 else
-	@echo "This target is for macOS only."
+	@echo "Unsupported operating system: $(UNAME_S)"
 endif
 
 update_apps:
 ifeq ($(UNAME_S), Darwin)
-	@echo "Updating Homebrew packages..."
-	brew outdated ; brew update ; brew upgrade --force ; brew upgrade --cask
-	brew cleanup --prune=all
-	rm -rf ~/Library/Caches/Homebrew/Cask/*
+	@echo "Updating nix-darwin (includes Homebrew and Mac App Store apps)..."
+	$(MAKE) hm_update
+else ifeq ($(UNAME_S), Linux)
+	@echo "Updating Home Manager..."
+	$(MAKE) hm_update
 
-	@echo "Updating App Store applications..."
-	mas outdated ; mas upgrade
+	@echo "Updating APT packages..."
+	@if command -v apt >/dev/null 2>&1; then \
+		sudo apt update && sudo apt upgrade -y; \
+	else \
+		echo "APT not available"; \
+	fi
+
+	@echo "Updating Flatpak applications..."
+	@if command -v flatpak >/dev/null 2>&1; then \
+		flatpak update -y; \
+	else \
+		echo "Flatpak not available"; \
+	fi
+
+	@echo "Updating Snap packages..."
+	@if command -v snap >/dev/null 2>&1; then \
+		sudo snap refresh; \
+	else \
+		echo "Snap not available"; \
+	fi
 else
-	@echo "This target is for macOS only."
+	@echo "Unsupported operating system: $(UNAME_S)"
 endif
 
-# Clear caches
 clear_caches:
 ifeq ($(UNAME_S), Darwin)
 	@echo "Clearing macOS caches..."
@@ -114,7 +201,6 @@ else
 	@echo "This target is for macOS only."
 endif
 
-# Test Shared Volumes
 test_shared_volumes:
 ifeq ($(UNAME_S), Darwin)
 	$(CONTAINER_ENGINE) run -ti --rm \
@@ -138,54 +224,12 @@ rm_none_images:
 k9s:
 	@k9s
 
-# Ollama
-
-# Function to kill process using the defined port
-ollama_kill_port:
-	@PORT_PID=$$(lsof -ti tcp:{{ .ollamaPort }}); \
-	if [ -n "$$PORT_PID" ]; then \
-		echo "Killing process on port {{ .ollamaPort }}..."; \
-		kill -9 $$PORT_PID; \
-	fi
-
-# Start ollama server in the background and save the PID
-ollama_start: ollama_kill_port
-	@echo "Starting ollama server..."
-	@ollama serve & echo $$! > {{ .ollamaPidFile }}
-	@sleep 2 # Give the server some time to start
-	@echo "Ollama server started with PID $$(cat {{ .ollamaPidFile }})"
-
-# Stop all ollama server processes, regardless of PID file
-ollama_stop:
-	@if pgrep -f "ollama" > /dev/null; then \
-		echo "Stopping all ollama server processes..."; \
-		pkill -f "ollama"; \
-		echo "All ollama server processes stopped."; \
-	else \
-		echo "No ollama server processes running."; \
-	fi
-	@rm -f {{ .ollamaPidFile }}
-
-# Pull the Ollama model and update it
-ollama_pull:
-	@echo "Pulling and updating Ollama model {{ .ollamaModel }}..."
-	@ollama pull {{ .ollamaModel }}
-
-# Chat with Ollama (ensure the server is running first)
-ollama_chat:
-	@if [ -f {{ .ollamaPidFile }} ]; then \
-		echo "Running model {{ .ollamaModel }}..."; \
-		ollama run {{ .ollamaModel }}; \
-	else \
-		echo "Ollama server is not running. Start it first."; \
-	fi
-
 # Tor
-proxy_start:
-	$(CONTAINER_ENGINE) run -d --restart=always --name torproxy -p 127.0.0.1:{{- .torproxyPortSocks5 -}}:9150/tcp -p 127.0.0.1:{{- .torproxyPortDns -}}:8853/udp peterdavehello/tor-socks-proxy:latest
+torproxy_start:
+	$(CONTAINER_ENGINE) run -d --restart=always --name torproxy -p 127.0.0.1:{{ .torproxyPortSocks5 }}:9150/tcp -p 127.0.0.1:{{ .torproxyPortDns }}:8853/udp peterdavehello/tor-socks-proxy:latest
 
 torproxy_start_without_dns:
-	$(CONTAINER_ENGINE) run -d --restart=always --name torproxy -p 127.0.0.1:{{- .torproxyPortSocks5 -}}:9150/tcp peterdavehello/tor-socks-proxy:latest
+	$(CONTAINER_ENGINE) run -d --restart=always --name torproxy -p 127.0.0.1:{{ .torproxyPortSocks5 }}:9150/tcp peterdavehello/tor-socks-proxy:latest
 
 torproxy_stop:
 	$(CONTAINER_ENGINE) stop torproxy
@@ -198,60 +242,203 @@ torproxy_ip_change:
 	$(CONTAINER_ENGINE) restart torproxy
 
 torproxy_ports:
-	lsof -i :{{- .torproxyPortSocks5 -}}
-	lsof -i :{{- .torproxyPortDns -}}
+	lsof -i :{{ .torproxyPortSocks5 }}
+	lsof -i :{{ .torproxyPortDns }}
 
-torproxy_check:
+# Monitoring (Prometheus + Grafana)
+MONITORING_DATA := $(HOME)/.local/share/monitoring
+PROMETHEUS_PID := $(MONITORING_DATA)/prometheus.pid
+GRAFANA_PID := $(MONITORING_DATA)/grafana.pid
+
+grafana_start:
+	@mkdir -p $(MONITORING_DATA)/prometheus-data $(HOME)/.local/share/grafana/data $(HOME)/.local/share/grafana/logs
+	@prometheus \
+		--config.file=$(HOME)/.config/prometheus/prometheus.yml \
+		--storage.tsdb.path=$(MONITORING_DATA)/prometheus-data \
+		--storage.tsdb.retention.time=30d \
+		--web.listen-address=:9090 & echo $$! > $(PROMETHEUS_PID)
+	@grafana server \
+		--homepath=$$(brew --prefix grafana)/share/grafana \
+		--config=$(HOME)/.config/grafana/grafana.ini \
+		cfg:paths.data=$(HOME)/.local/share/grafana/data \
+		cfg:paths.logs=$(HOME)/.local/share/grafana/logs & echo $$! > $(GRAFANA_PID)
+	@echo "Prometheus: http://localhost:9090"
+	@echo "Grafana:    http://localhost:3000 (no login required)"
+
+grafana_stop:
+	@if [ -f $(PROMETHEUS_PID) ]; then kill $$(cat $(PROMETHEUS_PID)) 2>/dev/null; rm $(PROMETHEUS_PID); echo "Prometheus stopped"; fi
+	@if [ -f $(GRAFANA_PID) ]; then kill $$(cat $(GRAFANA_PID)) 2>/dev/null; rm $(GRAFANA_PID); echo "Grafana stopped"; fi
+
+grafana_status:
+	@if [ -f $(PROMETHEUS_PID) ] && kill -0 $$(cat $(PROMETHEUS_PID)) 2>/dev/null; then echo "Prometheus: running (PID $$(cat $(PROMETHEUS_PID)))"; else echo "Prometheus: stopped"; fi
+	@if [ -f $(GRAFANA_PID) ] && kill -0 $$(cat $(GRAFANA_PID)) 2>/dev/null; then echo "Grafana: running (PID $$(cat $(GRAFANA_PID)))"; else echo "Grafana: stopped"; fi
+
+ip_check:
 	@echo "ALL_PROXY: ${ALL_PROXY}"
 	@echo "HTTP_PROXY: ${HTTP_PROXY}"
 	@echo "HTTPS_PROXY: ${HTTPS_PROXY}"
 	@echo "NO_PROXY: ${NO_PROXY}"
 	@echo "DNS_PROXY: ${DNS_PROXY}"
 
-	curl https://ipinfo.tw/ip
-	curl --socks5-hostname {{ .torproxyHost }}:{{- .torproxyPortSocks5 -}} https://check.torproject.org/api/ip
+	curl https://ipinfo.io
+	curl https://check.torproject.org/api/ip
+	curl --socks5-hostname {{ .torproxyHost }}:{{ .torproxyPortSocks5 }} https://check.torproject.org/api/ip
 
 ##############################
 
 backup_create:
-	/opt/homebrew/bin/borgmatic --verbosity 2 --progress
-	/opt/homebrew/bin/borgmatic prune --verbosity 1 
+	@echo "📦 Syncing app configs to extra-configs..."
+	@rsync -a --delete --exclude='storage/' --exclude='zen-sessions-backup/' ~/Library/Application\ Support/zen/Profiles/ ~/.local/extra-configs/Zen/
+	@rsync -a --delete --exclude='*.sock' --exclude='*.log' ~/.config/herdr/ ~/.local/extra-configs/herdr/
+	@$(MAKE) restic_backup
 
 backup_list:
-	/opt/homebrew/bin/borgmatic list --verbosity 1
+	@$(MAKE) restic_snapshots
 
-backup_list_files:
-    # Usage: make backup_list_files repo=/path/to/repo archive=/path/to/archive [path=optional/path/in/archive]
-	@if [ -z "$(repo)" ] || [ -z "$(archive)" ]; then \
-		echo "Error: Please provide repo and archive parameters."; \
-		echo "Usage: make backup_list_files repo=<repository_path> archive=<archive_name> [path=<optional/path/in/archive>]"; \
-		echo "Example: make backup_list_files repo=/Volumes/Backup/borg archive=daily-2023-03-12"; \
-		echo "Example: make backup_list_files repo=/Volumes/Backup/borg archive=daily-2023-03-12 path=Documents"; \
-		echo "Use 'make backup_list' to see available archives."; \
+# Restore configs FROM extra-configs into their live locations (inverse of backup_create).
+# Per-config blocks so more can be added later. profile='<dir>' picks the Zen default.
+restore_configs:
+	@echo "♻️  Restoring configs from extra-configs/ ..."
+{{- if eq .chezmoi.os "darwin" }}
+	@pgrep -fq "Zen.app/Contents/MacOS" && { echo "❌ Quit Zen first (Cmd-Q)."; exit 1; }; \
+	B="$$HOME/Library/Application Support/zen"; SRC="$$HOME/.local/extra-configs/Zen"; \
+	INI="$$B/profiles.ini"; INST="$$B/installs.ini"; \
+	{ [ -d "$$SRC" ] && [ -f "$$INI" ]; } || { echo "  • Zen: nothing to restore (launch Zen once if new)."; exit 0; }; \
+	PROFS=$$(find "$$SRC" -mindepth 1 -maxdepth 1 -type d ! -name '.*'); \
+	[ -n "$$PROFS" ] || { echo "  • Zen: no profiles in backup."; exit 0; }; \
+	cp "$$INI" "$$INI.bak"; [ -f "$$INST" ] && cp "$$INST" "$$INST.bak"; \
+	DEF="$(profile)"; [ -z "$$DEF" ] && [ "$$(printf '%s\n' "$$PROFS" | wc -l)" -eq 1 ] && DEF=$$(basename "$$PROFS"); \
+	printf '%s\n' "$$PROFS" | while IFS= read -r P; do P=$$(basename "$$P"); echo "  • Zen: $$P"; \
+	  rsync -a --delete --exclude=storage/ --exclude=zen-sessions-backup/ "$$SRC/$$P/" "$$B/Profiles/$$P/"; \
+	  rm -f "$$B/Profiles/$$P/.parentlock" "$$B/Profiles/$$P/lock" "$$B/Profiles/$$P/compatibility.ini"; \
+	  grep -qF "Path=Profiles/$$P" "$$INI" || printf '\n[Profile%s]\nName=%s\nIsRelative=1\nPath=Profiles/%s\n' "$$(grep -c '^\[Profile' "$$INI")" "$${P#*.}" "$$P" >> "$$INI"; \
+	done; \
+	[ -n "$$DEF" ] && { for f in "$$INI" "$$INST"; do [ -f "$$f" ] && { sed "s|^Default=Profiles/.*|Default=Profiles/$$DEF|" "$$f" > "$$f.tmp" && mv "$$f.tmp" "$$f"; }; done; echo "  • Zen default → $$DEF"; } \
+	  || echo "  • Zen: pick default with: make restore_configs profile='<dir>'"
+	@SRC="$$HOME/.local/extra-configs/herdr"; DST="$$HOME/.config/herdr"; \
+	[ -d "$$SRC" ] || { echo "  • herdr: nothing to restore."; exit 0; }; \
+	pgrep -qx herdr && { echo "❌ Stop herdr first (herdr server stop)."; exit 1; }; \
+	mkdir -p "$$DST"; \
+	rsync -a --exclude='*.sock' --exclude='*.log' "$$SRC/" "$$DST/"; \
+	echo "  • herdr: config + session restored"
+{{- else }}
+	@echo "  • No restore steps for this OS yet."
+{{- end }}
+
+# ── Restic backup (via resticprofile) ─────────────────────────────────────────
+
+restic_init:
+	# Initialize all restic repos (run once per machine)
+	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':' | grep -v '^base$$'); do \
+		echo "==> Initializing $$profile..."; \
+		resticprofile --name $$profile init || true; \
+	done
+
+restic_backup:
+	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':' | grep -v '^base$$'); do \
+		echo "==> $$profile"; \
+		resticprofile --name $$profile backup; \
+		resticprofile --name $$profile forget; \
+	done
+
+restic_snapshots:
+	# Usage: make restic_snapshots [profile=workspace]
+	@if [ -z "$(profile)" ]; then \
+		for p in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':' | grep -v '^base$$'); do \
+			echo "==> $$p"; \
+			resticprofile --name $$p snapshots 2>/dev/null | tail -7; \
+			echo; \
+		done; \
+	else \
+		resticprofile --name $(profile) snapshots; \
+	fi
+
+restic_forget:
+	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':' | grep -v '^base$$'); do \
+		resticprofile --name $$profile forget; \
+	done
+
+restic_restore:
+	# Usage: make restic_restore profile=workspace dest=/tmp/restore [snapshot=latest] [path=sub/path]
+	@if [ -z "$(profile)" ] || [ -z "$(dest)" ]; then \
+		echo "Error: provide profile and dest."; \
+		echo "Usage: make restic_restore profile=<name> dest=<path> [snapshot=latest] [path=<subpath>]"; \
 		exit 1; \
 	fi
-	@if [ -z "$(path)" ]; then \
-		/opt/homebrew/bin/borg list --verbose "$(repo)::$(archive)"; \
+	@SNAP=$${snapshot:-latest}; \
+	if [ -z "$(path)" ]; then \
+		resticprofile --name $(profile) restore $$SNAP --target $(dest); \
 	else \
-		/opt/homebrew/bin/borg list --verbose "$(repo)::$(archive)" "$(path)"; \
+		resticprofile --name $(profile) restore $$SNAP --target $(dest) --include "$(path)"; \
 	fi
 
-backup_restore:
-    # Usage: make backup_restore repo=/path/to/repo archive=/path/to/archive dest=/path/to/destination [path=optional/path/in/archive]
-	@if [ -z "$(repo)" ] || [ -z "$(archive)" ] || [ -z "$(dest)" ]; then \
-		echo "Error: Please provide repo, archive, and dest parameters."; \
-		echo "Usage: make backup_restore repo=<repository_path> archive=<archive_name> dest=<destination_path> [path=<optional/path/in/archive>]"; \
-		echo "Example: make backup_restore repo=/backups/main archive=daily-2023-01-01 dest=/recovery"; \
-		echo "Example: make backup_restore repo=/backups/main archive=daily-2023-01-01 dest=/recovery path=Documents/important"; \
-		echo "Use 'make backup_list' to see available archives."; \
-		exit 1; \
-	fi
-	@if [ -z "$(path)" ]; then \
-		echo "Restoring entire archive $(archive) to $(dest)..."; \
-		/opt/homebrew/bin/borgmatic extract --verbosity 1 --progress --repository $(repo) --archive $(archive) --destination $(dest); \
-	else \
-		echo "Restoring path $(path) from archive $(archive) to $(dest)..."; \
-		/opt/homebrew/bin/borgmatic extract --verbosity 1 --progress --repository $(repo) --archive $(archive) --destination $(dest) --path "$(path)"; \
-	fi
+restic_browse:
+	# Usage: make restic_browse [profile=workspace]
+	@PROFILE=$(profile); \
+	if [ -z "$$PROFILE" ]; then \
+		PROFILE=$$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':' | fzf --prompt="Select profile: "); \
+	fi; \
+	if [ -z "$$PROFILE" ]; then exit 1; fi; \
+	REPO=$$(resticprofile --name $$PROFILE show 2>/dev/null | grep 'repository:' | awk '{print $$2}'); \
+	TMPFILE=$$(mktemp); \
+	echo "$$REPO" > $$TMPFILE; \
+	restic-browser --repository-file $$TMPFILE --password-command 'security find-generic-password -a restic -s restic-password -w'; \
+	rm -f $$TMPFILE
+
+restic_schedule:
+	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':' | grep -v '^base$$'); do \
+		echo "==> Scheduling $$profile..."; \
+		resticprofile --name $$profile schedule; \
+	done
+
+restic_unschedule:
+	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':' | grep -v '^base$$'); do \
+		resticprofile --name $$profile unschedule; \
+	done
+
+restic_status:
+	@for profile in $$(resticprofile profiles 2>/dev/null | grep backup | awk '{print $$1}' | tr -d ':' | grep -v '^base$$'); do \
+		echo "==> $$profile"; \
+		resticprofile --name $$profile status; \
+	done
+
+##############################
+
+# Syncthing file synchronization (Home Manager service)
+sync_start:
+	@echo "🔄 Starting Syncthing service..."
+{{- if eq .chezmoi.os "darwin" }}
+	launchctl load ~/Library/LaunchAgents/org.nix-community.home.syncthing.plist 2>/dev/null || echo "Service already loaded"
+	launchctl start org.nix-community.home.syncthing 2>/dev/null || echo "Service already running"
+{{- else }}
+	systemctl --user start syncthing.service
+{{- end }}
+	@sleep 2
+	@echo "✅ Syncthing service started. Access web GUI at http://127.0.0.1:8384"
+
+sync_stop:
+	@echo "🛑 Stopping Syncthing service..."
+{{- if eq .chezmoi.os "darwin" }}
+	launchctl stop org.nix-community.home.syncthing 2>/dev/null || echo "Service not running"
+{{- else }}
+	systemctl --user stop syncthing.service
+{{- end }}
+
+sync_status:
+	@echo "📊 Syncthing service status:"
+{{- if eq .chezmoi.os "darwin" }}
+	@launchctl list org.nix-community.home.syncthing 2>/dev/null >/dev/null && echo "✅ Service loaded and running" || echo "❌ Service not running"
+{{- else }}
+	@systemctl --user is-active syncthing.service >/dev/null && echo "✅ Service active" || echo "❌ Service not active"
+{{- end }}
+	@pgrep -f syncthing > /dev/null && echo "   Process running (PID: $$(pgrep -f syncthing))" || echo "   No syncthing process found"
+
+sync_browser:
+	@echo "🌐 Opening Syncthing web GUI..."
+	syncthing browser
+
+sync_config:
+	@echo "📂 Syncthing configuration paths:"
+	syncthing paths
 
 ##############################

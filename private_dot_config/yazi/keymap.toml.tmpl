@@ -1,0 +1,106 @@
+# -*- mode: conf-toml; -*-
+#:schema https://yazi-rs.github.io/schemas/keymap.json
+
+# Emacs-style navigation. prepend_keymap overrides defaults; everything
+# not listed here keeps the stock binding (see `~` for help).
+
+[mgr]
+prepend_keymap = [
+	# --- Movement ---
+	{ on = "<C-p>", run = "arrow prev",  desc = "Previous file" },
+	{ on = "<C-n>", run = "arrow next",  desc = "Next file" },
+	{ on = "<C-v>", run = "arrow 100%",  desc = "Page down" },
+	{ on = "<A-v>", run = "arrow -100%", desc = "Page up" },
+	{ on = "<A-<>", run = "arrow top",   desc = "Go to top" },
+	{ on = "<A->>", run = "arrow bot",   desc = "Go to bottom" },
+	{ on = "<C-b>", run = "leave",       desc = "Parent directory" },
+	{ on = "<C-f>", run = "enter",       desc = "Enter directory" },
+	{ on = "<A-b>", run = "back",        desc = "History back" },
+	{ on = "<A-f>", run = "forward",     desc = "History forward" },
+	{ on = "<C-g>", run = "escape",      desc = "Cancel" },
+
+	# --- Kill-ring style copy/cut/paste ---
+	{ on = "<A-w>", run = "yank",       desc = "Copy selected (M-w)" },
+	{ on = "<C-w>", run = "yank --cut", desc = "Cut selected (C-w)" },
+	{ on = "<C-y>", run = "paste",      desc = "Paste (C-y)" },
+
+	# --- isearch ---
+	{ on = "<C-s>", run = "find --smart",            desc = "Find next (C-s)" },
+	{ on = "<C-r>", run = "find --previous --smart", desc = "Find previous (C-r)" },
+
+	# --- Goto (mirrors ranger g-bindings; g h/c/d are yazi defaults) ---
+	{ on = [ "g", "D" ], run = "cd ~/Desktop", desc = "Go ~/Desktop" },
+	{ on = [ "g", "l" ], run = "cd ~/.local",  desc = "Go ~/.local" },
+	{ on = [ "g", "C" ], run = 'cd "{{ .chezmoi.homeDir }}/Library/Mobile Documents"', desc = "Go iCloud" },
+	{ on = [ "g", "w" ], run = 'cd "{{ .workspace }}"',       desc = "Go workspace" },
+	{ on = [ "g", "W" ], run = 'cd "{{ .workspace_extra }}"', desc = "Go workspace extra" },
+	{ on = [ "g", "r" ], run = 'cd "{{ .resources }}"',       desc = "Go resources" },
+	{ on = [ "g", "s" ], run = 'cd "{{ .managed_sync }}"',    desc = "Go managed sync" },
+	{ on = [ "g", "p" ], run = 'cd "{{ .primary_storage }}"',         desc = "Go primary storage" },
+	{ on = [ "g", "i" ], run = 'cd "{{ .primary_storage }}/0-Inbox"', desc = "Go primary inbox" },
+	{ on = [ "g", "P" ], run = 'cd "{{ .playground }}"',      desc = "Go playground" },
+{{- if .secondary_storage }}
+	{ on = [ "g", "S" ], run = 'cd "{{ .secondary_storage }}"',         desc = "Go secondary storage" },
+	{ on = [ "g", "I" ], run = 'cd "{{ .secondary_storage }}/0-Inbox"', desc = "Go secondary inbox" },
+{{- end }}
+
+	# --- Quit ---
+	{ on = [ "<C-x>", "<C-c>" ], run = "quit", desc = "Quit (C-x C-c)" },
+
+	# --- smart-enter: open file or enter directory with one key ---
+	{ on = "<Enter>", run = "plugin smart-enter", desc = "Enter directory or open file" },
+	{ on = "l",       run = "plugin smart-enter", desc = "Enter directory or open file" },
+{{- if eq .chezmoi.os "darwin" }}
+
+	# --- macOS integration ---
+	{ on = "<C-o>", run = 'shell -- open -R "$@"',                desc = "Reveal in Finder (drag out from there)" },
+	{ on = "<A-y>", run = 'shell -- open -a Yoink "$@"',          desc = "Put files on Yoink shelf (drag-and-drop)" },
+	{ on = "<C-t>", run = 'shell --orphan -- qlmanage -p "$@"',   desc = "Quick Look preview" },
+{{- end }}
+]
+
+[input]
+prepend_keymap = [
+	{ on = "<C-g>",         run = "close",         desc = "Cancel input (C-g)" },
+	{ on = "<A-Backspace>", run = "kill backward", desc = "Kill word backward (M-DEL)" },
+]
+
+[pick]
+prepend_keymap = [
+	{ on = "<C-p>", run = "arrow prev", desc = "Previous option" },
+	{ on = "<C-n>", run = "arrow next", desc = "Next option" },
+	{ on = "<C-g>", run = "close",      desc = "Cancel (C-g)" },
+]
+
+[confirm]
+prepend_keymap = [
+	{ on = "<C-p>", run = "arrow prev", desc = "Previous line" },
+	{ on = "<C-n>", run = "arrow next", desc = "Next line" },
+	{ on = "<C-g>", run = "close",      desc = "Cancel (C-g)" },
+]
+
+[cmp]
+prepend_keymap = [
+	{ on = "<C-g>", run = "close", desc = "Cancel completion (C-g)" },
+]
+
+[tasks]
+prepend_keymap = [
+	{ on = "<C-p>", run = "arrow prev", desc = "Previous task" },
+	{ on = "<C-n>", run = "arrow next", desc = "Next task" },
+	{ on = "<C-g>", run = "close",      desc = "Close (C-g)" },
+]
+
+[spot]
+prepend_keymap = [
+	{ on = "<C-p>", run = "arrow prev", desc = "Previous line" },
+	{ on = "<C-n>", run = "arrow next", desc = "Next line" },
+	{ on = "<C-g>", run = "close",      desc = "Close (C-g)" },
+]
+
+[help]
+prepend_keymap = [
+	{ on = "<C-p>", run = "arrow prev", desc = "Previous line" },
+	{ on = "<C-n>", run = "arrow next", desc = "Next line" },
+	{ on = "<C-g>", run = "escape",     desc = "Close (C-g)" },
+]

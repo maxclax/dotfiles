@@ -1,0 +1,99 @@
+# -*- mode: conf-toml; -*-
+# Restic backup profiles — managed by chezmoi
+# Docs: https://creativeprojects.github.io/resticprofile/
+
+{{- if .resticRepo }}
+
+includes = ["extra/*.toml"]
+
+[global]
+default-command = "snapshots"
+initialize = false
+
+# ── Base (inherited by all profiles) ──────────────────────────────────────────
+# Shared password and retention settings — override per-profile if needed
+[base]
+password-command = 'security find-generic-password -a restic -s restic-password -w'
+
+[base.backup]
+schedule            = "12:00"
+schedule-permission = "user_logged_on"
+schedule-log        = true
+
+[base.forget]
+keep-daily   = 7
+keep-weekly  = 2
+keep-monthly = 3
+prune        = true
+
+[base.retry]
+attempts     = 3
+
+# ── Workspace ─────────────────────────────────────────────────────────────────
+[workspace]
+inherit    = "base"
+repository = {{ .resticRepo | printf "%s/workspace" | quote }}
+
+[workspace.backup]
+source  = [{{ .workspace | quote }}]
+exclude = [
+    "*/.data/*",
+    "*/backup/*",
+    "*/node_modules/*",
+    "*/.venv/*",
+    "*/.pnpm-store/*",
+    "*/.pytest_cache/*",
+    "*/.terraform/*",
+    "__pycache__",
+    "*/.cache/*",
+    "*/.mypy_cache/*",
+    "*/.tox/*",
+    "*/.DS_Store",
+]
+
+# ── Git Repositories ──────────────────────────────────────────────────────────
+[git]
+inherit    = "base"
+repository = {{ .resticRepo | printf "%s/git" | quote }}
+
+[git.backup]
+source = [{{ printf "%s/.local/git" .chezmoi.homeDir | quote }}]
+
+# ── Managed Configs ───────────────────────────────────────────────────────────
+[managed-configs]
+inherit    = "base"
+repository = {{ .resticRepo | printf "%s/managed-configs" | quote }}
+
+[managed-configs.backup]
+source = [{{ printf "%s/.local/managed-configs" .chezmoi.homeDir | quote }}]
+
+# ── Managed Sync ──────────────────────────────────────────────────────────────
+[managed-sync]
+inherit    = "base"
+repository = {{ .resticRepo | printf "%s/managed-sync" | quote }}
+
+[managed-sync.backup]
+source  = [{{ .managed_sync | quote }}]
+exclude = [
+    ".DS_Store",
+    ".Spotlight-V100",
+    ".Trashes",
+    "*/.cache/*",
+    "*/cache/*",
+    "*/.git/*",
+    "*/node_modules/*",
+    "*/__pycache__/*",
+    "*/.venv/*",
+    "*/dist/*",
+    "*/build/*",
+]
+
+# ── Extra Configs ─────────────────────────────────────────────────────────────
+[extra-configs]
+inherit    = "base"
+repository = {{ .resticRepo | printf "%s/extra-configs" | quote }}
+
+[extra-configs.backup]
+source = [{{ printf "%s/.local/extra-configs" .chezmoi.homeDir | quote }}]
+
+{{- end }}

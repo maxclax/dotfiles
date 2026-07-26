@@ -1,0 +1,303 @@
+# -*- mode: nix; -*-
+{ pkgs, ... }:
+
+{
+  # The home.packages option allows you to install Nix packages into your environment
+  home.packages = with pkgs; [
+
+    # ── Core Unix Utilities ──────────────────────────────────────────────
+    # Essential tools required for basic shell and system functionality
+    coreutils              # GNU core utilities (ls, cp, mv, mkdir, etc.)
+    findutils              # GNU find, xargs, locate
+    gnugrep                # GNU grep — pattern matching
+    gawk                   # GNU awk — text processing language
+    gnused                 # GNU sed — stream editor
+    util-linux             # Low-level system utilities (lsblk, mount, etc.)
+    bash                   # Bourne Again Shell
+    curl                   # Transfer data via URLs (HTTP, FTP, etc.)
+    openssh                # SSH client/server for secure remote access
+    wget                   # Non-interactive web file retriever
+
+    # ── Version Control ──────────────────────────────────────────────────
+    git                    # Distributed version control system
+    gh                     # GitHub CLI — PRs, issues, repos from terminal
+    git-absorb             # Auto-absorb staged changes into prior commits
+    git-lfs                # Git extension for large binary files
+    lazygit                # TUI for git — staging, branching, diffing
+    delta                  # Syntax-highlighting pager for git diffs
+
+    # ── Shell & Prompt ───────────────────────────────────────────────────
+    starship               # Cross-shell prompt with git/lang status
+    atuin                  # Shell history search with sync & fuzzy find
+    # direnv               # Auto-load/unload env vars per directory (disabled)
+    zoxide                 # Smarter cd — learns from your habits
+    pay-respects           # Correct previous console command (like thefuck)
+    nix-search-cli         # Search nixpkgs from the terminal
+{{- if and (eq .shell "zsh") (not .nixosContainer) }}
+    zsh                    # Z shell
+{{- end }}
+{{- if and (eq .shell "fish") (not .nixosContainer) }}
+    fish                   # Fish shell
+{{- end }}
+
+    # ── File Navigation & Search ─────────────────────────────────────────
+    fd                     # Fast, user-friendly alternative to find
+    fzf                    # Fuzzy finder for files, history, processes
+    ripgrep                # Ultra-fast recursive grep (rg)
+    tree                   # Display directory structure as a tree
+    broot                  # Interactive directory navigator with fuzzy search
+    eza                    # Modern ls replacement with icons and git status
+    ranger                 # Console file manager with vim keybindings
+    yazi                   # Blazing fast terminal file manager in Rust
+
+    # ── System Monitoring ────────────────────────────────────────────────
+    btop                   # Resource monitor (CPU, RAM, disk, network)
+    htop                   # Interactive process viewer
+    bandwhich              # Per-process network bandwidth monitor
+    sniffnet               # Network traffic monitor with GUI charts
+    gping                  # Ping with real-time latency graph
+    duf                    # Disk usage overview (modern df)
+    dust                   # Intuitive disk usage (modern du)
+    gdu                    # Fast disk usage analyzer with TUI
+    ncdu                   # Disk usage analyzer with ncurses interface
+    lsof                   # List open files and network connections
+
+    # ── Text & Data Processing ───────────────────────────────────────────
+    bat                    # cat with syntax highlighting and git integration
+    jq                     # Command-line JSON processor and formatter
+    pandoc                 # Universal document converter (Markdown, HTML, PDF, etc.)
+
+    # ── Networking ───────────────────────────────────────────────────────
+    inetutils              # Classic network tools (ping, telnet, ftp, etc.)
+    mosh                   # Mobile shell — roaming, resilient SSH over UDP
+
+    # ── Build & Dev Essentials ───────────────────────────────────────────
+    cmake                  # Cross-platform build system generator
+    gnumake                # GNU make — build automation
+    pkg-config             # Compiler/linker flags for installed libraries
+    shellcheck             # Static analysis and linting for shell scripts
+
+    # ── Multiplexer ──────────────────────────────────────────────────────
+    tmux                   # Terminal multiplexer — sessions, windows, panes
+
+    # ── Dotfiles & Secrets ───────────────────────────────────────────────
+    chezmoi                # Manage dotfiles across multiple machines
+    age                    # Simple, modern file encryption (used by chezmoi)
+    gnupg                  # GNU Privacy Guard — encryption and signing
+
+    # ── SSL/TLS Certificates ────────────────────────────────────────────
+    mkcert                 # Locally-trusted development SSL certificates
+    nss                    # Network Security Services (for mkcert on Linux)
+
+    # ── Benchmarking & Testing ───────────────────────────────────────────
+    hyperfine              # Command-line benchmarking tool
+
+    # ── Misc CLI Utilities ───────────────────────────────────────────────
+    asciinema              # Record and share terminal sessions
+    cacert                 # Mozilla CA certificate bundle
+    trash-cli              # Move files to trash from command line
+    gtrash                 # Another trash CLI with restore support
+    units                  # Unit conversion calculator
+    fastfetch              # System info display with ASCII art
+    tldr                   # Community-driven man page summaries
+
+    # ── Python ───────────────────────────────────────────────────────────
+    python3                # Python 3 interpreter
+    pipenv                 # Python virtualenv and dependency management
+    fuse                   # Filesystem in userspace (FUSE)
+
+    # ── Kubernetes ───────────────────────────────────────────────────────
+    kubectl                # Kubernetes CLI for cluster management
+    kubectx                # Switch between k8s clusters and namespaces
+    (kubernetes-helm.overrideAttrs (old: { doCheck = false; }))  # Helm (test phase broken in nixpkgs)
+
+    # ── Fonts ────────────────────────────────────────────────────────────
+    fira-code              # Monospaced font with programming ligatures
+    nerd-fonts.fira-code   # Fira Code patched with Nerd Font icons
+    nerd-fonts.symbols-only # Nerd Font symbols only (for Doom Emacs icons)
+    jetbrains-mono         # JetBrains monospaced font for coding
+    font-awesome           # Iconic font and CSS toolkit
+
+    # ── VPN ──────────────────────────────────────────────────────────────
+    openvpn                # Open-source VPN client/server
+
+    # ── Remote Access ────────────────────────────────────────────────────
+    sshs                   # TUI SSH host picker — fuzzy search over ~/.ssh/config
+
+    # ========================================================================
+    # macOS Development Machine
+    # ========================================================================
+{{- if eq .chezmoi.os "darwin" }}
+
+    # ── AI & LLM Tools ──────────────────────────────────────────────────
+    github-copilot-cli     # GitHub Copilot in the terminal
+(aider-chat.overridePythonAttrs (old: { doCheck = false; }))  # AI pair programming (tests flaky in nixpkgs)
+    portaudio              # Audio I/O library — required for aider /voice command
+
+    # ── Monitoring ──────────────────────────────────────────────────────
+    prometheus             # Metrics collection and time-series DB
+
+    # ── Backup & Security ────────────────────────────────────────────────
+    _1password-cli         # 1Password CLI — secrets and credentials
+    restic                 # Fast, encrypted, deduplicated backup
+    (resticprofile.overrideAttrs (old: { doCheck = false; }))  # Config profile manager (tests flaky in nixpkgs)
+    restic-browser         # Desktop GUI to browse and restore restic repos
+    trufflehog             # Scan repos for leaked credentials and secrets
+
+    # ── Container & Orchestration ────────────────────────────────────────
+    ctop                   # Top-like TUI for container metrics
+    dive                   # Explore Docker/Podman image layers and sizes
+    lazydocker             # TUI for Docker — containers, images, volumes
+
+    # ── Kubernetes & Cloud ───────────────────────────────────────────────
+    k9s                    # TUI for Kubernetes cluster management
+    kind                   # Run local Kubernetes clusters in Docker
+    linkerd                # Lightweight service mesh for Kubernetes
+    popeye                 # Kubernetes cluster resource sanitizer
+    stern                  # Multi-pod and container log tailing
+    opentofu               # Infrastructure as Code — open source Terraform fork
+    tofu-ls                # OpenTofu Language Server (LSP)
+    hcloud                 # Hetzner Cloud CLI
+
+    # ── Local Dev Services ────────────────────────────────────────────────
+    mailpit                # Local SMTP server with web UI (email testing)
+
+    # ── Web & API Testing ────────────────────────────────────────────────
+    hey                    # HTTP load generator (like ab, wrk)
+    k6                     # Modern load testing tool (Grafana)
+    nmap                   # Network discovery and security scanner
+    mtr                    # Network diagnostic (traceroute + ping combined)
+    speedtest-cli          # Test internet bandwidth via speedtest.net
+
+    # ── Static Sites & Docs ──────────────────────────────────────────────
+    hugo                   # Fast static site generator (Go-based)
+    discount               # Fast Markdown to HTML converter (C)
+
+    # ── Media & Image Processing ─────────────────────────────────────────
+    chafa                  # Display images in terminal (sixel, ASCII)
+    ffmpeg                 # Audio/video processing toolkit (provides ffplay for tmr)
+    ffmpegthumbnailer      # Video thumbnail generator (used by ranger)
+    imagemagick            # Convert, resize, edit images from CLI
+    poppler                # PDF rendering library (used by ranger preview)
+    # PDF CLI tools (pdftoppm/pdfinfo) for dirvish previews. lowPrio resolves a
+    # duplicate libpoppler-glib dylib it shares with `poppler` (the glib build).
+    (lib.lowPrio poppler-utils)
+    # epdfinfo on PATH for Emacs pdf-tools. nixpkgs builds the server but buries
+    # it in site-lisp (never on PATH), so we symlink just the binary into bin.
+    # Pulling pdf-tools as a build input (not a top-level package) also keeps
+    # poppler-glib out of the env, avoiding a dylib clash with poppler-utils.
+    (runCommandLocal "epdfinfo" { } ''
+      mkdir -p $out/bin
+      ln -s ${emacsPackages.pdf-tools}/share/emacs/site-lisp/elpa/pdf-tools-*/epdfinfo $out/bin/epdfinfo
+    '')
+    vips                   # High-performance image processing library
+    pngpaste               # Paste PNG from clipboard to file (macOS)
+
+    # ── Code Quality & Formatting ────────────────────────────────────────
+    ruff                   # Extremely fast Python linter and formatter
+    stylelint              # Modern CSS/SCSS linter
+    nixfmt                 # Nix code formatter
+    tokei                  # Count lines of code by language
+
+    # ── Node.js ──────────────────────────────────────────────────────────
+    nodejs                 # JavaScript runtime (V8 engine)
+    # deno — installed via deno.land installer (prebuilt binary, faster updates)
+    prettier               # Opinionated code formatter (JS, TS, CSS, HTML, JSON, Markdown)
+
+    # ── Python Packages ──────────────────────────────────────────────────
+    uv                           # Ultra-fast Python package installer (Rust)
+    python3Packages.editorconfig # EditorConfig support for Python
+    python3Packages.ptpython     # Advanced Python REPL with autocomplete
+    python3Packages.pytest       # Python testing framework
+
+    # ── Emacs Dependencies ───────────────────────────────────────────────
+    clang                  # C/C++/ObjC compiler (used by Emacs packages)
+    coreutils              # GNU coreutils (needed by some Emacs packages)
+    emacs.pkgs.editorconfig # EditorConfig plugin for Emacs
+    aspell                 # Spell checker (used by ispell/flyspell)
+
+    # ── Database ─────────────────────────────────────────────────────────
+    pgcli                  # PostgreSQL CLI with autocomplete and syntax highlighting
+
+    # ── Session & Task Management ────────────────────────────────────────
+    pueue                  # Background task queue manager with TUI
+    tmuxinator             # Manage complex tmux sessions via YAML
+    syncthing              # Continuous peer-to-peer file synchronization
+
+    # ── Fonts & Display ──────────────────────────────────────────────────
+    fontconfig             # Font configuration and discovery library
+    jankyborders           # Window border highlights for macOS
+
+    # ── Terminal Fun ─────────────────────────────────────────────────────
+    cmatrix                # Matrix digital rain effect
+    cowsay                 # ASCII cow with your message
+    sl                     # Steam locomotive — cure for typo 'sl' vs 'ls'
+    slides                 # Terminal-based presentation tool (Markdown)
+
+    # ── macOS System ─────────────────────────────────────────────────────
+    mas                    # Mac App Store CLI — install/update apps
+    #dockutil              # Manage macOS Dock items (broken build → use brew)
+    watch                  # Execute a command periodically (not built-in on macOS)
+    iftop                  # Real-time network bandwidth on an interface
+    glances                # Cross-platform system monitoring (Python)
+    graphviz               # Graph/diagram visualization (dot, neato)
+
+    # ── Lua ──────────────────────────────────────────────────────────────
+    luarocks               # Package manager for Lua modules
+
+    # ── Parser ───────────────────────────────────────────────────────────
+    tree-sitter            # Incremental parser generator (used by Emacs/Neovim)
+{{- end }}
+
+    # ========================================================================
+    # Linux Server / Headless Machines
+    # ========================================================================
+{{- if eq .chezmoi.os "linux" }}
+
+    # ── Linux Build Essentials ───────────────────────────────────────────
+    gcc                    # GNU Compiler Collection (C, C++, Fortran)
+    glibc                  # GNU C Library (provides iconv, locale, etc.)
+
+    # ── Linux Monitoring ─────────────────────────────────────────────────
+    atop                   # Advanced system and process monitor (with history)
+    inotify-tools          # Watch filesystem events (inotifywait, inotifywatch)
+
+    # ── Linux Security ───────────────────────────────────────────────────
+    keepassxc              # Offline password manager with KeePass format
+
+{{ if not .ephemeral -}}
+    # ── Linux GUI (non-ephemeral only) ───────────────────────────────────
+    i3                     # Tiling window manager
+    appimage-run           # Run AppImage binaries on NixOS
+    protonvpn-gui          # Proton VPN graphical client
+{{- end }}
+{{- end }}
+
+    # ========================================================================
+    # Conditional Packages (enabled via chezmoi prompts)
+    # ========================================================================
+{{- if .podmanEnabled }}
+    # ── Podman (rootless containers) ─────────────────────────────────────
+    podman                 # Daemonless OCI container engine
+    podman-compose         # Run docker-compose files with Podman
+{{- end }}
+{{- if .dockerEnabled }}
+    # ── Docker ───────────────────────────────────────────────────────────
+    docker                 # Container runtime and build tool
+    docker-compose         # Define multi-container apps in YAML
+{{- end }}
+{{- if .goEnabled }}
+    # ── Go Development ───────────────────────────────────────────────────
+    go                     # Go programming language
+    gopls                  # Go language server (LSP)
+    gomodifytags           # Add/update/remove struct field tags
+    gotests                # Generate Go table-driven tests
+    gore                   # Go REPL for quick experimentation
+{{- end }}
+{{- if .rustEnabled }}
+    # ── Rust Development ─────────────────────────────────────────────────
+    rustc                  # Rust compiler
+    rustup                 # Rust toolchain installer and manager
+{{- end }}
+  ];
+}

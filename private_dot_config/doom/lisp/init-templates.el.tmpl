@@ -1,0 +1,51 @@
+ ;;; +templates.el -*- mode: emacs-lisp; lexical-binding: t; -*-
+
+;;; Commentary:
+
+(after! yasnippet
+  ;; Use completing-read (vertico) for yas-choose-value prompts
+  (setq yas-prompt-functions '(yas-completing-prompt)))
+
+(use-package! tempel
+  :defer t
+  :init
+  (setq tempel-path
+        (expand-file-name "emacs/templates/*.el" {{ printf "%s/.local/extra-configs" .chezmoi.homeDir | quote }}))
+  :config
+  (define-key tempel-map (kbd "TAB")   #'tempel-next)
+  (define-key tempel-map (kbd "<tab>") #'tempel-next)
+  (define-key tempel-map (kbd "S-TAB")   #'tempel-previous)
+  (define-key tempel-map (kbd "<backtab>") #'tempel-previous))
+
+(defun tempel--next-friday ()
+  "Return timestamp of next Friday (today if Friday)."
+  (let* ((now (current-time))
+         (dow (string-to-number (format-time-string "%w" now)))  ; 0=Sun … 5=Fri … 6=Sat
+         (days-ahead (if (= dow 5) 0 (- 5 dow)))
+         (days-ahead (if (< days-ahead 0) (+ 7 days-ahead) days-ahead)))
+    (time-add now (* days-ahead 86400))))
+
+(defun tempel--last-day-of-month ()
+  "Return timestamp of last day of current month (leap-year safe)."
+  (let* ((now (current-time))
+         (decoded (decode-time now))
+         (y (nth 5 decoded))
+         (m (nth 4 decoded))
+         (day (pcase m
+                ((or 1 3 5 7 8 10 12) 31)
+                ((or 4 6 9 11) 30)
+                (2 (if (and (= (mod y 4) 0)
+                            (or (/= (mod y 100) 0) (= (mod y 400) 0)))
+                       29 28)))))
+    (encode-time 0 0 0 day m y)))
+
+(defun tempel--last-day-of-quarter ()
+  "Return timestamp of last day of current quarter."
+  (let* ((now (current-time))
+         (decoded (decode-time now))
+         (m (nth 4 decoded))
+         (y (nth 5 decoded))
+         (end-m (cond ((<= m 3) 3) ((<= m 6) 6) ((<= m 9) 9) (t 12))))
+    (encode-time 0 0 0 (if (= end-m 12) 31 30) end-m y)))
+
+(provide 'init-templates)

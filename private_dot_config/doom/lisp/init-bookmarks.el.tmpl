@@ -1,0 +1,26 @@
+;;; lisp/init-bookmarks.el -*- mode: emacs-lisp; lexical-binding: t; -*-
+
+;;; Commentary:
+;; Bookmark management with annotations storage
+
+(after! bookmark
+  ;; Store bookmarks and annotations in extra-configs
+  (setq bookmark-default-file
+        (expand-file-name "emacs/bookmarks" {{ printf "%s/.local/extra-configs" .chezmoi.homeDir | quote }}))
+
+  ;; Don't prompt for annotations by default (add manually with C-x r a when needed)
+  (setq bookmark-use-annotations nil)
+
+  ;; Auto-save bookmarks after each change
+  (setq bookmark-save-flag 1)
+
+  ;; Create directory if it doesn't exist
+  (let ((bookmark-dir (file-name-directory bookmark-default-file)))
+    (unless (file-exists-p bookmark-dir)
+      (make-directory bookmark-dir t)))
+
+  ;; Load bookmarks on startup
+  (when (file-exists-p bookmark-default-file)
+    (bookmark-load bookmark-default-file t)))
+
+(provide 'init-bookmarks)

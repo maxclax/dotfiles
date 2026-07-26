@@ -1,0 +1,96 @@
+# -*- mode: nix; -*-
+{ config, pkgs, lib, ... }:
+
+{
+  # Import modular configurations
+  imports = [
+    ./packages.nix              # Package installations
+
+    #########################################################
+{{- if eq .shell "zsh" }}
+    ./programs/zsh.nix           # Zsh configuration
+{{- end }}
+{{- if eq .shell "fish" }}
+    ./programs/fish.nix          # Fish configuration
+{{- end }}
+{{- if not .nixosContainer }}
+    ./programs/bash.nix          # Bash configuration
+{{- end }}
+    ./programs/vim.nix           # Vim configuration
+    # ./programs/direnv.nix      # Direnv configuration (disabled)
+    ./programs/atuin.nix         # Atuin configuration
+    ./programs/starship.nix      # Starship configuration
+    ./programs/syncthing.nix     # Syncthing service
+{{- if eq .chezmoi.os "darwin" }}
+    ./programs/borders.nix       # Borders window management
+{{- end }}
+  ];
+
+  # Home Manager needs a bit of information about you and the paths it should manage
+  home.username = "{{ .chezmoi.username }}";
+  home.homeDirectory = "{{ .chezmoi.homeDir }}";
+
+  # This value determines the Home Manager release that your configuration is
+  # compatible with. This helps avoid breakage when a new Home Manager release
+  # introduces backwards incompatible changes.
+  home.stateVersion = "25.05";
+
+  # Let Home Manager install and manage itself
+  programs.home-manager.enable = true;
+
+  # Configure Home Manager to avoid package conflicts
+  home.enableNixpkgsReleaseCheck = false;
+
+{{- if or (eq .chezmoi.os "linux") .extraUser }}
+  # Allow unfree packages (handled by nix-darwin when extraUser is false)
+  nixpkgs.config.allowUnfree = true;
+{{- end }}
+
+  # Font configuration
+  fonts.fontconfig.enable = true;
+
+  # Nix configuration
+  home.file.".config/nix/nix.conf".source = ./nix.conf;
+
+{{- if .nixosContainer }}
+  # NixOS Container specific settings
+  programs.bash.enable = false;
+
+  # Handle package conflicts in containers
+  home.activation = {
+    removeConflicts = {
+      before = ["installPackages"];
+      after = ["writeBoundary"];
+      data = ''
+        # Remove conflicting packages before Home Manager installs
+        if command -v nix-env >/dev/null 2>&1; then
+          echo "🔧 Removing conflicting packages in container..."
+          echo "Found packages: $(nix-env -q)"
+          for pkg in bash-interactive git-minimal coreutils-full findutils gnugrep gnutar gzip nss-cacert iana-etc less which; do
+            if nix-env -q 2>/dev/null | grep -q "^$pkg"; then
+              echo "  Removing: $pkg"
+              nix-env -e "$pkg" 2>/dev/null || true
+            fi
+          done
+          echo "✅ Conflicts resolved - remaining: $(nix-env -q)"
+        else
+          echo "❌ nix-env not found"
+        fi
+      '';
+    };
+  };
+{{- else if eq .chezmoi.os "linux" }}
+  # Enable desktop integration for GUI applications (Linux only)
+  targets.genericLinux.enable = true;
+
+{{ if not .ephemeral -}}
+  # Zen Browser configuration (Linux desktop only, not containers)
+  programs.zen-browser = {
+    enable = true;
+    # Available options: beta, twilight, twilight-official
+    # beta = latest beta version with newest features
+    variant = "beta";
+  };
+{{- end }}
+{{- end }}
+}

@@ -1,0 +1,2621 @@
+;;; lisp/init-org.el -*- mode: emacs-lisp; lexical-binding: t; -*-
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Org + PARA
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Fix missing Doom function for attachment link preview
+(unless (fboundp '+org-preview-image-file-fn)
+  (defun +org-preview-image-file-fn (protocol link _description)
+    "Preview image for attachment LINK."
+    (when-let* ((path (org-attach-expand link)))
+      (and (image-supported-file-p path) path))))
+
+(after! org
+  ;; Register app protocols so C-c C-o opens in the right app
+  (dolist (protocol '("obsidian" "drafts" "alfred"))
+    (org-link-set-parameters protocol
+      :follow `(lambda (path _) (browse-url (concat ,protocol ":" path)))))
+
+  ;; ── org-ql: query language for org files ────────────────────────────────────
+  ;; Dynamic blocks:
+  ;;   #+BEGIN: org-ql :query (todo "NEXT")             ← current buffer only
+  ;;   #+BEGIN: org-ql-all :query (todo "NEXT")         ← all agenda files (dashboard)
+  ;; Search: M-x org-ql-search
+
+  ;; ql dblock: like org-ql but searches all agenda files (for dashboards)
+  ;; Usage: #+BEGIN: ql :query (todo "NEXT") :columns (heading todo)
+  (defun org-dblock-write:ql (params)
+    "org-ql dblock across all `org-agenda-files'.
+Heading links include file:path so navigation works across files."
+    (require 'org-ql-search)
+    (-let* (((&plist :query :columns :sort :ts-format :take) params)
+            (query (cl-etypecase query
+                     (string (org-ql--query-string-to-sexp query))
+                     (list (org-ql--ask-unsafe-query query) query)))
+            (columns (or columns '(heading todo (priority "P"))))
+            (format-fns
+             (list (cons 'todo (lambda (element)
+                                 (org-element-property :todo-keyword element)))
+                   (cons 'heading
+                         (lambda (element)
+                           (let* ((heading (org-element-property :raw-value element))
+                                  (file (org-element-property :file element))
+                                  (display (org-link-display-format heading)))
+                             (if file
+                                 (format "[[file:%s::*%s][%s]]" file heading display)
+                               (format "[[*%s][%s]]" heading display)))))
+                   (cons 'priority (lambda (element)
+                                     (--when-let (org-element-property :priority element)
+                                       (char-to-string it))))
+                   (cons 'deadline (lambda (element)
+                                     (--when-let (org-element-property :deadline element)
+                                       (ts-format ts-format (ts-parse-org-element it)))))
+                   (cons 'scheduled (lambda (element)
+                                      (--when-let (org-element-property :scheduled element)
+                                        (ts-format ts-format (ts-parse-org-element it)))))
+                   (cons 'closed (lambda (element)
+                                   (--when-let (org-element-property :closed element)
+                                     (ts-format ts-format (ts-parse-org-element it)))))
+                   (cons 'property (lambda (element property)
+                                     (org-element-property (intern (concat ":" (upcase property))) element)))))
+            (elements (org-ql-query :from (org-agenda-files)
+                                    :where query
+                                    :select '(let ((el (org-ql-view--resolve-element-properties
+                                                        (org-element-headline-parser (line-end-position)))))
+                                               (org-element-put-property el :file (buffer-file-name))
+                                               el)
+                                    :order-by sort)))
+      (when take
+        (setf elements (cl-etypecase take
+                         ((and integer (satisfies cl-minusp)) (-take-last (abs take) elements))
+                         (integer (-take take elements)))))
+      (cl-labels ((format-element (element)
+                    (string-join (cl-loop for column in columns
+                                          collect (or (pcase-exhaustive column
+                                                        ((pred symbolp)
+                                                         (funcall (alist-get column format-fns) element))
+                                                        (`((,column . ,args) ,_header)
+                                                         (apply (alist-get column format-fns) element args))
+                                                        (`(,column ,_header)
+                                                         (funcall (alist-get column format-fns) element)))
+                                                      ""))
+                                 " | ")))
+        (insert "| " (string-join (--map (pcase it
+                                           ((pred symbolp) (capitalize (symbol-name it)))
+                                           (`(,_ ,name) name))
+                                         columns)
+                                  " | ")
+                " |" "\n")
+        (insert "|- \n")
+        (dolist (element elements)
+          (insert "| " (format-element element) " |" "\n"))
+        (delete-char -1)
+        (org-table-align)
+        (font-lock-flush))))
+  ;; Views: M-x org-ql-view
+  (use-package! org-ql
+    :commands (org-ql-search org-ql-view org-ql-query)
+    :config
+    (setq org-ql-ask-unsafe-queries nil))
+
+  ;; Syntax highlighting in src blocks
+  (setq org-src-fontify-natively t)
+  (setq org-src-tab-acts-natively t)
+
+  ;; Auto-align org tables inside :results: drawers after src block execution.
+  ;; Org doesn't fontify tables inside drawers, so without this they appear as
+  ;; raw "| col | col |" text until you Tab on each one manually.
+  (defun my/org-align-result-tables ()
+    "Walk the result drawer of the just-executed src block and align any tables."
+    (let ((res (org-babel-where-is-src-block-result)))
+      (when res
+        (save-excursion
+          (goto-char res)
+          (forward-line)
+          (while (re-search-forward "^[ \t]*|" nil t)
+            (org-table-align)
+            (goto-char (org-table-end)))))))
+  (add-hook 'org-babel-after-execute-hook #'my/org-align-result-tables)
+
+  ;; Enable org-depend for sequential tasks
+  (require 'org-depend)
+
+  ;; Auto-save the source org buffer after toggling todo state,
+  ;; without refreshing the agenda view.
+  (advice-add 'org-agenda-todo :after
+              (lambda (&rest _)
+                (when-let* ((marker (org-get-at-bol 'org-marker))
+                            (buf (marker-buffer marker)))
+                  (with-current-buffer buf
+                    (save-buffer)))))
+
+  ;; Fix org-id initialization to prevent hash-table errors
+  (with-eval-after-load 'org-id
+    (unless org-id-locations
+      (setq org-id-locations (make-hash-table :test 'equal)))
+    (unless org-id-files
+      (setq org-id-files nil)))
+
+  ;; Force org-id initialization on startup
+  (when (featurep 'org)
+    (require 'org-id)
+    (unless org-id-locations
+      (setq org-id-locations (make-hash-table :test 'equal))))
+
+  ;; Reset subtasks when repeating task is processed
+  (defun my/reset-repeating-subtasks ()
+    "Reset subtasks and checkboxes when a repeating task is reset."
+    (when (org-get-repeat)              ; This is a repeating task
+      (message "Resetting repeating task subtasks...")
+      (save-excursion
+        (org-back-to-heading t)
+        (let ((end (save-excursion (org-end-of-subtree t))))
+          ;; Reset all DONE subtasks back to TODO
+          (org-map-entries
+           (lambda ()
+             (when (string= (org-get-todo-state) "DONE")
+               (org-todo "TODO")
+               (message "Reset subtask: %s" (org-get-heading t t))))
+           nil 'tree)
+          ;; Reset checkboxes (this should already work, but ensure it)
+          (goto-char (point))
+          (while (re-search-forward "^[ \t]*- \\[X\\]" end t)
+            (replace-match "- [ ]" nil nil))))))
+
+  ;; Use the proper hook that runs after repeat processing
+  (add-hook 'org-todo-repeat-hook #'my/reset-repeating-subtasks)
+
+  ;; org-agenda styles via text properties, not font-lock — but Doom's
+  ;; indent-guides module enables indent-bars-mode in agenda buffers, whose
+  ;; font-lock setup (font-lock-defaults '(nil t)) lets jit-lock STRIP all
+  ;; the agenda's face properties (renders unstyled; `g' can't fix it).
+  ;; Keep indent-bars out of agenda buffers entirely…
+  (add-hook '+indent-guides-inhibit-functions
+            (defun my/indent-guides-inhibit-agenda-h ()
+              (derived-mode-p 'org-agenda-mode)))
+  ;; …and belt-and-braces: kill font-lock on finalize should anything else
+  ;; ever enable it. Advice, not hook — the custom commands let-bind
+  ;; org-agenda-finalize-hook.
+  (advice-add 'org-agenda-finalize :before
+              (defun my/agenda-disable-font-lock-a (&rest _)
+                (setq-local font-lock-defaults nil)
+                (font-lock-mode -1)))
+
+  ;; Dim blocked tasks
+  (setq org-agenda-dim-blocked-tasks t)
+
+  ;; Hide DONE tasks from agenda
+  (setq org-agenda-skip-scheduled-if-done t
+        org-agenda-skip-deadline-if-done t
+        org-agenda-skip-timestamp-if-done t)
+
+  ;; ;; Show TODO subtasks as individual agenda items
+  ;; (setq org-agenda-todo-list-sublevels t)
+  ;; (setq org-tags-match-list-sublevels t)
+
+  ;; ;; Show subtasks of scheduled items in agenda
+  ;; (setq org-agenda-show-inherited-tags nil)
+  ;; (setq org-agenda-use-tag-inheritance nil)
+
+  ;; Custom commands
+  (setq org-agenda-custom-commands
+        '(;; Default agenda (no DONE)
+
+          ;; GTD Full Review with Journal Integration
+          ("d" "Dashboard (GTD)"
+           (;; 🏆 Daily Outcomes — today's three outcomes, shown first so they
+            ;; sit right under the random-quote banner. A freshly created
+            ;; journal still carries the template placeholders ("1." "2." "3.");
+            ;; those are skipped, the block empties out, and
+            ;; `my/agenda-remove-empty-blocks' drops it until a real outcome is
+            ;; written — so a brand-new day's journal shows no block at all.
+            (todo "TODO"
+                  ((org-agenda-overriding-header (concat "🏆 Daily Outcomes → " (my/get-today-date)))
+                   ;; Today's journal only. A missing file yields no entries,
+                   ;; which (same as all-placeholder) drops the block.
+                   (org-agenda-files (list (my/today-journal-file)))
+                   (org-agenda-sorting-strategy '(timestamp-down))
+                   (org-agenda-max-entries 15)
+                   (org-agenda-remove-tags t)
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let ((outline-path (org-get-outline-path t))
+                             (heading (org-get-heading t t t t)))
+                         (or
+                          ;; Not under a Daily Outcomes heading
+                          (unless (cl-some (lambda (h) (string-match-p "Daily Outcomes" h))
+                                           outline-path)
+                            (or (outline-next-heading) (point-max)))
+                          ;; Parked for later
+                          (when (member "someday" (org-get-tags))
+                            (or (outline-next-heading) (point-max)))
+                          ;; Untouched template placeholder ("1." "2." "3.")
+                          (when (string-match-p "\\`[0-9]+\\.?[ \t]*\\'" (or heading ""))
+                            (or (outline-next-heading) (point-max)))))))))
+            (tags "pinned-INBOX"
+                  ((org-agenda-overriding-header "📌 Pinned")
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let ((first-heading
+                              (save-excursion
+                                (goto-char (point-min))
+                                (when (re-search-forward "^\\* " nil t)
+                                  (line-beginning-position)))))
+                         (unless (and (= (org-current-level) 1)
+                                      (= (line-beginning-position) first-heading))
+                           (or (outline-next-heading) (point-max))))))
+                   (org-tags-match-list-sublevels nil)))
+
+            (tags-todo "INBOX"
+                       ((org-agenda-overriding-header "📥 Inbox - Process These")
+                        (org-tags-match-list-sublevels nil)))
+
+            (agenda "" ((org-agenda-span 'day)
+                        (org-agenda-overriding-header "📅 Today")
+                        (org-agenda-todo-list-sublevels t)
+                        (org-deadline-warning-days 0)
+                        ;; A Denote note tagged :notoday: is fully hidden from
+                        ;; the Today block. The denote keyword becomes a
+                        ;; #+filetags entry, which Org inherits onto every
+                        ;; heading, so `org-get-tags' sees it on each item.
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (when (member "notoday" (org-get-tags))
+                              (or (outline-next-heading) (point-max)))))))
+
+            (agenda "" ((org-agenda-span 5)
+                        (org-agenda-start-day "+1d")
+                        (org-agenda-overriding-header "⏰ Upcoming Deadlines")
+                        (org-agenda-entry-types '(:deadline))
+                        (org-deadline-warning-days 0)
+                        (org-agenda-show-all-dates nil)
+                        ;; Each deadline shows under its own due date, so the
+                        ;; built-in leader would read 0d everywhere — use a
+                        ;; days-from-today badge instead.
+                        (org-agenda-prefix-format
+                         '((agenda . " %i%(my/agenda-bold-prefix)%?-12t %(my/deadline-days-from-today) %(my/org-agenda-repeater)")))
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (when (member "nodeadline" (org-get-tags))
+                              (or (outline-next-heading) (point-max)))))))
+
+            (tags-todo "-INBOX-visit-hold/NEXT"
+                       ((org-agenda-overriding-header "⚡ Next Actions")
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (org-agenda-skip-entry-if 'scheduled 'deadline)))
+                        (org-tags-match-list-sublevels t)))
+            (tags-todo "visit/NEXT"
+                       ((org-agenda-overriding-header "📍 Places to Visit")
+                        (org-tags-match-list-sublevels t)))
+            (tags-todo "PRIORITY=\"A\"-someday"
+                       ((org-agenda-overriding-header "🔥 Important & Urgent (Priority A)")
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))))))
+
+            (tags-todo "PRIORITY=\"B\"-someday"
+                       ((org-agenda-overriding-header "📅 Important & Not Urgent (Priority B)")
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))))))
+
+            (tags-todo "PRIORITY=\"C\"-someday"
+                       ((org-agenda-overriding-header "👥 Not Important & Urgent (Priority C)")
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))))))
+
+            (tags-todo "project-INBOX-hold-someday-shopping"
+                       ((org-agenda-overriding-header "🚫 Stuck Projects (no next actions)")
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (or
+                             ;; Skip completed or on-hold projects
+                             (org-agenda-skip-entry-if 'todo '("DONE" "CANCELLED" "HOLD"))
+                             ;; Skip headings without a TODO keyword
+                             (unless (org-get-todo-state)
+                               (or (outline-next-heading) (point-max)))
+                             ;; Skip if subtree has any active next actions (not stuck)
+                             (let ((end (save-excursion (org-end-of-subtree t))))
+                               (when (save-excursion
+                                       (re-search-forward
+                                        "^\\*+ +\\(?:NEXT\\|WAITING\\|INPROCESS\\|DELEGATED\\)"
+                                        end t))
+                                 (point-max))))))
+                        (org-tags-match-list-sublevels t)))
+
+            (tags-todo "/WAITING"
+                       ((org-agenda-overriding-header "⏳ Waiting For")
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (let ((deadline (org-get-deadline-time (point)))
+                                  (scheduled (org-get-scheduled-time (point)))
+                                  (week-from-now (time-add (current-time) (days-to-time 3))))
+                              (when (or deadline scheduled)
+                                (unless (or (and deadline (time-less-p deadline week-from-now))
+                                            (and scheduled (time-less-p scheduled week-from-now)))
+                                  (or (outline-next-heading) (point-max))))
+                              ;; If no deadline/schedule, always show (don't skip)
+                              )))))
+
+            (tags-todo "/DELEGATED"
+                       ((org-agenda-overriding-header "👥 Delegated")
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (let ((deadline (org-get-deadline-time (point)))
+                                  (scheduled (org-get-scheduled-time (point)))
+                                  (week-from-now (time-add (current-time) (days-to-time 3))))
+                              (when (or deadline scheduled)
+                                (unless (or (and deadline (time-less-p deadline week-from-now))
+                                            (and scheduled (time-less-p scheduled week-from-now)))
+                                  (or (outline-next-heading) (point-max))))
+                              ;; If no deadline/schedule, always show (don't skip)
+                              )))))
+
+            (tags-todo "-INBOX/-NEXT"
+                       ((org-agenda-overriding-header "🔍 Orphaned Tasks")
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (or (org-agenda-skip-subtree-if 'todo '("PROJECT" "HOLD" "WAITING" "DELEGATED"))
+                                (org-agenda-skip-subtree-if 'nottodo '("TODO"))
+                                ;; Skip tasks with scheduled/deadline dates or repeating
+                                (org-agenda-skip-entry-if 'scheduled 'deadline 'timestamp)
+                                ;; Skip tasks with local tags (ignore inherited filetags)
+                                (when (org-get-tags nil t) (point-max))
+                                ;; Skip any subtask (level 2+), only show top-level TODOs
+                                (when (> (org-current-level) 1)
+                                  (or (outline-next-heading) (point-max))))))
+                        (org-tags-match-list-sublevels t)))
+
+            (tags "project-INBOX-shopping"
+                  ((org-agenda-overriding-header "📁 Active Projects")
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       ;; Show only the first level-1 heading per project file
+                       (let ((first-heading
+                              (save-excursion
+                                (goto-char (point-min))
+                                (when (re-search-forward "^\\* " nil t)
+                                  (line-beginning-position)))))
+                         (unless (and (= (org-current-level) 1)
+                                      (= (line-beginning-position) first-heading))
+                           (or (outline-next-heading) (point-max))))))
+                   (org-tags-match-list-sublevels nil)))
+
+            (tags "hold-INBOX"
+                  ((org-agenda-overriding-header "⏸️ On Hold Projects")
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let ((first-heading
+                              (save-excursion
+                                (goto-char (point-min))
+                                (when (re-search-forward "^\\* " nil t)
+                                  (line-beginning-position)))))
+                         (unless (and (= (org-current-level) 1)
+                                      (= (line-beginning-position) first-heading))
+                           (or (outline-next-heading) (point-max))))))
+                   (org-tags-match-list-sublevels nil)))
+
+            (tags "research-INBOX"
+                  ((org-agenda-overriding-header "🔬 Research Ideas")
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let ((first-heading
+                              (save-excursion
+                                (goto-char (point-min))
+                                (when (re-search-forward "^\\* " nil t)
+                                  (line-beginning-position)))))
+                         (unless (and (= (org-current-level) 1)
+                                      (= (line-beginning-position) first-heading))
+                           (or (outline-next-heading) (point-max))))))
+                   (org-tags-match-list-sublevels nil)))
+
+            (tags-todo "-INBOX/HOLD"
+                       ((org-agenda-overriding-header "⏸️ On Hold")
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (let ((deadline (org-get-deadline-time (point)))
+                                  (scheduled (org-get-scheduled-time (point)))
+                                  (week-from-now (time-add (current-time) (days-to-time 3))))
+                              (when (or deadline scheduled)
+                                (unless (or (and deadline (time-less-p deadline week-from-now))
+                                            (and scheduled (time-less-p scheduled week-from-now)))
+                                  (or (outline-next-heading) (point-max))))
+                              )))))
+
+            (tags "+someday/TODO"
+                  ((org-agenda-overriding-header "⁉️ Someday & Maybe")
+                   (org-agenda-sorting-strategy '(priority-down alpha-up))
+                   (org-agenda-remove-tags t)
+                   (org-agenda-max-entries 10)
+                   (org-agenda-prefix-format "  %i%(my/agenda-bold-prefix)%?-12t %s")))
+
+            (tags-todo "TODO={TODO}"
+                       ((org-agenda-overriding-header "💳 Subscriptions")
+                        (org-agenda-files '({{ .org_dir | quote }}))
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (unless (string-match-p "subscriptions"
+                                                    (buffer-file-name))
+                              (or (outline-next-heading) (point-max)))))
+                        (org-agenda-sorting-strategy '(deadline-up))
+                        (org-agenda-prefix-format "  %2(my/sub-rating)  %-22(or (org-entry-get nil \"COST\") \"\") %-10(my/sub-deadline-info) ")
+                        (org-agenda-todo-keyword-format "")
+                        (org-agenda-remove-tags t)))
+
+            ;; Review queue — notes still tagged draft/redraft, awaiting a real
+            ;; PARA keyword. Function block; vanishes when the queue is empty.
+            (my/agenda-drafts-block ""))
+           ((org-agenda-finalize-hook '(my/agenda-apply-bold-prefix
+                                        my/agenda-style-tags
+                                        my/agenda-remove-empty-blocks
+                                        my/agenda-compact-separators
+                                        my/agenda-uppercase-headers
+                                        my/agenda-insert-quote
+                                        my/agenda-goto-top))))
+
+          ;; Active Subscriptions
+          ("$" "Subscriptions"
+           ((tags-todo "TODO={TODO}"
+                       ((org-agenda-overriding-header "💳 Active Subscriptions")
+                        (org-agenda-files '({{ .org_dir | quote }}))
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (unless (string-match-p "subscriptions"
+                                                    (buffer-file-name))
+                              (or (outline-next-heading) (point-max)))))
+                        (org-agenda-sorting-strategy '(deadline-up))
+                        (org-agenda-prefix-format "  %2(my/sub-rating)  %-22(or (org-entry-get nil \"COST\") \"\") %-10(my/sub-deadline-info) ")
+                        (org-agenda-todo-keyword-format "")
+                        (org-agenda-remove-tags t))))
+           ((org-agenda-finalize-hook '(my/agenda-goto-top))))
+
+          ;; Graveyard — RIP entries
+          ("g" "Graveyard" agenda ""
+           ((org-agenda-span 1)
+            (org-agenda-files nil)
+            (org-agenda-entry-types nil)
+            (org-agenda-overriding-header "")
+            (org-agenda-finalize-hook '(my/agenda-graveyard-full))))
+
+          ;; Milestones — life counters
+          ("l" "Life Milestones" agenda ""
+           ((org-agenda-span 1)
+            (org-agenda-files nil)
+            (org-agenda-entry-types nil)
+            (org-agenda-overriding-header "")
+            (org-agenda-finalize-hook '(my/agenda-milestones-full))))
+
+          ;; On This Day — single day view, navigate with [ / ] / 0
+          ("o" "On This Day" agenda ""
+           ((org-agenda-span 1)
+            (org-agenda-files nil)
+            (org-agenda-entry-types nil)
+            (org-agenda-overriding-header "")
+            (org-agenda-finalize-hook '((lambda () (setq my/otd-offset 0))
+                                        my/agenda-on-this-day-full))))
+
+          ;; Reading List — TODOs and INPROCESS items tagged :read:
+          ("r" "Reading List"
+           ((tags-todo "read+TODO=\"INPROCESS\""
+                       ((org-agenda-overriding-header "📖 Reading Now")
+                        (org-agenda-sorting-strategy '(priority-down alpha-up))
+                        (org-agenda-prefix-format "  %i ")))
+            (tags-todo "read+TODO=\"TODO\""
+                       ((org-agenda-overriding-header "📚 To Read")
+                        (org-agenda-sorting-strategy '(priority-down alpha-up))
+                        (org-agenda-prefix-format "  %i "))))
+           ((org-agenda-finalize-hook '(my/agenda-goto-top))))
+
+          ;; GTD Full Review with Journal Integration
+           ("D" "Dashboard (AR)"
+          ((todo "TODO"
+                 ((org-agenda-overriding-header (concat "🏆 Yearly Outcomes → " (my/get-end-of-quarter-date)))
+                  (org-agenda-files (directory-files-recursively
+                                     (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))
+                  (org-agenda-sorting-strategy '(deadline-up))
+                  (org-agenda-max-entries 3)
+                  (org-agenda-remove-tags t)
+                  (org-agenda-skip-function
+                   '(lambda ()
+                      (let ((outline-path (org-get-outline-path t)))
+                        (or (when (member "someday" (org-get-tags))
+                              (or (outline-next-heading) (point-max)))
+                            (unless (cl-some (lambda (heading)
+                                               (string-match-p "Yearly Outcomes" heading))
+                                             outline-path)
+                              (or (outline-next-heading) (point-max)))))))))
+           (todo "TODO"
+                 ((org-agenda-overriding-header (concat "🏆 Monthly Outcomes → " (my/get-end-of-month-date)))
+                  (org-agenda-files (directory-files-recursively
+                                     (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))
+                  (org-agenda-sorting-strategy '(deadline-up))
+                  (org-agenda-max-entries 5)
+                  (org-agenda-remove-tags t)
+                  (org-agenda-skip-function
+                   '(lambda ()
+                      (let ((outline-path (org-get-outline-path t)))
+                        (or (when (member "someday" (org-get-tags))
+                              (or (outline-next-heading) (point-max)))
+                            (unless (cl-some (lambda (heading)
+                                               (string-match-p "Monthly Outcomes" heading))
+                                             outline-path)
+                              (or (outline-next-heading) (point-max)))))))))
+           (todo "TODO"
+                 ((org-agenda-overriding-header (concat "🏆 Weekly Outcomes → " (my/get-next-friday-date)))
+                  (org-agenda-files (directory-files-recursively
+                                     (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))
+                  (org-agenda-sorting-strategy '(deadline-up))
+                  (org-agenda-max-entries 10)
+                  (org-agenda-remove-tags t)
+                  (org-agenda-skip-function
+                   '(lambda ()
+                      (let ((outline-path (org-get-outline-path t)))
+                        (or (when (member "someday" (org-get-tags))
+                              (or (outline-next-heading) (point-max)))
+                            (unless (cl-some (lambda (heading)
+                                               (string-match-p "Weekly Outcomes" heading))
+                                             outline-path)
+                              (or (outline-next-heading) (point-max)))))))))
+           (todo "TODO"
+                 ((org-agenda-overriding-header "🏆 Daily Outcomes")
+                  (org-agenda-files (directory-files-recursively
+                                     (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))
+                  (org-agenda-sorting-strategy '(timestamp-down))
+                  (org-agenda-max-entries 15)
+                  (org-agenda-remove-tags t)
+                  (org-agenda-skip-function
+                   '(lambda ()
+                      (let ((outline-path (org-get-outline-path t)))
+                        (or (when (member "someday" (org-get-tags))
+                              (or (outline-next-heading) (point-max)))
+                            (unless (cl-some (lambda (heading)
+                                               (string-match-p "Daily Outcomes" heading))
+                                             outline-path)
+                              (or (outline-next-heading) (point-max)))))))))))
+
+
+         ;; Friday Reflection - All Daily Outcomes Tasks
+          ("F" "Friday Reflection - Daily Outcomes"
+           (;; Weekly Outcomes TODOs from Monday (this week)
+            (alltodo ""
+                  ((org-agenda-overriding-header "🏆️ Weekly Outcomes")
+                   (org-agenda-files (directory-files-recursively
+                                       (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let ((outline-path (org-get-outline-path t))
+                             (current-heading (org-get-heading t t t t)))
+                         ;; Show all items under Weekly Outcomes heading (including DONE)
+                         (unless (or (string-match-p "🏆️ Weekly Outcomes\\|Weekly Outcomes" current-heading)
+                                     (cl-some (lambda (heading)
+                                               (string-match-p "🏆️ Weekly Outcomes\\|Weekly Outcomes" heading))
+                                             outline-path))
+                           (or (outline-next-heading) (point-max))))))
+                   (org-agenda-show-inherited-tags nil)
+                   (org-agenda-prefix-format "  %i%(my/agenda-bold-prefix)%?-12t %s")))
+            (tags "LEVEL>0"
+                  ((org-agenda-overriding-header "📅 Monday")
+                   (org-agenda-files (directory-files-recursively
+                                       (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let* ((outline-path (org-get-outline-path t))
+                              (file-date (file-name-base (buffer-file-name)))
+                              (current-day (calendar-day-of-week (calendar-current-date)))
+                              (days-since-monday (if (= current-day 0) 6 (1- current-day)))
+                              (week-start (time-subtract (current-time) (seconds-to-time (* days-since-monday 86400))))
+                              (monday-date (format-time-string "%Y%m%d" week-start)))
+                         (unless (and (or (org-at-heading-p) (org-at-property-p))
+                                       (cl-some (lambda (heading)
+                                                (string-match-p "Daily Outcomes" heading))
+                                              outline-path)
+                                       (not (string-match-p "Daily Outcomes" (or (org-get-heading t t t t) "")))
+                                       (string-match-p monday-date file-date))
+                           (or (outline-next-heading) (point-max))))))
+                   (org-agenda-show-inherited-tags nil)
+                   (org-agenda-prefix-format "  %i%(my/agenda-bold-prefix)%?-12t %s")))
+            (tags "LEVEL>0"
+                  ((org-agenda-overriding-header "📅 Tuesday")
+                   (org-agenda-files (directory-files-recursively
+                                       (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let* ((outline-path (org-get-outline-path t))
+                              (file-date (file-name-base (buffer-file-name)))
+                              (current-day (calendar-day-of-week (calendar-current-date)))
+                              (days-since-monday (if (= current-day 0) 6 (1- current-day)))
+                              (week-start (time-subtract (current-time) (seconds-to-time (* days-since-monday 86400))))
+                              (tuesday-date (format-time-string "%Y%m%d" (time-add week-start (seconds-to-time 86400)))))
+                         (unless (and (or (org-at-heading-p) (org-at-property-p))
+                                       (cl-some (lambda (heading)
+                                                (string-match-p "Daily Outcomes" heading))
+                                              outline-path)
+                                       (not (string-match-p "Daily Outcomes" (or (org-get-heading t t t t) "")))
+                                       (string-match-p tuesday-date file-date))
+                           (or (outline-next-heading) (point-max))))))
+                   (org-agenda-show-inherited-tags nil)
+                   (org-agenda-prefix-format "  %i%(my/agenda-bold-prefix)%?-12t %s")))
+            (tags "LEVEL>0"
+                  ((org-agenda-overriding-header "📅 Wednesday")
+                   (org-agenda-files (directory-files-recursively
+                                       (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let* ((outline-path (org-get-outline-path t))
+                              (file-date (file-name-base (buffer-file-name)))
+                              (current-day (calendar-day-of-week (calendar-current-date)))
+                              (days-since-monday (if (= current-day 0) 6 (1- current-day)))
+                              (week-start (time-subtract (current-time) (seconds-to-time (* days-since-monday 86400))))
+                              (wednesday-date (format-time-string "%Y%m%d" (time-add week-start (seconds-to-time (* 2 86400))))))
+                         (unless (and (or (org-at-heading-p) (org-at-property-p))
+                                       (cl-some (lambda (heading)
+                                                (string-match-p "Daily Outcomes" heading))
+                                              outline-path)
+                                       (not (string-match-p "Daily Outcomes" (or (org-get-heading t t t t) "")))
+                                       (string-match-p wednesday-date file-date))
+                           (or (outline-next-heading) (point-max))))))
+                   (org-agenda-show-inherited-tags nil)
+                   (org-agenda-prefix-format "  %i%(my/agenda-bold-prefix)%?-12t %s")))
+            (tags "LEVEL>0"
+                  ((org-agenda-overriding-header "📅 Thursday")
+                   (org-agenda-files (directory-files-recursively
+                                       (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let* ((outline-path (org-get-outline-path t))
+                              (file-date (file-name-base (buffer-file-name)))
+                              (current-day (calendar-day-of-week (calendar-current-date)))
+                              (days-since-monday (if (= current-day 0) 6 (1- current-day)))
+                              (week-start (time-subtract (current-time) (seconds-to-time (* days-since-monday 86400))))
+                              (thursday-date (format-time-string "%Y%m%d" (time-add week-start (seconds-to-time (* 3 86400))))))
+                         (unless (and (or (org-at-heading-p) (org-at-property-p))
+                                       (cl-some (lambda (heading)
+                                                (string-match-p "Daily Outcomes" heading))
+                                              outline-path)
+                                       (not (string-match-p "Daily Outcomes" (or (org-get-heading t t t t) "")))
+                                       (string-match-p thursday-date file-date))
+                           (or (outline-next-heading) (point-max))))))
+                   (org-agenda-show-inherited-tags nil)
+                   (org-agenda-prefix-format "  %i%(my/agenda-bold-prefix)%?-12t %s")))
+            (tags "LEVEL>0"
+                  ((org-agenda-overriding-header "📅 Friday")
+                   (org-agenda-files (directory-files-recursively
+                                       (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let* ((outline-path (org-get-outline-path t))
+                              (file-date (file-name-base (buffer-file-name)))
+                              (current-day (calendar-day-of-week (calendar-current-date)))
+                              (days-since-monday (if (= current-day 0) 6 (1- current-day)))
+                              (week-start (time-subtract (current-time) (seconds-to-time (* days-since-monday 86400))))
+                              (friday-date (format-time-string "%Y%m%d" (time-add week-start (seconds-to-time (* 4 86400))))))
+                         (unless (and (or (org-at-heading-p) (org-at-property-p))
+                                       (cl-some (lambda (heading)
+                                                (string-match-p "Daily Outcomes" heading))
+                                              outline-path)
+                                       (not (string-match-p "Daily Outcomes" (or (org-get-heading t t t t) "")))
+                                       (string-match-p friday-date file-date))
+                           (or (outline-next-heading) (point-max))))))
+                   (org-agenda-show-inherited-tags nil)
+                   (org-agenda-prefix-format "  %i%(my/agenda-bold-prefix)%?-12t %s")))
+            (tags "LEVEL>0"
+                  ((org-agenda-overriding-header "📅 Saturday")
+                   (org-agenda-files (directory-files-recursively
+                                       (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let* ((outline-path (org-get-outline-path t))
+                              (file-date (file-name-base (buffer-file-name)))
+                              (current-day (calendar-day-of-week (calendar-current-date)))
+                              (days-since-monday (if (= current-day 0) 6 (1- current-day)))
+                              (week-start (time-subtract (current-time) (seconds-to-time (* days-since-monday 86400))))
+                              (saturday-date (format-time-string "%Y%m%d" (time-add week-start (seconds-to-time (* 5 86400))))))
+                         (unless (and (or (org-at-heading-p) (org-at-property-p))
+                                       (cl-some (lambda (heading)
+                                                (string-match-p "Daily Outcomes" heading))
+                                              outline-path)
+                                       (not (string-match-p "Daily Outcomes" (or (org-get-heading t t t t) "")))
+                                       (string-match-p saturday-date file-date))
+                           (or (outline-next-heading) (point-max))))))
+                   (org-agenda-show-inherited-tags nil)
+                   (org-agenda-prefix-format "  %i%(my/agenda-bold-prefix)%?-12t %s")))
+            (tags "LEVEL>0"
+                  ((org-agenda-overriding-header "📅 Sunday")
+                   (org-agenda-files (directory-files-recursively
+                                       (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))
+                   (org-agenda-skip-function
+                    '(lambda ()
+                       (let* ((outline-path (org-get-outline-path t))
+                              (file-date (file-name-base (buffer-file-name)))
+                              (current-day (calendar-day-of-week (calendar-current-date)))
+                              (days-since-monday (if (= current-day 0) 6 (1- current-day)))
+                              (week-start (time-subtract (current-time) (seconds-to-time (* days-since-monday 86400))))
+                              (sunday-date (format-time-string "%Y%m%d" (time-add week-start (seconds-to-time (* 6 86400))))))
+                         (unless (and (or (org-at-heading-p) (org-at-property-p))
+                                       (cl-some (lambda (heading)
+                                                (string-match-p "Daily Outcomes" heading))
+                                              outline-path)
+                                       (not (string-match-p "Daily Outcomes" (or (org-get-heading t t t t) "")))
+                                       (string-match-p sunday-date file-date))
+                           (or (outline-next-heading) (point-max))))))
+                   (org-agenda-show-inherited-tags nil)
+                   (org-agenda-prefix-format "  %i%(my/agenda-bold-prefix)%?-12t %s")))))
+
+          ;; Eisenhower Matrix (using priorities)
+          ("E" "Eisenhower Matrix"
+           ((tags-todo "PRIORITY=\"A\"-someday"
+                       ((org-agenda-overriding-header "🔥 Important & Urgent (Priority A)")
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))))))
+            (tags-todo "PRIORITY=\"B\"-someday"
+                       ((org-agenda-overriding-header "📅 Important & Not Urgent (Priority B)")
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))))))
+            (tags-todo "PRIORITY=\"C\"-someday"
+                       ((org-agenda-overriding-header "👥 Not Important & Urgent (Priority C)")
+                        (org-agenda-skip-function
+                         '(lambda ()
+                            (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))))))))
+
+          ;; Shopping & Selling Lists
+          ("b" "Buy & Sell"
+           ((tags-todo "shopping"
+                       ((org-agenda-overriding-header "🛒 Shopping List")))
+            (tags-todo "selling"
+                       ((org-agenda-overriding-header "💰 Selling List")))))))
+
+  (add-hook 'org-agenda-mode-hook 'hl-line-mode)
+
+  (setq org-directory {{ .org_dir | quote }})
+
+  (setq org-log-done nil)
+  ;; single-key commands with point on a heading star: n/p/f/b/u nav, t todo, ? list
+  (setq org-use-speed-commands t)
+  (setq org-todo-repeat-to-state "TODO")
+  (setq org-agenda-file-regexp "\\`[^.].*\\.org\\'") ;; Exclude files starting with "."
+  (setq org-agenda-files
+        (seq-filter (lambda (file)
+                      (not (or (string-match-p "/templates/" file)
+                               ;; PARA archive silo — never scan archived notes,
+                               ;; EXCEPT drafts awaiting publish: they carry a
+                               ;; SCHEDULED publish task that must reach the agenda
+                               ;; even though the draft itself lives in /archive/.
+                               (and (string-match-p "/archive/" file)
+                                    (not (string-match-p "_\\(re\\)?draft" file))))))
+                    (append (directory-files-recursively {{ .org_dir | quote }} "\\.org$")
+                            (when (file-exists-p (expand-file-name "org" {{ .workspace_extra | quote }}))
+                              (directory-files-recursively (expand-file-name "org" {{ .workspace_extra | quote }}) "\\.org$"))
+                            ;; Include journal files in agenda
+                            (directory-files-recursively (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))))
+
+  (setq org-default-notes-file (expand-file-name "inbox.org" {{ .org_dir | quote }}))
+  (setq org-capture-templates
+        '(("t" "Quick todo → inbox.org (no context)" entry (file org-default-notes-file)
+           "* TODO %?")
+          ("c" "Todo with context → inbox.org (adds link + timestamp)" entry (file org-default-notes-file)
+           "* TODO %?\n%U\n  %i\n  %a" :clock-resume t)
+("j" "Journal todo → today's journal Todos section" entry (file+headline my/today-journal-file "Todos")
+           "* TODO %?" :clock-resume t)
+          ("m" "Milestone → milestones.org (with start date)" entry (file my/milestones-file)
+           "* %?\n:PROPERTIES:\n:STARTED: %^{Started}t\n:END:\n"
+           :empty-lines 1)))
+
+  ;; Return path to today's journal file (used as file+headline capture target)
+  (defun my/today-journal-file ()
+    "Return path to today's journal file, creating it if needed."
+    (let* ((today (format-time-string "%Y%m%dT%H%M%S"))
+           (date-title (format-time-string "%Y-%m-%d"))
+           (journal-dir (expand-file-name "journal" {{ .org_dir | quote }}))
+           (today-file (car (directory-files journal-dir t (format-time-string "%Y-%m-%d")))))
+      (or today-file
+          (expand-file-name (format "%s--%s__journal.org" today date-title)
+                            journal-dir))))
+
+  ;; GTD-style TODO keywords with PROJECT state
+  (setq org-todo-keywords
+        '((sequence "TODO(t)" "NEXT(n)" "INPROCESS(i)" "|" "DONE(d)")
+          (sequence "PROJECT(p)" "|" "DONE(d)" "CANCELLED(c)")
+          (sequence "WAITING(w)" "DELEGATED(D)" "HOLD(h)" "|" "CANCELLED(c)" "SKIP(s)")))
+
+  ;; Stuck projects detection (projects without NEXT, WAITING, or DELEGATED actions)
+  (setq org-stuck-projects '("project-INBOX" ("NEXT" "WAITING" "DELEGATED") nil ""))
+
+  ;; TODO keyword faces
+  (setq org-todo-keyword-faces
+        '(("NEXT" :inherit warning)
+          ("INPROCESS" :inherit success)
+          ("PROJECT" :inherit font-lock-string-face)
+          ("WAITING" :inherit font-lock-keyword-face)
+          ("HOLD" :inherit font-lock-comment-face)
+          ("SKIP" :inherit font-lock-comment-face)))
+
+  ;; Kindle highlight colour code → Org tag colours. The same accent carries a
+  ;; highlight's meaning all the way through: Pink THINK → :idea:, Orange FIND
+  ;; → :research: (Aqua DO becomes a plain TODO, so it has no tag to colour).
+  ;; `my/agenda-style-tags' reads this same alist so the agenda badges match.
+  (defvar my/tag-colors
+    '(;; Kindle highlight colour code
+      ("idea"      . "#d33682")  ; Pink   — THINK
+      ("research"  . "#cb4b16")  ; Orange — FIND
+      ("do"        . "#2aa198")  ; Aqua   — DO (only if a :do: tag is used)
+      ;; PARA / workflow tags
+      ("journal"   . "#268bd2")  ; Blue   — daily journal
+      ("finance"   . "#859900")  ; Green  — money / finance
+      ("reference" . "#6c71c4")  ; Violet — reference material
+      ("pinned"    . "#dc322f")) ; Red    — pinned to top
+    "Tag → accent colour, mirroring the Kindle highlight colour code.")
+
+  ;; Colour the tags at the end of headlines in org buffers.
+  (setq org-tag-faces
+        (mapcar (lambda (tc)
+                  (cons (car tc) (list :foreground (cdr tc) :weight 'bold)))
+                my/tag-colors))
+
+  ;; Blend a hex colour toward white by FRACTION (0 = colour, 1 = white) to get
+  ;; a pale badge background that keeps the accent legible on the light agenda.
+  (defun my/color-tint (hex fraction)
+    "Return HEX lightened toward white by FRACTION as a #rrggbb string."
+    (require 'color)
+    (let* ((rgb (color-name-to-rgb hex))
+           (mix (mapcar (lambda (c) (+ c (* fraction (- 1.0 c)))) rgb)))
+      (apply #'color-rgb-to-hex (append mix '(2)))))
+
+  ;; Eisenhower Matrix priority system (A=I-U, B=I-NU, C=NI-U, D=NI-NU)
+  (setq org-priority-highest ?A)
+  (setq org-priority-lowest ?D)
+  (setq org-priority-default ?D)
+
+  ;; Priority faces for Eisenhower Matrix
+  (setq org-priority-faces
+        '((?A . (:foreground "red" :weight bold))    ; A = I-U (DO)
+          (?B . (:foreground "orange" :weight bold)) ; B = I-NU (SCHEDULE)
+          (?C . (:foreground "gray" :weight bold)))) ; C = NI-U (DELEGATE)
+
+  ;; Deadline warning — show warnings 14 days before deadline
+  (setq org-deadline-warning-days 14)
+
+  ;; Deadline-first agenda: distinct leaders, repeater display, and a global
+  ;; sort that puts deadlines at the top of each day.
+  ;; Adapted from https://whhone.com/posts/refining-org-mode-deadlines/
+  (setq org-agenda-scheduled-leaders '("Sched" "S.%2dx"))
+  (setq org-agenda-deadline-leaders  '("🔴 0d" "🔴%2dd" "🔴-%1dd"))
+
+  (setq org-agenda-sorting-strategy
+        '((agenda deadline-up habit-down time-up priority-down category-keep)
+          (todo   priority-down category-keep)
+          (tags   priority-down category-keep)
+          (search category-keep)))
+
+  ;; Show the repeater (++7d, +1m, …) inline in the agenda for deadlines
+  ;; and scheduled items, so a glance tells me whether something recurs.
+  (defun my/org-agenda-repeater ()
+    "Repeater shown in org-agenda-prefix for agenda entries."
+    (let ((pom (org-get-at-bol 'org-marker)))
+      (if (or (org-get-scheduled-time pom) (org-get-deadline-time pom))
+          (format "%5s " (or (org-get-repeat) ""))
+        "      ")))
+
+  ;; Days-from-TODAY badge for calendar-style deadline blocks.
+  ;; In a multi-day deadline view each entry appears under its own due date,
+  ;; so the built-in deadline leader (%s) always reads "0d". This computes the
+  ;; distance from today instead, matching `org-agenda-deadline-leaders' style.
+  (defun my/deadline-days-from-today ()
+    "Return a 🔴 badge with whole days from today until this entry's deadline."
+    ;; During %(…) prefix eval point sits at the entry in the source org
+    ;; buffer, so `org-get-at-bol' returns nil here; pass it through and let
+    ;; `org-get-deadline-time' fall back to point (same as the repeater).
+    (let* ((pom (org-get-at-bol 'org-marker))
+           (dl  (org-get-deadline-time (or pom (point)))))
+      (if dl
+          (let ((diff (- (time-to-days dl) (org-today))))
+            (cond
+             ((> diff 0) (format "🔴%2dd" diff))
+             ((= diff 0) "🔴 0d")
+             (t          (format "🔴-%dd" (- diff)))))
+        "     ")))
+
+  ;; Vivid deadline faces in agenda: overdue/today = bold red, approaching = orange
+  (custom-set-faces!
+   '(org-upcoming-deadline :foreground "orange" :weight bold)
+   '(org-upcoming-distant-deadline :foreground "dark orange")
+   '(org-warning :foreground "red" :weight bold)
+   '(org-imminent-deadline :foreground "red" :weight bold :underline t))
+
+  ;; Block headers (overriding-header) — larger, bold, with a full-width
+  ;; background bar (:extend fills to the window edge when the face also
+  ;; covers the trailing newline; see `my/agenda-uppercase-headers').
+  ;; The bar must follow the theme: cream on light, raised bg-alt on dark —
+  ;; a hardcoded light cream glares after circadian switches to dark.
+  (defun my/agenda-structure-face-h (&rest _)
+    (custom-set-faces!
+     `(org-agenda-structure
+       :weight bold :height 1.05 :extend t
+       :background ,(if (eq (frame-parameter nil 'background-mode) 'light)
+                        "#fdf8e1"
+                      (doom-color 'bg-alt)))))
+  (my/agenda-structure-face-h)
+  (add-hook 'doom-load-theme-hook #'my/agenda-structure-face-h)
+
+  ;; Colorize DEADLINE lines in org buffers based on proximity
+  (defun my/org-deadline-fontify ()
+    "Highlight DEADLINE lines: red+bold if today/overdue, orange if within warning days."
+    (save-excursion
+      (goto-char (point-min))
+      (let ((today (org-today))
+            (warn org-deadline-warning-days))
+        (while (re-search-forward org-deadline-time-regexp nil t)
+          (let* ((ts (match-string 1))
+                 (deadline-day (org-time-string-to-absolute ts))
+                 (diff (- deadline-day today))
+                 (beg (line-beginning-position))
+                 (end (line-end-position)))
+            (remove-overlays beg end 'my-deadline t)
+            (when (<= diff warn)
+              (let ((ov (make-overlay beg end)))
+                (overlay-put ov 'my-deadline t)
+                (cond
+                 ((<= diff 0)  ; today or overdue
+                  (overlay-put ov 'face '(:foreground "red" :weight bold :underline t)))
+                 ((<= diff 3)  ; within 3 days
+                  (overlay-put ov 'face '(:foreground "red" :weight bold)))
+                 ((<= diff 7)  ; within a week
+                  (overlay-put ov 'face '(:foreground "orange" :weight bold)))
+                 (t             ; rest of warning period
+                  (overlay-put ov 'face '(:foreground "dark orange")))))))))))
+
+  (add-hook 'org-mode-hook
+            (lambda ()
+              (my/org-deadline-fontify)
+              (add-hook 'after-save-hook #'my/org-deadline-fontify nil t)))
+
+  ;; Enable habit tracking
+  (require 'org-habit)
+  (add-to-list 'org-modules 'org-habit)
+  (setq org-habit-graph-column 14)
+  (setq org-habit-show-habits-only-for-today t)
+
+  ;; Calendar and scheduling configuration
+  (setq calendar-week-start-day 1)                ; Start calendar with Monday
+  (setq org-agenda-start-on-weekday 1)            ; Start agenda week with Monday
+  (setq org-read-date-prefer-future 'time)        ; Prefer future times when scheduling
+  (setq org-read-date-force-compatible-dates nil) ; Allow flexible date input
+  (setq org-agenda-span 'week)                    ; Show week view by default
+  (setq org-agenda-start-day nil)                 ; Start agenda with today
+  (setq org-agenda-show-all-dates t)              ; Show all days even if empty
+
+  ;; Today navigation and highlighting
+  (setq org-agenda-include-diary nil)                     ; Don't include diary
+  (setq org-agenda-skip-scheduled-if-deadline-is-shown t) ; Avoid duplicate entries
+  (setq org-scheduled-past-days 365)    ; Show past (overdue) scheduled items for 365 days
+  (setq org-deadline-past-days 365)     ; Show past deadline items for 365 days
+  ;; NOTE: org-scheduled-delay-days is NOT "how long to keep overdue items".
+  ;; A positive value DELAYS every scheduled item, hiding it until that many
+  ;; days AFTER its scheduled date — 365 hid all scheduled items for a year.
+  ;; Overdue visibility is org-scheduled-past-days (above); keep delay at 0.
+  (setq org-scheduled-delay-days 0)
+
+  ;; Fast date selection
+  (setq org-popup-calendar-for-date-selection t) ; Show popup calendar for date selection
+
+  ;; Universal clean display for all denote titles in agenda
+  (defun my/clean-denote-title-for-agenda ()
+    "Show clean denote titles for all agenda items with bold formatting."
+    (when (buffer-file-name)
+      (let* ((file (file-name-nondirectory (buffer-file-name)))
+             (is-journal (string-match-p "journal" (buffer-file-name)))
+             (is-outcome (save-excursion
+                           (org-back-to-heading t)
+                           (let ((outline-path (org-get-outline-path t)))
+                             (cl-some (lambda (heading) (string-match-p "Daily Outcomes" heading)) outline-path)))))
+        (cond
+         ;; Denote journal files - extract date from filename
+         (is-journal
+          (let* ((title-part (if (string-match "^[0-9T]+--\\([^_]+\\)__" file)
+                                 (match-string 1 file)
+                               (file-name-sans-extension file)))
+                 (icon (if is-outcome "🏆" "📝")))
+            title-part))
+         ;; Other denote files
+         ((string-match "^[0-9T]+--\\([^_]+\\)__" file)
+          (let ((clean-title (replace-regexp-in-string "-" " " (match-string 1 file))))
+            (capitalize clean-title)))
+         ;; Non-denote files - show just filename without extension
+         (t
+          (file-name-sans-extension file))))))
+
+  ;; ──────────────────────────────────────────────────────────────
+  ;; Date helper functions for agenda headers
+  ;; ──────────────────────────────────────────────────────────────
+  (defun my/get-end-of-year-date ()
+    "Return formatted string for end of current year."
+    (format-time-string "[%Y-%m-%d %a]" (encode-time 0 0 0 31 12 (nth 5 (decode-time)))))
+
+  (defun my/get-end-of-quarter-date ()
+    "Return formatted string for end of current quarter."
+    (let* ((now (current-time))
+           (decoded (decode-time now))
+           (m (nth 4 decoded))
+           (y (nth 5 decoded))
+           (end-m (cond ((<= m 3) 3) ((<= m 6) 6) ((<= m 9) 9) (t 12))))
+      (format-time-string "[%Y-%m-%d %a]" (encode-time 0 0 0 (if (= end-m 12) 31 30) end-m y))))
+
+  (defun my/get-end-of-month-date ()
+    "Return formatted string for end of current month."
+    (let* ((now (current-time))
+           (decoded (decode-time now))
+           (y (nth 5 decoded))
+           (m (nth 4 decoded))
+           (day (pcase m
+                  ((or 1 3 5 7 8 10 12) 31)
+                  ((or 4 6 9 11) 30)
+                  (2 (if (and (= (mod y 4) 0)
+                              (or (/= (mod y 100) 0) (= (mod y 400) 0)))
+                         29 28)))))
+      (format-time-string "[%Y-%m-%d %a]" (encode-time 0 0 0 day m y))))
+
+  (defun my/get-next-friday-date ()
+    "Return formatted string for next Friday (today if Friday)."
+    (let* ((now (current-time))
+           (dow (string-to-number (format-time-string "%w" now)))
+           (days-ahead (if (= dow 5) 0 (- 5 dow)))
+           (days-ahead (if (< days-ahead 0) (+ 7 days-ahead) days-ahead)))
+      (format-time-string "[%Y-%m-%d %a]" (time-add now (* days-ahead 86400)))))
+
+  (defun my/get-today-date ()
+    "Return formatted string for today."
+    (format-time-string "[%Y-%m-%d %a]"))
+
+  ;; ──────────────────────────────────────────────────────────────
+  (defun my/sub-deadline-info ()
+    "Return days until deadline as a string for subscription agenda."
+    (let ((dl (org-get-deadline-time (point))))
+      (if dl
+          (let ((days (- (time-to-days dl) (time-to-days (current-time)))))
+            (cond
+             ((< days 0) (format "%dd overdue" (abs days)))
+             ((= days 0) "today")
+             ((< days 30) (format "in %dd" days))
+             (t (format "in %dm" (/ days 30)))))
+        "")))
+
+  (defun my/sub-rating ()
+    "Return rating emoji for current subscription based on RATING property.
+Scale: great=🤩 good=👍 ok=🙂 meh=😕 bad=💀"
+    (pcase (org-entry-get nil "RATING")
+      ("great" "🤩")
+      ("good"  "👍")
+      ("ok"    "🙂")
+      ("meh"   "😕")
+      ("bad"   "💀")
+      (_       "  ")))
+
+  ;; Make filename/title BOLD in agenda – guaranteed to work
+  ;; ──────────────────────────────────────────────────────────────
+  (defun my/agenda-bold-prefix ()
+    "Return the cleaned filename/title with arrow separator (bolding applied post-render)."
+    (let ((clean (my/clean-denote-title-for-agenda)))
+      (when (and clean (not (string-empty-p clean)))
+        (concat clean " → "))))
+
+  (defun my/agenda-apply-bold-prefix ()
+    "Re-apply bold face to prefix titles after agenda render."
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward "\\(.+?\\) → " nil t)
+        (let ((beg (match-beginning 1))
+              (end (match-end 1)))
+          (add-face-text-property beg end '(:weight bold))))))
+
+  (defun my/agenda-style-tags ()
+    "Style individual tags as separate badges in agenda."
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward "\\(:[a-zA-Z0-9_@:]+:\\)\\s-*$" nil t)
+        (let* ((beg (match-beginning 1))
+               (end (match-end 1))
+               (tag-str (buffer-substring-no-properties beg end))
+               (tags (split-string tag-str ":" t))
+               (styled (mapconcat
+                        (lambda (tag)
+                          ;; Tags in `my/tag-colors' (idea/research/…) get their
+                          ;; Kindle accent colour and a tint of it as background;
+                          ;; every other tag keeps the neutral grey badge.
+                          (let ((color (cdr (assoc tag my/tag-colors))))
+                            (propertize
+                             (concat " " tag " ")
+                             'face `(:foreground ,(or color "#5B6268")
+                                     :background ,(if color
+                                                      (my/color-tint color 0.85)
+                                                    "#e8e8e8")
+                                     :weight ,(if color 'semibold 'light) :height 0.8
+                                     ;; vertical-only box in the page background
+                                     ;; colour: invisible padding that keeps badges
+                                     ;; on adjacent lines from touching.
+                                     :box (:line-width (0 . 3)
+                                           :color ,(face-background 'default nil t))))))
+                        tags " ")))
+          (let ((inhibit-read-only t))
+            (delete-region beg end)
+            (goto-char beg)
+            (insert styled))))))
+
+  (defun my/agenda-goto-top ()
+    "Move cursor to the top of the agenda buffer after finalization."
+    (goto-char (point-min)))
+
+  ;; ── Dashboard review queue: notes still tagged draft/redraft ──────────────
+  ;; `redraft' (and `draft') are a note-level inbox: a note I've touched but not
+  ;; yet placed into a real PARA keyword. This block surfaces them on the GTD
+  ;; dashboard so they nag until each is given its real keyword (resource/area/
+  ;; project) or archived. It is a *function block* — org calls it via
+  ;; `(funcall type match)' and it APPENDS to the agenda buffer (never erases).
+  (defun my/denote-draft-jump ()
+    "Open the draft note on the current agenda line."
+    (interactive)
+    (let ((f (get-text-property (point) 'denote-draft-file)))
+      (if f (find-file-other-window f)
+        (message "No draft note on this line"))))
+
+  (defvar my/denote-draft-jump-map
+    (let ((m (make-sparse-keymap)))
+      (define-key m (kbd "RET")   #'my/denote-draft-jump)
+      (define-key m (kbd "TAB")   #'my/denote-draft-jump)
+      (define-key m (kbd "<tab>") #'my/denote-draft-jump)
+      m)
+    "Keymap active on draft lines in the agenda review block.")
+
+  ;; ── Random quote banner ───────────────────────────────────────────────────
+  ;; Tag any org heading `:quote:' and one is picked at random and shown,
+  ;; citation-styled (small italic), at the very top of the dashboard. Put the
+  ;; attribution right in the heading, e.g. "The obstacle is the way — Marcus".
+  (defun my/agenda-quotes-from-journelly ()
+    "Collect `#quote' entries from Journelly.org.
+Journelly uses markdown-style #hashtags instead of org `:tags:', and the
+text lives in the entry body (the heading is just `* [timestamp] location').
+Returns a list of quote strings with the tag, file links and properties
+stripped and whitespace collapsed to a single line."
+    (let* ((journelly-file (expand-file-name "Journelly.org" {{ .org_dir | quote }}))
+           (quotes '()))
+      (when (file-readable-p journelly-file)
+        (with-temp-buffer
+          (insert-file-contents journelly-file)
+          ;; Cheap skip: only walk the file if it mentions #quote at all.
+          (when (save-excursion (goto-char (point-min))
+                                (search-forward "#quote" nil t))
+            (goto-char (point-min))
+            (while (re-search-forward
+                    "^\\* \\[\\([0-9-]+ [A-Za-z]+ [0-9:]+\\)\\]\\(.*\\)" nil t)
+              (let* ((location (string-trim (or (match-string 2) "")))
+                     (content-start (point))
+                     (content-end (or (save-excursion
+                                        (when (re-search-forward "^\\* " nil t)
+                                          (line-beginning-position)))
+                                      (point-max)))
+                     (raw (buffer-substring-no-properties content-start content-end)))
+                (when (string-match-p "#quote\\b" (concat location " " raw))
+                  (let ((clean (replace-regexp-in-string
+                                "#quote\\b" ""
+                                (replace-regexp-in-string
+                                 "\\[\\[file:[^]]*\\]\\]" ""
+                                 (replace-regexp-in-string
+                                  ":PROPERTIES:[\n\r]\\(.\\|\n\\)*?:END:" "" raw)))))
+                    (setq clean (string-trim
+                                 (replace-regexp-in-string "[ \t\n\r]+" " " clean)))
+                    (when (org-string-nw-p clean)
+                      (push clean quotes)))))))))
+      (nreverse quotes)))
+
+  (defun my/agenda-quotes-collect ()
+    "Collect quote strings from the org directory, without org-ql (no warnings).
+A heading counts as a quote if the file has a `:quote:' filetag, or the
+heading itself carries a `:quote:' tag. Trailing :tags: are stripped.
+Scans the filesystem fresh (not the cached `org-agenda-files') so a newly
+added quotes file is always picked up."
+    (let ((quotes '())
+          (files (append
+                  (ignore-errors
+                    (directory-files-recursively {{ .org_dir | quote }} "\\.org\\'"))
+                  (when (and (fboundp 'my/denote-extra-dir) (my/denote-extra-dir))
+                    (ignore-errors
+                      (directory-files-recursively (my/denote-extra-dir) "\\.org\\'"))))))
+      (dolist (f (seq-filter (lambda (x) (string-match-p "\\.org\\'" x)) files))
+        (when (file-readable-p f)
+          (with-temp-buffer
+            (insert-file-contents f)
+            ;; Cheap skip: only parse files that mention :quote: at all.
+            (when (save-excursion (goto-char (point-min))
+                                  (search-forward ":quote:" nil t))
+              (let ((file-quote
+                     (save-excursion
+                       (goto-char (point-min))
+                       (re-search-forward "^#\\+filetags:.*:quote:" 2000 t))))
+                (goto-char (point-min))
+                (while (re-search-forward "^\\*+[ \t]+\\(.*\\)$" nil t)
+                  (let ((heading (match-string 1)))
+                    (when (or file-quote (string-match-p ":quote:" heading))
+                      (let ((clean (string-trim
+                                    (replace-regexp-in-string
+                                     "[ \t]+:[[:alnum:]_@#%:]+:[ \t]*$" "" heading))))
+                        (when (org-string-nw-p clean)
+                          (push clean quotes)))))))))))
+      ;; Fold in Journelly's markdown-style #quote entries.
+      (append quotes (my/agenda-quotes-from-journelly))))
+
+  (defun my/agenda-insert-quote ()
+    "Prepend a random `:quote:' heading to the top of the agenda buffer.
+Runs as a finalize hook (after all blocks render) so it can't be wiped by
+block setup the way a leading function block can."
+    (let ((quotes (my/agenda-quotes-collect))
+          (inhibit-read-only t))
+      (when quotes
+        (let ((q (nth (random (length quotes)) quotes)))
+          (save-excursion
+            (goto-char (point-min))
+            (insert (propertize (concat "  ❝ " q " ❞")
+                                'face '(:height 0.9 :slant italic :foreground "#9aa0a6")))
+            (insert "\n\n"))))))
+
+  ;; Article drafts carry their publish slot as a file-level `#+scheduled:'
+  ;; keyword, e.g. `#+scheduled:  <2026-07-30 Thu 13:30>'. A timestamp above the
+  ;; first headline is invisible to the normal agenda scanners, so this block
+  ;; reads it directly — that keeps the publishing queue in the draft itself
+  ;; instead of a parallel WAITING task somewhere else.
+  (defun my/denote-draft-scheduled (file)
+    "Return the `#+scheduled:' timestamp body in FILE, or nil.
+Reads only the first 4k so scanning the whole draft queue stays cheap."
+    (when (file-readable-p file)
+      (with-temp-buffer
+        (ignore-errors (insert-file-contents file nil 0 4096))
+        (goto-char (point-min))
+        (when (re-search-forward "^#\\+scheduled:[ \t]*<\\([^>]+\\)>" nil t)
+          (match-string 1)))))
+
+  (defun my/agenda-drafts-block (&optional _match)
+    "Agenda block listing notes still tagged draft/redraft (awaiting a keyword).
+Scheduled drafts sort first, soonest at the top, and a slot that has already
+passed is flagged — a draft still in this block after its time means it never
+went out. Inserts nothing when the queue is empty, so it disappears at zero."
+    (let* ((files (seq-filter
+                   (lambda (f)
+                     (let ((kw (denote-extract-keywords-from-path f)))
+                       (or (member "draft" kw) (member "redraft" kw))))
+                   (my/denote-all-files)))
+           (now (float-time))
+           (entries
+            (mapcar (lambda (f)
+                      (let* ((sched (my/denote-draft-scheduled f))
+                             (secs (and sched
+                                        (ignore-errors
+                                          (org-time-string-to-seconds sched)))))
+                        (list f
+                              (or (ignore-errors
+                                    (denote-retrieve-front-matter-title-value f 'org))
+                                  (file-name-base f))
+                              (if (member "redraft"
+                                          (denote-extract-keywords-from-path f))
+                                  "redraft" "draft")
+                              secs
+                              ;; keep the raw string: date-only slots have no time
+                              sched)))
+                    files))
+           (inhibit-read-only t))
+      (when entries
+        ;; scheduled first (soonest → latest), then everything undated by title
+        (setq entries
+              (sort entries
+                    (lambda (a b)
+                      (let ((sa (nth 3 a)) (sb (nth 3 b)))
+                        (cond ((and sa sb) (< sa sb))
+                              (sa t)
+                              (sb nil)
+                              (t (string< (nth 1 a) (nth 1 b))))))))
+        (goto-char (point-max))
+        ;; block separator to match the other blocks (compacted in finalize)
+        (unless (bobp)
+          (insert "\n" (make-string (max 1 (1- (window-width))) ?─) "\n"))
+        (insert (propertize (format "📝 To Finalize (%d)\n" (length entries))
+                            'face 'org-agenda-structure))
+        (pcase-dolist (`(,f ,title ,mark ,secs ,sched) entries)
+          (let* ((col (cond
+                       ((null secs) "")
+                       ;; show the clock only when the slot actually carries one
+                       ((string-match-p ":" (or sched ""))
+                        (format-time-string "%a %d %b %H:%M" secs))
+                       (t (format-time-string "%a %d %b" secs))))
+                 (overdue (and secs (< secs now)))
+                 (start (point)))
+            (insert (format "  %-8s %-17s %s\n"
+                            mark
+                            (if overdue
+                                (propertize col 'face 'org-warning)
+                              (propertize col 'face 'org-agenda-date))
+                            title))
+            (put-text-property start (point) 'denote-draft-file f)
+            (put-text-property start (point) 'keymap my/denote-draft-jump-map))))))
+
+  (add-hook 'org-agenda-finalize-hook #'my/agenda-apply-bold-prefix)
+  (add-hook 'org-agenda-finalize-hook #'my/agenda-style-tags)
+
+  ;; Hide agenda blocks that have no matching entries (just the header line).
+  ;; Walks the rendered buffer, splits on the block separator, and drops any
+  ;; region whose only non-empty, non-separator line is the overriding header.
+  (defun my/agenda-remove-empty-blocks ()
+    "Remove agenda blocks that contain only their header."
+    (let ((inhibit-read-only t)
+          (sep-re "^─+$"))
+      (save-excursion
+        (goto-char (point-min))
+        (let ((more t))
+          (while more
+            (let* ((block-start (point))
+                   (sep-found (re-search-forward sep-re nil t))
+                   (block-end (if sep-found (match-beginning 0) (point-max)))
+                   (content 0))
+              (save-excursion
+                (goto-char block-start)
+                (while (< (point) block-end)
+                  (let ((s (string-trim
+                            (buffer-substring-no-properties
+                             (line-beginning-position)
+                             (line-end-position)))))
+                    (when (and (not (string-empty-p s))
+                               (not (string-match-p sep-re s)))
+                      (cl-incf content)))
+                  (forward-line 1)))
+              (if (<= content 1)
+                  (let ((del-end (if sep-found
+                                     (save-excursion
+                                       (goto-char block-end)
+                                       (forward-line 1)
+                                       (point))
+                                   (point-max))))
+                    (delete-region block-start del-end)
+                    (goto-char block-start))
+                (when sep-found
+                  (goto-char block-end)
+                  (forward-line 1)))
+              (unless sep-found (setq more nil))))))))
+
+  (add-hook 'org-agenda-finalize-hook #'my/agenda-remove-empty-blocks)
+
+  ;; Org inserts a blank line above every block separator ("\n" + sep + "\n").
+  ;; Strip that blank line so blocks butt right up against the separator,
+  ;; while leaving intra-block day gaps (blank lines not next to a separator)
+  ;; untouched.
+  (defun my/agenda-compact-separators ()
+    "Remove the blank line org inserts above each block separator."
+    (let ((inhibit-read-only t))
+      (save-excursion
+        (goto-char (point-min))
+        (while (re-search-forward "^[ \t]*\n\\(─+\\)$" nil t)
+          (replace-match "\\1")))))
+
+  (add-hook 'org-agenda-finalize-hook #'my/agenda-compact-separators)
+
+  ;; Style block header lines (those drawn with the `org-agenda-structure'
+  ;; face) so each block reads like a section title: uppercase the text and
+  ;; add a few pixels of breathing room below — not a full blank line. Date
+  ;; headers and item lines use other faces and are left untouched.
+  (defun my/agenda-uppercase-headers ()
+    "Uppercase agenda block headers and add a small pixel margin below them."
+    (let ((inhibit-read-only t))
+      (save-excursion
+        (goto-char (point-min))
+        (while (not (eobp))
+          (let* ((beg (line-beginning-position))
+                 (face (get-text-property beg 'face)))
+            (when (or (eq face 'org-agenda-structure)
+                      (and (listp face) (memq 'org-agenda-structure face)))
+              ;; Uppercase in place — `upcase-region' keeps text properties
+              ;; (face, bold, height) intact, unlike `upcase' on a string.
+              (upcase-region beg (line-end-position))
+              (let ((eol (line-end-position)))
+                (when (< eol (point-max))
+                  ;; Set the newline's face cleanly (not a merge) to
+                  ;; `org-agenda-structure' so its :extend t fills the light
+                  ;; background bar all the way to the window edge…
+                  (put-text-property eol (1+ eol) 'face 'org-agenda-structure)
+                  ;; …and add a few pixels of breathing room below it.
+                  (put-text-property eol (1+ eol) 'line-spacing 3)))))
+          (forward-line 1)))))
+
+  (add-hook 'org-agenda-finalize-hook #'my/agenda-uppercase-headers)
+
+  (setq org-agenda-prefix-format
+        '((agenda . " %i%(my/agenda-bold-prefix)%?-12t% s %(my/org-agenda-repeater)")
+          (todo   . " %i%(my/agenda-bold-prefix)")
+          (tags   . " %i%(my/agenda-bold-prefix)")
+          (search . " %i%(my/agenda-bold-prefix)")))
+
+  ;; Blank line BETWEEN day groups inside an agenda block, but not before
+  ;; the first day. Stateful flag is reset before each block by advising
+  ;; `org-agenda-list` (called once per (agenda "" …) block).
+  (defvar my/agenda-block-first-day t
+    "Non-nil if the next date header is the first in the current agenda block.")
+
+  (defun my/agenda-reset-first-day (&rest _)
+    "Reset `my/agenda-block-first-day` before each agenda block renders."
+    (setq my/agenda-block-first-day t))
+
+  (advice-add 'org-agenda-list :before #'my/agenda-reset-first-day)
+
+  (setq org-agenda-format-date
+        (lambda (date)
+          (prog1
+              (concat (if my/agenda-block-first-day "" "\n")
+                      (org-agenda-format-date-aligned date))
+            (setq my/agenda-block-first-day nil))))
+
+  ;; Single horizontal rule between agenda blocks — visible split, no padding
+  (setq org-agenda-block-separator ?─)
+
+  ;; Right-align tags to the window edge so the tag badges form one clean
+  ;; vertical column across all blocks, regardless of line length. A fixed
+  ;; column (e.g. -80) looks ragged because long items push their tags past it.
+  (setq org-agenda-tags-column 'auto)
+  (setq org-agenda-window-setup 'current-window)
+  (setq org-agenda-restore-windows-after-quit t)
+
+  ;; Allow longer lines and wrap text
+  (add-hook 'org-agenda-mode-hook
+            (lambda ()
+              (setq truncate-lines nil)
+              (setq word-wrap t)))
+
+  ;; Enhanced refiling system - include all available org directories
+  (setq org-refile-targets
+        `((nil :maxlevel . 5)
+          (org-agenda-files :maxlevel . 5)
+          ,@(when (file-exists-p (expand-file-name "org" {{ .workspace_extra | quote }}))
+              `((,(directory-files-recursively (expand-file-name "org" {{ .workspace_extra | quote }}) "\\.org$") :maxlevel . 5)))))
+
+  (setq org-refile-use-outline-path t)
+  (setq org-outline-path-complete-in-steps nil)
+  (setq org-refile-allow-creating-parent-nodes 'confirm)
+
+  ;; Exclude DONE state tasks from refile targets
+  (defun my/verify-refile-target ()
+    "Exclude todo keywords with a done state from refile targets."
+    (not (member (nth 2 (org-heading-components)) org-done-keywords)))
+  (setq org-refile-target-verify-function 'my/verify-refile-target)
+
+  ;; Auto-save after refile
+  (advice-add 'org-refile :after (lambda (&rest _) (org-save-all-org-buffers)))
+
+  ;; Quick refile to today's journal (under "Todos" heading)
+  (defun my/today-journal-rfloc ()
+    "Return refile location for today's journal Todos heading."
+    (let* ((journal-dir (expand-file-name "journal" denote-directory))
+           (date-string (format-time-string "%Y-%m-%d"))
+           (files (directory-files journal-dir t (concat date-string ".*\\.org$")))
+           (journal-file (car files)))
+      (unless journal-file
+        (denote-journal-new-or-existing-entry)
+        (setq files (directory-files journal-dir t (concat date-string ".*\\.org$")))
+        (setq journal-file (car files)))
+      (when journal-file
+        (with-current-buffer (find-file-noselect journal-file)
+          (save-excursion
+            (goto-char (point-min))
+            (unless (re-search-forward "^\\*+ Todos" nil t)
+              (goto-char (point-max))
+              (insert "\n* Todos\n")
+              (save-buffer))))
+        (list "Todos" journal-file nil
+              (with-current-buffer (find-file-noselect journal-file)
+                (save-excursion
+                  (goto-char (point-min))
+                  (re-search-forward "^\\*+ Todos" nil t)
+                  (point-at-bol)))))))
+
+  (defun my/refile-to-today-journal ()
+    "Refile current entry to today's journal under Todos heading.
+Works on single entry in org buffer or on all marked entries in agenda."
+    (interactive)
+    (let ((rfloc (my/today-journal-rfloc)))
+      (if (and (eq major-mode 'org-agenda-mode)
+               org-agenda-bulk-marked-entries)
+          ;; Bulk refile all marked entries
+          (let ((marked (reverse org-agenda-bulk-marked-entries)))
+            (dolist (entry marked)
+              (let ((inhibit-message t))
+                (org-with-point-at entry
+                  (org-refile nil nil rfloc))))
+            (org-agenda-bulk-unmark-all)
+            (message "Refiled %d items to today's journal → Todos" (length marked)))
+        ;; Single entry
+        (if (eq major-mode 'org-agenda-mode)
+            (org-agenda-refile nil rfloc)
+          (org-refile nil nil rfloc))
+        (message "Refiled to today's journal → Todos"))))
+
+  (defun my/refile-all-to-today-journal ()
+    "Refile all active task entries to today's journal Todos heading.
+In org-agenda: refiles all active tasks visible in the view.
+In org buffer: refiles all active tasks in the current buffer.
+Matches any non-DONE todo state (TODO, NEXT, WAIT, etc.)."
+    (interactive)
+    (let ((rfloc (my/today-journal-rfloc)))
+      (if (eq major-mode 'org-agenda-mode)
+          (let (markers)
+            (save-excursion
+              (goto-char (point-min))
+              (while (not (eobp))
+                (let ((m (org-get-at-bol 'org-marker)))
+                  (when m
+                    (let ((todo (org-with-point-at m (org-get-todo-state))))
+                      (when (and todo (not (member todo org-done-keywords)))
+                        (push m markers)))))
+                (forward-line 1)))
+            (if (null markers)
+                (message "No active tasks found in agenda")
+              (dolist (m (nreverse markers))
+                (let ((inhibit-message t))
+                  (org-with-point-at m
+                    (org-refile nil nil rfloc))))
+              (org-agenda-redo)
+              (message "Refiled %d tasks to today's journal → Todos" (length markers))))
+        (let (markers)
+          (org-map-entries
+           (lambda () (push (point-marker) markers))
+           "/!" 'file)
+          (if (null markers)
+              (message "No active tasks found")
+            (dolist (m (nreverse markers))
+              (let ((inhibit-message t))
+                (org-with-point-at m
+                  (unless (member (org-get-todo-state) org-done-keywords)
+                    (org-refile nil nil rfloc)))))
+            (message "Refiled %d tasks to today's journal → Todos" (length markers)))))))
+
+  ;; Clock tracking configuration
+  (setq org-clock-persist t)
+  (setq org-clock-in-resume t)
+  (setq org-clock-into-drawer t)
+  (setq org-log-into-drawer t)
+  (setq org-clock-out-remove-zero-time-clocks t)
+
+  (setq org-time-clocksum-format
+        '(:hours "%d" :require-hours t :minutes ":%02d" :require-minutes t))
+
+  ;; Archive configuration - use dedicated archive directory
+  (setq org-archive-location "archive/%s_archive::")
+  (setq org-archive-save-context-info '(time file ltags itags todo category olpath))
+
+  ;; Respect per-file #+ARCHIVE: keyword by making it buffer-local
+  (defun my/org-archive-location-from-keyword ()
+    "Set buffer-local `org-archive-location' from #+ARCHIVE keyword if present."
+    (let ((archive (org-entry-get nil "ARCHIVE" t)))
+      (when archive
+        (setq-local org-archive-location archive))))
+  (add-hook 'org-mode-hook #'my/org-archive-location-from-keyword)
+
+  ;; Archive all DONE items in directory
+  (defun org-archive-all-done-in-directory (directory)
+    "Archive all DONE items in all org files in DIRECTORY."
+    (interactive "DDirectory: ")
+    (let ((org-files (directory-files-recursively directory "\\.org$")))
+      (dolist (file org-files)
+        (with-current-buffer (find-file-noselect file)
+          (org-archive-all-done)
+          (save-buffer)))))
+
+  ;; Archive all DONE items in current org-agenda-files
+  (defun org-archive-all-done-in-agenda-files ()
+    "Archive all DONE items in all org-agenda-files."
+    (interactive)
+    (dolist (file org-agenda-files)
+      (when (file-exists-p file)
+        (with-current-buffer (find-file-noselect file)
+          (org-archive-all-done)
+          (save-buffer)))))
+
+  ;; Weekly Outcomes Overview (for Friday Reflection reference)
+  (defun my/weekly-outcomes-overview ()
+    "Show weekly outcomes overview in side window for Friday reflection."
+    (interactive)
+    (let* ((today (current-time))
+           (start-of-week (time-subtract today (seconds-to-time (* (calendar-day-of-week (calendar-current-date)) 86400))))
+           (journal-files (directory-files-recursively
+                           (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))
+           (buffer-name "*Weekly Outcomes*"))
+
+      ;; Create or switch to outcomes buffer
+      (with-current-buffer (get-buffer-create buffer-name)
+        (erase-buffer)
+        (org-mode)
+
+        ;; Insert header
+        (insert "* Weekly Outcomes - " (format-time-string "%Y-%m-%d" start-of-week) "\n\n")
+
+        ;; Process each journal file from this week
+        (dolist (file journal-files)
+          (when (file-readable-p file)
+            (let ((file-date (file-attribute-modification-time (file-attributes file))))
+              (when (time-less-p start-of-week file-date)
+                (with-temp-buffer
+                  (insert-file-contents file)
+                  (goto-char (point-min))
+
+                  ;; Extract date from filename
+                  (let ((date-from-file (if (string-match "\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\)" file)
+                                            (match-string 1 file)
+                                          "Unknown")))
+
+                    ;; Find Daily Outcomes section
+                    (when (re-search-forward "Daily Outcomes" nil t)
+                      (with-current-buffer buffer-name
+                        (insert "** " date-from-file "\n"))
+
+                      ;; Extract outcomes
+                      (let ((outcomes-found nil))
+                        (while (re-search-forward "^\\*\\*\\* \\(TODO\\|DONE\\) \\(.+\\)$" nil t)
+                          (let ((status (match-string 1))
+                                (outcome (match-string 2)))
+                            (setq outcomes-found t)
+                            (with-current-buffer buffer-name
+                              (insert (format "- [%s] %s\n"
+                                              (if (string= status "DONE") "X" " ")
+                                              outcome)))))
+
+                        (unless outcomes-found
+                          (with-current-buffer buffer-name
+                            (insert "- No outcomes this day\n")))
+
+                        (with-current-buffer buffer-name
+                          (insert "\n")))))))))
+
+          ;; Open in side window
+          (display-buffer-in-side-window
+           (current-buffer)
+           '((side . right) (window-width . 80)))
+          (message "Weekly outcomes overview opened. Use in parallel with your journal Friday reflection.")))))
+
+  ;; Dynamic org-attach configuration based on file location
+  (defun my/get-attach-dir ()
+    "Get attachment directory based on current file location."
+    (if (and (buffer-file-name)
+             (file-exists-p (expand-file-name "org" {{ .workspace_extra | quote }}))
+             (string-match-p (expand-file-name "org" {{ .workspace_extra | quote }}) (buffer-file-name)))
+        ;; File is in extra workspace - use extra attach dir
+        (expand-file-name ".attach/org" {{ .workspace_extra | quote }})
+      ;; Default to primary attach dir
+      (expand-file-name ".attach" {{ .org_dir | quote }})))
+
+  (defun my/set-attach-dir ()
+    "Set org-attach-id-dir based on current buffer location."
+    (setq org-attach-id-dir (my/get-attach-dir))
+    ;; Create attach directory if it doesn't exist
+    (unless (file-exists-p org-attach-id-dir)
+      (make-directory org-attach-id-dir t)))
+
+  ;; Set initial attach directory
+  (setq org-attach-id-dir (expand-file-name ".attach" {{ .org_dir | quote }}))
+  (setq org-attach-dir-relative t)
+  (setq org-attach-use-inheritance t)
+  (setq org-attach-auto-tag "attach")
+  (setq org-attach-store-link-p t)      ; Store link when attaching
+
+
+  ;; Update attach directory when switching buffers
+  (add-hook 'org-mode-hook #'my/set-attach-dir)
+  (add-hook 'find-file-hook #'my/set-attach-dir)
+
+  ;; Create primary attach directory if it doesn't exist
+  (unless (file-exists-p org-attach-id-dir)
+    (make-directory org-attach-id-dir t))
+
+  ;; Function to choose file from disk and attach with link
+  (defun my/org-attach-file-and-insert-link ()
+    "Choose file from disk, attach it, and insert link automatically."
+    (interactive)
+    (let ((file (read-file-name "Choose file to attach: " nil nil t)))
+      (when (and file (file-exists-p file))
+        (my/org-attach-single-file file))))
+
+  ;; Function to choose multiple files from disk and attach with links
+  (defun my/org-attach-multiple-files-and-insert-links ()
+    "Choose multiple files from disk using completion interface."
+    (interactive)
+    (let* ((directory (read-directory-name "Choose directory to select files from: "))
+           (all-files (directory-files directory t "^[^.]")) ; Exclude hidden files
+           (file-names (mapcar (lambda (f)
+                                 (cons (file-name-nondirectory f) f))
+                               all-files))
+           (selected-files '()))
+
+      ;; Use completing-read-multiple for multi-selection
+      (let ((selected-names (completing-read-multiple
+                             "Select files to attach (use TAB and separate with comma): "
+                             file-names)))
+
+        ;; Get full paths for selected files
+        (dolist (name selected-names)
+          (let ((full-path (cdr (assoc name file-names))))
+            (when full-path
+              (push full-path selected-files))))
+
+        ;; Reverse to maintain selection order
+        (setq selected-files (reverse selected-files))
+
+        (if selected-files
+            (progn
+              ;; Ensure we have ID and attach tag (only once for all files)
+              (unless (org-entry-get nil "ID")
+                (org-id-get-create))
+              (org-toggle-tag "attach" 'on)
+
+              ;; Process each file
+              (dolist (file selected-files)
+                (my/org-attach-single-file file))
+              (message "Attached %d files" (length selected-files)))
+          (message "No files selected")))))
+
+  ;; Helper function to copy file to shared .attach dir
+  (defun my/convert-heic-to-jpeg (file)
+    "Convert HEIC file to JPEG, return new path. Return FILE unchanged if not HEIC."
+    (if (string-match-p "\\.heic$" (downcase file))
+        (let ((jpeg-file (concat (file-name-sans-extension file) ".jpg")))
+          (if (eq 0 (call-process "sips" nil nil nil "-s" "format" "jpeg"
+                                  file "--out" jpeg-file))
+              (progn (message "Converted HEIC → JPEG: %s" (file-name-nondirectory jpeg-file))
+                     jpeg-file)
+            (message "HEIC conversion failed, using original")
+            file))
+      file))
+
+  (defun my/org-attach-single-file (file)
+    "Copy file to shared .attach directory and insert direct link.
+HEIC files are auto-converted to JPEG."
+    (when (and file (file-exists-p file))
+      (setq file (my/convert-heic-to-jpeg file))
+      (let* ((assets-dir (my/get-attach-dir))
+             (filename (file-name-nondirectory file))
+             (destination (expand-file-name filename assets-dir)))
+
+        ;; Create assets dir if needed
+        (unless (file-exists-p assets-dir)
+          (make-directory assets-dir t))
+
+        ;; Handle duplicate filenames
+        (when (file-exists-p destination)
+          (let ((base (file-name-sans-extension filename))
+                (ext (file-name-extension filename t))
+                (counter 1))
+            (while (file-exists-p destination)
+              (setq filename (format "%s-%d%s" base counter ext))
+              (setq destination (expand-file-name filename assets-dir))
+              (setq counter (1+ counter)))))
+
+        ;; Copy the file
+        (copy-file file destination)
+
+        ;; Insert the link
+        (when (string-match-p "\\.(jpg\\|jpeg\\|png\\|gif\\|svg\\|bmp\\|webp)$" filename)
+          (insert "#+ATTR_ORG: :width 500\n"))
+        (let ((rel-path (file-relative-name
+                         (expand-file-name filename assets-dir)
+                         (file-name-directory (buffer-file-name)))))
+          (insert (format "[[file:%s]]\n" rel-path)))))
+
+    ;; Show inline images after all files are processed
+    (org-display-inline-images))
+
+  ;; Drag-and-drop: copy image to shared .attach dir, insert direct file link
+  (defun my/org-dnd-file-handler (uri action)
+    "Handle drag-and-drop files by copying to the shared .attach directory.
+HEIC files are auto-converted to JPEG."
+    (let ((file (dnd-get-local-file-name uri t)))
+      (when (and file (file-exists-p file))
+        (setq file (my/convert-heic-to-jpeg file))
+        (let* ((assets-dir (my/get-attach-dir))
+               (filename (file-name-nondirectory file))
+               (destination (expand-file-name filename assets-dir)))
+
+          ;; Create assets dir if needed
+          (unless (file-exists-p assets-dir)
+            (make-directory assets-dir t))
+
+          ;; Handle duplicate filenames
+          (when (file-exists-p destination)
+            (let ((base (file-name-sans-extension filename))
+                  (ext (file-name-extension filename t))
+                  (counter 1))
+              (while (file-exists-p destination)
+                (setq filename (format "%s-%d%s" base counter ext))
+                (setq destination (expand-file-name filename assets-dir))
+                (setq counter (1+ counter)))))
+
+          ;; Copy file
+          (copy-file file destination)
+
+          ;; Insert link
+          (when (string-match-p "\\.(jpg\\|jpeg\\|png\\|gif\\|svg\\|bmp\\|webp)$" filename)
+            (insert "#+ATTR_ORG: :width 500\n"))
+          (let ((rel-path (file-relative-name
+                           (expand-file-name filename assets-dir)
+                           (file-name-directory (buffer-file-name)))))
+            (insert (format "[[file:%s]]" rel-path)))
+          (insert "\n")
+
+          ;; Show inline
+          (org-display-inline-images))
+
+        'private)))
+
+  ;; Set the drag-and-drop handler for org-mode
+  (add-hook 'org-mode-hook
+            (lambda ()
+              (setq-local dnd-protocol-alist
+                          (cons '("^file:" . my/org-dnd-file-handler)
+                                dnd-protocol-alist))))
+
+  (defvar org-default-time "8:00"
+    "The default time for deadlines.")
+
+  ;; =====================================================================
+  ;; IMAGE DISPLAY CONFIGURATION
+  ;; =====================================================================
+
+  ;; Set default image width for org-mode inline images
+  (setq org-image-actual-width '(500))  ; Fixed width of 500 pixels
+
+  ;; Prevent macOS crash with very large images — Emacs loads full image into
+  ;; memory before scaling, so huge JPGs (4000x5000+) can crash on macOS.
+  ;; max-image-size is a multiplier of frame size — images exceeding this
+  ;; won't be rendered inline (shown as a link instead, click to open).
+  (setq max-image-size 3.0)
+
+  ;; Automatically display images when opening org files
+  (setq org-startup-with-inline-images t)
+
+  ;; Function to resize all images in current buffer
+  (defun my/org-resize-images (width)
+    "Resize all images in current buffer to specified width."
+    (interactive "nImage width (pixels): ")
+    (setq org-image-actual-width (list width))
+    (org-redisplay-inline-images))
+
+  ;; Quick resize functions
+  (defun my/org-images-small ()
+    "Set images to small size (300px)."
+    (interactive)
+    (my/org-resize-images 300))
+
+  (defun my/org-images-medium ()
+    "Set images to medium size (500px)."
+    (interactive)
+    (my/org-resize-images 500))
+
+  (defun my/org-images-large ()
+    "Set images to large size (900px)."
+    (interactive)
+    (my/org-resize-images 900))
+
+  (defun my/org-images-actual ()
+    "Show images at actual size."
+    (interactive)
+    (setq org-image-actual-width t)
+    (org-redisplay-inline-images))
+
+  ;; =====================================================================
+  ;; JOURNELLY JOURNAL FUNCTIONS
+  ;; =====================================================================
+
+  (defun my/journal-find-same-day-previous-years ()
+    "Find journal entries from the same day in previous years (excluding current year)."
+    (interactive)
+    (let* ((today (format-time-string "%m-%d"))
+           (current-year (format-time-string "%Y"))
+           (journal-file (expand-file-name "Journelly.org" {{ .org_dir | quote }})))
+      (if (file-exists-p journal-file)
+          (progn
+            (find-file journal-file)
+            (goto-char (point-min))
+            ;; Create regex that matches same day but excludes current year
+            (let ((regex (concat "\\[\\(20[0-9][0-9]\\)-" today "\\)")))
+              (multi-occur (list (current-buffer)) regex)
+              ;; Filter out current year entries manually
+              (with-current-buffer "*Occur*"
+                (goto-char (point-min))
+                (while (re-search-forward (concat "\\[" current-year "-" today) nil t)
+                  (beginning-of-line)
+                  (let ((inhibit-read-only t))
+                    (delete-region (point) (progn (forward-line 1) (point))))))))
+        (message "Journal file not found: %s" journal-file))))
+
+  (defun my/journal-search-by-tag (tag)
+    "Search journal entries by hashtag."
+    (interactive "sEnter hashtag (without #): ")
+    (let ((journal-file (expand-file-name "Journelly.org" {{ .org_dir | quote }})))
+      (if (file-exists-p journal-file)
+          (progn
+            (find-file journal-file)
+            (goto-char (point-min))
+            (occur (concat "#" tag)))
+        (message "Journal file not found: %s" journal-file))))
+
+  (defun my/journal-find-entries-by-date (date)
+    "Find journal entries for a specific date (YYYY-MM-DD)."
+    (interactive "sEnter date (YYYY-MM-DD): ")
+    (let ((journal-file (expand-file-name "Journelly.org" {{ .org_dir | quote }})))
+      (if (file-exists-p journal-file)
+          (progn
+            (find-file journal-file)
+            (goto-char (point-min))
+            (occur (concat "\\[" date)))
+        (message "Journal file not found: %s" journal-file))))
+
+  (defun my/journal-find-location (location)
+    "Search journal entries by location."
+    (interactive "sEnter location: ")
+    (let ((journal-file (expand-file-name "Journelly.org" {{ .org_dir | quote }})))
+      (if (file-exists-p journal-file)
+          (progn
+            (find-file journal-file)
+            (goto-char (point-min))
+            (occur location))
+        (message "Journal file not found: %s" journal-file)))))
+
+  ;; Quick access to Journelly.org file
+  (defun my/open-journelly ()
+    "Quickly open the Journelly.org journal file."
+    (interactive)
+    (find-file (expand-file-name "Journelly.org" {{ .org_dir | quote }})))
+
+  ;; ── On This Day ──────────────────────────────────────────────────────
+  ;; Entry format: (years-ago year location body source images)
+  ;; source: 'journelly or 'denote
+  ;; images: list of absolute file paths
+
+  (defun my/on-this-day-for-date (month day)
+    "Find journal entries for MONTH/DAY in previous years.
+Searches both Journelly.org and denote journal files.
+Returns list of (years-ago year location body source images)."
+    (let* ((current-year (string-to-number (format-time-string "%Y")))
+           (m (format "%02d" month))
+           (d (format "%02d" day))
+           (journelly-file (expand-file-name "Journelly.org" {{ .org_dir | quote }}))
+           (journelly-dir (file-name-directory journelly-file))
+           (journal-dir (expand-file-name "journal" denote-directory))
+           (results '()))
+
+      ;; Search Journelly.org
+      (when (file-exists-p journelly-file)
+        (with-temp-buffer
+          (insert-file-contents journelly-file)
+          (goto-char (point-min))
+          (while (re-search-forward
+                  (format "^\\* \\[\\([0-9]\\{4\\}\\)-%s-%s [A-Za-z]+ [0-9:]+\\]\\(.*\\)" m d)
+                  nil t)
+            (let* ((year (string-to-number (match-string 1)))
+                   (location (match-string 2))
+                   (years-ago (- current-year year))
+                   (content-start (point))
+                   (content-end (or (save-excursion
+                                      (when (re-search-forward "^\\* " nil t)
+                                        (line-beginning-position)))
+                                    (point-max)))
+                   (raw (buffer-substring-no-properties content-start content-end))
+                   ;; Extract image paths
+                   (images (let (imgs)
+                             (with-temp-buffer
+                               (insert raw)
+                               (goto-char (point-min))
+                               (while (re-search-forward "\\[\\[file:\\([^]]+\\)\\]\\]" nil t)
+                                 (let ((img (match-string 1)))
+                                   (push (expand-file-name img journelly-dir) imgs))))
+                             (nreverse imgs)))
+                   (body (string-trim
+                          (replace-regexp-in-string
+                           "\\[\\[file:.*\\]\\]" ""
+                           (replace-regexp-in-string
+                            ":PROPERTIES:[\n\r]\\(.\\|\n\\)*?:END:" ""
+                            raw)))))
+              (when (> years-ago 0)
+                (push (list years-ago year (string-trim (or location ""))
+                            (if (> (length body) 120)
+                                (concat (substring body 0 120) "...")
+                              body)
+                            'journelly images
+                            journelly-file content-start)
+                      results))))))
+
+      ;; Search denote journal files
+      (when (file-exists-p journal-dir)
+        (dolist (file (directory-files journal-dir t "\\.org$"))
+          (let ((fname (file-name-nondirectory file)))
+            (when (string-match (format "\\([0-9]\\{4\\}\\)%s%s" m d) fname)
+              (let* ((year (string-to-number (match-string 1 fname)))
+                     (years-ago (- current-year year)))
+                (when (> years-ago 0)
+                  (with-temp-buffer
+                    (insert-file-contents file)
+                    (let* ((raw (buffer-substring-no-properties
+                                 (point-min) (min (point-max) (+ (point-min) 800))))
+                           (images (let (imgs)
+                                     (goto-char (point-min))
+                                     (while (re-search-forward "\\[\\[file:\\([^]]+\\)\\]\\]" nil t)
+                                       (let ((img (match-string 1)))
+                                         (push (expand-file-name img (file-name-directory file)) imgs)))
+                                     (nreverse imgs)))
+                           (body (string-trim
+                                   (replace-regexp-in-string
+                                    "^#\\+.*\n" "" raw))))
+                      (push (list years-ago year ""
+                                  (if (> (length body) 120)
+                                      (concat (substring body 0 120) "...")
+                                    body)
+                                  'denote images
+                                  file nil)
+                            results)))))))))
+
+      ;; Sort by years ago
+      (sort results (lambda (a b) (< (car a) (car b))))))
+
+  (defun my/on-this-day ()
+    "Show journal entries from today's date in previous years."
+    (interactive)
+    (let* ((month (string-to-number (format-time-string "%m")))
+           (day (string-to-number (format-time-string "%d")))
+           (results (my/on-this-day-for-date month day)))
+      (if results
+          (mapconcat
+           (lambda (e)
+             (format "  %dy ago (%d)%s %s"
+                     (nth 0 e) (nth 1 e)
+                     (if (and (nth 2 e) (not (string-empty-p (nth 2 e))))
+                         (concat " " (nth 2 e)) "")
+                     (nth 3 e)))
+           results "\n")
+        "  No entries found for this date")))
+
+  (defun my/on-this-day-buffer ()
+    "Open a buffer showing On This Day entries for today ±5 days."
+    (interactive)
+    (let ((buf (get-buffer-create "*On This Day*")))
+      (with-current-buffer buf
+        (let ((inhibit-read-only t))
+          (erase-buffer)
+          (org-mode)
+          (insert "#+title: On This Day\n\n")
+          (dotimes (offset 11)
+            (let* ((day-offset (- offset 5))
+                   (target-time (time-add (current-time) (days-to-time day-offset)))
+                   (month (string-to-number (format-time-string "%m" target-time)))
+                   (day (string-to-number (format-time-string "%d" target-time)))
+                   (date-str (format-time-string "%B %d" target-time))
+                   (label (cond ((= day-offset 0) (format "* Today — %s\n" date-str))
+                                ((= day-offset -1) (format "* Yesterday — %s\n" date-str))
+                                ((= day-offset 1) (format "* Tomorrow — %s\n" date-str))
+                                ((< day-offset 0) (format "* %dd ago — %s\n" (abs day-offset) date-str))
+                                (t (format "* +%dd — %s\n" day-offset date-str))))
+                   (results (my/on-this-day-for-date month day)))
+              (when results
+                (insert label)
+                (dolist (e results)
+                  (insert (format "** %dy ago (%d)%s\n%s\n\n"
+                                  (nth 0 e) (nth 1 e)
+                                  (if (and (nth 2 e) (not (string-empty-p (nth 2 e))))
+                                      (concat " " (nth 2 e)) "")
+                                  (nth 3 e))))))))
+        (goto-char (point-min))
+        (read-only-mode 1))
+      (switch-to-buffer buf)))
+
+  (defun my/agenda-on-this-day ()
+    "Insert 'On This Day' section into dashboard agenda."
+    (let ((inhibit-read-only t))
+      (goto-char (point-max))
+      (insert "\n")
+      (insert (propertize "📅 On This Day" 'face 'org-agenda-structure) "\n")
+      (insert (my/on-this-day) "\n")))
+
+  (defun my/on-this-day-source-badge (source)
+    "Return a styled badge for SOURCE ('journelly or 'denote)."
+    (if (eq source 'journelly)
+        (propertize " Journelly " 'face '(:foreground "#5B6268" :background "#e8e8e8" :height 0.85))
+      (propertize " Denote " 'face '(:foreground "#5B6268" :background "#d4eaff" :height 0.85))))
+
+  (defun my/on-this-day-insert-images (images)
+    "Insert inline images from IMAGES list into current buffer.
+Size them like Org's own inline images by honoring `org-image-actual-width'
+the way `org-display-inline-images' does — a bare number forces that width,
+a (NUMBER) list caps the width while preserving aspect ratio, and t shows
+the actual size. This makes a picture look the same here as it does in the
+Journelly file (currently capped at 500px), instead of being squeezed to a
+fixed 300px."
+    ;; The caller indents the first image with "  "; match that on every
+    ;; following image so the whole stack shares one left margin.
+    (let ((first t))
+      (dolist (img images)
+        (when (and img (file-exists-p img)
+                   (string-match-p "\\.\\(jpg\\|jpeg\\|png\\|gif\\|bmp\\|webp\\)$" (downcase img)))
+          (let* ((w org-image-actual-width)
+                 (props (cond ((integerp w) (list :width w))
+                              ((and (consp w) (integerp (car w))) (list :max-width (car w)))
+                              (t nil))))
+            (unless first (insert "  "))
+            (setq first nil)
+            (insert-image (apply #'create-image img nil nil props))
+            ;; Blank line between stacked images so they don't butt together.
+            (insert "\n\n"))))))
+
+  (defun my/on-this-day-open-source ()
+    "Open the source file for the entry at point."
+    (interactive)
+    (let ((file (get-text-property (point) 'otd-file))
+          (pos (get-text-property (point) 'otd-pos)))
+      (if file
+          (progn
+            (find-file file)
+            (when pos (goto-char pos))
+            (org-show-entry))
+        (message "No source file for this line"))))
+
+  (defvar my/otd-offset 0
+    "Current day offset for On This Day view. 0 = today, -1 = yesterday, etc.")
+
+  (defvar my/on-this-day-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map (kbd "RET") #'my/on-this-day-open-source)
+      (define-key map (kbd "TAB") #'my/on-this-day-open-source)
+      (define-key map (kbd "[") (lambda () (interactive) (my/otd-navigate -1)))
+      (define-key map (kbd "]") (lambda () (interactive) (my/otd-navigate 1)))
+      (define-key map (kbd "0") #'my/otd-go-today)
+      (define-key map (kbd "q") #'quit-window)
+      map)
+    "Keymap for On This Day agenda buffer.")
+
+  (defun my/otd-navigate (delta)
+    "Shift On This Day view by DELTA days and redraw."
+    (setq my/otd-offset (+ my/otd-offset delta))
+    (my/agenda-on-this-day-full))
+
+  (defun my/otd-go-today ()
+    "Jump back to today in On This Day view."
+    (interactive)
+    (setq my/otd-offset 0)
+    (my/agenda-on-this-day-full))
+
+  (defun my/agenda-on-this-day-full ()
+    "Show On This Day for a single day. Navigate with [ / ] / 0."
+    (let* ((inhibit-read-only t)
+           (target-time (time-add (current-time) (days-to-time my/otd-offset)))
+           (month (string-to-number (format-time-string "%m" target-time)))
+           (day (string-to-number (format-time-string "%d" target-time)))
+           (date-str (format-time-string "%A, %B %d" target-time))
+           (is-today (= my/otd-offset 0))
+           (label (cond (is-today (format "☀️ Today — %s" date-str))
+                        ((= my/otd-offset -1) (format "◀ Yesterday — %s" date-str))
+                        ((= my/otd-offset 1) (format "▶ Tomorrow — %s" date-str))
+                        ((< my/otd-offset 0) (format "◀ %d days ago — %s" (abs my/otd-offset) date-str))
+                        (t (format "▶ +%d days — %s" my/otd-offset date-str))))
+           (results (my/on-this-day-for-date month day)))
+      (erase-buffer)
+      (insert (propertize "📅 On This Day\n" 'face 'org-agenda-structure))
+      (insert (propertize "  [ prev   ] next   0 today   RET open   q quit\n\n"
+                          'face 'font-lock-comment-face))
+      (insert (propertize (concat label "\n") 'face (if is-today 'org-agenda-date-today 'org-agenda-date)))
+      (if results
+          (dolist (e results)
+            (let ((source (nth 4 e))
+                  (images (nth 5 e))
+                  (file (nth 6 e))
+                  (pos (nth 7 e))
+                  (entry-start (point)))
+              (insert (format "  %dy ago (%d)%s " (nth 0 e) (nth 1 e)
+                              (if (and (nth 2 e) (not (string-empty-p (nth 2 e))))
+                                  (nth 2 e) "")))
+              (insert (my/on-this-day-source-badge source))
+              (insert (format "\n  %s\n" (nth 3 e)))
+              (when images
+                (insert "  ")
+                (my/on-this-day-insert-images images))
+              (put-text-property entry-start (point) 'otd-file file)
+              (put-text-property entry-start (point) 'otd-pos pos)
+              (put-text-property entry-start (point) 'keymap my/on-this-day-map)))
+        (insert (propertize "  No memories for this day yet.\n" 'face 'font-lock-comment-face)))
+      (use-local-map my/on-this-day-map)
+      (goto-char (point-min))))
+
+  ;; ── Milestones ────────────────────────────────────────────────────────
+  ;; Track life milestones with `:STARTED:` property and see elapsed time.
+  ;; Format: org headings with :STARTED: [2020-02-16 Sun 11:00] property.
+
+  (defvar my/milestones-file
+    (expand-file-name "milestones.org" {{ .org_dir | quote }})
+    "File containing milestone entries.")
+
+  (defun my/milestone-elapsed (start-time)
+    "Return human-readable elapsed string since START-TIME."
+    (let* ((now (decode-time))
+           (start (decode-time start-time))
+           (years (- (nth 5 now) (nth 5 start)))
+           (months (- (nth 4 now) (nth 4 start)))
+           (days (- (nth 3 now) (nth 3 start))))
+      (when (< days 0)
+        (cl-decf months)
+        (setq days (+ days 30)))
+      (when (< months 0)
+        (cl-decf years)
+        (setq months (+ months 12)))
+      (let ((parts '()))
+        (when (> years 0) (push (format "%dy" years) parts))
+        (when (> months 0) (push (format "%dm" months) parts))
+        (when (> days 0) (push (format "%dd" days) parts))
+        (if parts (string-join (nreverse parts) " ") "today"))))
+
+  (defun my/milestone-total-days (start-time)
+    "Return total days since START-TIME."
+    (floor (/ (float-time (time-subtract (current-time) start-time)) 86400)))
+
+  (defun my/milestones-parse ()
+    "Parse milestones file. Returns list of (title started-time tags pos)."
+    (let ((results '()))
+      (when (file-exists-p my/milestones-file)
+        (with-temp-buffer
+          (insert-file-contents my/milestones-file)
+          (org-mode)
+          (goto-char (point-min))
+          (while (re-search-forward "^\\*+ " nil t)
+            (let* ((heading (org-get-heading t t t t))
+                   (pos (line-beginning-position))
+                   (tags (org-get-tags))
+                   (started-str (org-entry-get (point) "STARTED")))
+              (when started-str
+                (let ((started-time (org-parse-time-string started-str)))
+                  (push (list heading
+                              (apply #'encode-time started-time)
+                              tags pos)
+                        results)))))))
+      (nreverse results)))
+
+  (defun my/agenda-milestones-full ()
+    "Insert milestones into agenda buffer as a dedicated view."
+    (let ((milestones (my/milestones-parse))
+          (inhibit-read-only t))
+      (erase-buffer)
+      (insert (propertize "🏆 Milestones\n" 'face 'org-agenda-structure))
+      (insert (propertize "  RET/TAB to open source, q to quit\n\n"
+                          'face 'font-lock-comment-face))
+      (if (null milestones)
+          (insert (propertize "  No milestones found.\n" 'face 'font-lock-comment-face))
+        (dolist (m milestones)
+          (let ((entry-start (point))
+                (title (nth 0 m))
+                (started (nth 1 m))
+                (tags (nth 2 m))
+                (pos (nth 3 m)))
+            (insert (propertize (format "  %s" title) 'face 'org-level-2))
+            (when tags
+              (insert " "
+                      (propertize (mapconcat (lambda (tag) (format ":%s:" tag)) tags "")
+                                  'face 'org-tag)))
+            (insert "\n")
+            (insert "  ")
+            (insert (propertize (my/milestone-elapsed started) 'face 'success))
+            (insert (propertize (format "  (%d days)" (my/milestone-total-days started))
+                                'face 'font-lock-comment-face))
+            (insert (propertize (format "  since %s"
+                                        (format-time-string "%b %d, %Y" started))
+                                'face 'font-lock-comment-face))
+            (insert "\n\n")
+            (put-text-property entry-start (point) 'otd-file my/milestones-file)
+            (put-text-property entry-start (point) 'otd-pos pos)
+            (put-text-property entry-start (point) 'keymap my/on-this-day-map))))
+      (use-local-map my/on-this-day-map)
+      (goto-char (point-min))))
+
+  (defun my/agenda-milestones ()
+    "Insert milestones section into agenda buffer."
+    (let ((milestones (my/milestones-parse))
+          (inhibit-read-only t))
+      (when milestones
+        (goto-char (point-max))
+        (insert "\n" (propertize "🏆 Milestones" 'face 'org-agenda-structure) "\n")
+        (dolist (m milestones)
+          (let ((title (nth 0 m))
+                (started (nth 1 m)))
+            (insert (format "  %s — " title))
+            (insert (propertize (my/milestone-elapsed started) 'face 'success))
+            (insert (propertize (format " (%d days)"
+                                        (my/milestone-total-days started))
+                                'face 'font-lock-comment-face))
+            (insert "\n"))))))
+
+  ;; ── Graveyard (RIP) ───────────────────────────────────────────────────
+
+  (defun my/graveyard-parse ()
+    "Parse all #RIP entries from Journelly.org.
+Returns list of (date-str body images file pos) sorted newest first."
+    (let* ((journelly-file (expand-file-name "Journelly.org" {{ .org_dir | quote }}))
+           (journelly-dir (file-name-directory journelly-file))
+           (entries '()))
+      (when (file-exists-p journelly-file)
+        (with-temp-buffer
+          (insert-file-contents journelly-file)
+          (goto-char (point-min))
+          (while (re-search-forward
+                  "^\\* \\[\\([0-9-]+ [A-Za-z]+ [0-9:]+\\)\\]\\(.*\\)" nil t)
+            (let* ((date-str (match-string 1))
+                   (location (string-trim (or (match-string 2) "")))
+                   (heading-pos (line-beginning-position))
+                   (content-start (point))
+                   (content-end (or (save-excursion
+                                      (when (re-search-forward "^\\* " nil t)
+                                        (line-beginning-position)))
+                                    (point-max)))
+                   (raw (buffer-substring-no-properties content-start content-end)))
+              (when (string-match-p "#RIP\\b" (concat location " " raw))
+                (let* ((images (let (imgs)
+                                 (with-temp-buffer
+                                   (insert raw)
+                                   (goto-char (point-min))
+                                   (while (re-search-forward "\\[\\[file:\\([^]]+\\)\\]\\]" nil t)
+                                     (push (expand-file-name (match-string 1) journelly-dir) imgs)))
+                                 (nreverse imgs)))
+                       (body (string-trim
+                              (replace-regexp-in-string
+                               "#RIP" ""
+                               (replace-regexp-in-string
+                                "\\[\\[file:.*\\]\\]" ""
+                                (replace-regexp-in-string
+                                 ":PROPERTIES:[\n\r]\\(.\\|\n\\)*?:END:" "" raw))))))
+                  (push (list date-str body images journelly-file heading-pos)
+                        entries)))))))
+      (nreverse entries)))
+
+  (defun my/agenda-graveyard-full ()
+    "Insert Graveyard (RIP) entries into agenda buffer."
+    (let ((entries (my/graveyard-parse))
+          (inhibit-read-only t))
+      (erase-buffer)
+      (insert (propertize "🪦 Graveyard\n" 'face 'org-agenda-structure))
+      (insert (propertize "  RET/TAB to open source, q to quit\n\n"
+                          'face 'font-lock-comment-face))
+      (if (null entries)
+          (insert (propertize "  No entries found.\n" 'face 'font-lock-comment-face))
+        (dolist (e entries)
+          (let ((entry-start (point))
+                (date-str (nth 0 e))
+                (body (nth 1 e))
+                (images (nth 2 e))
+                (file (nth 3 e))
+                (pos (nth 4 e)))
+            (insert (propertize (format "  %s\n" date-str) 'face 'org-agenda-date))
+            (let ((body-clean (string-trim body)))
+              (when (and body-clean (not (string-empty-p body-clean)))
+                (let ((first-line (car (split-string body-clean "\n"))))
+                  (insert (format "  %s\n"
+                                  (if (> (length first-line) 120)
+                                      (concat (substring first-line 0 120) "...")
+                                    first-line))))))
+            (when images
+              (insert "  ")
+              (my/on-this-day-insert-images images))
+            (insert "\n")
+            (put-text-property entry-start (point) 'otd-file file)
+            (put-text-property entry-start (point) 'otd-pos pos)
+            (put-text-property entry-start (point) 'keymap my/on-this-day-map))))
+      (use-local-map my/on-this-day-map)
+      (goto-char (point-min))))
+
+  ;; ── Journelly Tag Search ─────────────────────────────────────────────
+
+  (defun my/journelly-search-tag (tag)
+    "Search Journelly.org for entries containing #TAG.
+Shows results in a navigable buffer with dates, locations, body, and images."
+    (interactive
+     (list (completing-read "Journelly tag: "
+                            (my/journelly-collect-tags) nil nil)))
+    (let* ((tag-clean (replace-regexp-in-string "^#" "" tag))
+           (journelly-file (expand-file-name "Journelly.org" {{ .org_dir | quote }}))
+           (journelly-dir (file-name-directory journelly-file))
+           (entries '()))
+      (unless (file-exists-p journelly-file)
+        (user-error "Journelly.org not found"))
+      ;; Parse entries matching tag
+      (with-temp-buffer
+        (insert-file-contents journelly-file)
+        (goto-char (point-min))
+        (while (re-search-forward
+                "^\\* \\[\\([0-9-]+ [A-Za-z]+ [0-9:]+\\)\\]\\(.*\\)" nil t)
+          (let* ((date-str (match-string 1))
+                 (location (string-trim (or (match-string 2) "")))
+                 (location (replace-regexp-in-string "^@ *" "" location))
+                 (heading-pos (line-beginning-position))
+                 (content-start (point))
+                 (content-end (or (save-excursion
+                                    (when (re-search-forward "^\\* " nil t)
+                                      (line-beginning-position)))
+                                  (point-max)))
+                 (raw (buffer-substring-no-properties content-start content-end)))
+            (when (string-match-p (format "#%s\\b" (regexp-quote tag-clean))
+                                  (concat location " " raw))
+              (let* ((images (let (imgs)
+                               (with-temp-buffer
+                                 (insert raw)
+                                 (goto-char (point-min))
+                                 (while (re-search-forward "\\[\\[file:\\([^]]+\\)\\]\\]" nil t)
+                                   (push (expand-file-name (match-string 1) journelly-dir) imgs)))
+                               (nreverse imgs)))
+                     (body (string-trim
+                            (replace-regexp-in-string
+                             "\\[\\[file:.*\\]\\]" ""
+                             (replace-regexp-in-string
+                              ":PROPERTIES:[\n\r]\\(.\\|\n\\)*?:END:" "" raw)))))
+                (push (list date-str location
+                            (if (> (length body) 200)
+                                (concat (substring body 0 200) "...")
+                              body)
+                            images journelly-file heading-pos)
+                      entries))))))
+      (setq entries (nreverse entries))
+      ;; Render buffer
+      (let ((buf (get-buffer-create (format "*Journelly #%s*" tag-clean))))
+        (with-current-buffer buf
+          (let ((inhibit-read-only t))
+            (erase-buffer)
+            (insert (propertize (format "🏷 Journelly #%s" tag-clean)
+                                'face 'org-agenda-structure))
+            (insert (propertize (format "  (%d entries)\n" (length entries))
+                                'face 'font-lock-comment-face))
+            (insert (propertize "  RET/TAB to open source, q to quit\n\n"
+                                'face 'font-lock-comment-face))
+            (if (null entries)
+                (insert (propertize "  No entries found.\n" 'face 'font-lock-comment-face))
+              (dolist (e entries)
+                (let ((entry-start (point)))
+                  (insert (propertize (format "  %s" (nth 0 e)) 'face 'org-agenda-date))
+                  (when (and (nth 1 e) (not (string-empty-p (nth 1 e))))
+                    (insert (propertize (format "  📍 %s" (nth 1 e))
+                                        'face 'font-lock-comment-face)))
+                  (insert "\n")
+                  (let ((body (nth 2 e)))
+                    (when (and body (not (string-empty-p body)))
+                      ;; Indent every line of a multi-line body, not just the
+                      ;; first, so wrapped text and #hashtag lines keep the
+                      ;; same left margin as the date and images.
+                      (insert "  " (replace-regexp-in-string "\n" "\n  " body) "\n")))
+                  (when (nth 3 e)
+                    (insert "  ")
+                    (my/on-this-day-insert-images (nth 3 e)))
+                  (put-text-property entry-start (point) 'otd-file (nth 4 e))
+                  (put-text-property entry-start (point) 'otd-pos (nth 5 e))
+                  (put-text-property entry-start (point) 'keymap my/on-this-day-map)
+                  (insert "\n")))))
+          (use-local-map my/on-this-day-map)
+          (goto-char (point-min))
+          (read-only-mode 1))
+        (switch-to-buffer buf))))
+
+  (defun my/journelly-collect-tags ()
+    "Collect all unique #tags from Journelly.org."
+    (let ((journelly-file (expand-file-name "Journelly.org" {{ .org_dir | quote }}))
+          (tags '()))
+      (when (file-exists-p journelly-file)
+        (with-temp-buffer
+          (insert-file-contents journelly-file)
+          (goto-char (point-min))
+          (while (re-search-forward "#\\([[:alnum:]_]+\\)" nil t)
+            (push (match-string 1) tags))))
+      (delete-dups (mapcar #'downcase tags))))
+
+;; Reset function for checklists
+(defun my/org-reset-checklist ()
+  "Reset all DONE items to TODO and uncheck all checkboxes in current buffer."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (let ((todo-count 0)
+          (checkbox-count 0))
+
+      ;; Reset DONE/CANCELLED to TODO while preserving heading levels
+      (while (re-search-forward "^\\(\\*+\\) \\(DONE\\|CANCELLED\\) " nil t)
+        (replace-match "\\1 TODO " nil nil)
+        (setq todo-count (1+ todo-count)))
+
+      ;; Reset checked checkboxes to unchecked
+      (goto-char (point-min))
+      (while (re-search-forward "^[ \t]*- \\[X\\]" nil t)
+        (replace-match "- [ ]" nil nil)
+        (setq checkbox-count (1+ checkbox-count)))
+
+      ;; Remove logbook entries
+      (goto-char (point-min))
+      (while (re-search-forward ":LOGBOOK:\n\\(.*\n\\)*?:END:" nil t)
+        (replace-match ""))
+
+      (message "Reset %d TODO items and %d checkboxes" todo-count checkbox-count))))
+
+;; ── Link capture ──────────────────────────────────────────────────────────────
+;; org-cliplink: paste URL from clipboard as [[url][page title]] org link
+(use-package! org-cliplink
+  :after org)
+
+;; org-download: paste images from clipboard as file: links (not attachments)
+(use-package! org-download
+  :after org
+  :config
+  ;; Save images in ./img/ next to the org file
+  (setq org-download-method 'directory
+        org-download-image-dir ".assets/img"
+        org-download-heading-lvl nil
+        org-download-timestamp "%Y%m%d-%H%M%S_"
+        ;; Interactive region capture (macOS crosshair) straight into the buffer —
+        ;; one keypress (C-c i i s), no clipboard chord needed. Use C-c i i c
+        ;; (org-download-clipboard) when an image is already in the clipboard.
+        org-download-screenshot-method "screencapture -i %s"
+        ;; Insert as file: link, not attachment
+        org-download-link-format "[[file:%s]]\n"
+        org-download-abbreviate-source-url t
+        org-download-link-format-function
+        (lambda (filename)
+          (format "[[file:%s]]" (file-relative-name filename)))))
+
+;; Export the current Org buffer and put it on the macOS clipboard as BOTH
+;; rich HTML (what any web editor pastes) and clean plain text (what a shell
+;; pastes). No file left behind. Bound in +keys.el (C-c n m).
+;; RTF was the old approach — it only pasted into RTF apps and garbled, so we set
+;; the public.html + plain-text pasteboard flavors directly via NSPasteboard.
+
+;; Forward-declare the ox export options we let-bind below, so they're treated as
+;; special (dynamic) even if this file is evaluated before ox.el defines them —
+;; otherwise the let binds them lexically and ox's later defcustom warns
+;; "Defining as dynamic an already lexical var".
+(defvar org-export-with-section-numbers)
+(defvar org-export-with-toc)
+(defvar org-export-with-author)
+(defvar org-export-with-title)
+
+(defun my/org-copy-rich-html ()
+  "Copy the current Org buffer to the clipboard as HTML (rich) + plain text.
+Paste into any web editor to keep headings, bold, italic, links and lists; paste
+into a shell to get clean text. For code-heavy posts the browser route
+(C-c C-e h o) still renders code blocks most faithfully."
+  (interactive)
+  (unless (derived-mode-p 'org-mode)
+    (user-error "Run this in an Org buffer"))
+  (require 'ox)
+  (let* (;; No section numbers / TOC — web editors add their own structure, and
+         ;; the numbered "1, 2, 3.1" outline is noise in a pasted article.
+         (org-export-with-section-numbers nil)
+         (org-export-with-toc nil)
+         (org-export-with-author nil)
+         (org-export-with-title nil)
+         (html (org-export-as 'html nil nil t))    ; body-only HTML
+         (txt  (org-export-as 'ascii nil nil t))   ; clean plain-text fallback
+         (hf (make-temp-file "orgclip" nil ".html"))
+         (tf (make-temp-file "orgclip" nil ".txt")))
+    ;; Org wraps section text in <div class="outline-text-N"> and code in
+    ;; <div class="org-src-container">. Web editors (Medium) turn each wrapper
+    ;; div into an EMPTY block — a phantom code box after every snippet and a
+    ;; blank gap after every heading. Strip the wrapper divs; the real block
+    ;; elements (h2/p/pre/ul…) are all the editor needs.
+    (setq html (replace-regexp-in-string "</?div[^>]*>[ \t]*\n?" "" html))
+    (with-temp-file hf (insert html))
+    (with-temp-file tf (insert txt))
+    (call-process
+     "osascript" nil nil nil "-l" "JavaScript" "-e"
+     (format
+      (concat
+       "ObjC.import('AppKit');"
+       "var e=$.NSUTF8StringEncoding;"
+       "var h=$.NSString.stringWithContentsOfFileEncodingError('%s',e,$());"
+       "var t=$.NSString.stringWithContentsOfFileEncodingError('%s',e,$());"
+       "var pb=$.NSPasteboard.generalPasteboard;"
+       "pb.clearContents;"
+       "pb.setStringForType(h,'public.html');"
+       "pb.setStringForType(t,'public.utf8-plain-text');")
+      hf tf))
+    (delete-file hf)
+    (delete-file tf)
+    (message "Copied to clipboard (HTML + text).")))
+
+(provide 'init-org)

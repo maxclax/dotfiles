@@ -1,115 +1,148 @@
+# aliases.sh -*- mode: sh; lexical-binding: t; -*-
+
 # shellcheck shell=bash
 
 # Aliases; runs in the same shell you are already in
 # See bin folder for scripts which will run in their own shell
 
 # Global settings
-alias cz=chezmoi
 alias dotfiles='cd {{ .chezmoi.sourceDir }}'
+alias orgdir='cd "{{ .org_dir }}"'
+alias templates='cd "{{ .chezmoi.homeDir }}/.local/extra-configs/emacs/templates"'
 
 alias workspace='cd {{ .workspace }}'
 alias workspace_extra='cd {{ .workspace_extra }}'
 alias resources='cd {{ .resources }}'
-alias jupyter='cd {{ .jupyter }}'
 alias playground='cd {{ .playground  }}'
 
-alias r='ranger .'
+unalias r 2>/dev/null
+r() {
+  local tempfile
+  tempfile="$(mktemp -t ranger_cd.XXXXXX)"
+  ranger --choosedir="$tempfile" "${@:-.}"
+  if [ -f "$tempfile" ] && [ "$(cat "$tempfile")" != "$(pwd)" ]; then
+    cd "$(cat "$tempfile")" || return
+  fi
+  rm -f "$tempfile"
+}
+alias y='yazi .'
+alias br='broot'
 alias ll='eza --long --header --group-directories-first --git --group --all --color=auto'
 alias tree='tree -C'
 alias t="tree -C -L 2"
 alias t3="tree -C -L 3"
 
-# emacsclient
-alias e='emacsclient -t'      # Terminal Emacs
-alias ec='emacsclient -c -n'  # GUI Emacs (non-blocking)
-alias killemacs='emacsclient -e "(kill-emacs)"'
+# emacsclient — all use named servers to avoid conflicts
+alias e='TERM=xterm-256color emacsclient -t -s default -a ""'  # Terminal Emacs
+alias ec='emacsclient -c -n -s default -a ""'  # GUI Emacs
+alias ek='emacsclient -s default -e "(kill-emacs)"'
+alias ek-org='emacsclient -s org -e "(kill-emacs)"'
 
 # Emacs commands for different distributions
-alias doom={{ .chezmoi.homeDir }}/.config/doomemacs.d/bin/doom
+alias doom={{ .chezmoi.homeDir }}/.config/emacs/bin/doom
+
+# GUI Emacs launchers for different distributions (non-blocking)
+alias emacs-default='emacs &'
+alias emacs-purcell='emacs --init-directory={{ .chezmoi.homeDir }}/.config/purcellemacs.d &'
 
 # Emacs server commands for different distributions
-alias emacs-server-doom='emacs --daemon --init-directory={{ .chezmoi.homeDir }}/.config/doomemacs.d'
-alias emacs-server-spacemacs='emacs --daemon --init-directory={{ .chezmoi.homeDir }}/.config/spacemacs.d'
-alias emacs-server-prelude='emacs --daemon --init-directory={{ .chezmoi.homeDir }}/.config/preludeemacs.d'
 alias emacs-server-purcell='emacs --daemon --init-directory={{ .chezmoi.homeDir }}/.config/purcellemacs.d'
 alias emacs-server-default='emacs --daemon'
 
 # Set default emacs-server based on chosen distribution
-{{- if eq .emacsType "Doom" }}
-alias emacs-server='emacs-server-doom'
-{{- else if eq .emacsType "Spacemacs" }}
-alias emacs-server='emacs-server-spacemacs'
-{{- else if eq .emacsType "prelude" }}
-alias emacs-server='emacs-server-prelude'
-{{- else if eq .emacsType "purcell" }}
-alias emacs-server='emacs-server-prelude'
+{{- if eq .emacsType "purcell" }}
+alias emacs-server='emacs-server-purcell'
 {{- else }}
 alias emacs-server='emacs-server-default'
 {{- end }}
 
 # Restart commands for each distribution
-alias restart-emacs='killemacs && emacs-server'  # Restart current default
-alias restart-emacs-doom='killemacs && emacs-server-doom'
-alias restart-emacs-spacemacs='killemacs && emacs-server-spacemacs'
-alias restart-emacs-prelude='killemacs && emacs-server-prelude'
-alias restart-emacs-purcell='killemacs && emacs-server-purcell'
-alias restart-emacs-default='killemacs && emacs-server-default'
-
-# pkgx/dev
-alias dev-dirs='fd dev.pkgx.activated "$HOME/Library/Application Support/pkgx/dev" --exec dirname {}'
+alias restart-emacs='ek && emacs-server'  # Restart current default
+alias restart-emacs-purcell='ek && emacs-server-purcell'
+alias restart-emacs-default='ek && emacs-server-default'
 
 # Git
-alias gs='git status'
-alias glog="git log --oneline --graph --decorate --all"
 alias lg='lazygit'
 alias lazypodman='DOCKER_HOST=unix://$(podman machine inspect --format '"'"'{{`{{.ConnectionInfo.PodmanSocket.Path}}`}}'"'"') lazydocker'
 alias lp='lazypodman'
-alias git-purge='git branch --merged | egrep -v "(^\*|master|main|dev)" | xargs git branch -d'
-alias git-grep='git rev-list --all | xargs git --no-pager grep --extended-regexp --ignore-case' # usage: gg <regexp>
-alias glog='git log --graph --decorate --pretty=oneline --abbrev-commit --all'
-alias submodule-reset='git submodule deinit -f . && git submodule update --init --recursive'
-
-# Containers
-alias tf="terraform"
-alias mk="minikube"
-alias k="kubectl"
-alias h="helm"
 
 # Python
 alias pyclean='find . | grep -E "(__pycache__|\.pyc|\.pyo$)" | xargs rm -rvf'
-alias pip-purge='pip list --format freeze | xargs pip uninstall -y'
-alias pip-install-reqs='ls requirements*.txt | xargs -n 1 pip install -r'
-alias poetry-install-master='pipx install --suffix=@master --force git+https://github.com/python-poetry/poetry.git'
 alias activate='source .venv/bin/activate'
-# assuming pyenv
-alias venv='PIP_REQUIRE_VIRTUALENV=false python3 -m pip install --upgrade --user pip virtualenv && python3 -m virtualenv .venv && source .venv/bin/activate && python3 -m pip install --upgrade pip && which pip && pip list && pip --version && python3 --version'
 
+# Home Manager shortcuts (runs from ~/)
+alias hmu='make -C ~/ hm_update'          # Update Home Manager
+alias hmd='make -C ~/ hm_diff'            # Show what will change
+alias hmc='make -C ~/ hm_commit'          # Commit flake.lock changes
+alias hml='make -C ~/ hm_list'            # List installed packages
+
+# Chezmoi shortcuts
+alias cza='chezmoi apply'           # Apply dotfiles
+alias czd='chezmoi diff'            # Show changes
+
+# Shell reload - works for any shell
+alias reload-shell='exec $SHELL'   # Restart current shell
+ 
 # Colorize terminal
 # ---- Eza (better ls) -----
 alias ls="eza --icons=always --grid"
 alias ll='eza --long --header --group-directories-first --group --all'
-# Gerrit
-# alias gerrit-push='git push origin HEAD:refs/for/master'
-# alias gerrit-draft='git push origin HEAD:refs/drafts/master'
-# alias gerrit-amend='git commit --amend'
-# alias gp='gerrit-amend && gerrit-push'
-# alias gp-draft='gerrit-amend && gerrit-draft'
 
 alias ls='ls -G'
 alias la='ls -all'
 alias ll='ls -lG'
 alias lst='ls -T'
 
-# Copy path to clipboard
-alias cpwd='pwd | tr -d "\n" | pbcopy'
+# Copy path to clipboard — emacs kill-ring-save (M-w)
+alias wpwd='pwd | tr -d "\n" | pbcopy'
+
+# Yank (paste) clipboard path and cd into it — emacs yank (C-y), counterpart to wpwd
+ypwd() {
+  local dir
+  dir="$(pbpaste | tr -d '\n')"
+  if [[ -d "$dir" ]]; then
+    cd "$dir" || return
+  else
+    echo "ypwd: not a directory: $dir" >&2
+    return 1
+  fi
+}
 
 # Stop wget from creating ~/.wget-hsts file. I don't care about HSTS (HTTP
 # Strict Transport Security) for wget; it's not as if I'm logging into my bank
 # with it.
 alias wget='wget --no-hsts'
 
-# Set NeoVim as vim by default
-alias vim='nvim'
+
+# Dev services (installed via Home Manager, started on demand)
+mailpit_start() {
+  if lsof -i :8025 &>/dev/null; then
+    echo "mailpit already running: http://localhost:8025"
+    return
+  fi
+  mailpit --database "" --max 500 &>/dev/null &
+  disown
+  echo "mailpit started — SMTP :1025 | UI http://localhost:8025"
+}
+mailpit_kill() {
+  pkill -f "mailpit" && echo "mailpit stopped" || echo "mailpit not running"
+}
+
+# Network diagnostics
+alias mtr='sudo mtr'                    # MTR with sudo
+alias myip='curl -s ipinfo.io/ip'       # Get public IP
+alias ports='sudo lsof -i -P -n | grep LISTEN'  # List open ports
+
+# Pueue job queue management
+alias pq='pueue'                        # Base command
+alias pqa='pueue add'                   # Quick add job
+alias pqs='pueue status'                # Check status
+alias pql='pueue log'                   # View logs
+alias pqc='pueue clean'                 # Clean finished jobs
+alias pqk='pueue kill'                  # Kill job
+alias pqp='pueue pause'                 # Pause job
+alias pqr='pueue restart'               # Restart job
+alias pqd='pueued'                      # Start daemon
 
 {{ if eq .containerEngine "podman" }} 
 # ---- Podman -----
@@ -117,15 +150,13 @@ alias docker=podman
 alias docker-compose=podman-compose
 {{ end }}
 
-# ---- GitHub Copilot CLI -----
-alias cs='gh copilot suggest'
-alias ce='gh copilot explain'
-alias ca='gh copilot alias'
-
-# ---- TheFuck -----
-if command -v thefuck &>/dev/null; then
-  eval "$(thefuck --alias)"
-  eval "$(thefuck --alias fk)"
+# ---- pay-respects -----
+if [[ "$DOTFILES_SHELL" == "zsh" ]]; then
+    eval "$(pay-respects zsh --alias)"
+elif [[ "$DOTFILES_SHELL" == "bash" ]]; then
+    eval "$(pay-respects bash --alias)"
+elif [[ "$DOTFILES_SHELL" == "fish" ]]; then
+    eval "$(pay-respects fish --alias)"
 fi
 
 # Per-platform settings, will override the above commands
@@ -136,6 +167,7 @@ Darwin)
   ;;
 Linux)
   # commands for Linux go here
+
 
   ;;
 esac

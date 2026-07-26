@@ -1,117 +1,67 @@
 ;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
 
-(load! "+os")
-(load! "+git")
+;; Load all configuration modules
+(load! "lisp/init-applescript.el")
+(load! "lisp/init-dired.el")
+(load! "lisp/init-templates.el")
+(load! "lisp/init-checker.el")
+(load! "lisp/init-lsp.el")
+(load! "lisp/init-python.el")
+(load! "lisp/init-reading.el")
+(load! "lisp/init-pdf.el")
+(load! "lisp/init-git.el")
+(load! "lisp/init-org.el")
+(load! "lisp/init-timing.el")
+(load! "lisp/init-bibliography.el")
+(load! "lisp/init-copilot.el")
+(load! "lisp/init-gptel.el")
+(load! "lisp/init-aider.el")
+(load! "lisp/init-denote")
+(load! "lisp/init-bookmarks.el")
+(load! "lisp/init-whichkey.el")
+(load! "lisp/init-windows.el")
+(load! "lisp/init-erc.el")
+(load! "lisp/init-pgmacs.el")
+(load! "lisp/init-private.el")
+(load! "lisp/init-tramp.el")
+(load! "lisp/init-docker.el")
+(load! "lisp/init-eat.el")
+(load! "lisp/init-chess.el")
+(load! "lisp/init-casual.el")
+(load! "lisp/init-http.el")
+(load! "lisp/init-django.el")
+(load! "lisp/init-x.el")
 (load! "+misc")
-(load! "+text")
-(load! "+prog")
 (load! "+ui")
 (load! "+keys")
-(cond
- ((modulep! :tools lsp +eglot) (load! "+eglot"))
- ((modulep! :tools lsp) (load! "+lsp")))
 
-;; If you use `org' and don't want your org files in the default location below,
-;; change `org-directory'. It must be set before org loads!
-(setq org-directory "~/org/")
+;; Detect major mode for .tmpl files based on the underlying extension
+;; e.g. foo.el.tmpl → emacs-lisp-mode, foo.sh.tmpl → sh-mode
+(defun my/tmpl-auto-mode ()
+  (let ((buffer-file-name (replace-regexp-in-string "\\.tmpl\\'" "" buffer-file-name)))
+    (set-auto-mode)))
+(add-to-list 'auto-mode-alist '("\\.tmpl\\'" . my/tmpl-auto-mode))
 
-;;
-;; https://blog.serghei.pl/posts/emacs-python-ide/
-;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
-;; they are implemented.
-(with-eval-after-load 'yasnippet
-  (yas-reload-all))
+;; Disable flymake in .env files (no linting needed for env var files)
+(add-hook 'dotenv-mode-hook (lambda () (flymake-mode -1)))
 
-;; Only if you use `flymake-mode'.
-(with-eval-after-load 'flymake
-  (define-key flymake-mode-map (kbd "M-n") 'flymake-goto-next-error)
-  (define-key flymake-mode-map (kbd "M-p") 'flymake-goto-prev-error))
+;; delete to trash
+(setq delete-by-moving-to-trash t)
 
-;; Set LSP keymap prefix.
-(setopt lsp-keymap-prefix "C-c l")
 
-;; Shut down LSP server after close all buffers associated with the server.
-(setopt lsp-keep-workspace-alive nil)
 
-;; Configure LSP UI enhancements.
-(setopt lsp-headerline-breadcrumb-segments
-        '(path-up-to-project
-          file
-          symbols))
+;; Increase kill ring size (default is 120)
+(setq kill-ring-max 250)
 
-(with-eval-after-load 'lsp-ui
-  ;; Remap `xref-find-definitions' (bound to M-. by default).
-  (define-key lsp-ui-mode-map
-              [remap xref-find-definitions]
-              #'lsp-ui-peek-find-definitions)
 
-  ;; Remap `xref-find-references' (bound to M-? by default).
-  (define-key lsp-ui-mode-map
-              [remap xref-find-references]
-              #'lsp-ui-peek-find-references))
+(setq doom-scratch-buffer-major-mode 'emacs-lisp-mode
+      confirm-kill-emacs nil)
 
-;; Configure LSP mode for enhanced experience.
-(with-eval-after-load 'lsp-mode
-  ;; Remap `lsp-treemacs-errors-list' (bound to C-c l g e).
-  (define-key lsp-mode-map
-              [remap lsp-treemacs-errors-list]
-              #'consult-lsp-diagnostics)
+;; Enable repeat mode for repeatable keys (Emacs 28+)
+(when (fboundp 'repeat-mode)
+  (repeat-mode 1))
 
-  ;; Remap `xref-find-apropos' (bound to C-c l g a).
-  (define-key lsp-mode-map
-              [remap xref-find-apropos]
-              #'consult-lsp-symbols)
-
-  ;; Enable `which-key-mode' integration for LSP.
-  (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration))
-
-;; Auto configure dap minor mode.
-(setopt dap-auto-configure-mode t)
-
-(defmacro company-backend-for-hook (hook backends)
-  `(add-hook ,hook (lambda ()
-                     (set (make-local-variable 'company-backends)
-                          ,backends))))
-
-(defun setup-python-environment ()
-  "Setup a Python development environment in the current buffer."
-  ;; Update the current buffer's environment.
-  (envrc--update)
-
-  ;; Enable YASnippet mode.
-  (yas-minor-mode 1)
-
-  ;; Setup active backends for `python-mode'.
-  (company-backend-for-hook 'lsp-completion-mode-hook
-                            '((company-capf :with company-yasnippet)
-                              company-dabbrev-code))
-
-  ;; Prevent `lsp-pyright' start in multi-root mode.
-  ;; This must be set before the package is loaded.
-  (setq-local lsp-pyright-multi-root nil)
-
-  ;; Enable LSP support in Python buffers.
-  (require 'lsp-pyright)
-  (lsp-deferred)
-
-  ;; Enable DAP support in Python buffers.
-  (require 'dap-python)
-  (setq-local dap-python-debugger 'debugpy)
-
-  (dap-mode 1))
-
-;; Configure hooks after `python-mode' is loaded.
-(add-hook 'python-mode-hook #'setup-python-environment)
-
-;; Setup buffer-local direnv integration for Emacs.
-(when (executable-find "direnv")
-  ;; `envrc-global-mode' should be enabled after other global minor modes,
-  ;; since each prepends itself to various hooks.
-  (add-hook 'after-init-hook #'envrc-global-mode))
-
-;; Load system profile for different machines and work config
-(dolist (config '("~/.config/doom/local.el"))
-  (let ((config-file (file-truename config)))
-    (when (file-exists-p config-file)
-      (load-file config-file))))
-
+;; Keep everything in sync with the real world
+(global-auto-revert-mode 1)
+(setq global-auto-revert-non-file-buffers t)
+(setq auto-revert-verbose nil)   ; ← silence the "reverted buffer …" messagen

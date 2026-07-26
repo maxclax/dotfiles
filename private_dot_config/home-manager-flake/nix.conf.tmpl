@@ -1,0 +1,9 @@
+# Nix configuration file
+experimental-features = nix-command flakes
+
+# Build optimization
+max-jobs = auto
+cores = 0
+
+# Binary cache (substituters can be set by non-trusted users)
+substituters = https://cache.nixos.org/

@@ -1,3 +1,12 @@
 matches:
   - trigger: "->"
     replace: "→"
+
+  - trigger: "<-"
+    replace: "←"
+
+  - trigger: "-up"
+    replace: "↑"
+
+  - trigger: "-do"
+    replace: "↓"

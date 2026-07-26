@@ -5,14 +5,10 @@ matches:
   - trigger: ":now"
     replace: "{{mytime}}"
     vars:
-      - name: shellcmd
-        type: shell
-        params:
-          cmd: echo "%H:%M"
       - name: mytime
         type: date
         params:
-          format: "{{shellcmd}}"
+          format: "%H:%M"
 
   - trigger: ":date"
     replace: "{{mydate}}"

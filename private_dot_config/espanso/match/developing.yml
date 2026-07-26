@@ -2,101 +2,30 @@ name: developing
 parent: default
 
 matches:
-  # Docker: docker rmi -f $(docker images -a -q)
-  - trigger: "-dri"
-    replace: "docker rmi -f $(docker images -a -q)"
+  # Build & Tests
+  - trigger: ";ts"
+    replace: "make pytest arg_1="
 
-  # Docker: docker-compose up -d
-  - trigger: "-dcu"
-    replace: "docker-compose up -d"
+  # Database
+  - trigger: ";mg"
+    replace: "make migrate"
 
-  # Docker: docker-compose up bgscripts
-  - trigger: "-bgs"
-    replace: "docker-compose up bgscripts"
+  - trigger: ";mm"
+    replace: "make mmigrate arg_1="
 
-  # Docker: make dcr
-  - trigger: "-dcr"
-    replace: "make dcr"
+  # Logs
+  - trigger: ";lg"
+    replace: "podman logs -f --tail 100"
 
-  # Docker: make rm
-  - trigger: "-drm"
+  # Container ops
+  - trigger: ";ds"
+    replace: "make ds"
+
+  - trigger: ";rm"
     replace: "make rm"
 
-  # Docker: make rm_a
-  - trigger: "!drm"
-    replace: "make rm_a"
+  - trigger: "'rm"
+    replace: "podman ps -a --format '{{.ID}} {{.Names}}' | grep -v 'kind-' | awk '{print $1}' | xargs -r podman stop | xargs -r podman rm"
 
-  # Docker: stop rm all
-  - trigger: "-dsra"
-    replace: "docker stop $(docker ps -aq); docker rm $(docker ps -a -q);"
-
-  # Python -> ipdb -> pp locals()
-  - trigger: "-ppl"
-    replace: "pp locals()"
-
-  # Python: import ipdb; ipdb.set_trace()
-  - trigger: "-шзв"
-    replace: "import ipdb; ipdb.set_trace()"
-
-  # Python: import ipdb; ipdb.set_trace()
-  - trigger: "-ipd"
-    replace: "import ipdb; ipdb.set_trace()"
-
-  # Python: {% load djcore_tags %}{{ __placeholder__|ipdb }}
-  - trigger: "-ipt"
-    replace: "{% load djcore_tags %}{{ __placeholder__|ipdb }}"
-
-  - trigger: "-ipc"
-    replace: "netstat -ntu |awk '{print $5}'| cut -d: -f1 | sort | uniq -c | sort -n"
-
-  # Conventional Commit Messages with form selection
-  - trigger: "-cmm"
-    form: |
-      [[type]]: [[message]]
-    form_fields:
-      type:
-        type: list
-        values:
-          - dev
-          - docs
-          - feat
-          - fix
-          - nit
-          - perf
-          - refactor
-          - revert
-          - test
-          - tweak
-      message:
-        type: text
-        multiline: false
-        hint: "commit message"
-        required: true
-
-  - trigger: "-cmm"
-    form: |
-      [[type]]([[scope]]): [[message]]
-    form_fields:
-      type:
-        type: list
-        values:
-          - dev
-          - docs
-          - feat
-          - fix
-          - nit
-          - perf
-          - refactor
-          - revert
-          - test
-          - tweak
-      scope:
-        type: text
-        multiline: false
-        hint: "required scope"
-        required: true
-      message:
-        type: text
-        multiline: false
-        hint: "commit message"
-        required: true
+  - trigger: "'ri"
+    replace: "podman rmi -f $(docker images -a -q)"

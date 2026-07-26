@@ -1,0 +1,383 @@
+;;; init-dired.el -*- mode: emacs-lisp; lexical-binding: t; -*-
+
+(defun my/dirvish-dual-panel (&optional use-project)
+  "Open two dired panels side by side at the current file's directory.
+With prefix argument USE-PROJECT, open at the project root instead."
+  (interactive "P")
+  (let ((dir (if use-project
+                 (or (and (fboundp 'projectile-project-root) (projectile-project-root))
+                     (and (fboundp 'project-root) (when-let (p (project-current)) (project-root p)))
+                     default-directory)
+               default-directory)))
+    (delete-other-windows)
+    (dired dir)
+    (split-window-right)
+    (other-window 1)
+    (dired dir)
+    (other-window 1)))
+
+;; Use the other dired window as default copy/move target (dual-panel behaviour)
+(setq dired-dwim-target t)
+
+(defvar my/dired-detailed-view nil
+  "Global flag: when non-nil all dired buffers show detailed view.")
+
+(defun my/dired-apply-view-state ()
+  "Apply the global view state to the current dired buffer."
+  (if my/dired-detailed-view
+      (dired-hide-details-mode -1)
+    (dired-hide-details-mode 1)))
+
+(add-hook 'dired-mode-hook #'my/dired-apply-view-state)
+
+(defun my/dired-toggle-details ()
+  "Toggle between clean and detailed view globally (persists across directories)."
+  (interactive)
+  (setq my/dired-detailed-view (not my/dired-detailed-view))
+  (when (boundp 'dirvish-attributes)
+    (setq dirvish-attributes
+          (if my/dired-detailed-view
+              '(nerd-icons collapse file-size file-time vc-state)
+            '(nerd-icons collapse))))
+  (my/dired-apply-view-state)
+  (dired-revert)
+  (message "Dired: %s view" (if my/dired-detailed-view "detailed" "clean")))
+
+;; Auto-switch workspace when opening a file from a different project via dirvish
+(defun my/maybe-switch-workspace-for-project (orig-fn &rest args)
+  "If file belongs to a different project, open it in that project's workspace.
+The file is opened in a new workspace; the current workspace stays untouched."
+  (let* ((file (or (car args) (dired-get-filename nil t)))
+         (file-dir (and file (file-name-directory (expand-file-name file))))
+         (current-root (ignore-errors (projectile-project-root)))
+         (file-root (and file-dir
+                         (ignore-errors
+                           (let ((default-directory file-dir))
+                             (projectile-project-root))))))
+    (if (and current-root file-root
+             (not (string= current-root file-root)))
+        ;; Different project — open in its own workspace, stay in current one
+        (let* ((project-name (file-name-nondirectory (directory-file-name file-root)))
+               (current-ws (+workspace-current-name)))
+          (unless (+workspace-exists-p project-name)
+            (+workspace/new project-name))
+          (+workspace/switch-to project-name)
+          (apply orig-fn args)
+          (+workspace/switch-to current-ws))
+      (apply orig-fn args))))
+
+(defun my/maybe-open-in-project-tab (orig-fn &rest args)
+  "If file belongs to a different project, open it in that project's tab.
+Tab variant of `my/maybe-switch-workspace-for-project': the file opens in a
+native tab named after its project (created on demand) inside the current
+workspace; the current tab stays selected."
+  (let* ((file (or (car args) (dired-get-filename nil t)))
+         (file-dir (and file (file-name-directory (expand-file-name file))))
+         (current-root (ignore-errors (projectile-project-root)))
+         (file-root (and file-dir
+                         (ignore-errors
+                           (let ((default-directory file-dir))
+                             (projectile-project-root))))))
+    (if (and current-root file-root
+             (not (string= current-root file-root)))
+        (let ((project-name (file-name-nondirectory (directory-file-name file-root)))
+              (current-tab (alist-get 'name (tab-bar--current-tab))))
+          (tab-bar-switch-to-tab project-name)
+          (apply orig-fn args)
+          (tab-bar-switch-to-tab current-tab))
+      (apply orig-fn args))))
+
+;; Testing the tab-based flow; roll back by advising
+;; `my/maybe-switch-workspace-for-project' instead.
+(advice-add 'dired-find-file :around #'my/maybe-open-in-project-tab)
+
+;; Auto-open the dirvish sidebar when switching to a project (C-c p p),
+;; keeping focus in the file window.
+(add-hook 'projectile-after-switch-project-hook
+          (defun my/dirvish-side-on-project-switch ()
+            (when-let ((root (projectile-project-root)))
+              (require 'dirvish-side)
+              (unless (dirvish-side-session-visible-p)
+                (save-selected-window
+                  (dirvish-side root)
+                  ;; attrs (icons etc.) render on window-selection change,
+                  ;; which save-selected-window suppresses — render manually
+                  (dirvish--render-attrs (selected-window)))))))
+
+;; ── Sidebar persistence, per TAB ─────────────────────────────────────────
+;; Two forces kill the sidebar: doom quits every dirvish session right
+;; before a workspace switch (+dired--cleanup-dirvish-h on
+;; persp-before-switch-functions), and tab-bar layout restore silently
+;; drops side windows. So track visibility ourselves: a persp parameter
+;; holds the tab names whose tab showed a sidebar (serialized into
+;; workspace/session files). Record before every tab/workspace switch,
+;; reapply after.
+(defun my/dirvish-side-record-tab (&rest _)
+  "Record sidebar visibility for the current tab in a persp parameter."
+  (when-let ((persp (get-current-persp)))
+    (let ((names (persp-parameter 'dirvish-side-tabs persp))
+          (name (alist-get 'name (tab-bar--current-tab))))
+      (setq names (delete name names))
+      (when (and (fboundp 'dirvish-side-session-visible-p)
+                 (dirvish-side-session-visible-p))
+        (push name names))
+      (set-persp-parameter 'dirvish-side-tabs names persp))))
+
+(defun my/dirvish-side-apply-tab (&rest _)
+  "Open or close the sidebar to match the current tab's recorded state."
+  (require 'dirvish-side)
+  (when-let ((persp (get-current-persp)))
+    (let* ((names (persp-parameter 'dirvish-side-tabs persp))
+           (name (alist-get 'name (tab-bar--current-tab)))
+           (want (and (member name names) t))
+           (win (dirvish-side-session-visible-p)))
+      (cond ((and want (not win))
+             (save-selected-window
+               (dirvish-side (or (ignore-errors (projectile-project-root))
+                                 default-directory))
+               (dirvish--render-attrs (selected-window))))
+            ((and win (not want))
+             (ignore-errors (delete-window win)))))))
+
+(defun my/dirvish-side-apply-tab-deferred (&rest _)
+  "Reapply sidebar state once the window layout has settled."
+  (run-at-time 0 nil #'my/dirvish-side-apply-tab))
+
+;; tab switches: record the tab being left, reapply for the one entered
+;; (post-select runs my/tab-fix-dead-side-windows below, which reapplies)
+(advice-add 'tab-bar-select-tab :before #'my/dirvish-side-record-tab)
+(advice-add 'tab-bar-new-tab :before #'my/dirvish-side-record-tab)
+
+;; workspace switches: record before doom's dirvish cleanup runs (add-hook
+;; prepends, so ours fires before +dired--cleanup-dirvish-h), reapply after
+;; the workspace's window config is restored
+(after! persp-mode
+  (add-hook 'persp-before-switch-functions
+            (defun my/dirvish-side-remember-h (&rest _)
+              (my/dirvish-side-record-tab)))
+  (add-hook 'persp-activated-functions
+            (defun my/dirvish-side-restore-h (_)
+              ;; via the cleanup: workspace loads can restore broken
+              ;; sidebars in the current tab too. Double pass — during
+              ;; startup the layout (frames/tabs/theme) settles late and
+              ;; the first pass can style a window that gets rebuilt.
+              (run-at-time 0 nil #'my/tab-fix-dead-side-windows)
+              (run-at-time 1.5 nil #'my/tab-fix-dead-side-windows))))
+
+;; new client frames (daemon startup) render before sidebar styling has
+;; anywhere to hook — settle pass once the frame is up
+(add-hook 'server-after-make-frame-hook
+          (defun my/dirvish-side-frame-fix-h ()
+            (run-at-time 2 nil
+                         (lambda ()
+                           (when (fboundp 'my/tab-fix-dead-side-windows)
+                             (my/tab-fix-dead-side-windows))))))
+
+;; Selecting a tab can also restore BROKEN sidebars in two flavors: a dead
+;; side window (" *Old buffer *SIDE…" placeholder pointing at a killed
+;; dirvish buffer), or a side-session buffer put back into a NORMAL window
+;; (restore drops the window-side parameter, so styling and side-window
+;; behavior are lost). Delete both, then reapply the recorded per-tab
+;; sidebar state, which reopens a proper side window.
+(defun my/tab-fix-dead-side-windows (&rest _)
+  (dolist (win (window-list))
+    (let ((buf (window-buffer win)))
+      (cond
+       ((window-parameter win 'window-side)
+        (when (or (not (buffer-live-p buf))
+                  (string-prefix-p " *Old buffer" (buffer-name buf))
+                  (with-current-buffer buf
+                    (and (fboundp 'dirvish-curr) (not (dirvish-curr)))))
+          (ignore-errors (delete-window win))))
+       ((and (buffer-live-p buf)
+             (with-current-buffer buf
+               (when-let ((dv (and (fboundp 'dirvish-curr) (dirvish-curr))))
+                 ;; side session in a plain window; a full dirvish layout
+                 ;; (promoted via M-TAB) has curr-layout set — leave those
+                 (and (eq (dv-type dv) 'side)
+                      (null (dv-curr-layout dv))))))
+        (ignore-errors (delete-window win))))))
+  (my/dirvish-side-apply-tab-deferred))
+(add-hook 'tab-bar-tab-post-select-functions #'my/tab-fix-dead-side-windows)
+
+(after! dirvish
+  ;; Enable dirvish globally for all dired buffers
+  (dirvish-override-dired-mode)
+
+  ;; GNU ls (Nix coreutils) supports --group-directories-first; BSD ls does not.
+  ;; Set after dirvish-override-dired-mode so dirvish doesn't reset it.
+  ;; -A drops the ./.. entries; C collation gives treemacs-like ASCII order
+  ;; (dot-dirs before _dist) instead of locale order (_dist first).
+  (setq dired-listing-switches
+        "-ABhl --group-directories-first --ignore=.DS_Store")
+  (advice-add 'insert-directory :around
+              (defun my/dired-c-collation-a (fn &rest args)
+                (let ((process-environment
+                       (cons "LC_COLLATE=C" process-environment)))
+                  (apply fn args))))
+
+  ;; Clean by default: icons + subtree only, ls detail columns hidden
+  (setq dirvish-attributes '(nerd-icons collapse))
+
+  ;; ── Sidebar cosmetics: -10% font, tinted background, content-fit width ──
+  ;; Keyed off the buffer being shown in an actual SIDE WINDOW, not the
+  ;; session type: a side session promoted to full layout (M-TAB) reuses the
+  ;; same buffers, so cosmetics must apply/remove as the layout flips.
+  (defvar-local my/dirvish-side--tint nil)
+
+  (defun my/dirvish-side-cosmetics ()
+    "Apply or remove sidebar cosmetics based on the displaying window."
+    (let* ((win (get-buffer-window (current-buffer)))
+           (sidep (and win (window-parameter win 'window-side))))
+      (cond
+       (sidep
+        (setq-local text-scale-mode-step 1.1) ; one step ≈ -10%
+        (text-scale-set -1)
+        (unless my/dirvish-side--tint
+          (setq my/dirvish-side--tint
+                (face-remap-add-relative
+                 'default :background
+                 (if (eq (frame-parameter nil 'background-mode) 'light)
+                     "#fefcf0"
+                   (doom-color 'bg-alt)))))
+        ;; width follows content, clamped 18–25 columns. The text is scaled
+        ;; to ~90% but window-resize counts full-size columns, so correct
+        ;; the char count by the scale factor or the fit runs ~10% wide.
+        (let* ((longest (cadr (buffer-line-statistics)))
+               (target (min 25 (max 18 (+ (ceiling (* 0.91 longest)) 2))))
+               (delta (- target (window-total-width win))))
+          (unless (zerop delta)
+            (ignore-errors (window-resize win delta t t)))))
+       (t ; not in a side window — strip everything
+        (when (bound-and-true-p text-scale-mode)
+          (text-scale-set 0))
+        (when my/dirvish-side--tint
+          (face-remap-remove-relative my/dirvish-side--tint)
+          (setq my/dirvish-side--tint nil))))))
+
+  (setq dirvish-side-width 25)
+  (add-hook 'dirvish-setup-hook #'my/dirvish-side-cosmetics)
+  ;; Navigating the sidebar to another dir creates the new buffer BEFORE
+  ;; the window displays it, so the setup-hook's side-window check fails
+  ;; and styling is skipped — restyle when a side window swaps buffers
+  (add-hook 'window-buffer-change-functions
+            (defun my/dirvish-side-restyle-h (frame)
+              (dolist (w (window-list (and (framep frame) frame)))
+                (when (window-parameter w 'window-side)
+                  (with-current-buffer (window-buffer w)
+                    (when (and (derived-mode-p 'dired-mode)
+                               (not my/dirvish-side--tint))
+                      (my/dirvish-side-cosmetics)))))))
+  ;; layout toggle reuses the buffer without re-running setup — re-evaluate
+  (advice-add 'dirvish-layout-toggle :after
+              (defun my/dirvish-side-cosmetics-a (&rest _)
+                (my/dirvish-side-cosmetics)))
+  ;; the tint remap stores a literal color, so a theme change (circadian
+  ;; morning/evening flip) leaves stale backgrounds — recompute them
+  (add-hook 'doom-load-theme-hook
+            (defun my/dirvish-side-retint-h (&rest _)
+              (dolist (buf (buffer-list))
+                (with-current-buffer buf
+                  (when (bound-and-true-p my/dirvish-side--tint)
+                    (face-remap-remove-relative my/dirvish-side--tint)
+                    (setq my/dirvish-side--tint nil)
+                    (my/dirvish-side-cosmetics))))))
+
+  ;; Preview directories with real formatting (faces, denote date prefixes,
+  ;; .DS_Store filtering) — dirvish's default runs a child Emacs and shows
+  ;; its raw ls text. Render in an undisplayed dired buffer, then COPY the
+  ;; propertized text into dirvish's own preview buffer: displaying a live
+  ;; dired buffer in the preview window makes dirvish adopt it as a session
+  ;; root and navigation (C-b up) bounces right back. Ditto the raw
+  ;; `dired-noselect', which is advised to register roots — use the
+  ;; internal constructor.
+  (dirvish-define-preview my/dired-dir (file)
+    "Preview directory FILE as propertized dired-rendered text."
+    (when (file-directory-p file)
+      (with-current-buffer (dired-internal-noselect
+                            (file-name-as-directory (expand-file-name file)))
+        (font-lock-ensure)
+        `(my/dired-str . ,(buffer-string)))))
+  (add-to-list 'dirvish-preview-dispatchers 'my/dired-dir)
+
+  (defun my/dirvish-preview-add-icons ()
+    "Prepend nerd-icons to each file line in a copied dired listing."
+    (when (require 'nerd-icons nil t)
+      (save-excursion
+        (goto-char (point-min))
+        (while (not (eobp))
+          (when-let* ((beg (text-property-any
+                            (line-beginning-position) (line-end-position)
+                            'dired-filename t))
+                      (end (or (text-property-not-all
+                                beg (line-end-position) 'dired-filename t)
+                               (line-end-position)))
+                      (name (buffer-substring-no-properties beg end)))
+            (let* ((dirp (string-match-p
+                          "\\` *d" (buffer-substring-no-properties
+                                    (line-beginning-position) beg)))
+                   (icon (if dirp
+                             (nerd-icons-icon-for-dir name)
+                           (nerd-icons-icon-for-file name))))
+              (goto-char beg)
+              (insert icon " ")))
+          (forward-line 1)))))
+
+  (cl-defmethod dirvish-preview-dispatch ((recipe (head my/dired-str)) dv)
+    "Insert dired-rendered directory text into DV's preview buffer."
+    (let ((buf (dirvish--special-buffer 'preview dv t)))
+      (with-current-buffer buf
+        (let (buffer-read-only)
+          (erase-buffer) (remove-overlays)
+          (insert (cdr recipe))
+          (my/dirvish-preview-add-icons)
+          (when (fboundp 'my/denote-dired-id-overlays)
+            (my/denote-dired-id-overlays))
+          (goto-char (point-min)))
+        buf)))
+
+  ;; Grey folder icons like treemacs. Dir icons carry no face of their own and
+  ;; inherit the (blue) dired-directory name color; give them the theme's grey.
+  (advice-add 'nerd-icons-icon-for-dir :around
+              (defun my/nerd-icons-grey-dir-a (fn dir &rest args)
+                (if (plist-member args :face)
+                    (apply fn dir args)
+                  (apply fn dir :face 'shadow args))))
+
+  (setq dirvish-quick-access-entries
+        `(("h" "~/" "Home")
+          ("c" "~/.config" "config")
+          ("l" "~/.local" "local")
+          ("d" "~/Desktop" "Desktop")
+          ("D" "~/Downloads" "Downloads")
+          ("I" ,(expand-file-name "~/icloud/Downloads") "Downloads (iCloud)")
+          ("o" ,(expand-file-name {{ .org_dir | quote }}) "Org dir")
+
+          ("w" ,(expand-file-name {{ .workspace | quote }}) "Workspace")
+          ("W" ,(expand-file-name {{ .workspace_extra | quote }}) "Workspace extra")
+          ("p" ,(expand-file-name {{ .playground | quote }}) "Playground")
+          ("r" ,(expand-file-name {{ .resources | quote }}) "Resources")
+          ("s" ,(expand-file-name {{ .managed_sync | quote }}) "Managed Sync")
+
+          ;; Add storage entries
+          ("P" ,(expand-file-name {{ .primary_storage | quote }}) "Primary Storage")
+          ("S" ,(expand-file-name {{ .secondary_storage | quote }}) "Secondary Storage")))
+
+  (when (executable-find "lla")
+    (dirvish-define-preview lla (file)
+      "Use `lla' to generate directory preview."
+      :require ("lla")
+      (when (file-directory-p file)
+        `(shell . ("lla" "--icons" ,file))))
+
+    (add-to-list 'dirvish-preview-dispatchers 'lla))
+
+  (defun dirvish-copy-file-relative-path (&optional multi-line)
+    "Copy filepath of marked files.
+    If MULTI-LINE, make every path occupy a new line."
+    (interactive "P")
+    (let* ((files (mapcar (lambda (file)
+                            (file-relative-name (file-local-name file)))
+                          (dired-get-marked-files)))
+           (names (mapconcat #'concat files (if multi-line "\n" " "))))
+      (dirvish--kill-and-echo (if multi-line (concat "\n" names) names)))))

@@ -12,10 +12,14 @@ else
   echo "Podman machine podman-machine-default not found."
 fi
 
-# Start the kind-control-plane container if it’s in exited state
-if podman ps --all --filter "name=kind-control-plane" --filter "status=exited" 2>/dev/null | grep -q kind-control-plane; then
-  podman start kind-control-plane >/dev/null
-  echo "Starting the kind-control-plane container..."
+# Start all kind containers that are in exited state
+kind_containers=$(podman ps --all --filter "name=kind-" --filter "status=exited" --format '{{.Names}}' 2>/dev/null)
+
+if [ -n "$kind_containers" ]; then
+  for container in $kind_containers; do
+    podman start "$container" >/dev/null
+    echo "Starting $container..."
+  done
 else
-  echo "Kind-control-plane container is already running or does not exist."
+  echo "All kind containers are already running or do not exist."
 fi

@@ -1,0 +1,108 @@
+# -*- mode: nix; -*-
+{
+  description = "Home Manager configuration";
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+{{- if and (eq .chezmoi.os "linux") (not .ephemeral) }}
+    zen-browser = {
+      url = "github:0xc000022070/zen-browser-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+{{- end }}
+
+{{- if and (eq .chezmoi.os "darwin") (not .extraUser) }}
+    nix-darwin = {
+      url = "github:LnL7/nix-darwin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+{{- end }}
+  };
+
+  outputs = { nixpkgs, home-manager{{- if and (eq .chezmoi.os "linux") (not .ephemeral) }}, zen-browser{{- end }}{{- if and (eq .chezmoi.os "darwin") (not .extraUser) }}, nix-darwin{{- end }}, ... }:
+    let
+      system = "{{- if eq .chezmoi.arch "arm64" }}aarch64{{- else }}{{ .chezmoi.arch }}{{- end }}-{{ .chezmoi.os }}";
+      pkgs = nixpkgs.legacyPackages.${system};
+    in {
+{{- if and (eq .chezmoi.os "darwin") (not .extraUser) }}
+      # nix-darwin configuration for macOS (only for main user)
+      darwinConfigurations."{{ .hostname }}" = nix-darwin.lib.darwinSystem {
+        inherit system;
+        modules = [
+          ./darwin-configuration.nix
+          home-manager.darwinModules.home-manager
+          {
+            # Drop kvazaar/chromaprint from ffmpeg-full — their tests SIGKILL
+            # in the macOS build sandbox, and pydub (the only consumer here,
+            # via aider-chat) doesn't need those codecs.
+            #
+            # matio's darwin build leaves libhdf5 unresolvable (@rpath),
+            # which crashes vips at its gobject-introspection step. Build
+            # matio without HDF5 — vips needs matio, but not MATLAB .mat
+            # (MAT 7.3) support, which is the only thing HDF5 provides here.
+            nixpkgs.overlays = [
+              (final: prev: {
+                ffmpeg-full = prev.ffmpeg-full.override {
+                  withKvazaar = false;
+                  withChromaprint = false;
+                };
+                matio = prev.matio.override { hdf5 = null; };
+              })
+            ];
+
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            # Back up pre-existing dotfiles (e.g. the ~/.zprofile Homebrew's
+            # installer writes) instead of aborting activation with
+            # "Existing file would be clobbered". Files are renamed to
+            # <name>.backup on first activation.
+            home-manager.backupFileExtension = "backup";
+            home-manager.users."{{ .chezmoi.username }}" = import ./home.nix;
+            home-manager.extraSpecialArgs = {
+              inherit system;
+              chezmoi = {
+                os = "{{ .chezmoi.os }}";
+                arch = "{{ .chezmoi.arch }}";
+                hostname = "{{ .hostname }}";
+                username = "{{ .chezmoi.username }}";
+                homeDir = "{{ .chezmoi.homeDir }}";
+              };
+            };
+          }
+        ];
+      };
+{{- else }}
+      # Home Manager only configuration for Linux
+      homeConfigurations."{{ .chezmoi.username }}" = home-manager.lib.homeManagerConfiguration {
+        inherit pkgs;
+
+        modules = [
+          ./home.nix
+{{- if and (eq .chezmoi.os "linux") (not .ephemeral) }}
+          zen-browser.homeManagerModules.default
+{{- end }}
+        ];
+
+        extraSpecialArgs = {
+          inherit system;
+{{- if and (eq .chezmoi.os "linux") (not .ephemeral) }}
+          zen-browser = zen-browser;
+{{- end }}
+          chezmoi = {
+            os = "{{ .chezmoi.os }}";
+            arch = "{{ .chezmoi.arch }}";
+            hostname = "{{ .chezmoi.hostname }}";
+            username = "{{ .chezmoi.username }}";
+            homeDir = "{{ .chezmoi.homeDir }}";
+          };
+        };
+      };
+{{- end }}
+    };
+}

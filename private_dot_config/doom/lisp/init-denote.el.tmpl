@@ -1,0 +1,896 @@
+;;; +denote.el -*- mode: emacs-lisp; lexical-binding: t; -*-
+
+;;; Commentary:
+;; - Projects: Active projects with deadlines
+;; - Areas: Ongoing responsibilities
+;; - Resources: Topics of ongoing interest
+;; - Archive: Inactive items
+
+(use-package! denote
+  :config
+  ;; Dedicated denote directory
+  (setq denote-directory {{ .org_dir | quote }})
+
+  ;; Exclude certain directories from being scanned for notes (e.g., data, attachments)
+  ;; `archive' is the PARA archive silo — archived notes live in archive/ and are
+  ;; hidden from all Denote search/prompt/consult-notes operations.
+  (setq denote-excluded-directories-regexp ".attach\\|data\\|images\\|archive")
+
+  ;; Lifecycle keywords (inspired by EWS)
+  (setq denote-known-keywords
+        '("project" "area" "resource" "archive"
+          "reference" "meeting" "finance" "work" "personal"
+          "idea" "draft" "completed" "journal"
+          "health" "shopping" "selling" "hold" "someday" "visit" "administration" "research"
+          "notoday"))
+
+  ;; Sort keywords for consistency
+  (setq denote-sort-keywords t)
+
+  ;; (denote-backlinks-show-context was removed: obsolete in denote 4.0 — the
+  ;; C-c n b buffer is now an xref grep view. For a clean in-file "Linked
+  ;; References" view with RENDERED context, use C-c n B
+  ;; (`my/denote-insert-backlinks-context', defined in the denote-org block).)
+
+  ;; Enable buffer renaming to show clean [D] prefix instead of long filename
+  (denote-rename-buffer-mode 1)
+
+  ;; Make Denote notes open in full screen
+  (add-to-list 'display-buffer-alist
+               '("^\\[D\\]" ; Match buffers starting with [D]
+                 (display-buffer-reuse-mode-window display-buffer-same-window)))
+
+  ;; Dired integration
+  (add-hook 'dired-mode-hook #'denote-dired-mode)
+
+  ;; Hide denote ID prefixes ("20260213T181344--") in dired/dirvish listings —
+  ;; display only, filenames and operations untouched. Overlay-based, so it
+  ;; survives diredfl/dirvish font-lock (denote-dired-mode's own fontification
+  ;; never matches inside dirvish buffers). Toggle with ")" in dired.
+  (defvar my/denote-dired-id-style 'date
+    "How denote ID prefixes render in dired: `date', `hidden' or `full'.
+`date' shows a dimmed \"2026-02-13\" (keeps sort order explainable),
+`hidden' drops the prefix entirely, `full' shows the raw ID dimmed.")
+
+  (defconst my/denote-id-re
+    "\\([0-9]\\{4\\}\\)\\([0-9]\\{2\\}\\)\\([0-9]\\{2\\}\\)T[0-9]\\{6\\}\\(?:--\\|__\\|==\\)"
+    "Denote identifier prefix (date parts grouped), including separator.")
+
+  (defun my/denote--id-replacement ()
+    "Collapse-string replacement for the current ID style."
+    (pcase my/denote-dired-id-style
+      ('date "\\1-\\2-\\3 ")
+      ('hidden "")
+      (_ nil)))
+
+  (defun my/denote-dired-id-overlays (&rest _)
+    "Render denote ID prefixes per `my/denote-dired-id-style'."
+    (remove-overlays (point-min) (point-max) 'my/denote-id t)
+    ;; Careful: when the spec is `t' (dirvish parent/preview buffers rely on
+    ;; that to hide ls detail columns), adding to it converts it to a list
+    ;; and un-hides the details. Under `t' our overlays hide anyway.
+    (unless (eq buffer-invisibility-spec t)
+      (add-to-invisibility-spec 'my/denote-id))
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward my/denote-id-re nil t)
+        (let ((ov (make-overlay (match-beginning 0) (match-end 0))))
+          (overlay-put ov 'my/denote-id t)
+          (overlay-put ov 'evaporate t)
+          (pcase my/denote-dired-id-style
+            ('date (overlay-put ov 'display
+                                (propertize
+                                 (format "%s-%s-%s " (match-string 1)
+                                         (match-string 2) (match-string 3))
+                                 'face 'shadow)))
+            ('hidden (overlay-put ov 'invisible 'my/denote-id))
+            (_ (overlay-put ov 'face 'shadow)))))))
+
+  (add-hook 'dired-after-readin-hook #'my/denote-dired-id-overlays)
+
+  (after! dirvish
+    ;; Same treatment in the collapse attribute ("archive|20260213T…--title")
+    (advice-add 'dirvish-collapse--cache :filter-return
+                (defun my/denote-collapse-strip-ids-a (cache)
+                  (let ((rep (my/denote--id-replacement)))
+                    (if (and rep (consp cache)
+                             (stringp (car cache)) (stringp (cdr cache)))
+                        (cons (replace-regexp-in-string my/denote-id-re rep (car cache))
+                              (replace-regexp-in-string my/denote-id-re rep (cdr cache)))
+                      cache))))
+    ;; Subtree expansion inserts lines after dired-after-readin — re-overlay
+    (advice-add 'dirvish-subtree--insert :after #'my/denote-dired-id-overlays)
+    ;; Parent panes are dirvish-directory-view-mode buffers (not dired) —
+    ;; apply the same ID treatment after each one is (re)built
+    (advice-add 'dirvish--create-parent-buffer :filter-return
+                (defun my/denote-parent-buffer-ids-a (buf)
+                  (when (buffer-live-p buf)
+                    (with-current-buffer buf
+                      (my/denote-dired-id-overlays)))
+                  buf)))
+
+  (defun my/denote-dired-toggle-ids ()
+    "Cycle denote ID prefix rendering: date → hidden → full."
+    (interactive)
+    (setq my/denote-dired-id-style
+          (pcase my/denote-dired-id-style
+            ('date 'hidden) ('hidden 'full) (_ 'date)))
+    (dolist (buf (buffer-list))
+      (with-current-buffer buf
+        (when (derived-mode-p 'dired-mode)
+          (my/denote-dired-id-overlays))))
+    (message "Denote IDs: %s" my/denote-dired-id-style))
+
+  (map! :map dired-mode-map ")" #'my/denote-dired-toggle-ids)
+
+  ;; File type defaults
+  (setq denote-file-type 'org)
+
+  ;; Create denote directory if it doesn't exist
+  (unless (file-exists-p denote-directory)
+    (make-directory denote-directory t))
+
+  ;; Extra workspace directory helper
+  (defun my/denote-extra-dir ()
+    "Return extra denote directory if it exists, nil otherwise."
+    (let ((dir (expand-file-name "org" {{ .workspace_extra | quote }})))
+      (when (file-exists-p dir) dir)))
+
+  ;; Collect denote files from all directories
+  (defun my/denote-all-files ()
+    "Return denote files from both primary and extra directories."
+    (let ((primary-files (denote-directory-files))
+          (extra-dir (my/denote-extra-dir)))
+      (if extra-dir
+          (let ((denote-directory extra-dir))
+            (append primary-files (denote-directory-files)))
+        primary-files)))
+
+  ;; Files to offer in *search* prompts: everything except journal entries.
+  ;; Journal is hidden from find/search/link prompts but stays fully indexed
+  ;; in `denote-directory-files', so links, backlinks and the agenda are
+  ;; unaffected — only the noise in note-search goes away.
+  (defun my/denote-search-files ()
+    "Like `my/denote-all-files' but excluding journal entries."
+    (seq-remove (lambda (f) (string-match-p "/journal/" f))
+                (my/denote-all-files)))
+
+  ;; Make denote-directory-files search both dirs (fixes dblocks, prompts, etc.)
+  (defvar my/denote-in-multi-dir nil "Guard against recursive advice.")
+  (advice-add 'denote-directory-files :around
+              (lambda (orig-fn &rest args)
+                "Include files from extra denote directory."
+                (if my/denote-in-multi-dir
+                    (apply orig-fn args)
+                  (let* ((my/denote-in-multi-dir t)
+                         (primary-files (apply orig-fn args))
+                         (extra-dir (my/denote-extra-dir)))
+                    (if extra-dir
+                        (let ((denote-directory extra-dir))
+                          (append primary-files (apply orig-fn args)))
+                      primary-files)))))
+
+  ;; Make all denote commands that use denote-file-prompt search both dirs
+  (advice-add 'denote-file-prompt :around
+              (lambda (orig-fn &rest args)
+                "Override denote-file-prompt to search all directories (no journal)."
+                (let ((all-files (my/denote-search-files)))
+                  (completing-read (or (cadr args) "Select note: ")
+                                   all-files nil t nil 'denote-file-history))))
+
+  ;; Make link following (C-c C-o) find files from extra dir
+  (advice-add 'denote-get-path-by-id :around
+              (lambda (orig-fn id &rest args)
+                "Search extra dir if file not found in primary."
+                (or (apply orig-fn id args)
+                    (let ((extra-dir (my/denote-extra-dir)))
+                      (when extra-dir
+                        (let ((denote-directory extra-dir))
+                          (apply orig-fn id args)))))))
+
+  ;; Create denote note in extra workspace
+  (defun my/denote-create-in-extra ()
+    "Create denote note in extra workspace."
+    (interactive)
+    (let ((extra-dir (my/denote-extra-dir)))
+      (if extra-dir
+          (let ((denote-directory extra-dir))
+            (call-interactively #'denote))
+        (message "Extra workspace not mounted."))))
+
+  ;; Dirvish showing both denote directories
+  (defun my/denote-dired ()
+    "Open dirvish with all denote directories."
+    (interactive)
+    (let ((dirs (list denote-directory))
+          (extra-dir (my/denote-extra-dir)))
+      (when extra-dir (push extra-dir dirs))
+      (dirvish (cons "Denote" dirs))))
+
+  ;; Find across all denote directories with live preview
+  (defun my/denote-find ()
+    "Find denote files across all directories with preview (journal excluded)."
+    (interactive)
+    (find-file
+     (consult--read (my/denote-search-files)
+                    :prompt "Find note: "
+                    :require-match t
+                    :category 'file
+                    :state (consult--file-preview))))
+
+  ;; Custom function to check if a file has a specific keyword
+  (defun denote-file-has-keyword-p (file keyword)
+    "Return non-nil if FILE has KEYWORD in its denote keywords.
+KEYWORD should be a string. FILE should be a full file path."
+    (when-let ((keywords (denote-extract-keywords-from-path file)))
+      (member keyword keywords))))
+
+(use-package! denote-explore
+  :after denote
+  :config
+  ;; Roam/Logseq-style graph of note connections. `denote-explore-network'
+  ;; (C-c n G g) renders an interactive, draggable/zoomable force-directed
+  ;; graph in the browser; nodes are notes, edges are denote: links.
+  (setq denote-explore-network-format 'd3.js) ; interactive HTML (graphviz `dot' stays available as a static fallback)
+  (setq denote-explore-network-filename "denote-network") ; base name, sans extension — denote-explore appends .html/.dot itself
+  ;; Write graphs to a no-space cache dir OUTSIDE the notes tree. Two reasons:
+  ;;  1. Keeps regenerable HTML/JSON out of the iCloud Denote directory, so they
+  ;;     never get treated as notes or synced.
+  ;;  2. The notes dir lives under "~/Library/Mobile Documents/…" — that space
+  ;;     gets percent-encoded to %20 by `browse-url', and macOS `open' then
+  ;;     can't find the file, so the graph was written but never opened.
+  (setq denote-explore-network-directory
+        (expand-file-name "denote-explore/" doom-cache-dir))
+  (make-directory denote-explore-network-directory t)
+
+  ;; Declutter the *Keywords* graph: list noisy/structural keywords here to drop
+  ;; them as nodes (catch-all tags that link almost everything to everything add
+  ;; edges without signal). For the notes graphs below, the analogous knob is
+  ;; `denote-explore-network-regex-ignore' (a filename regex).
+  (setq denote-explore-network-keywords-ignore '()) ; e.g. '("reference" "draft")
+
+  ;; One-keystroke notes graph (C-c n G g): the Community graph of ALL notes —
+  ;; nodes are notes, edges are real denote: links. This is the Roam/Logseq-style
+  ;; "connected pages" map; it skips the type/regex prompts of the dispatcher
+  ;; (still on C-c n G G for the keyword/neighbourhood/sequence graphs). The body
+  ;; mirrors `denote-explore-network': generate → save → view.
+  (defun my/denote-graph-notes (&optional text-only)
+    "Generate and open the Community graph of ALL notes.
+With prefix arg TEXT-ONLY, exclude attachments from the graph."
+    (interactive "P")
+    (setq denote-explore-network-previous '("Community" ""))
+    (let ((graph (denote-explore-network-community-graph "" text-only)))
+      (denote-explore--network-save graph)
+      (denote-explore-network-view))))
+
+(use-package! consult-notes
+  :config
+  ;; Dynamic function to get all available denote directories
+  (defun my/get-consult-notes-sources ()
+    "Get consult-notes sources for all available denote directories."
+    (let ((sources `(("Denote Primary" ?d ,denote-directory))))
+      (let ((extra-denote-dir (expand-file-name "org" {{ .workspace_extra | quote }})))
+        (when (file-exists-p extra-denote-dir)
+          (push `("Denote Extra" ?x ,extra-denote-dir) sources)))
+      (reverse sources)))
+
+  ;; Override consult-notes to always use fresh sources
+  (advice-add 'consult-notes :before
+              (lambda (&rest _)
+                (setq consult-notes-file-dir-sources (my/get-consult-notes-sources))))
+
+  ;; Set initial sources
+  (setq consult-notes-file-dir-sources (my/get-consult-notes-sources))
+
+  ;; Manual refresh function
+  (defun my/refresh-consult-notes-sources ()
+    "Refresh consult-notes sources to include mounted directories."
+    (interactive)
+    (setq consult-notes-file-dir-sources (my/get-consult-notes-sources))
+    (message "Refreshed consult-notes sources: %d sources" (length consult-notes-file-dir-sources)))
+
+  ;; Debug function to check what's happening
+  (defun my/debug-denote-dirs ()
+    "Debug denote directory configuration."
+    (interactive)
+    (let ((extra-dir (my/denote-extra-dir)))
+      (message "Primary denote dir: %s (exists: %s)"
+               denote-directory (file-exists-p denote-directory))
+      (message "Extra denote dir: %s (exists: %s)"
+               (or extra-dir "N/A") (if extra-dir t nil))
+      (message "Consult-notes sources: %s"
+               (mapcar #'car consult-notes-file-dir-sources))
+      (message "Denote files found: %d"
+               (length (denote-directory-files)))))
+
+  ;; Enable live preview
+  (consult-notes-org-headings-mode 1))
+
+;; A tagless "daily quote" for new journal entries. Reuses the agenda quote pool
+;; (org `:quote:' headings + Journelly `#quote'), but inserts ONLY the text — no
+;; tag — so the inserted line is never itself collected as a quote. Called by the
+;; `daily-journal' tempel template via (my/daily-quote). The quote is wrapped to a
+;; narrow width and right-aligned, so it reads as a floating citation.
+(defvar my/daily-quote-width 50
+  "Wrap width (columns) for the daily journal quote text.")
+
+(defvar my/daily-quote-right-column 78
+  "Column the right edge of the wrapped daily quote is aligned to.")
+
+(defvar-local my/daily-quote--cache nil
+  "Per-buffer cache of the chosen daily quote.
+A new journal entry is created with a reactive tempel template, which
+re-evaluates `(my/daily-quote)' on every keystroke while the template session is
+active — without caching, that re-randomizes the quote as you type. A fresh
+journal buffer starts with an empty cache, so it still gets a new random quote.")
+
+(defun my/daily-quote--pick ()
+  "Pick and format one random quote, or \"\" if none are available yet."
+  (if (fboundp 'my/agenda-quotes-collect)
+      (let ((quotes (ignore-errors (my/agenda-quotes-collect))))
+        (if quotes
+            (let* ((q (concat "❝ " (nth (random (length quotes)) quotes) " ❞"))
+                   (lines (with-temp-buffer
+                            (insert q)
+                            (let ((fill-column my/daily-quote-width))
+                              (fill-region (point-min) (point-max)))
+                            (split-string (buffer-string) "\n"))))
+              ;; Indent the whole block by a constant so it floats to the right
+              ;; with a STRAIGHT left edge (readable), not ragged right-alignment.
+              (let ((pad (make-string
+                          (max 0 (- my/daily-quote-right-column
+                                    my/daily-quote-width))
+                          ?\s)))
+                (mapconcat (lambda (l) (concat pad l)) lines "\n")))
+          ""))
+    ""))
+
+(defun my/daily-quote ()
+  "Return the daily journal quote (wrapped, right-aligned), cached per buffer.
+Inserts only the quote text (no tag), so it won't be re-collected as a quote.
+Memoized via `my/daily-quote--cache' so a reactive tempel re-eval keeps the same
+quote instead of re-randomizing it on each keystroke. Keeps re-picking only
+while empty (e.g. org not loaded yet), then freezes the first real quote."
+  (when (or (null my/daily-quote--cache)
+            (string-empty-p my/daily-quote--cache))
+    (setq my/daily-quote--cache (my/daily-quote--pick)))
+  my/daily-quote--cache)
+
+;; Render the ❝…❞ daily quote smaller and muted — Emacs only. The file stays
+;; plain text, so phone apps (Orgro/beorg) show it at normal size.
+(defface my/daily-quote-face
+  '((t :height 0.85 :slant italic :foreground "#9aa0a6"))
+  "Face for the wrapped daily-quote block in journal buffers.")
+
+(defun my/journal-fontify-quote ()
+  "In journal buffers, shrink and mute the ❝…❞ daily-quote block."
+  (when (and buffer-file-name (string-match-p "/journal/" buffer-file-name))
+    (setq-local font-lock-multiline t)
+    (font-lock-add-keywords
+     nil '(("❝\\(?:.\\|\n\\)*?❞" 0 'my/daily-quote-face prepend)) 'append)
+    (when (bound-and-true-p font-lock-mode)
+      (font-lock-flush)
+      (font-lock-ensure))))
+(add-hook 'org-mode-hook #'my/journal-fontify-quote)
+
+(use-package! denote-journal
+  :after denote
+  :config
+  ;; Dedicated journal subdirectory
+  (setq denote-journal-directory (expand-file-name "journal" denote-directory))
+
+  ;; Journal entry keyword
+  (setq denote-journal-keyword "journal")
+
+  ;; Date selection interface (use org-read-date for better UX)
+  (setq denote-date-prompt-use-org-read-date t)
+
+  ;; Title format for journal entries - simple date format
+  (setq denote-journal-title-format "%Y-%m-%d")
+
+  ;; Auto-save journal entries
+  (setq denote-journal-auto-save-buffer t)
+
+  ;; Create journal directory if it doesn't exist
+  (unless (file-exists-p denote-journal-directory)
+    (make-directory denote-journal-directory t))
+
+  ;; Automatic tempel daily-journal insertion for new journal entries
+  (defun my/denote-journal-insert-tempel ()
+    "Insert daily-journal tempel template for new journal entries."
+    (when (and (derived-mode-p 'org-mode)
+               (buffer-file-name)
+               (string-match-p "journal" (buffer-file-name))
+               (not buffer-read-only))
+      (save-excursion
+        (goto-char (point-min))
+        ;; Skip past frontmatter if it exists
+        (when (looking-at "#\\+")
+          (while (and (not (eobp)) (looking-at "#\\+"))
+            (forward-line 1))
+          (when (looking-at "^$")
+            (forward-line 1)))
+        ;; Only insert if no content after frontmatter
+        (when (eobp)
+          (condition-case err
+              (progn
+                (require 'tempel)
+                (tempel-insert 'daily-journal))
+            (error
+             (message "Error inserting daily-journal template: %s" (error-message-string err))))))))
+
+  ;; Use find-file-hook to automatically insert template
+  (add-hook 'find-file-hook #'my/denote-journal-insert-tempel)
+
+  ;; Remove problematic advice and use simpler approach
+  (advice-remove 'denote-journal-new-entry #'my/denote-journal-advice)
+  (advice-remove 'denote-journal-new-or-existing-entry #'my/denote-journal-advice)
+
+  ;; Enable calendar integration
+  (require 'calendar)
+  (add-hook 'calendar-today-visible-hook #'denote-journal-calendar-mark-dates)
+  (add-hook 'calendar-today-invisible-hook #'denote-journal-calendar-mark-dates)
+
+  ;; Open today's journal on startup
+  (add-hook 'doom-after-init-hook
+            (lambda ()
+              (require 'denote-journal)
+              (denote-journal-new-or-existing-entry))))
+
+;; Additional denote packages
+(use-package! denote-org
+  :after denote
+  :config
+  ;; ── Logseq-style "Linked References" (in-file, links to the referencing
+  ;;    section) ───────────────────────────────────────────────────────────────
+  ;; The built-in `denote-backlinks' dblock prints note titles only (journal
+  ;; backlinks therefore show as bare dates), and the C-c n b buffer is a raw
+  ;; xref grep dump showing the literal `Backlink: [[…]]' line. Neither shows the
+  ;; meaningful unit: the *heading* the backlink sits under (e.g. "Зміни у
+  ;; тарифній сітці"). This dynamic block finds, for each note that links here,
+  ;; the enclosing Org heading of every link and renders it as a `denote:…::*'
+  ;; link — so each entry reads as the referencing section's title and clicking
+  ;; jumps straight to that heading.
+  ;;
+  ;;   #+BEGIN: denote-backlinks-context :reverse-sort t
+  ;;   #+END:        ← C-c C-c refreshes, or use C-c n B to insert one
+  (defun my/denote--section-preview (n)
+    "At a heading, return up to N cleaned, non-trivial body lines of its section.
+Skips blank lines, property drawers, #+keywords, and the `Backlink:' pointer,
+and strips leading heading stars so the teaser reads as plain text."
+    (save-excursion
+      (org-back-to-heading t)
+      (let ((end (save-excursion (org-end-of-subtree t t) (point)))
+            (lines '()))
+        (forward-line 1)
+        (while (and (< (point) end) (< (length lines) n))
+          (let ((line (string-trim (buffer-substring-no-properties
+                                    (line-beginning-position) (line-end-position)))))
+            (cond
+             ((string-empty-p line))                    ; blank
+             ((string-prefix-p ":" line))               ; drawer line
+             ((string-prefix-p "#+" line))              ; keyword (TBLFM, etc.)
+             ((string-match-p "\\`Backlink:" line))     ; the pointer line itself
+             (t (push (replace-regexp-in-string "\\`\\*+[ \t]+" "" line) lines))))
+          (forward-line 1))
+        (nreverse lines))))
+
+  (defun my/denote--backlink-refs (file id n)
+    "Return (HEADING . PREVIEW) for each link to denote ID in FILE.
+HEADING is the enclosing Org heading title (nil if none); PREVIEW is up to N
+cleaned body lines. Order-preserving, deduplicated by heading. Reads FILE in a
+temp buffer, so no source files are opened."
+    (with-temp-buffer
+      (insert-file-contents file)
+      (delay-mode-hooks (org-mode))
+      (let ((seen '()) (refs '()))
+        (goto-char (point-min))
+        (while (re-search-forward (concat "denote:" (regexp-quote id)) nil t)
+          (save-excursion
+            (if (ignore-errors (org-back-to-heading t) t)
+                (let ((heading (org-get-heading t t t t)))
+                  (unless (member heading seen)
+                    (push heading seen)
+                    (push (cons heading (my/denote--section-preview n)) refs)))
+              (unless (member nil seen)
+                (push nil seen)
+                (push (cons nil nil) refs)))))
+        (nreverse refs))))
+
+  (defun org-dblock-write:denote-backlinks-context (params)
+    "Insert backlinks as links to the referencing heading, each with a short
+preview of that section. PARAMS may include `:reverse-sort t' (newest first)
+and `:preview-lines N' (lines of preview per backlink; default 2, 0 to disable)."
+    (let* ((file (buffer-file-name))
+           (id (and file (denote-retrieve-filename-identifier file)))
+           (backlinks (and id (denote-get-backlinks file)))
+           (n (or (plist-get params :preview-lines) 2)))
+      (cond
+       ((not id) (insert "/Not a Denote file./"))
+       ((not backlinks) (insert "/No backlinks yet./"))
+       (t
+        (when (plist-get params :reverse-sort)
+          (setq backlinks (nreverse backlinks)))
+        (let ((out '()))
+          (dolist (bl backlinks)
+            (let* ((bid (denote-retrieve-filename-identifier bl))
+                   (date (denote-id-to-date bid))
+                   (ftitle (denote-retrieve-title-or-filename
+                            bl (denote-filetype-heuristics bl))))
+              (dolist (ref (my/denote--backlink-refs bl id n))
+                (let* ((heading (car ref))
+                       (preview (cdr ref))
+                       (bullet (if heading
+                                   (format "- [[denote:%s::*%s][%s]] /%s/" bid heading heading date)
+                                 (format "- [[denote:%s][%s]] /%s/" bid ftitle date))))
+                  ;; preview lines as fixed-width `: ' lines — monospace teaser
+                  ;; that never disturbs the outline (a stray `*' or `|' stays inert).
+                  (push (concat bullet
+                                (mapconcat (lambda (l) (concat "\n  : " l)) preview ""))
+                        out)))))
+          (insert (string-join (nreverse out) "\n")))))))
+
+  (defun my/denote-insert-backlinks-context ()
+    "Insert a backlinks block: heading links + a short section preview."
+    (interactive)
+    (org-create-dblock (list :name "denote-backlinks-context" :reverse-sort t :preview-lines 2))
+    (org-update-dblock))
+
+  ;; ── Virtual backlinks preview (read-only side buffer, nothing written) ─────
+  ;; Same heading-link + section-preview as the in-file block, but rendered in a
+  ;; throwaway buffer — your note stays untouched and no source files are opened.
+  ;; C-c n v (prefix arg sets preview length, e.g. C-u 3 → 3 lines; default 5).
+  (defun my/denote-backlinks-preview (&optional preview-lines)
+    "Show this file's backlinks (heading link + preview) in a read-only side
+buffer. PREVIEW-LINES (prefix arg) sets lines per backlink; default 5."
+    (interactive "P")
+    (let* ((file (buffer-file-name))
+           (id (and file (denote-retrieve-filename-identifier file)))
+           (n (if preview-lines (prefix-numeric-value preview-lines) 5)))
+      (unless id (user-error "Not a Denote file"))
+      (let ((backlinks (denote-get-backlinks file))
+            (src-title (denote-retrieve-title-or-filename
+                        file (denote-filetype-heuristics file)))
+            (buf (get-buffer-create "*denote-backlinks-preview*")))
+        (with-current-buffer buf
+          (let ((inhibit-read-only t))
+            (erase-buffer)
+            (delay-mode-hooks (org-mode))
+            (insert (format "#+title: Linked references → %s\n\n" src-title))
+            (if (not backlinks)
+                (insert "No backlinks yet.\n")
+              (dolist (bl (reverse backlinks)) ; newest first
+                (let* ((bid (denote-retrieve-filename-identifier bl))
+                       (date (denote-id-to-date bid))
+                       (ftitle (denote-retrieve-title-or-filename
+                                bl (denote-filetype-heuristics bl))))
+                  (dolist (ref (my/denote--backlink-refs bl id n))
+                    (let ((heading (car ref)) (preview (cdr ref)))
+                      (insert (if heading
+                                  (format "- [[denote:%s::*%s][%s]] /%s/\n" bid heading heading date)
+                                (format "- [[denote:%s][%s]] /%s/\n" bid ftitle date)))
+                      (dolist (l preview) (insert (format "  : %s\n" l)))))))))
+          (goto-char (point-min))
+          (setq-local buffer-read-only t)
+          ;; q buries the window; links still follow with RET / C-c C-o
+          (use-local-map (make-composed-keymap
+                          (let ((m (make-sparse-keymap)))
+                            (define-key m "q" #'quit-window)
+                            m)
+                          org-mode-map)))
+        (display-buffer buf '((display-buffer-in-side-window)
+                              (side . right)
+                              (window-width . 0.4))))))
+
+  ;; ── Tag index / Map-of-Content (C-c n #) ───────────────────────────────────
+  ;; Insert a `denote-links' dblock in a note named after a topic to auto-list
+  ;; every note that carries that keyword — Denote's tag-page pattern. The
+  ;; keyword is matched precisely in file names (`_KEY' bounded by `_' or `.'),
+  ;; so `idea' never matches `idea2'. Refresh with C-c C-c as you tag more notes.
+  (defun my/denote-insert-tag-index (keyword)
+    "Insert a dynamic block listing every note that carries KEYWORD."
+    (interactive (list (completing-read "Tag index for keyword: "
+                                        (denote-keywords) nil nil)))
+    (org-create-dblock (list :name "denote-links"
+                             :regexp (format "_%s[._]" (regexp-quote keyword))
+                             :sort-by-component 'title))
+    (org-update-dblock))
+
+  )
+
+(use-package! denote-sequence
+  :after denote)
+
+;; Consult-Notes for easy access to notes
+(use-package! consult-notes
+  :after (denote consult)
+  :config
+  (setq consult-notes-denote-display-keywords-indicator "_")
+  ;; Don't enable consult-notes-denote-mode — it only uses denote-directory (main).
+  ;; Instead, rely on consult-notes-file-dir-sources which covers both dirs.
+  )
+
+;; Citar-Denote to manage literature notes
+(use-package! citar-denote
+  :after (denote citar)
+  :config
+  (setq citar-open-always-create-notes t)
+  (citar-denote-mode))
+
+;; Custom org link for today's journal
+(org-link-set-parameters "today-journal"
+                         :follow #'my/open-today-journal)
+
+(defun my/open-today-journal (path)
+  "Open today's denote journal entry."
+  (denote-journal-new-or-existing-entry))
+
+;; Calendar integration for denote journal
+(defun my/calendar-open-journal ()
+  "Open or create journal entry for the date at point in calendar."
+  (interactive)
+  (let* ((date (calendar-cursor-to-date))
+         (year (calendar-extract-year date))
+         (month (calendar-extract-month date))
+         (day (calendar-extract-day date))
+         (target-date (encode-time 0 0 0 day month year))
+         (date-string (format-time-string "%Y-%m-%d" target-date)))
+    ;; Check if journal entry exists for this date
+    (let* ((journal-dir denote-journal-directory)
+           (journal-pattern (concat date-string ".*\\.org$"))
+           (existing-files (when (file-exists-p journal-dir)
+                            (directory-files journal-dir nil journal-pattern))))
+      (if existing-files
+          ;; Open existing journal entry
+          (find-file (expand-file-name (car existing-files) journal-dir))
+        ;; Create new journal entry for the specific date
+        (let ((denote-directory denote-journal-directory)
+              (title (format "Journal %s" date-string)))
+          (denote title (list denote-journal-keyword) 'org date-string))))))
+
+;; Hook calendar to open journal on RET
+(add-hook 'calendar-mode-hook
+          (lambda ()
+            (define-key calendar-mode-map (kbd "RET") #'my/calendar-open-journal)
+            (define-key calendar-mode-map (kbd "<return>") #'my/calendar-open-journal)))
+
+;; Function to open inbox.org
+(defun my/open-inbox ()
+  "Open the inbox.org file."
+  (interactive)
+  (find-file (expand-file-name "inbox.org" {{ .org_dir | quote }})))
+
+;; Function to open yesterday's journal
+(defun my/open-yesterday-journal ()
+  "Open yesterday's denote journal entry."
+  (interactive)
+  (let* ((yesterday (time-subtract (current-time) (days-to-time 1)))
+         (date-string (format-time-string "%Y-%m-%d" yesterday)))
+    (denote-journal-extras-new-or-existing-entry date-string)))
+
+;; Function to open tomorrow's journal
+(defun my/open-tomorrow-journal ()
+  "Open tomorrow's denote journal entry."
+  (interactive)
+  (let* ((tomorrow (time-add (current-time) (days-to-time 1)))
+         (date-string (format-time-string "%Y-%m-%d" tomorrow)))
+    (denote-journal-extras-new-or-existing-entry date-string)))
+
+;; Scrollable journal feed - all denote files in one buffer
+(defun my/denote-feed-open-entry ()
+  "Open the journal file for the entry at point for editing."
+  (interactive)
+  (let ((file (get-text-property (point) 'denote-feed-file)))
+    (if file
+        (find-file file)
+      (message "No journal entry at point"))))
+
+(defun my/denote-feed ()
+  "Show all denote journal entries as a scrollable feed, newest first.
+Press RET or TAB on any entry to open it for editing."
+  (interactive)
+  (let* ((journal-dir denote-journal-directory)
+         (files (when (file-exists-p journal-dir)
+                  (directory-files journal-dir t "\\.org$")))
+         (sorted (sort (copy-sequence files) (lambda (a b)
+                               (string> (file-name-nondirectory a)
+                                        (file-name-nondirectory b)))))
+         (buf (get-buffer-create "*Denote Journal Feed*")))
+    (with-current-buffer buf
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (org-mode)
+        (insert "#+title: Journal Feed\n")
+        (insert "# RET / TAB on any entry to open and edit it\n\n")
+        (dolist (file sorted)
+          (let* ((title (or (denote-retrieve-front-matter-title-value file 'org)
+                            (file-name-base file)))
+                 (id (denote-retrieve-filename-identifier file))
+                 (date (when (>= (length id) 8)
+                         (format "%s-%s-%s"
+                                 (substring id 0 4)
+                                 (substring id 4 6)
+                                 (substring id 6 8))))
+                 (keywords (denote-extract-keywords-from-path file))
+                 (entry-start (point)))
+            ;; Insert heading
+            (insert (format "* %s" title))
+            (when keywords
+              (insert (format "  :%s:" (mapconcat #'identity keywords ":"))))
+            (insert "\n")
+            ;; Date line
+            (when date
+              (insert (format "  /[%s]/\n" date)))
+            (insert "\n")
+            ;; Content
+            (condition-case nil
+                (let ((content (with-temp-buffer
+                                 (insert-file-contents file)
+                                 (goto-char (point-min))
+                                 (when (looking-at "#\\+")
+                                   (while (and (not (eobp)) (looking-at "#\\+"))
+                                     (forward-line 1))
+                                   (forward-line 1))
+                                 (buffer-substring (point) (point-max)))))
+                  (insert content))
+              (error nil))
+            (insert "\n\n---\n\n")
+            ;; Apply file property to entire entry block
+            (put-text-property entry-start (point) 'denote-feed-file file)))
+        (goto-char (point-min))
+        (read-only-mode 1)
+        ;; Keybindings for opening entries
+        (use-local-map (copy-keymap org-mode-map))
+        (local-set-key (kbd "RET") #'my/denote-feed-open-entry)
+        (local-set-key (kbd "TAB") #'my/denote-feed-open-entry)
+        (local-set-key (kbd "<tab>") #'my/denote-feed-open-entry)
+        (local-set-key (kbd "e") #'my/denote-feed-open-entry)
+        (local-set-key (kbd "o") #'my/denote-feed-open-entry)))
+    (switch-to-buffer buf)
+    (message "Journal feed: %d entries — RET/TAB to open" (length sorted))))
+
+;; PARA archiving: move the current note into the archive/ silo, where it is
+;; hidden from search (denote-excluded-directories-regexp) and the agenda.
+;; Archived notes go in archive/notes/ — kept separate from archive/ itself,
+;; which org uses for subtree `.org_archive' dumps. Works across BOTH denote
+;; workspaces (primary `denote-directory' and the extra one): a note is always
+;; archived within its OWN workspace, never moved across workspaces.
+(defun my/denote-workspace-of (file)
+  "Return the denote workspace directory (primary or extra) that FILE lives in."
+  (let ((extra (my/denote-extra-dir)))
+    (if (and extra
+             (string-prefix-p (file-name-as-directory (expand-file-name extra))
+                              (expand-file-name file)))
+        extra
+      denote-directory)))
+
+(defun my/denote-archive-note ()
+  "Move the current Denote note into archive/notes/ of its own workspace.
+Archived notes drop out of search and the agenda. Note: denote links
+from active notes to an archived note will no longer resolve."
+  (interactive)
+  (let ((file (buffer-file-name)))
+    (unless (and file (string-match-p "\\.org\\'" file))
+      (user-error "Not visiting an .org note"))
+    (let ((archive-dir (expand-file-name "archive/notes" (my/denote-workspace-of file))))
+      (make-directory archive-dir t)
+      (let ((new (expand-file-name (file-name-nondirectory file) archive-dir)))
+        (save-buffer)
+        (rename-file file new 1)
+        (set-visited-file-name new t t)
+        (message "Archived → archive/notes/%s" (file-name-nondirectory new))))))
+
+(defun my/denote-unarchive-note ()
+  "Move the current archived note back into its workspace's main directory."
+  (interactive)
+  (let ((file (buffer-file-name)))
+    (unless (and file (string-match-p "/archive/notes/" file))
+      (user-error "This note is not in an archive/notes/ silo"))
+    ;; base = the workspace dir that contains this archive/notes/ silo
+    (let* ((d (file-name-directory file))
+           (base (file-name-directory
+                  (directory-file-name
+                   (file-name-directory (directory-file-name d)))))
+           (new (expand-file-name (file-name-nondirectory file) base)))
+      (save-buffer)
+      (rename-file file new 1)
+      (set-visited-file-name new t t)
+      (message "Unarchived → %s" (file-name-nondirectory new)))))
+
+;; The archive is excluded from normal search — this is the dedicated way back
+;; in. Fuzzy-search ONLY archived notes (across BOTH workspaces) with live
+;; preview, so the silo is never a black hole: type a word and open it.
+(defun my/denote-find-archive ()
+  "Find an archived note across all workspaces' archive/notes/ silos."
+  (interactive)
+  (let* ((dirs (delq nil (list (expand-file-name "archive/notes" denote-directory)
+                               (when (my/denote-extra-dir)
+                                 (expand-file-name "archive/notes" (my/denote-extra-dir))))))
+         (files (cl-loop for d in dirs
+                         when (file-directory-p d)
+                         append (directory-files-recursively d "\\.org\\'"))))
+    (unless files (user-error "No archived notes found"))
+    (find-file
+     (consult--read files
+                    :prompt "Find archived note: "
+                    :require-match t
+                    :category 'file
+                    :state (consult--file-preview)))))
+
+;; ──────────────────────────────────────────────────────────────────────────
+;; Clean auto-created but unused journal entries.
+;;
+;; denote-journal creates a file on every startup; many never get filled in and
+;; are left as the bare template (frontmatter + empty `* Todos' / `* Journal').
+;; A file is "unused" iff, beneath the frontmatter, every non-blank line is an
+;; EMPTY level-1 heading — i.e. no body text and no level-2+ entries such as
+;; `** TODO' / `** DONE'. This keeps anything you actually wrote and is far
+;; safer than detecting by file size (a 15-line file can be full of real
+;; outcomes; a 9-line one could hold a genuine one-line entry).
+(defun my/denote-journal-empty-p (file)
+  "Return non-nil if FILE is an unused journal (only empty level-1 headings)."
+  (with-temp-buffer
+    (insert-file-contents file)
+    (goto-char (point-min))
+    ;; Skip the leading #+keyword frontmatter.
+    (while (and (not (eobp)) (looking-at "^#\\+"))
+      (forward-line 1))
+    (let ((unused t))
+      (while (and unused (not (eobp)))
+        (let ((line (string-trim
+                     (buffer-substring-no-properties
+                      (line-beginning-position) (line-end-position)))))
+          (cond
+           ((string-empty-p line))                 ; blank — fine
+           ((string-match-p "\\`\\* [^ ]" line))    ; empty level-1 heading — fine
+           (t (setq unused nil))))                  ; text or `**'+ entry = content
+        (forward-line 1))
+      unused)))
+
+(defun my/denote-journal-empty-entries ()
+  "List of unused journal files in `denote-journal-directory'."
+  (when (file-directory-p denote-journal-directory)
+    (seq-filter #'my/denote-journal-empty-p
+                (directory-files denote-journal-directory t "\\.org\\'"))))
+
+(defun my/denote-journal-list-empty ()
+  "Preview which journal entries `my/denote-journal-clean-empty' would remove."
+  (interactive)
+  (let ((empties (my/denote-journal-empty-entries)))
+    (if (null empties)
+        (message "No unused journal entries.")
+      (with-current-buffer (get-buffer-create "*Empty Journal Entries*")
+        (let ((inhibit-read-only t))
+          (erase-buffer)
+          (insert (format "%d unused journal entries (template-only):\n\n"
+                          (length empties)))
+          (dolist (f empties) (insert "  " (file-name-nondirectory f) "\n")))
+        (goto-char (point-min))
+        (read-only-mode 1)
+        (display-buffer (current-buffer))))))
+
+(defun my/denote-journal-clean-empty ()
+  "Move unused (template-only) journal entries to the system trash.
+Recoverable — uses the trash, not a hard delete. Skips any file with
+unsaved changes. Run `my/denote-journal-list-empty' first to preview."
+  (interactive)
+  (let ((empties (seq-filter
+                  (lambda (f)
+                    (let ((buf (get-file-buffer f)))
+                      (not (and buf (buffer-modified-p buf)))))
+                  (my/denote-journal-empty-entries))))
+    (if (null empties)
+        (message "No unused journal entries to clean.")
+      (when (yes-or-no-p
+             (format "Trash %d unused journal entr%s? "
+                     (length empties)
+                     (if (= (length empties) 1) "y" "ies")))
+        (let ((delete-by-moving-to-trash t))
+          (dolist (f empties)
+            (when-let ((buf (get-file-buffer f))) (kill-buffer buf))
+            (move-file-to-trash f)))
+        (message "Trashed %d unused journal entr%s (recoverable from Trash)."
+                 (length empties)
+                 (if (= (length empties) 1) "y" "ies"))))))
+
+(provide 'init-denote)

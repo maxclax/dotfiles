@@ -1,8 +1,12 @@
+# exports.sh -*- mode: sh; lexical-binding: t; -*-
 # shellcheck shell=bash
 
-# ----------------------------
-# functions and shell-agnostic
-# ----------------------------
+# Disable XON/XOFF flow control so C-s can be used in ranger, fzf, etc.
+stty -ixon 2>/dev/null
+
+# ============================================================================
+# PATH Management Functions
+# ============================================================================
 
 function add_to_path() {
   # NOTE: zsh only
@@ -49,9 +53,10 @@ function remove_from_path() {
   fi
 }
 
-# ----------------------------
-# globals
-# ----------------------------
+# ============================================================================
+# Shell Detection
+# ============================================================================
+# Determines which shell is being used and sets debug flags accordingly
 
 if [ -n "${ZSH_VERSION}" ]; then
   shell="zsh"
@@ -59,13 +64,17 @@ if [ -n "${ZSH_VERSION}" ]; then
 elif [ -n "${BASH_VERSION}" ]; then
   shell="bash"
   export DOTFILES_DEBUG_SHELL_BASH="true"
+elif [ -n "${FISH_VERSION}" ]; then
+  shell="fish"
+  export DOTFILES_DEBUG_SHELL_FISH="true"
 else
   shell=""
 fi
 
-# ----------------------------
-# exports
-# ----------------------------
+# ============================================================================
+# Package Manager Configuration
+# ============================================================================
+# Homebrew, Nix, and other package manager settings
 
 # NOTE: brew shellenv exports several environment variables and extends $PATH
 if [ -f /opt/homebrew/bin/brew ]; then
@@ -75,62 +84,140 @@ elif [ -f /home/linuxbrew/.linuxbrew/bin/brew ]; then
   eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
   brew_prefix="$(brew --prefix)"
 else
-  if ! grep -q "alpine" /etc/os-release && ! grep -q "debian" /etc/os-release; then
+  # Check if we're in a container environment or if os-release exists before reading it
+  if [ -f /etc/os-release ]; then
+    if ! grep -q "alpine" /etc/os-release && ! grep -q "debian" /etc/os-release; then
+      echo "Please install Homebrew and the Brewfile."
+    fi
+  {{- if .nixosContainer }}
+  # Skip Homebrew message in NixOS containers
+  {{- else }}
+  else
     echo "Please install Homebrew and the Brewfile."
+  {{- end }}
   fi
   brew_prefix=""
 fi
 
-{{ if ne .nvimType "default" }}
-export NVIM_APPNAME={{ .nvimType }}
-{{ end }}
 export DOTFILES={{ .chezmoi.sourceDir }}
 export DOTFILES_SHELL=$shell
 export DOTFILES_BREW_PREFIX=$brew_prefix
-export HOMEBREW_NO_ANALYTICS=1
-export PIP_REQUIRE_VIRTUALENV=true # use pip --isolated to bypass
-export PYENV_ROOT="$HOME/.pyenv"   # pyenv
 
-export GIT_EDITOR="nvim"
-export EDITOR="nvim"
+# ============================================================================
+# Python Development
+# ============================================================================
+export PIP_REQUIRE_VIRTUALENV=true  # Enforce virtualenv usage (use pip --isolated to bypass)
+export PYENV_ROOT="$HOME/.pyenv"    # pyenv installation directory
+export UV_LINK_MODE=copy            # Use copy instead of hardlinks (needed for Docker/cross-device)
 
-{{ if eq .editor "emacsclient" }}
-export GIT_EDITOR="emacsclient -t"
-export EDITOR="emacsclient -t"
-export VISUAL="emacsclient -c"
-{{ end }}
+# ============================================================================
+# Package Manager Settings
+# ============================================================================
+# Nix package manager configuration
+export NIXPKGS_ALLOW_UNFREE=1       # Allow installation of unfree/proprietary packages
+export NIX_SHOW_WARNINGS=0          # Suppress deprecation warnings and other noise
 
-export PATH="$HOME/.local/bin:$PATH"
-export LOCAL_GIT_REPOS_PATH={{ .gitLocalRepositories | quote  }}
+# Homebrew configuration
+export HOMEBREW_NO_ANALYTICS=1      # Disable Homebrew's analytics collection
+
+# NPM configuration - use user directory for global packages
+export NPM_CONFIG_PREFIX="$HOME/.local"
+
+# X (Twitter) API token for the `x` CLI / init-x.el. A 1Password reference
+# (resolved at runtime via `op read`), so no secret is written to disk. The
+# token lives in the chezmoi-data item, like restic et al.
+export X_BEARER_OP_REF="op://Private/chezmoi-data/x-api-bearer-token"
+
+# ============================================================================
+# Editor Configuration
+# ============================================================================
+
+export GIT_EDITOR="emacsclient -t -a emacs"
+export EDITOR="emacsclient -t -a emacs"
+
+# Only use GUI (-c) when we are in an interactive terminal AND have a display
+if [[ -n "$DISPLAY" || -n "$WAYLAND_DISPLAY" ]] && [[ -t 1 ]]; then
+    export VISUAL="emacsclient -c -a emacs"     # GUI with fallback to GUI emacs
+else
+    export VISUAL="$EDITOR"                     # fall back to terminal version
+fi
+
+# ============================================================================
+# Path and Repository Configuration
+# ============================================================================
+export PATH="$HOME/.local/bin:$PATH"                              # User binaries
+export LOCAL_GIT_REPOS_PATH={{ .gitLocalRepositories | quote  }} # Local Git repositories
 
 {{ if .dockerEnabled }}
 add_to_path append "$HOME/.docker/bin"
 {{ end }}
 
+add_to_path append "$HOME/.deno/bin"
 add_to_path append "$HOME/.cargo/bin"
 add_to_path append "$HOME/go/bin"
-add_to_path append "$DOTFILES_BREW_PREFIX/opt/mysql-client/bin"
-add_to_path prepend "$DOTFILES_BREW_PREFIX/opt/gnu-sed/libexec/gnubin"
+add_to_path append "$HOME/.rd/bin"
 
-# NOTE: the last prepend appears first in $PATH, so make sure the order is correct below
+# ============================================================================
+# PATH Configuration
+# ============================================================================
+# NOTE: The last prepend appears first in $PATH - order matters!
+# Priority (highest to lowest):
 add_to_path prepend "$PYENV_ROOT/bin"         # pyenv
-add_to_path prepend "$HOME/.local/bin"        # user-installed binaries
 add_to_path prepend "$HOME/.config/shell/bin" # personal and custom scripts
 add_to_path prepend "$HOME/.config/emacs/bin"      # emacs binaries
-add_to_path prepend "$HOME/.config/doomemacs.d/bin"      # emacs binaries
 
+# ============================================================================
+# Shell Behavior Configuration
+# ============================================================================
+# Customize word-splitting behavior for better navigation (M-f/M-b)
 # By default, zsh considers many characters part of a word (e.g., _ and -).
-# Narrow that down to allow easier skipping through words via M-f and M-b.
+# This narrows it down for more intuitive word navigation.
 export WORDCHARS='*?[]~&;!$%^<>'
 
-# Per-platform settings
+# Ensure Nix user profile is in PATH with high priority
+add_to_path prepend "/nix/var/nix/profiles/default/bin"
+add_to_path prepend "$HOME/.nix-profile/bin"
+add_to_path prepend "$HOME/.local/state/nix/profiles/home-manager/home-path/bin"
+# User-installed binaries (highest priority - after Nix to override)
+add_to_path prepend "$HOME/.local/bin"        # user-installed binaries
+
+# ============================================================================
+# AI Development Tools Configuration
+# ============================================================================
+# Ollama configuration for M4 Mac with 24GB RAM
+export OLLAMA_NUM_PARALLEL=2                    # Optimal for M4 Mac with dual model serving
+export OLLAMA_MAX_LOADED_MODELS=1               # Keep 1 model in memory for optimal performance
+export OLLAMA_FLASH_ATTENTION=1                 # Enable flash attention for better performance
+export OLLAMA_KV_CACHE_TYPE=f16                 # Use f16 for KV cache to save memory
+export OLLAMA_NUM_GPU=1                         # Use Metal GPU acceleration
+export OLLAMA_RUNNER_MAX_TOKENS=32768           # Maximum token limit for extended context
+export OLLAMA_RUNNER_TEMPERATURE=0.7            # Lower temperature for coding tasks
+export OLLAMA_HOST="0.0.0.0:11434"              # Allow network access for agent use
+export OLLAMA_CONTEXT_LENGTH=65536              # Default context window for ollama serve (M4 24GB)
+
+# ============================================================================
+# Platform-Specific Configuration
+# ============================================================================
+# Use chezmoi OS detection if uname is not available (container environments)
+{{- if .nixosContainer }}
+case "{{ .chezmoi.os }}" in
+{{- else }}
 case $(uname) in
+{{- end }}
+{{- if .nixosContainer }}
+darwin)
+{{- else }}
 Darwin)
+{{- end }}
   # commands for macOS go here
 
   ;;
 
+{{- if .nixosContainer }}
+linux)
+{{- else }}
 Linux)
+{{- end }}
   # commands for Linux go here
   add_to_path append "$PATH:/snap/bin"
 

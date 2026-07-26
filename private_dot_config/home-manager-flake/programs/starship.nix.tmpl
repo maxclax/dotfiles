@@ -1,0 +1,11 @@
+# -*- mode: nix; -*-
+{ pkgs, ... }:
+
+{
+  # Starship prompt — config managed by chezmoi (~/.config/starship.toml)
+  programs.starship = {
+    enable = true;
+    enableZshIntegration = true;
+    settings = {};
+  };
+}

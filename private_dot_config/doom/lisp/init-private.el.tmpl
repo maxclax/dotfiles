@@ -1,0 +1,22 @@
+;;; lisp/init-private.el -*- mode: emacs-lisp; lexical-binding: t; -*-
+
+;;; Commentary:
+;; Load private configurations from extra-configs directory
+;; This allows for machine-specific configs that sync across devices
+
+(let ((private-config-dir (expand-file-name "emacs/libs" {{ printf "%s/.local/extra-configs" .chezmoi.homeDir | quote }})))
+  ;; Create directory if it doesn't exist
+  (unless (file-exists-p private-config-dir)
+    (make-directory private-config-dir t))
+
+  ;; Load all .el files from private config directory
+  (when (file-exists-p private-config-dir)
+    (dolist (file (directory-files private-config-dir t "\\.el$"))
+      (condition-case err
+          (load-file file)
+        (error
+         (message "Warning: Failed to load private config file %s: %s"
+                  (file-name-nondirectory file)
+                  (error-message-string err)))))))
+
+(provide 'init-private)

@@ -1,0 +1,106 @@
+##########################################################
+# Sample .aider.conf.yml
+# This file lists *all* the valid configuration entries.
+# Place in your home dir, or at the root of your git repo.
+##########################################################
+
+# Note: You can only put OpenAI and Anthropic API keys in the YAML
+# config file. Keys for all APIs can be stored in a .env file
+# https://aider.chat/docs/config/dotenv.html
+
+##########
+# options:
+
+## show this help message and exit
+#help: xxx
+
+#############
+# Models:
+
+model: ollama/qwen3-coder:480b-cloud
+editor-model: ollama/qwen3-coder:480b-cloud
+weak-model: ollama/gpt-oss:20b-cloud
+
+
+########################
+# API Keys and settings:
+
+## Set environment variables (for providers not supported by api-key above)
+set-env:
+  - OLLAMA_API_BASE=http://127.0.0.1:11434
+
+{{- if .useOp }}
+## Specify the OpenAI API key
+openai-api-key: {{ onepasswordRead "op://Personal/OpenAI/tokens/emacs" }}
+
+## Specify the Anthropic API key
+anthropic-api-key: {{ onepasswordRead "op://Personal/Anthropic/tokens/emacs" }}
+
+## Set an API key for a provider (eg: --api-key provider=<key> sets PROVIDER_API_KEY=<key>)
+api-key:
+  - gemini={{ onepasswordRead "op://Personal/Gemini/tokens/emacs" }}
+  - deepseek={{ onepasswordRead "op://Personal/DeepSeek/tokens/emacs" }}
+  - z-pu={{ onepasswordRead "op://Personal/z.ai/tokens/emacs" }}
+{{- end }}
+
+###############
+# Git settings:
+
+## Commit message style — conventional commits with short 1-line messages
+commit-prompt: |
+  Generate a short single-line git commit message.
+  Use one of these prefixes: feat:, fix:, dev:, nit:, docs:, refactor:, test:
+  No body, no bullet points, no period at the end.
+  No Co-authored-by or any attribution lines.
+  Examples: "feat: add dark mode toggle", "fix: prevent crash on empty input"
+
+## Enable/disable looking for a git repo (default: True)
+git: true
+
+## Enable/disable adding .aider* to .gitignore (default: True)
+gitignore: true
+
+## Use VI editing mode in the terminal (default: False)
+vim: false
+
+## Enable architect mode for planning and design discussions (default: False)
+architect: true
+
+## Enable/disable auto-commits (default: True)
+auto-commits: false
+
+## Disable adding "Co-authored-by: aider" to commits
+attribute-co-authored-by: false
+
+## Enable/disable dirty commits (default: True)
+dirty-commits: false
+
+## Show diffs when committing changes (default: False)
+show-diffs: false
+
+# ## Enable/disable pretty printing of diffs (default: True)
+pretty: true
+
+# ## Enable streaming responses (default: True)
+stream: true
+
+# ## Enable/disable showing model info on startup (default: False)
+# show-model-warnings: true
+
+## Use diff format — avoids printing full files in architect editor step
+editor-edit-format: diff
+
+# ## Enable/disable map refresh (default: auto)
+# map-refresh: auto
+
+# ## Enable/disable showing repository map (default: auto)
+# show-repo-map: true
+
+# ## Set maximum number of tokens for repository map (default: 1024)
+map-tokens: 8192
+
+## Set the maximum context window size (default: auto)
+max-chat-history-tokens: 32768
+
+## Voice input language for /voice command (requires portaudio)
+voice-language: en

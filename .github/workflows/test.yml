@@ -24,6 +24,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Run install-prerequisites.sh
+        run: |
+          chmod +x ./.install-prerequisites.sh
+          ./.install-prerequisites.sh
+
       - name: Install 1Password CLI
         uses: 1password/install-cli-action@v1
 

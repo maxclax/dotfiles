@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+# x — minimal X (Twitter) API v2 CLI used by init-x.el.
+#
+#   x followers <username>        list follower @handles, one per line
+#   x post [--reply-to <id>]      publish stdin as a post; prints the new id
+#   x trends [woeid]              list trends:  <count><TAB><name>
+#
+# Token (one place): $X_BEARER_TOKEN, or $X_BEARER_OP_REF → 1Password (op read).
+# Pay-per-usage (docs.x.com): owned reads ~$0.001 each; posting needs the
+# tweet.write scope (~$0.015, ~$0.20 with a URL); followers needs follows.read.
+
+set -euo pipefail
+die() { echo "x: $*" >&2; exit 1; }
+
+get_token() {
+    local t="${X_BEARER_TOKEN:-}"
+    if [ -z "$t" ] && [ -n "${X_BEARER_OP_REF:-}" ] && command -v op >/dev/null 2>&1; then
+        t="$(op read "$X_BEARER_OP_REF" 2>/dev/null || true)"
+    fi
+    [ -n "$t" ] || die "no token (set X_BEARER_TOKEN or X_BEARER_OP_REF)"
+    printf '%s' "$t"
+}
+
+API="https://api.x.com/2"
+
+cmd_followers() {
+    local user="${1:?usage: x followers <username>}"; user="${user#@}"
+    local token; token="$(get_token)"
+    local auth=(-H "Authorization: Bearer $token")
+    local id
+    id="$(curl -fsS "${auth[@]}" "$API/users/by/username/$user" | jq -r '.data.id // empty')"
+    [ -n "$id" ] || die "could not resolve @$user (token/access?)"
+    # Extra user.fields ride along in the SAME response — no extra cost (billing
+    # is per resource, not per field). Output TSV: handle, verified_type,
+    # followers_count, following_count, name. Used by init-x.el.
+    local fields="username,name,verified,verified_type,public_metrics"
+    local next=""
+    while :; do
+        local url="$API/users/$id/followers?max_results=1000&user.fields=$fields"
+        [ -n "$next" ] && url="$url&pagination_token=$next"
+        local resp; resp="$(curl -fsS "${auth[@]}" "$url")"
+        echo "$resp" | jq -r '.data[]? | [
+            .username,
+            (.verified_type // "none"),
+            (.public_metrics.followers_count // 0),
+            (.public_metrics.following_count // 0),
+            (.name // "")
+          ] | @tsv'
+        next="$(echo "$resp" | jq -r '.meta.next_token // empty')"
+        [ -n "$next" ] || break
+    done
+}
+
+cmd_post() {
+    local reply=""
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --reply-to) reply="${2:?}"; shift 2 ;;
+            *) die "post: unknown arg $1" ;;
+        esac
+    done
+    local text; text="$(cat)"; [ -n "$text" ] || die "post: empty text"
+    local token; token="$(get_token)"
+    local body
+    if [ -n "$reply" ]; then
+        body="$(jq -n --arg t "$text" --arg r "$reply" \
+            '{text:$t, reply:{in_reply_to_tweet_id:$r}}')"
+    else
+        body="$(jq -n --arg t "$text" '{text:$t}')"
+    fi
+    local resp; resp="$(curl -fsS -X POST "$API/tweets" \
+        -H "Authorization: Bearer $token" -H "Content-Type: application/json" \
+        -d "$body")"
+    local id; id="$(echo "$resp" | jq -r '.data.id // empty')"
+    [ -n "$id" ] || die "post failed: $resp"
+    echo "$id"
+}
+
+cmd_trends() {
+    local woeid="${1:-1}"
+    local token; token="$(get_token)"
+    curl -fsS "$API/trends/by/woeid/$woeid" -H "Authorization: Bearer $token" \
+        | jq -r '.data[]? | "\(.tweet_count // 0)\t\(.trend_name)"'
+}
+
+sub="${1:-}"; shift || true
+case "$sub" in
+    followers) cmd_followers "$@" ;;
+    post)      cmd_post "$@" ;;
+    trends)    cmd_trends "$@" ;;
+    *) die "usage: x {followers <user> | post [--reply-to ID] | trends [woeid]}" ;;
+esac

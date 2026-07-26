@@ -1,0 +1,85 @@
+{
+  "autoUpdate": true,
+  "cleanupPeriodDays": 180,
+  "env": {},
+  "permissions": {
+    "allow": [],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/secrets/**)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/id_rsa)",
+      "Read(**/id_ed25519)",
+      "Read(./secrets/**)",
+      "Read(**/kubeconfig)",
+      "Read(**/kubeconfig.*)",
+      "Read(**/.kube/config)",
+      "Read(**/values/**)",
+      "Read(**/.authinfo)",
+      "Read(**/.authinfo.gpg)",
+      "Read(**/.netrc)",
+      "Read({{ .workspace_extra }}/**)",
+      "Bash(**/.env)",
+      "Bash(**/.env.*)",
+      "Bash(**/secrets/**)",
+      "Bash(**/*.pem)",
+      "Bash(**/*.key)",
+      "Bash(**/id_rsa)",
+      "Bash(**/id_ed25519)",
+      "Bash(./secrets/**)",
+      "Bash(**/kubeconfig)",
+      "Bash(**/kubeconfig.*)",
+      "Bash(**/.kube/config)",
+      "Bash(**/values/**)",
+      "Bash(**/.authinfo)",
+      "Bash(**/.authinfo.gpg)",
+      "Bash(**/.netrc)",
+      "Bash({{ .workspace_extra }}/**)"
+    ]
+  },
+  "enabledPlugins": {
+    "context7@claude-plugins-official": true,
+    "playwright@claude-plugins-official": true,
+    "pyright-lsp@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": false,
+    "feature-dev@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "security-guidance@claude-code-plugins": true,
+    "superpowers@claude-plugins-official": true,
+    "ui-ux-pro-max@ui-ux-pro-max-skill": true,
+    "code-review@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "superpowers-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "obra/superpowers-marketplace"
+      }
+    },
+    "ui-ux-pro-max-skill": {
+      "source": {
+        "source": "github",
+        "repo": "nextlevelbuilder/ui-ux-pro-max-skill"
+      }
+    }
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{ .chezmoi.homeDir }}/.claude/hooks/check-no-claude-watermark.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "mcpServers": {},
+  "voiceEnabled": true
+}

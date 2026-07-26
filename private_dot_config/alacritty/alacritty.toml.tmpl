@@ -3,6 +3,9 @@
 # Fast reload
 live_config_reload = true
 
+# New windows inherit working directory
+ipc_socket = true
+
 {{ if eq .chezmoi.os "darwin" }}
 # Thema
 import = [
@@ -14,18 +17,18 @@ import = [
 TERM = "xterm-256color"
 
 [window]
-decorations = "buttonless"
-dynamic_padding = false
+decorations = "none"
+dynamic_padding = true
 opacity = 0.9
 
 [window.padding]
-x = 10
-y = 10
+x = 2
+y = 2
 
 {{ if (.fontsEnabled) }}
 
 [font]
-size = 20.0
+size = 14.0
 
 [font.normal]
 family = "Berkeley Mono"
@@ -44,3 +47,46 @@ family = "Berkeley Mono"
 style = "Medium Italic"
 
 {{ end }}
+
+# Claude terminal setup
+[[keyboard.bindings]]
+key = "Return"
+mods = "Shift"
+chars = "\u001b\r"
+
+# Send proper escape sequence for Alt+W (M-w in Emacs/tmux)
+[[keyboard.bindings]]
+key = "W"
+mods = "Alt"
+chars = "\u001bw"
+
+# New window
+[[keyboard.bindings]]
+key = "N"
+mods = "Control|Shift"
+action = "CreateNewWindow"
+
+# Font size
+[[keyboard.bindings]]
+key = "="
+mods = "Control"
+action = "IncreaseFontSize"
+
+[[keyboard.bindings]]
+key = "-"
+mods = "Control"
+action = "DecreaseFontSize"
+
+[[keyboard.bindings]]
+key = "0"
+mods = "Control"
+action = "ResetFontSize"
+
+# Emacs-style clipboard: select auto-copies, C-y pastes
+[selection]
+save_to_clipboard = true
+
+[[keyboard.bindings]]
+key = "Y"
+mods = "Control"
+action = "Paste"

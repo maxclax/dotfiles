@@ -1,9 +1,0 @@
-{
-  "putBlockRefAsChild": false,
-  "disabled": false,
-  "showToolbarIcon": true,
-  "keyBindings": {
-    "commentBlock": "mod+shift+i"
-  },
-  "settingsVersion": "v2"
-}

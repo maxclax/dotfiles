@@ -1,6 +1,4 @@
-# NOTE:
-# docs:
-# ghostty +show-config --default --docs | nvim
+# ghostty +show-config --default --docs
 # examples:
 # https://github.com/search?q=path%3Aghostty%2Fconfig&type=code
 
@@ -27,6 +25,8 @@ font-variation-bold-italic = wght=800
 window-title-font-family = "Berkeley Mono Variable"
 {{ end }}
 
+theme = "dark:Catppuccin Frappe,light:Catppuccin Latte"
+
 # alpha-blending = linear-corrected
 
 macos-titlebar-style = tabs
@@ -36,21 +36,27 @@ macos-option-as-alt = true
 background-opacity = 0.96
 background-blur-radius = 40
 
-# ghostty +list-themes
-theme = dark:/Users/dev/.local/share/nvim-custom/lazy/tokyonight.nvim/extras/ghostty/tokyonight_moon,light:/Users/dev/.local/share/nvim-custom/lazy/tokyonight.nvim/extras/ghostty/tokyonight_day 
-
 mouse-hide-while-typing = true
 
 window-inherit-working-directory = false
 working-directory = home
 
 # keymaps
-keybind = global:cmd+`=toggle_quick_terminal
+quick-terminal-autohide = true
+
+keybind = global:f12=toggle_quick_terminal
 keybind = shift+ctrl+left_bracket=previous_tab
 keybind = shift+ctrl+right_bracket=next_tab
 keybind = shift+ctrl+,=move_tab:-1
 keybind = shift+ctrl+.=move_tab:+1
 
+# Emacs-style clipboard: select auto-copies, C-y pastes
+copy-on-select = clipboard
+keybind = ctrl+y=paste_from_clipboard
+
 window-decoration = false
 window-padding-x = 5
 window-padding-y = 5
+
+# need for Claude
+keybind = shift+enter=text:\x1b\r

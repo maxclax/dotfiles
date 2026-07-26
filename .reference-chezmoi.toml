@@ -1,3 +1,32 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# 1Password fields required by chezmoi templates
+# Vault: op://Private/chezmoi-data/<field>
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# ── Git ───────────────────────────────────────────────────────────────────────
+# git-config-name          → gitName
+# git-config-email         → gitEmail
+# github-username          → gitGithub.name
+# github-email             → gitGithub.email
+# github-access-token      → gitGithub.accessToken
+# github-signing-key       → gitGithub.gpgsign.signingKey
+#
+# ── Restic backup ─────────────────────────────────────────────────────────────
+# restic-repo              → resticRepo (chezmoi template variable, base path)
+# restic-password          → used at runtime by resticprofile password-command
+#
+# ── Atuin (README only, not templated) ────────────────────────────────────────
+# atuin-username           → atuin login
+# atuin-password           → atuin login
+#
+# ── AI tokens (op://Personal/<service>/tokens/emacs) ─────────────────────────
+# OpenAI, Anthropic, Gemini, DeepSeek, z.ai, Ollama → aider + authinfo
+#
+# ── SSH ───────────────────────────────────────────────────────────────────────
+# op://Personal/localhost-ssh/public key → authorized_keys
+#
+# ══════════════════════════════════════════════════════════════════════════════
+
 encryption = "age"
 [age]
 identity = ""
@@ -13,45 +42,40 @@ headless = true
 hostname = "hostname"
 personal = false
 osid = "linux-debian"
+nixosContainer = false
 unameArch = "aarch64"
 extraUser = false
+useOp = false
+gitAutoCommit = false
+gitAutoPush = false
 
 workspace = "USER_HOME/workspace"
 workspace_extra = "USER_HOME/workspace_extra"
 resources = "USER_HOME/workspace/resources"
 playground = "USER_HOME/workspace/playground"
-jupyter = "USER_HOME/workspace/jupyter"
-editor = "vim"
+managed_sync = "USER_HOME/.local/managed-sync"
+org_dir = "USER_HOME/.local/managed-sync/org"
+primary_storage = ""
+secondary_storage = ""
+editor = "emacsclient"
+shell = "zsh"
 
-borgThisMachine = false
-borgRepo = ""
-borgEncryptionPassphrase = ""
-borgWithPushover = false
+resticRepo = ""
 
 fontsEnabled = false
 fontsPath = ""
 
-nvimType = "default"
-nvimLoadAllDistros = false
-
 emacsType = "default"
 emacsEnabledClient = false
-emacsLoadAllDistros = false
 
 podmanEnabled = false
 dockerEnabled = false
 containerEngine = "podman"
 
 goEnabled = false
-
 rustEnabled = false
 
-pythonEnabled = false
-pythonVersion = "3.13.1"
-
-ollamaPidFile = "/tmp/ollama.pid"
-ollamaPort = 11434
-ollamaModel = "llama3.2:latest"
+syncthingAutostart = false
 
 torproxyHost = "localhost"
 torproxyPortSocks5 = 9150
@@ -67,7 +91,12 @@ gitGithub.gpgsign.enabled = false
 gitGithub.gpgsign.signingKey = ""
 gitGithub.gpgsign.program = ""
 
-
 [git]
 autoCommit = false
 autoPush = false
+
+[interpreters.sh]
+command = "sh"
+
+[interpreters.bash]
+command = "bash"

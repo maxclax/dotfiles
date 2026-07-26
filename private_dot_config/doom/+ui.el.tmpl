@@ -1,0 +1,362 @@
+;;; +ui.el -*- mode: emacs-lisp; lexical-binding: t; -*-
+
+;; Set fallback theme
+(setq fancy-splash-image (concat doom-private-dir "assets/GNUEmacs.png"))
+
+(use-package! circadian
+  :config
+  (setq circadian-themes '(("5:00" . doom-one-light)
+                           ("21:00" . doom-one)))
+
+  ;; Determine the correct initial theme based on current time
+  (let* ((hour-now (string-to-number (format-time-string "%H")))
+         (minute-now (string-to-number (format-time-string "%M")))
+         (time-now (+ (* hour-now 60) minute-now))
+         (light-start (+ (* 5 60) 0))   ;; 5:00 in minutes
+         (dark-start (+ (* 18 60) 30))) ;; 18:30 in minutes
+
+    ;; Set the initial theme based on current time
+    (setq doom-theme
+          (if (and (>= time-now light-start)
+                   (< time-now dark-start))
+              'doom-one-light ;; During day (5:00-18:30)
+            'doom-one)))      ;; During night
+
+  ;; Setup circadian for automatic switching
+  (circadian-setup))
+
+;; Perfect font + theme for emacsclient frames
+(setq display-line-numbers-type t)
+;; (setq display-line-numbers-type 'relative)
+;; Perfect font + theme for emacsclient frames (2025 version)
+(defun my/apply-gui-settings (&optional frame)
+  "Apply font and current theme to FRAME (or current frame)."
+  (when (display-graphic-p frame)
+    ;; Fall back to `doom-theme' when circadian hasn't applied a theme yet
+    ;; (e.g. the daemon's first GUI frame) — otherwise that frame keeps
+    ;; half-applied faces and the first agenda renders unstyled.
+    (when-let ((theme (or (bound-and-true-p circadian--current-theme)
+                          doom-theme)))
+      (load-theme theme t))
+    (set-face-attribute 'default nil
+                        :font "Berkeley Mono Variable-18"
+                        :weight 'normal)
+    ;; Berkeley Mono has no Cyrillic — without this Emacs falls back to
+    ;; proportional Helvetica and org tables with Ukrainian text misalign.
+    ;; JetBrains Mono matches Berkeley's advance width exactly at this size.
+    (set-fontset-font t 'cyrillic (font-spec :family "JetBrains Mono"))
+    (set-fontset-font t ?№ (font-spec :family "JetBrains Mono"))))
+
+;; Apply on startup
+(my/apply-gui-settings)
+
+;; Apply to every new emacsclient frame
+(add-hook 'after-make-frame-functions #'my/apply-gui-settings)
+
+
+(setq-default fill-column 80
+              delete-trailing-lines t)
+
+
+(setq doom-modeline-height 30     ;; sets modeline height
+      doom-modeline-bar-width 5   ;; sets right bar width
+      doom-modeline-persp-name t  ;; adds perspective name to modeline
+      doom-modeline-persp-icon t) ;; adds folder icon next to persp name
+
+;; Create workspace only on explicit project switch, not on magit/dired/etc.
+(setq +workspaces-on-switch-project-behavior t)
+
+;; Native tabs (C-x t …) per workspace: doom saves/restores each workspace's
+;; tab set and persists them in session files — but only while tab-bar-mode
+;; is on. Must enable AFTER persp-mode loads: doom registers its tab-bar
+;; integration on tab-bar-mode-hook from persp's config, so enabling earlier
+;; fires the hook before the listener exists and tabs never restore.
+(setq tab-bar-show 1
+      tab-bar-tab-hints t) ; show "1 name" etc. — targets for M-1..9
+(after! persp-mode
+  (tab-bar-mode 1))
+
+;; Let C-x o / M-o cycle into the treemacs window like any other
+;; (Doom defaults this to t, making the sidebar unreachable by other-window)
+(after! treemacs
+  (setq treemacs-is-never-other-window nil))
+;; ace-window additionally blacklists treemacs-mode on its own
+(after! ace-window
+  (setq aw-ignored-buffers (delq 'treemacs-mode aw-ignored-buffers)))
+
+;; ── Session persistence ──────────────────────────────────────────────
+;; No auto-restore, use C-x C-a C-l to load session manually
+(after! persp-mode
+  (setq persp-auto-resume-time -1    ;; disabled — load manually
+        persp-auto-save-opt 1
+        ;; Keep rotated autosave generations — lets you load not just
+        ;; yesterday's exit state but a couple of days back
+        persp-auto-save-num-of-backups 2
+        ;; Save the WHOLE session into the file chosen at the prompt, instead
+        ;; of scattering each workspace back to the file it was loaded from
+        persp-auto-save-persps-to-their-file nil)
+
+  ;; The exit autosave can fail silently (persp asks "exit anyway?" and a
+  ;; reflexive `y' loses the session). Log every failure with the real error
+  ;; so losses are diagnosable: ~/.config/emacs/.local/persp-save-errors.log
+  (advice-add 'persp-save-state-to-file :around
+              (defun my/persp-save-log-errors-a (fn &rest args)
+                (condition-case e
+                    (apply fn args)
+                  (error
+                   (write-region
+                    (format "%s persp save FAILED: %S\n"
+                            (format-time-string "%F %T") e)
+                    nil (concat doom-local-dir "persp-save-errors.log")
+                    'append 'silent)
+                   (signal (car e) (cdr e))))))
+
+  ;; +workspace/save needs three repairs:
+  ;; 1. it serializes the layout captured at last switch-away (session save
+  ;;    snapshots live frames first) — refresh so the CURRENT layout is saved;
+  ;; 2. persp-save-to-file-by-names skips the
+  ;;    persp-before-save-state-to-file-functions hook where doom sanitizes
+  ;;    tab-bar data, so the raw tab param (with live #<window-configuration>
+  ;;    objects) is unserializable and tabs silently vanish from the file —
+  ;;    filter it here;
+  ;; 3. winner-ring / tab-bar-closed-tabs params can never serialize and just
+  ;;    spam "can't be saved" — drop them for the write, restore after.
+  (advice-add '+workspace-save :around
+              (defun my/workspace-save-clean-a (fn name)
+                (let* ((persp (persp-get-by-name name *persp-hash* nil))
+                       (winner (and persp (persp-parameter 'winner-ring persp)))
+                       (closed (and persp (persp-parameter 'tab-bar-closed-tabs persp))))
+                  (when persp
+                    (persp-save-state persp)
+                    (let ((tabs (if (and (eq persp (get-current-persp))
+                                         (bound-and-true-p tab-bar-mode))
+                                    (tab-bar-tabs)
+                                  (persp-parameter 'tab-bar-tabs persp))))
+                      (when tabs
+                        (set-persp-parameter
+                         'tab-bar-tabs
+                         (frameset-filter-tabs (copy-tree tabs) nil nil t)
+                         persp)))
+                    (delete-persp-parameter 'winner-ring persp)
+                    (delete-persp-parameter 'tab-bar-closed-tabs persp))
+                  (unwind-protect (funcall fn name)
+                    (when persp
+                      (when winner
+                        (set-persp-parameter 'winner-ring winner persp))
+                      (when closed
+                        (set-persp-parameter 'tab-bar-closed-tabs closed persp)))))))
+
+  ;; Don't save buffers that are slow or impossible to restore. eat
+  ;; terminals are exempt — they get a save/load handler below. (setq, not
+  ;; add-to-list: persp's DEFAULT filter also drops all *star* buffers,
+  ;; which would filter eat out before its handler ever ran.)
+  (setq persp-filter-save-buffers-functions
+        (list
+         (defun my/persp-filter-unsavable-buffers (buf)
+           (with-current-buffer buf
+             (unless (derived-mode-p 'eat-mode 'org-agenda-mode)
+               (or (null (buffer-file-name))
+                   (derived-mode-p 'magit-mode)
+                   (derived-mode-p 'dired-mode)
+                   (derived-mode-p 'compilation-mode)
+                   (derived-mode-p 'vterm-mode)
+                   (derived-mode-p 'eshell-mode)
+                   (string-prefix-p "*" (buffer-name))))))))
+
+  ;; eat and org-agenda open via the popup system, which skips doom's
+  ;; add-to-workspace tracking — without membership they never get saved.
+  ;; But NOT while a workspace/session file is loading: the load recreates
+  ;; these buffers while some OTHER workspace is still current, and the
+  ;; hook would leak them into it.
+  (defvar my/persp--loading nil)
+  (advice-add 'persp-load-state-from-file :around
+              (defun my/persp-note-loading-a (fn &rest args)
+                (let ((my/persp--loading t)) (apply fn args))))
+  (advice-add 'persp-load-from-file-by-names :around #'my/persp-note-loading-a)
+  (defun my/add-buffer-to-workspace-h ()
+    (when (and (get-current-persp) (not my/persp--loading))
+      (persp-add-buffer (current-buffer))))
+  (add-hook 'eat-mode-hook #'my/add-buffer-to-workspace-h)
+  (add-hook 'org-agenda-mode-hook #'my/add-buffer-to-workspace-h)
+
+  ;; Doom's magit-status restore handler calls (magit-status dir), which
+  ;; DISPLAYS the buffer in the selected window mid-load — hijacking
+  ;; whatever workspace you're looking at. Re-register the handler (ours
+  ;; lands in front) with display suppressed.
+  (persp-def-buffer-save/load
+   :mode 'magit-status-mode :tag-symbol 'def-magit-status-buffer
+   :save-vars '(major-mode default-directory)
+   :load-function
+   (lambda (savelist &rest _)
+     (when-let ((dir (alist-get 'default-directory (caddr savelist))))
+       (when (file-directory-p dir)
+         (save-window-excursion
+           (magit-status dir)
+           (current-buffer))))))
+
+  ;; org-agenda buffers: persist the command that generated them and
+  ;; regenerate on load. org-agenda-redo-command is NOT buffer-local (org
+  ;; sets it globally), so :save-vars can't capture it — use an explicit
+  ;; save function.
+  (persp-def-buffer-save/load
+   :mode 'org-agenda-mode :tag-symbol 'def-agenda-buffer
+   :save-function
+   (lambda (buffer tag _vars)
+     (with-current-buffer buffer
+       (let ((cmd org-agenda-redo-command)) ; buffer-local or global
+         (list tag (buffer-name buffer)
+               (when (and cmd (persp-elisp-object-readable-p cmd))
+                 (list (cons 'major-mode major-mode)
+                       (cons 'org-agenda-redo-command cmd)))))))
+   :load-function
+   (lambda (savelist &rest _)
+     (cl-destructuring-bind (buffer-name vars &rest _rest) (cdr savelist)
+       (when-let ((cmd (alist-get 'org-agenda-redo-command vars)))
+         (require 'org-agenda)
+         (save-window-excursion
+           (ignore-errors (eval cmd t))
+           (when-let ((buf (cl-find-if
+                            (lambda (b)
+                              (with-current-buffer b
+                                (derived-mode-p 'org-agenda-mode)))
+                            (buffer-list))))
+             (with-current-buffer buf
+               (unless (equal (buffer-name) buffer-name)
+                 (rename-buffer buffer-name t))
+               (current-buffer))))))))
+
+  ;; eat terminals: persist buffer name + working directory; loading spawns
+  ;; a fresh shell there (scrollback/history can't be serialized)
+  (persp-def-buffer-save/load
+   :mode 'eat-mode :tag-symbol 'def-eat-buffer
+   :save-vars '(major-mode default-directory)
+   :load-function
+   (lambda (savelist &rest _)
+     (cl-destructuring-bind (buffer-name vars &rest _rest) (cdr savelist)
+       (let ((default-directory (or (alist-get 'default-directory vars) "~/")))
+         (require 'eat)
+         (save-window-excursion
+           (eat-make (string-trim buffer-name "\\*" "\\*")
+                     (or explicit-shell-file-name shell-file-name
+                         (getenv "SHELL")))))))))
+
+
+;; Dim inactive windows for visual focus feedback
+(use-package! dimmer
+  :config
+  (setq-default dimmer-fraction 0.15)
+  ;; Re-process all windows after theme changes
+  (advice-add 'frame-set-background-mode :after (lambda (&rest _) (dimmer-process-all)))
+  ;; Skip dimming in terminal frames — poor contrast with 256 colours
+  (defun my/dimmer-exclude-terminal-p () (not (display-graphic-p)))
+  (add-to-list 'dimmer-exclusion-predicates #'my/dimmer-exclude-terminal-p)
+  (dimmer-mode 1))
+
+;; Enable rainbow-mode globally
+(use-package rainbow-mode
+  :hook ((prog-mode text-mode conf-mode) . rainbow-mode))
+
+;; Form feed line display (^L characters as horizontal lines)
+(use-package! page-break-lines
+  :config
+  (global-page-break-lines-mode 1))
+
+;; Display fill column indicator like Purcell
+(when (boundp 'display-fill-column-indicator)
+  (setq-default display-fill-column-indicator-character ?┊)
+  (add-hook 'prog-mode-hook 'display-fill-column-indicator-mode))
+
+;; Enable cursor blinking
+(blink-cursor-mode 1)
+(setq blink-cursor-interval 0.4
+      blink-cursor-delay 0.5)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; LOG
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package! keycast
+  :config
+  ;; Enable keycast-header-line-mode by default
+  (keycast-header-line-mode 1)
+  ;; Optional: customize keycast appearance
+  (setq keycast-header-line-format "%2s%k%c%R")
+  ;; Show in header line instead of mode line for cleaner look
+  (setq keycast-insert-after 'mode-line-buffer-identification))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; COMPLETION
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; ── Corfu + childframe (your actual completion stack) ─────
+;; (after! corfu
+;;   (setq +corfu-want-ret-to-confirm "both")
+
+;;   ;; Make childframe prettier + faster
+;;   (setq corfu-popupinfo-delay '(0.5 . 0.5))  ; docs appear after 0.5s
+;;   (corfu-popupinfo-mode 1))
+
+;; (after! vertico-posframe
+;;   (setq vertico-posframe-border-width 3
+;;         vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
+;;         vertico-posframe-parameters '((left-fringe . 8)
+;;                                       (right-fringe . 8))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; PROSE MODE
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define-minor-mode prose-mode
+  "Set up a buffer for prose editing.
+Configures the buffer so that editing prose feels more like a
+word processor — soft wraps, relaxed spacing, bar cursor, flyspell."
+  :init-value nil :lighter " Prose" :keymap nil
+  (if prose-mode
+      (progn
+        (when (fboundp 'writeroom-mode)
+          (writeroom-mode 1))
+        (setq truncate-lines nil)
+        (setq word-wrap t)
+        (setq cursor-type 'bar)
+        (when (eq major-mode 'org-mode)
+          (kill-local-variable 'buffer-face-mode-face))
+        (buffer-face-mode 1)
+        (setq-local blink-cursor-interval 0.6)
+        (setq-local show-trailing-whitespace nil)
+        (setq-local line-spacing 0.2)
+        (setq-local electric-pair-mode nil)
+        (visual-line-mode 1))
+    (kill-local-variable 'truncate-lines)
+    (kill-local-variable 'word-wrap)
+    (kill-local-variable 'cursor-type)
+    (kill-local-variable 'blink-cursor-interval)
+    (kill-local-variable 'show-trailing-whitespace)
+    (kill-local-variable 'line-spacing)
+    (kill-local-variable 'electric-pair-mode)
+    (buffer-face-mode -1)
+    (visual-line-mode -1)
+    (when (fboundp 'writeroom-mode)
+      (writeroom-mode 0))))
+
+(custom-theme-set-faces! doom-theme
+  `(hl-todo :foreground ,(doom-color 'bg)))
+(after! hl-todo
+  (setq hl-todo-color-background t
+        hl-todo-keyword-faces
+        `(("TODO"  . ,(doom-color 'orange))
+          ("DONE"  . ,(doom-color 'green))
+          ("NOTE"  . ,(doom-color 'green))
+          ("DEBUG"  . ,(doom-color 'yellow))
+          ("FAIL"  . ,(doom-color 'red))
+          ("FIXME" . ,(doom-color 'red))))
+
+  ;; Always insert keyword with ": " and leave point after the space
+  (advice-add 'hl-todo-insert :after
+              (lambda (keyword)
+                (when (re-search-backward (regexp-quote keyword) (line-beginning-position) t)
+                  (goto-char (match-end 0))
+                  (unless (looking-at ":")
+                    (insert ": "))))))

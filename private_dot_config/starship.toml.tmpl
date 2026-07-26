@@ -1,0 +1,135 @@
+# -*- mode: conf-toml; -*-
+add_newline = true
+command_timeout = 5000
+format = "${custom.kube}${custom.tf}$all$line_break$directory$character"
+palette = "gruvbox_dark"
+
+[aws]
+disabled = true
+format = "[$symbol(profile: \"$profile\" )(\\(region: $region\\) )]($style)"
+style = "bold blue"
+symbol = " "
+
+[cmd_duration]
+format = "[$duration]($style) "
+min_time = 2000
+style = "yellow bold"
+
+[custom.kube]
+command = """
+for f in k3s_kubeconfig.yaml kubeconfig.yaml; do
+  if [ -f "$f" ]; then
+    kubectl --kubeconfig "$f" config current-context 2>/dev/null
+    exit 0
+  fi
+done
+"""
+format = "[☸ $output]($style) "
+shell = ["bash", "--noprofile", "--norc"]
+style = "cyan bold"
+when = "[ -f k3s_kubeconfig.yaml ] || [ -f kubeconfig.yaml ]"
+
+[custom.vite]
+command = "vite --version 2>/dev/null | head -1 || echo ''"
+format = "[⚡ $output]($style)"
+shell = ["bash", "--noprofile", "--norc"]
+style = "yellow bold"
+when = "[ -f vite.config.js ] || [ -f vite.config.ts ] || grep -q '\"vite\"' package.json 2>/dev/null"
+
+[custom.vue]
+command = "echo $(grep -o '\"vue\":[[:space:]]*\"[^\"]*\"' package.json 2>/dev/null | grep -o '[0-9]\\+\\.[0-9]\\+\\.[0-9]\\+' || echo '')"
+format = "[󰡄 v$output]($style)"
+shell = ["bash", "--noprofile", "--norc"]
+style = "green bold"
+when = "grep -q '\"vue\"' package.json 2>/dev/null"
+
+[directory.substitutions]
+{{- if ne .workspace "" }}
+"{{ .workspace }}" = "workspace"
+{{- end }}
+{{- if ne .workspace_extra "" }}
+"{{ .workspace_extra }}" = "workspace_extra"
+{{- end }}
+{{- if ne .resources "" }}
+"{{ .resources }}" = "resources"
+{{- end }}
+{{- if ne .playground "" }}
+"{{ .playground }}" = "playground"
+{{- end }}
+
+[docker_context]
+disabled = true
+
+[gcloud]
+disabled = true
+
+[git_branch]
+format = "on [$symbol$branch(:$remote_branch)]($style)"
+
+[git_status]
+ahead = "⇡${count}"
+format = "([\\[$all_status$ahead_behind\\]]($style) ) "
+modified = "!${count}"
+staged = "[++\\($count\\)](green)"
+untracked = "?${count}"
+
+[golang]
+format = "[ ](bold cyan)"
+
+[kubernetes]
+disabled = true
+
+[nodejs]
+detect_extensions = ["js", "mjs", "cjs", "ts", "vue"]
+detect_files = ["package.json", ".nvmrc", ".node-version", "vue.config.js", "nuxt.config.js"]
+detect_folders = ["node_modules"]
+format = "[$symbol($version )]($style)"
+style = "green bold"
+symbol = " "
+
+[palettes.gruvbox_dark]
+color_aqua = "#689d6a"
+color_bg1 = "#3c3836"
+color_bg3 = "#665c54"
+color_blue = "#458588"
+color_fg0 = "#fbf1c7"
+color_green = "#98971a"
+color_orange = "#d65d0e"
+color_purple = "#b16286"
+color_red = "#cc241d"
+color_yellow = "#d79921"
+
+[python]
+detect_extensions = ["py"]
+detect_files = ["requirements.txt", "pyproject.toml", ".python-version", "Pipfile", "tox.ini"]
+detect_folders = [".venv"]
+format = "[(($virtualenv) )]($style)"
+python_binary = ["python3", "python"]
+style = "yellow bold"
+
+[terraform]
+disabled = true
+
+[custom.tf]
+command = "tofu workspace show 2>/dev/null || terraform workspace show 2>/dev/null"
+when = "[ -f .terraform.lock.hcl ] && { ws=$(tofu workspace show 2>/dev/null || terraform workspace show 2>/dev/null); [ \"$ws\" != \"default\" ]; }"
+format = "[💎 $output]($style) "
+style = "purple"
+shell = ["bash", "--noprofile", "--norc"]
+
+[time]
+disabled = false
+format = "[[ $time ](fg:color_fg0 bg:color_bg1)]($style)"
+style = "bg:color_bg1"
+time_format = "%T"
+utc_time_offset = "+2"
+
+[username]
+disabled = true
+format = "[](color_orange)$user ($style) ]"
+show_always = true
+style_root = "bg:color_orange fg:color_fg0"
+style_user = "bg:color_orange fg:color_fg0"
+
+[username.aliases]
+a = "b"

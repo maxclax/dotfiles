@@ -1,18 +1,15 @@
+CLAUDE.md
+AGENTS.md
 README.md
+ROADMAP.org
 LICENSE
 install.sh
 .dist
-!.oh-my-zsh/plugins
-.oh-my-zsh/cache/**
-.oh-my-zsh/plugins/**
-.oh-my-zsh/templates/**
 
 {{ if ne .chezmoi.os "darwin" }}
 .chezmoiscripts/darwin/**
 .config/aerospace
 .config/homebrew
-.config/espanso
-Library/Application\ Support/espanso
 Library/Application\ Support/lazygit/config.yml
 {{ end }}
 
@@ -27,9 +24,8 @@ Library/Application\ Support/lazygit/config.yml
 
 {{ if or (not .personal) .ephemeral .headless }}
 .ssh/
-.logseq/
-.config/nvim
-.config/borgmatic.d
+.claude/
 {{ end }}
 
 key.txt.age
+local.resticprofile.*.log

@@ -69,7 +69,7 @@ config.font = wezterm.font_with_fallback({
 if is_windows then
 	config.font_size = 10 -- Font size for Windows
 elseif is_macos then
-	config.font_size = 18 -- Font size for macOS
+	config.font_size = 16 -- Font size for macOS
 else
 	config.font_size = 12 -- Font size for Debian/Linux
 end
@@ -216,6 +216,12 @@ if is_windows then
 	-- start straight into WSL
 	config.default_domain = "WSL:Ubuntu"
 end
+
+-- Emacs-style clipboard: C-y pastes from clipboard
+table.insert(keys, { key = "y", mods = "CTRL", action = act.PasteFrom("Clipboard") })
+
+-- Claude terminal setup
+table.insert(keys, { key = "Enter", mods = "SHIFT", action = act.SendString("\x1b\r") })
 
 config.keys = keys
 return config

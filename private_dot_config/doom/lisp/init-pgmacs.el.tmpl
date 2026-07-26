@@ -1,0 +1,37 @@
+;;; lisp/init-pgmacs.el -*- mode: emacs-lisp; lexical-binding: t; -*-
+
+(use-package! pgmacs
+  :defer t
+  :config
+  ;; Lighter display — fewer rows, narrower columns
+  (setq pgmacs-row-limit 50
+        pgmacs-max-column-width 40
+        pgmacs-row-list-table-name-width 15
+        pgmacs-row-list-comment-width 20)
+
+  ;; Only keep essential buttons on table list
+  (setq pgmacs-table-list-buttons
+        (list (pgmacs-shortcut-button
+               :label "Disconnect"
+               :action #'pgmacs-disconnect)))
+
+  ;; Only keep essential buttons on row list
+  (setq pgmacs-row-list-buttons
+        (list (pgmacs-shortcut-button
+               :label "Count rows"
+               :action #'pgmacs--run-count)
+              (pgmacs-shortcut-button
+               :label "Export CSV"
+               :action #'pgmacs--table-to-csv))))
+
+(defun my/pgmacs-connect ()
+  "Connect to PostgreSQL (interactive widget)."
+  (interactive)
+  (pgmacs))
+
+(defun my/pgmacs-connect-uri ()
+  "Connect to PostgreSQL using URI format."
+  (interactive)
+  (pgmacs-open-uri "postgresql://postgres:postgres@localhost:5432/postgres"))
+
+(provide 'init-pgmacs)

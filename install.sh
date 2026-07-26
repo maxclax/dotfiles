@@ -1,35 +1,141 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-# -e: exit on error
-# -u: exit on unset variables
-set -eu
+set -e
 
-# Run prerequisites script first
-echo "Installing prerequisites..."
-script_dir="$(cd -P -- "$(dirname -- "$(command -v -- "$0")")" && pwd -P)"
-sh -c "${script_dir}/.install-prerequisites.sh"
+# Configuration
+GITHUB_USER="maxclax"
+REPO_NAME="dotfiles"
+BRANCH="main"
+GITHUB_URL="https://github.com/${GITHUB_USER}/${REPO_NAME}.git"
+RAW_URL="https://raw.githubusercontent.com/${GITHUB_USER}/${REPO_NAME}/${BRANCH}"
 
-if ! chezmoi="$(command -v chezmoi)"; then
-	bin_dir="${HOME}/.local/bin"
-	chezmoi="${bin_dir}/chezmoi"
-	echo "Installing chezmoi to '${chezmoi}'" >&2
-	if command -v curl >/dev/null; then
-		chezmoi_install_script="$(curl -fsSL get.chezmoi.io)"
-	elif command -v wget >/dev/null; then
-		chezmoi_install_script="$(wget -qO- get.chezmoi.io)"
-	else
-		echo "To install chezmoi, you must have curl or wget installed." >&2
-		exit 1
-	fi
-	sh -c "${chezmoi_install_script}" -- -b "${bin_dir}"
-	unset chezmoi_install_script bin_dir
+echo "🚀 Starting complete dotfiles installation..."
+echo ""
+
+# Step 1: Install prerequisites (Nix + Home Manager)
+echo "📋 Step 1: Installing prerequisites (Nix + Home Manager)..."
+echo "📥 Downloading prerequisites script..."
+if command -v curl >/dev/null 2>&1; then
+    curl -fsLS "${RAW_URL}/.install-prerequisites.sh" | bash
+elif command -v wget >/dev/null 2>&1; then
+    wget -qO- "${RAW_URL}/.install-prerequisites.sh" | bash
+else
+    echo "❌ Error: curl or wget required for installation"
+    exit 1
 fi
 
-# POSIX way to get script's dir: https://stackoverflow.com/a/29834779/12156188
-script_dir="$(cd -P -- "$(dirname -- "$(command -v -- "$0")")" && pwd -P)"
+echo ""
+echo "⏳ Waiting for prerequisites to complete..."
+sleep 2
 
-set -- init --apply --source="${script_dir}"
+# Step 2: Source Nix profile to make commands available
+echo "📋 Step 2: Setting up environment..."
+if [ -f '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
+    . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
+elif [ -f "$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
+    . "$HOME/.nix-profile/etc/profile.d/nix.sh"
+else
+    echo "❌ Error: Nix profile not found. Prerequisites installation may have failed."
+    exit 1
+fi
 
-echo "Running 'chezmoi $*'" >&2
-# exec: replace current process with chezmoi
-exec "$chezmoi" "$@"
+# Verify Nix and Home Manager are available
+if ! command -v nix >/dev/null 2>&1; then
+    echo "❌ Error: Nix not found after prerequisites installation."
+    exit 1
+fi
+
+if ! command -v home-manager >/dev/null 2>&1; then
+    echo "❌ Error: Home Manager not found after prerequisites installation."
+    exit 1
+fi
+
+# Step 3: Apply dotfiles using chezmoi via nix-shell
+echo "📋 Step 3: Applying dotfiles configuration..."
+
+# Check if chezmoi config already exists (container case)
+if [ -f ~/.config/chezmoi/chezmoi.toml ]; then
+    echo "🔧 Using existing chezmoi configuration..."
+    # Backup existing config
+    cp ~/.config/chezmoi/chezmoi.toml /tmp/chezmoi-backup.toml
+    nix-shell -p chezmoi git --run "
+        chezmoi init --branch ${BRANCH} --apply ${GITHUB_URL} && \
+        echo '✅ Dotfiles applied successfully!'
+    "
+    # Restore original config
+    cp /tmp/chezmoi-backup.toml ~/.config/chezmoi/chezmoi.toml
+    rm /tmp/chezmoi-backup.toml
+else
+    echo "🔧 Initializing new chezmoi configuration..."
+    nix-shell -p chezmoi git --run "
+        chezmoi init --branch ${BRANCH} --apply ${GITHUB_URL} && \
+        echo '✅ Dotfiles applied successfully!'
+    "
+fi
+
+if [ $? -ne 0 ]; then
+    echo "❌ Error: Failed to apply dotfiles"
+    exit 1
+fi
+
+# Step 4: Set up Home Manager
+echo ""
+echo "📋 Step 4: Setting up Home Manager..."
+echo "🔧 Enabling Nix experimental features..."
+
+# Enable experimental features for this session
+export NIX_CONFIG="experimental-features = nix-command flakes"
+
+# Detect if we should use nix-darwin or home-manager
+HOSTNAME=$(hostname)
+UNAME_S=$(uname -s)
+
+if [ "$UNAME_S" = "Darwin" ]; then
+    echo "🍎 Applying nix-darwin configuration (requires password)..."
+    echo "Using current system hostname: $HOSTNAME"
+
+    # Backup conflicting files if they exist
+    echo "Checking for conflicting system files..."
+    if [ -f /etc/bashrc ]; then
+        echo "Backing up /etc/bashrc to /etc/bashrc.before-nix-darwin"
+        sudo mv /etc/bashrc /etc/bashrc.before-nix-darwin
+    fi
+    if [ -f /etc/zshrc ]; then
+        echo "Backing up /etc/zshrc to /etc/zshrc.before-nix-darwin"
+        sudo mv /etc/zshrc /etc/zshrc.before-nix-darwin
+    fi
+
+    # Create /etc/synthetic.conf if it doesn't exist (required for nix-darwin)
+    if [ ! -f /etc/synthetic.conf ]; then
+        echo "Creating /etc/synthetic.conf for nix-darwin..."
+        echo "nix" | sudo tee /etc/synthetic.conf > /dev/null
+        sudo chmod 644 /etc/synthetic.conf
+    fi
+
+    if sudo nix run nix-darwin --extra-experimental-features "nix-command flakes" -- switch --flake ~/.config/home-manager-flake#"$HOSTNAME"; then
+        echo "✅ nix-darwin setup complete!"
+    else
+        echo "❌ Error: nix-darwin setup failed"
+        exit 1
+    fi
+else
+    echo "👤 Applying Home Manager configuration (user-only)..."
+    if home-manager switch --flake ~/.config/home-manager-flake --extra-experimental-features "nix-command flakes" -b backup; then
+        echo "✅ Home Manager setup complete!"
+    else
+        echo "❌ Error: Home Manager setup failed"
+        exit 1
+    fi
+fi
+
+echo ""
+echo "🎉 Complete installation finished!"
+echo ""
+echo "Your dotfiles have been installed and configured!"
+echo "Please restart your shell or run:"
+echo "  source ~/.zshrc  # or ~/.bashrc"
+echo ""
+echo "Available commands:"
+echo "  make hm_update    # Update packages"
+echo "  make hm_list      # List installed packages"
+echo "  chezmoi apply     # Apply dotfiles changes"
