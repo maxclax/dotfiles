@@ -24,8 +24,9 @@
         git-commit-style-convention-checks nil
         magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1
         
-        ;; Speed up status buffer but keep auto-refresh
-        magit-refresh-status-buffer t
+        ;; Don't ALSO refresh the status buffer after commands issued from
+        ;; other magit buffers (diff/log) — it refreshes when you return to it
+        magit-refresh-status-buffer nil
         magit-refresh-verbose nil
         
         ;; Reduce expensive operations
@@ -193,6 +194,9 @@
   :config
   (setq magit-todos-insert-after '(bottom)   ; last section, below recent commits
         magit-todos-max-items 15
+        ;; rescan at most every 30s — staging commands reuse the cached scan
+        ;; instead of re-running rg + popping the section in late every time
+        magit-todos-update 30
         ;; the branch-list scan pipes `git diff <merge-base>' through Emacs —
         ;; 100MB+ on big repos, freezing every magit refresh ("Running…" forever)
         magit-todos-branch-list nil
@@ -233,3 +237,49 @@
                      directory)))
   (setq magit-todos-scanner #'magit-todos--scan-with-rg-comments)
   (magit-todos-mode 1))
+
+;; Background fetch: git can only show incoming (↓ unpulled) after a fetch,
+;; so fetch quietly on a timer for repos with an open magit status buffer.
+;; Refresh only when the fetch actually brought refs — idle repos cost nothing.
+(defvar my/magit-autofetch-interval 300
+  "Seconds between background fetches of open magit status repos.")
+
+(defvar my/magit-autofetch--timer nil)
+
+(defun my/magit-autofetch--repos ()
+  "Directories of all live magit status buffers, without duplicates."
+  (delete-dups
+   (mapcar (lambda (buf) (buffer-local-value 'default-directory buf))
+           (seq-filter (lambda (buf)
+                         (with-current-buffer buf
+                           (derived-mode-p 'magit-status-mode)))
+                       (buffer-list)))))
+
+(defun my/magit-autofetch--fetch (dir)
+  (unless (or (file-remote-p dir)
+              (get-process (concat "autofetch:" dir)))
+    (let ((default-directory dir))
+      (make-process
+       :name (concat "autofetch:" dir)
+       :buffer (generate-new-buffer " *magit-autofetch*")
+       :command (list magit-git-executable "--no-pager" "fetch")
+       :noquery t
+       :sentinel
+       (lambda (proc _event)
+         (when (memq (process-status proc) '(exit signal))
+           (let ((out (with-current-buffer (process-buffer proc)
+                        (buffer-string))))
+             (kill-buffer (process-buffer proc))
+             (when (and (eq (process-exit-status proc) 0)
+                        (string-match-p "[^ \t\n]" out))
+               (let ((default-directory dir))
+                 (when-let ((buf (magit-get-mode-buffer 'magit-status-mode)))
+                   (with-current-buffer buf (magit-refresh-buffer))))))))))))
+
+(defun my/magit-autofetch ()
+  (mapc #'my/magit-autofetch--fetch (my/magit-autofetch--repos)))
+
+(after! magit
+  (when my/magit-autofetch--timer (cancel-timer my/magit-autofetch--timer))
+  (setq my/magit-autofetch--timer
+        (run-with-timer 60 my/magit-autofetch-interval #'my/magit-autofetch)))
