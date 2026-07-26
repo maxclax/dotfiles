@@ -1,10 +1,11 @@
 ;;; init-gptel.el -*- mode: emacs-lisp; lexical-binding: t; -*-
-;; API keys are read automatically from ~/.authinfo (managed by chezmoi)
+;; API keys resolve via auth-source (see init-auth.el): 1Password first,
+;; ~/.authinfo as fallback.
 
 (use-package! gptel
   :commands (gptel-rewrite gptel-menu gptel-send)
   :config
-  ;; Anthropic Claude — key from ~/.authinfo (machine api.anthropic.com)
+  ;; Anthropic Claude — key via auth-source (host api.anthropic.com)
   ;; Default backend
   (setq gptel-backend
         (gptel-make-anthropic "Claude"
