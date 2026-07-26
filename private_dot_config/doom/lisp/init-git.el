@@ -210,7 +210,7 @@
                                     "*.min.js" "*.min.css" "*.map"))
 
   ;; Stock scanners are comment-blind: python `if DEBUG:' matches same as a
-  ;; `# DEBUG:' comment. This scanner requires the keyword right after a
+  ;; `DEBUG:' comment. This scanner requires the keyword right after a
   ;; comment marker (annotation style), so commented-out code like
   ;; `# if settings.DEBUG:' doesn't count; org `* TODO' headings still match.
   (magit-todos-defscanner "rg comments"
