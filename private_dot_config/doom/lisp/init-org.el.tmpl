@@ -781,8 +781,12 @@ Heading links include file:path so navigation works across files."
   (setq org-agenda-files
         (seq-filter (lambda (file)
                       (not (or (string-match-p "/templates/" file)
-                               ;; PARA archive silo — never scan archived notes
-                               (string-match-p "/archive/" file))))
+                               ;; PARA archive silo — never scan archived notes,
+                               ;; EXCEPT drafts awaiting publish: they carry a
+                               ;; SCHEDULED publish task that must reach the agenda
+                               ;; even though the draft itself lives in /archive/.
+                               (and (string-match-p "/archive/" file)
+                                    (not (string-match-p "_\\(re\\)?draft" file))))))
                     (append (directory-files-recursively {{ .org_dir | quote }} "\\.org$")
                             (when (file-exists-p (expand-file-name "org" {{ .workspace_extra | quote }}))
                               (directory-files-recursively (expand-file-name "org" {{ .workspace_extra | quote }}) "\\.org$"))
