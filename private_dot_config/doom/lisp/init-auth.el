@@ -60,4 +60,15 @@ lookups quietly fall back to ~/.authinfo; refresh to retry."
 
   (auth-source-1password-enable))
 
+;; sops-encrypted project files edit transparently: find-file shows the
+;; decrypted buffer, C-x C-s re-encrypts on disk. The age key is never on
+;; disk — sops fetches it from 1Password via SOPS_AGE_KEY_CMD (GUI Emacs
+;; doesn't inherit zsh session vars, so set it here too). Guarded so a
+;; machine without the sops binary (pre-rebuild, no-op setups) is untouched.
+(use-package! sops
+  :when (executable-find "sops")
+  :config
+  (setenv "SOPS_AGE_KEY_CMD" "op document get sops-age-key --vault Automation")
+  (global-sops-mode 1))
+
 (provide 'init-auth)
