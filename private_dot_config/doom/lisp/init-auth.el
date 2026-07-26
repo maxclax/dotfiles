@@ -1,14 +1,63 @@
 ;;; init-auth.el -*- lexical-binding: t; -*-
 ;; Central credential lookup (auth-source) for ALL of Emacs — gptel, TRAMP,
-;; forge, smtp, … 1Password answers first via the `op' CLI: one 1P item per
-;; host with a field per login (e.g. item "api.anthropic.com" with field
-;; "apikey"). Secrets never touch disk; first use per session prompts the
-;; 1Password unlock. ~/.authinfo remains as a fallback for entries not (yet)
-;; migrated — hosts with odd names (slashes) can stay there permanently.
+;; forge, smtp, … 1Password answers first via the `op' CLI; secrets never
+;; touch disk. Layout: the "Automation" vault, one item per host, field
+;; named after the auth-source login — e.g. item "api.anthropic.com" with
+;; field "apikey" -> op://Automation/api.anthropic.com/apikey.
+;;
+;; The vault itself is the source of truth: its item titles are listed once
+;; per session, and only those hosts are asked of 1Password — new items are
+;; picked up with M-x my/auth-1password-refresh (or next Emacs start), no
+;; config changes. Everything else falls through to ~/.authinfo.
 
 (use-package! auth-source-1password
   :config
-  (setq auth-source-1password-vault "Private")
+  (setq auth-source-1password-vault "Automation")
+
+  (defvar my/auth-1password--vault-hosts 'unset
+    "Cached item titles of the vault, or `unset' before first listing.")
+
+  (defun my/auth-1password-vault-hosts ()
+    "Item titles in `auth-source-1password-vault', cached per session.
+A failed listing (1Password locked, op missing) caches as empty so
+lookups quietly fall back to ~/.authinfo; refresh to retry."
+    (when (eq my/auth-1password--vault-hosts 'unset)
+      (setq my/auth-1password--vault-hosts
+            (or (ignore-errors
+                  (let ((json (shell-command-to-string
+                               (format "%s item list --vault %s --format json"
+                                       auth-source-1password-executable
+                                       (shell-quote-argument
+                                        auth-source-1password-vault)))))
+                    (mapcar (lambda (item) (alist-get 'title item))
+                            (append (json-parse-string json
+                                                       :object-type 'alist)
+                                    nil))))
+                nil)))
+    my/auth-1password--vault-hosts)
+
+  (defun my/auth-1password-refresh ()
+    "Re-list the 1Password vault (run after adding a new item)."
+    (interactive)
+    (setq my/auth-1password--vault-hosts 'unset)
+    (message "1Password vault hosts: %s"
+             (string-join (my/auth-1password-vault-hosts) ", ")))
+
+  ;; Ask 1Password only for hosts that have an item in the vault, and treat
+  ;; an empty `op' result as a miss — returning nil lets auth-source
+  ;; continue to ~/.authinfo.
+  (defadvice! my/auth-1password-vault-hosts-only-a (fn &rest spec)
+    :around #'auth-source-1password-search
+    (let* ((host (plist-get spec :host))
+           (hosts (if (listp host) host (list host))))
+      (when (seq-some (lambda (h) (and (stringp h)
+                                       (member h (my/auth-1password-vault-hosts))))
+                      hosts)
+        (let* ((result (apply fn spec))
+               (secret (and result (plist-get (car result) :secret))))
+          (when (and (stringp secret) (not (string-empty-p secret)))
+            result)))))
+
   (auth-source-1password-enable))
 
 (provide 'init-auth)
