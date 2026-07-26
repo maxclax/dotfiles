@@ -1,9 +1,14 @@
-# run_onchange_after_26-sops-age-key.sh -*- mode: sh; -*-
 #!/bin/bash
+# run_onchange_after_26-sops-age-key.sh -*- mode: sh; -*-
 
 # Restore the sops age key from 1Password on a fresh machine.
 # The key is stored as document "sops-age-key" in the Automation vault;
 # sops reads it from its default macOS location automatically.
+
+{{ if not .useOp -}}
+echo "sops-age-key: useOp disabled, skipping (place the key manually if needed)."
+exit 0
+{{ end -}}
 
 KEY_FILE="$HOME/Library/Application Support/sops/age/keys.txt"
 
