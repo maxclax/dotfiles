@@ -143,3 +143,4 @@
   :recipe (:host github :repo "mkleehammer/surround"))
 (package! org-cliplink)               ; Paste URL as org link fetching page title
 (package! applescript-mode)           ; Syntax highlighting for AppleScript files
+(package! auth-source-1password)      ; Resolve auth-source secrets via 1Password CLI (op)
