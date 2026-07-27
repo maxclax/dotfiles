@@ -21,12 +21,16 @@
               (add-to-list 'copilot-indentation-alist '(closure-mode 2))
               (add-to-list 'copilot-indentation-alist '(emacs-lisp-mode 2)))
 
-;; Auto-enable copilot for code under the main workspace tree only —
-;; keeps it out of notes, dotfiles, and random files elsewhere
+;; Auto-enable copilot for code under the workspace tree and the chezmoi
+;; source (dotfiles) — keeps it out of notes and random files elsewhere
+(defun my/copilot-path-allowed-p (path)
+  (let ((path (expand-file-name path)))
+    (or (string-prefix-p (expand-file-name {{ .workspace | quote }}) path)
+        (string-prefix-p (expand-file-name {{ .chezmoi.sourceDir | quote }}) path))))
+
 (defun my/copilot-maybe-enable-h ()
   (when (and buffer-file-name
-             (string-prefix-p (expand-file-name {{ .workspace | quote }})
-                              (expand-file-name buffer-file-name)))
+             (my/copilot-path-allowed-p buffer-file-name))
     (copilot-mode 1)))
 (add-hook 'prog-mode-hook #'my/copilot-maybe-enable-h)
 (add-hook 'conf-mode-hook #'my/copilot-maybe-enable-h)
@@ -34,8 +38,7 @@
 ;; Magit commit buffers are text-mode, so the hooks above never fire there.
 ;; Same workspace gate: commit messages in workspace projects get copilot.
 (defun my/copilot-commit-enable-h ()
-  (when (string-prefix-p (expand-file-name {{ .workspace | quote }})
-                         (expand-file-name default-directory))
+  (when (my/copilot-path-allowed-p default-directory)
     (copilot-mode 1)))
 (add-hook 'git-commit-setup-hook #'my/copilot-commit-enable-h)
 
