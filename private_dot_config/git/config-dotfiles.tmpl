@@ -1,0 +1,13 @@
+# -*- mode: conf; -*-
+# Identity + signing for the dotfiles repo only — included via includeIf
+# from the main git config. Everything else keeps the default identity.
+[user]
+  name = {{ .gitGithub.name }}
+  email = {{ .gitGithub.email }}
+  signingkey = {{ .gitGithub.gpgsign.signingKey }}
+[gpg]
+  format = ssh
+[gpg "ssh"]
+  program = {{ .gitGithub.gpgsign.program | quote }}
+[commit]
+  gpgsign = true

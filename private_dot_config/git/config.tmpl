@@ -86,3 +86,9 @@
 [commit]
   gpgsign = true
 {{ end }}
+
+# Dotfiles repo (and its worktrees — their gitdir lives under the source
+# .git) use the GitHub identity and signed commits; other repos keep the
+# default identity above.
+[includeIf "gitdir:{{ .chezmoi.sourceDir }}/"]
+  path = config-dotfiles
