@@ -37,8 +37,8 @@ With prefix argument USE-PROJECT, open at the project root instead."
   (when (boundp 'dirvish-attributes)
     (setq dirvish-attributes
           (if my/dired-detailed-view
-              '(nerd-icons collapse file-size file-time vc-state)
-            '(nerd-icons collapse))))
+              '(nerd-icons collapse file-size file-time vc-state sops)
+            '(nerd-icons collapse sops))))
   (my/dired-apply-view-state)
   (dired-revert)
   (message "Dired: %s view" (if my/dired-detailed-view "detailed" "clean")))
@@ -217,7 +217,43 @@ workspace; the current tab stays selected."
                   (apply fn args))))
 
   ;; Clean by default: icons + subtree only, ls detail columns hidden
-  (setq dirvish-attributes '(nerd-icons collapse))
+  (setq dirvish-attributes '(nerd-icons collapse sops))
+
+  ;; ── 🔒 badge for sops-encrypted files ──────────────────────────────────────
+  ;; Cheap: only files matching sops-ish names are sniffed (first 4KB for the
+  ;; sops markers), results cached per file+mtime so directory rendering
+  ;; stays fast.
+  (defvar my/sops-name-regex
+    "\.\(ya?ml\|json\|ini\)\'\|\.env\(\.[A-Za-z0-9_-]+\)?\'")
+
+  (defvar my/sops--enc-cache (make-hash-table :test 'equal))
+
+  (defun my/sops-encrypted-p (file attrs)
+    "Non-nil when FILE (with ATTRS) looks sops-encrypted, cached by mtime."
+    (when (and attrs (null (file-attribute-type attrs)) ; regular files only
+               (string-match-p my/sops-name-regex file))
+      (let* ((mtime (float-time (file-attribute-modification-time attrs)))
+             (hit (gethash file my/sops--enc-cache)))
+        (if (and hit (equal (car hit) mtime))
+            (cdr hit)
+          (let ((enc (with-temp-buffer
+                       (ignore-errors
+                         (insert-file-contents-literally file nil 0 4096))
+                       (goto-char (point-min))
+                       (and (re-search-forward
+                             "ENC\[AES256_GCM\|^sops:\|"sops":\|^sops_" nil t)
+                            t))))
+            (puthash file (cons mtime enc) my/sops--enc-cache)
+            enc)))))
+
+  (dirvish-define-attribute sops
+    "Lock badge on sops-encrypted files."
+    :right 2
+    (when (my/sops-encrypted-p f-name f-attrs)
+      (let ((str "🔒"))
+        (when hl-face
+          (add-face-text-property 0 (length str) hl-face t str))
+        `(right . ,str))))
 
   ;; ── Sidebar cosmetics: -10% font, tinted background, content-fit width ──
   ;; Keyed off the buffer being shown in an actual SIDE WINDOW, not the
