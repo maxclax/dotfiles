@@ -69,6 +69,9 @@ lookups quietly fall back to ~/.authinfo; refresh to retry."
   :when (executable-find "sops")
   :config
   (setenv "SOPS_AGE_KEY_CMD" "op document get sops-age-key --vault Automation")
+  ;; default prefilter only matches trailing .env — also catch .env.prod etc.
+  (setq sops-prefilter-regex
+        "\\.\\(ya?ml\\|json\\|ini\\|txt\\)\\'\\|\\.env\\(\\.[A-Za-z0-9_-]+\\)?\\'")
   (global-sops-mode 1))
 
 (provide 'init-auth)
