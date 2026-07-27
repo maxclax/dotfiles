@@ -7,7 +7,6 @@
 # git-config-email         → gitEmail
 # username                 → gitGithub.name
 # email                    → gitGithub.email
-# access-token             → gitGithub.accessToken
 # signing-key              → gitGithub.gpgsign.signingKey
 #
 # ── Restic backup (op://Private/chezmoi-data/<field>) ─────────────────────────
@@ -90,7 +89,6 @@ gitEmail = "USER"
 gitLocalRepositories = "USER_HOME/.local/git"
 gitGithub.name = ""
 gitGithub.email = ""
-gitGithub.accessToken = ""
 gitGithub.gpgsign.enabled = false
 gitGithub.gpgsign.signingKey = ""
 gitGithub.gpgsign.program = ""
