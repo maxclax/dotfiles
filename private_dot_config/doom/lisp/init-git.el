@@ -283,3 +283,28 @@
   (when my/magit-autofetch--timer (cancel-timer my/magit-autofetch--timer))
   (setq my/magit-autofetch--timer
         (run-with-timer 60 my/magit-autofetch-interval #'my/magit-autofetch)))
+
+;; ── Magit buffers are global; tab window-configs resurrect them in foreign
+;; workspaces. Claim each magit buffer for the workspace it was opened in,
+;; and on workspace switch bury any displayed magit buffer that does not
+;; belong to the target workspace (the tab's window then shows its previous
+;; buffer instead of another project's status).
+(defun my/magit-claim-buffer-h ()
+  ;; `this-command' guard: only claim on user-driven creation/refresh —
+  ;; the background autofetch refresh must not steal buffers into
+  ;; whatever workspace happens to be active.
+  (when (and (bound-and-true-p persp-mode) this-command)
+    (persp-add-buffer (current-buffer) (get-current-persp) nil nil)))
+(add-hook 'magit-mode-hook #'my/magit-claim-buffer-h)
+(add-hook 'magit-refresh-buffer-hook #'my/magit-claim-buffer-h)
+
+(defun my/magit-bury-foreign-h (&rest _)
+  (when (bound-and-true-p persp-mode)
+    (dolist (win (window-list))
+      (let ((buf (window-buffer win)))
+        (when (and (buffer-live-p buf)
+                   (provided-mode-derived-p
+                    (buffer-local-value 'major-mode buf) 'magit-mode)
+                   (not (persp-contain-buffer-p buf (get-current-persp))))
+          (with-selected-window win (previous-buffer)))))))
+(add-hook 'persp-activated-functions #'my/magit-bury-foreign-h)
