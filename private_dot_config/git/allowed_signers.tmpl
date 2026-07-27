@@ -1,0 +1,5 @@
+# -*- mode: conf; -*-
+# Trusted SSH signing keys for local `git log --show-signature' verification.
+{{ if .useOp -}}
+{{ .gitGithub.email }} {{ .gitGithub.gpgsign.signingKey }}
+{{ end -}}
