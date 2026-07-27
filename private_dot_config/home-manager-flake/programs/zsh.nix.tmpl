@@ -51,13 +51,6 @@
       ];
     };
 
-{{- if .useOp }}
-    # sops age key is never on disk: sops runs this command to fetch the
-    # private key from 1Password at decrypt time (the var holds no secret)
-    sessionVariables = {
-      SOPS_AGE_KEY_CMD = "op document get sops-age-key --vault Automation";
-    };
-{{- end }}
 
     shellAliases = {
       # Original aliases
@@ -66,6 +59,13 @@
     };
 
     initContent = ''
+{{- if .useOp }}
+      # sops age key is never on disk: sops runs this command to fetch the
+      # private key from 1Password at decrypt time (the var holds no secret).
+      # Lives here, not in sessionVariables: the __HM once-guard is inherited
+      # by mux-server descendants and would hide the var in their panes.
+      export SOPS_AGE_KEY_CMD="op document get sops-age-key --vault Automation"
+{{- end }}
       if [[ "$TERM" == "dumb" ]]; then
           PS1='$ '
           return
