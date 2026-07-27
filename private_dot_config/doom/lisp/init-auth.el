@@ -72,6 +72,8 @@ lookups quietly fall back to ~/.authinfo; refresh to retry."
   ;; default prefilter only matches trailing .env — also catch .env.prod etc.
   (setq sops-prefilter-regex
         "\\.\\(ya?ml\\|json\\|ini\\|txt\\)\\'\\|\\.env\\(\\.[A-Za-z0-9_-]+\\)?\\'")
+  ;; doom-modeline hides minor-mode lighters — show our own encrypted badge
+  (add-to-list 'mode-line-misc-info '(sops-mode " 🔒sops "))
   (global-sops-mode 1))
 
 (provide 'init-auth)
