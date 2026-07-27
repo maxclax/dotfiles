@@ -218,6 +218,8 @@ workspace; the current tab stays selected."
 
   ;; Clean by default: icons + subtree only, ls detail columns hidden
   (setq dirvish-attributes '(nerd-icons collapse sops))
+  ;; the sidebar renders from its own attribute list
+  (setq dirvish-side-attributes '(nerd-icons collapse sops))
 
   ;; ── 🔒 badge for sops-encrypted files ──────────────────────────────────────
   ;; Cheap: only files matching sops-ish names are sniffed (first 4KB for the
