@@ -251,11 +251,10 @@ workspace; the current tab stays selected."
   (dirvish-define-attribute sops
     "Lock badge on sops-encrypted files."
     :right 2
+    ;; no hl-face on the badge: the overlay isn't re-rendered on cursor
+    ;; moves, so a baked-in highlight lingers as a stale colored box
     (when (my/sops-encrypted-p f-name f-attrs)
-      (let ((str "🔒"))
-        (when hl-face
-          (add-face-text-property 0 (length str) hl-face t str))
-        `(right . ,str))))
+      '(right . "🔒")))
 
   ;; ── Sidebar cosmetics: -10% font, tinted background, content-fit width ──
   ;; Keyed off the buffer being shown in an actual SIDE WINDOW, not the
