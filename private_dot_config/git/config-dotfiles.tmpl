@@ -1,6 +1,9 @@
 # -*- mode: conf; -*-
 # Identity + signing for the dotfiles repo only — included via includeIf
 # from the main git config. Everything else keeps the default identity.
+# Without 1Password the gitGithub values are empty and op-ssh-sign is
+# absent — render nothing so commits fall back to the default identity.
+{{ if .useOp -}}
 [user]
   name = {{ .gitGithub.name }}
   email = {{ .gitGithub.email }}
@@ -11,3 +14,4 @@
   program = {{ .gitGithub.gpgsign.program | quote }}
 [commit]
   gpgsign = true
+{{ end -}}
