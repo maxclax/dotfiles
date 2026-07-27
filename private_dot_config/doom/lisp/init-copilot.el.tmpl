@@ -31,4 +31,12 @@
 (add-hook 'prog-mode-hook #'my/copilot-maybe-enable-h)
 (add-hook 'conf-mode-hook #'my/copilot-maybe-enable-h)
 
+;; Magit commit buffers are text-mode, so the hooks above never fire there.
+;; Same workspace gate: commit messages in workspace projects get copilot.
+(defun my/copilot-commit-enable-h ()
+  (when (string-prefix-p (expand-file-name {{ .workspace | quote }})
+                         (expand-file-name default-directory))
+    (copilot-mode 1)))
+(add-hook 'git-commit-setup-hook #'my/copilot-commit-enable-h)
+
 (provide 'init-copilot)
