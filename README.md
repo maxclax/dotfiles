@@ -67,22 +67,31 @@ sh -c "$(curl -fsLS https://raw.githubusercontent.com/maxclax/dotfiles/main/inst
 
 ### 2. Configure 1Password (only once in account)
 
-Create required 1Password entries:
+Two vaults are used: `Private` for personal machine data and `Automation`
+for everything consumed by tools at runtime (git identity, API keys,
+sops age key).
 
 ```bash
-# Create secure note with git and GitHub configuration
+# Private vault: machine/backup data
 op item create --category="Secure Note" --title="chezmoi-data" \
-  git-config-name="YOUR_NAME" \
-  git-config-email="YOUR_EMAIL" \
-  github-username="YOUR_GITHUB_USERNAME" \
-  github-email="YOUR_GITHUB_EMAIL" \
-  github-signing-key="YOUR_SSH_SIGNING_KEY" \
-  github-access-token="YOUR_GITHUB_ACCESS_TOKEN" \
   key-pub-key="YOUR_AGE_PUB_KEY" \
   restic-repo="YOUR_RESTIC_BASE_REPO_PATH" \
   restic-password="YOUR_RESTIC_PASSWORD" \
   atuin-username="YOUR_ATUIN_USERNAME" \
   atuin-password="YOUR_ATUIN_PASSWORD"
+
+# Automation vault: git identity and signing (see .reference-chezmoi.toml)
+op item create --vault Automation --category="Secure Note" --title="github" \
+  git-config-name="YOUR_NAME" \
+  git-config-email="YOUR_EMAIL" \
+  username="YOUR_GITHUB_USERNAME" \
+  email="YOUR_GITHUB_EMAIL" \
+  signing-key="YOUR_SSH_SIGNING_PUBLIC_KEY" \
+  access-token="YOUR_GITHUB_ACCESS_TOKEN"
+
+# Automation vault: one item per API host for Emacs/aider runtime lookup,
+# e.g. item "api.anthropic.com" with field "apikey"; plus document
+# "sops-age-key" holding the sops age identity (fetched at decrypt time).
 ```
 
 ### 3. Sign in to 1Password CLI
