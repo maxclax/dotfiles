@@ -73,7 +73,6 @@
 {{- $githubEmail := "dev" | quote -}}
 {{- $githubGpgsignEnabled := false -}}
 {{- $githubGpgsignSigningKey := "" | quote -}}
-{{- $githubAccessToken := "" | quote -}}
 {{- $githubGpgsignProgram := "" | quote -}}
 {{- $resticRepo := "" | quote -}}
 
@@ -89,7 +88,6 @@
 {{-   $githubName = onepasswordRead "op://Automation/github/username" | quote -}}
 {{-   $githubEmail = onepasswordRead "op://Automation/github/email"  | quote -}}
 {{-   $githubGpgsignSigningKey = onepasswordRead "op://Automation/github/signing-key" | quote -}}
-{{-   $githubAccessToken = onepasswordRead "op://Automation/github/access-token" | quote -}}
 {{-   $githubGpgsignProgram = promptStringOnce . "gitGithub.gpgsign.program" "GPG signing program" "/Applications/1Password.app/Contents/MacOS/op-ssh-sign" | quote -}}
 {{- end -}}
 
@@ -152,7 +150,6 @@ encryption = "age"
     gitLocalRepositories = {{ printf "%s/.local/git" .chezmoi.destDir | quote }}
     gitGithub.name = {{ $githubName }}
     gitGithub.email = {{ $githubEmail }}
-    gitGithub.accessToken = {{ $githubAccessToken }}
     gitGithub.gpgsign.enabled = {{ $githubGpgsignEnabled }}
     gitGithub.gpgsign.signingKey = {{ $githubGpgsignSigningKey }}
     gitGithub.gpgsign.program = {{ $githubGpgsignProgram  }}
