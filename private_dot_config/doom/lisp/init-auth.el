@@ -74,6 +74,26 @@ lookups quietly fall back to ~/.authinfo; refresh to retry."
         "\\.\\(ya?ml\\|json\\|ini\\|txt\\)\\'\\|\\.env\\(\\.[A-Za-z0-9_-]+\\)?\\'")
   ;; doom-modeline hides minor-mode lighters — show our own encrypted badge
   (add-to-list 'mode-line-misc-info '(sops-mode " 🔒sops "))
+
+  ;; Guardrail: a buffer opened BEFORE a file was encrypted (or any non-sops
+  ;; buffer) would overwrite the ciphertext with plaintext on C-x C-s.
+  ;; Detect encrypted-on-disk + no sops-mode and make the save opt-in.
+  (defun my/sops-guard-plaintext-save-h ()
+    (when (and buffer-file-name
+               (not (bound-and-true-p sops-mode))
+               (string-match-p sops-prefilter-regex buffer-file-name)
+               (file-exists-p buffer-file-name)
+               (with-temp-buffer
+                 (ignore-errors
+                   (insert-file-contents-literally buffer-file-name nil 0 4096))
+                 (goto-char (point-min))
+                 (re-search-forward
+                  "ENC\[AES256_GCM\|^sops:\|"sops":\|^sops_" nil t)))
+      (unless (yes-or-no-p
+               "File on disk is sops-ENCRYPTED; saving would write PLAINTEXT over it. Really save? ")
+        (user-error "Save aborted — use M-x revert-buffer to load the encrypted version"))))
+  (add-hook 'before-save-hook #'my/sops-guard-plaintext-save-h)
+
   (global-sops-mode 1))
 
 (provide 'init-auth)
