@@ -1,26 +1,30 @@
 # ══════════════════════════════════════════════════════════════════════════════
 # 1Password fields required by chezmoi templates
-# Vault: op://Private/chezmoi-data/<field>
 # ══════════════════════════════════════════════════════════════════════════════
 #
-# ── Git ───────────────────────────────────────────────────────────────────────
+# ── Git (op://Automation/github/<field>) ──────────────────────────────────────
 # git-config-name          → gitName
 # git-config-email         → gitEmail
-# github-username          → gitGithub.name
-# github-email             → gitGithub.email
-# github-access-token      → gitGithub.accessToken
-# github-signing-key       → gitGithub.gpgsign.signingKey
+# username                 → gitGithub.name
+# email                    → gitGithub.email
+# access-token             → gitGithub.accessToken
+# signing-key              → gitGithub.gpgsign.signingKey
 #
-# ── Restic backup ─────────────────────────────────────────────────────────────
+# ── Restic backup (op://Private/chezmoi-data/<field>) ─────────────────────────
 # restic-repo              → resticRepo (chezmoi template variable, base path)
 # restic-password          → used at runtime by resticprofile password-command
 #
-# ── Atuin (README only, not templated) ────────────────────────────────────────
+# ── Atuin (op://Private/chezmoi-data, README only, not templated) ─────────────
 # atuin-username           → atuin login
 # atuin-password           → atuin login
 #
-# ── AI tokens (op://Personal/<service>/tokens/emacs) ─────────────────────────
-# OpenAI, Anthropic, Gemini, DeepSeek, z.ai, Ollama → aider + authinfo
+# ── AI keys (op://Automation/<host>/apikey) ──────────────────────────────────
+# api.openai.com, api.anthropic.com, generativelanguage.googleapis.com,
+# api.deepseek.com, api.z.ai/api/anthropic, ollama.com
+# → emacs auth-source + ~/.local/bin/aider wrapper (runtime, nothing on disk)
+#
+# ── sops (op://Automation/sops-age-key document) ──────────────────────────────
+# fetched at decrypt time via SOPS_AGE_KEY_CMD; never stored on disk
 #
 # ── SSH ───────────────────────────────────────────────────────────────────────
 # op://Personal/localhost-ssh/public key → authorized_keys

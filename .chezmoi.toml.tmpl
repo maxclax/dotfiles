@@ -84,12 +84,12 @@
 {{- if $useOp -}}
 {{-   $githubGpgsignEnabled = promptBoolOnce . "gitGithub.gpgsign.enabled" "Enable GPG signing for Git commits?" false  -}}
 {{-   $resticRepo = onepasswordRead "op://Private/chezmoi-data/restic-repo" | quote -}}
-{{-   $name = onepasswordRead "op://Private/chezmoi-data/git-config-name" | quote -}}
-{{-   $email = onepasswordRead "op://Private/chezmoi-data/git-config-email" | quote -}}
-{{-   $githubName = onepasswordRead "op://Private/chezmoi-data/github-username" | quote -}}
-{{-   $githubEmail = onepasswordRead "op://Private/chezmoi-data/github-email"  | quote -}}
-{{-   $githubGpgsignSigningKey = onepasswordRead "op://Private/chezmoi-data/github-signing-key" | quote -}}
-{{-   $githubAccessToken = onepasswordRead "op://Private/chezmoi-data/github-access-token" | quote -}}
+{{-   $name = onepasswordRead "op://Automation/github/git-config-name" | quote -}}
+{{-   $email = onepasswordRead "op://Automation/github/git-config-email" | quote -}}
+{{-   $githubName = onepasswordRead "op://Automation/github/username" | quote -}}
+{{-   $githubEmail = onepasswordRead "op://Automation/github/email"  | quote -}}
+{{-   $githubGpgsignSigningKey = onepasswordRead "op://Automation/github/signing-key" | quote -}}
+{{-   $githubAccessToken = onepasswordRead "op://Automation/github/access-token" | quote -}}
 {{-   $githubGpgsignProgram = promptStringOnce . "gitGithub.gpgsign.program" "GPG signing program" "/Applications/1Password.app/Contents/MacOS/op-ssh-sign" | quote -}}
 {{- end -}}
 
