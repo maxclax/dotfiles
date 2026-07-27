@@ -29,19 +29,8 @@ weak-model: ollama/gpt-oss:20b-cloud
 set-env:
   - OLLAMA_API_BASE=http://127.0.0.1:11434
 
-{{- if .useOp }}
-## Specify the OpenAI API key
-openai-api-key: {{ onepasswordRead "op://Personal/OpenAI/tokens/emacs" }}
-
-## Specify the Anthropic API key
-anthropic-api-key: {{ onepasswordRead "op://Personal/Anthropic/tokens/emacs" }}
-
-## Set an API key for a provider (eg: --api-key provider=<key> sets PROVIDER_API_KEY=<key>)
-api-key:
-  - gemini={{ onepasswordRead "op://Personal/Gemini/tokens/emacs" }}
-  - deepseek={{ onepasswordRead "op://Personal/DeepSeek/tokens/emacs" }}
-  - z-pu={{ onepasswordRead "op://Personal/z.ai/tokens/emacs" }}
-{{- end }}
+## API keys are NOT stored here: the ~/.local/bin/aider wrapper fetches
+## them from 1Password (Automation vault) into the environment at launch.
 
 ###############
 # Git settings:
