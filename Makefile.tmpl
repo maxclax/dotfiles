@@ -73,6 +73,14 @@ hm_commit:
 	cd {{ .chezmoi.sourceDir }} && git commit --only private_dot_config/home-manager-flake/flake.lock -m "dev: update Home Manager flake.lock - $(shell date '+%Y-%m-%d')"
 	@echo "✅ flake.lock changes committed!"
 
+hm_lock_to_main:
+	@WT=$$(cd {{ .chezmoi.sourceDir }} && git worktree list --porcelain | awk '/^worktree /{wt=$$2} /^branch refs\/heads\/main$$/{print wt}'); \
+	if [ -z "$$WT" ]; then echo "no worktree with branch main checked out"; exit 1; fi; \
+	cp {{ .chezmoi.sourceDir }}/private_dot_config/home-manager-flake/flake.lock "$$WT/private_dot_config/home-manager-flake/flake.lock"; \
+	cd "$$WT" && git diff --quiet -- private_dot_config/home-manager-flake/flake.lock && echo "main's lock already current" || \
+	git commit --only private_dot_config/home-manager-flake/flake.lock -m "dev: sync flake.lock from personal - $(shell date '+%Y-%m-%d')"
+	@echo "✅ main's flake.lock refreshed (merge back when batching)"
+
 hm_list:
 	@echo "📦 Home Manager packages:"
 	@home-manager packages | sort

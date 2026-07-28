@@ -45,6 +45,11 @@ bind o display-panes
 # Make pane numbers display longer
 set -g display-panes-time 4000  # 4 seconds instead of default 1 second
 
+# Let programs talk to the outer terminal through tmux. Yazi queries the
+# terminal on startup (and for image previews); without this the replies never
+# arrive and it fails with "Terminal response timeout".
+set -g allow-passthrough on
+
 # === EMACS-STYLE PANE RESIZING (Shift + navigation) ===
 # Repeatable pane resizing with Shift + navigation letters
 bind -r P resize-pane -U 2     # C-x P (Shift+p) - resize up
@@ -71,6 +76,18 @@ bind -n M-S choose-tree -Zs
 
 # M-t = fzf popup picker (all sessions)
 bind -n M-t display-popup -E -w 60% -h 50% "tmux list-sessions | cut -d: -f1 | fzf --reverse --prompt='session> ' | xargs -r tmux switch-client -t"
+
+# === NO-PREFIX WINDOW SHORTCUTS ===
+# M-Tab = last window toggle, the window-level twin of M-s. Not M-w: that is
+# kill-ring-save in terminal emacs. macOS only intercepts Cmd-Tab, not Opt-Tab.
+bind -n M-Tab last-window
+
+# M-o = last pane toggle, inside the current window. The pane-level twin of
+# M-Tab: jumps back to whichever pane you came from (e.g. the two yazi panes).
+bind -n M-o last-pane
+
+# M-W = fzf popup picker (all windows, any session)
+bind -n M-W display-popup -E -w 60% -h 50% "tmux list-windows -a | fzf --reverse --prompt='window> ' | cut -d' ' -f1 | sed 's/:$//' | xargs -r tmux switch-client -t"
 
 # === EMACS-STYLE COPY MODE ===
 # Enter copy mode with C-x [

@@ -42,7 +42,11 @@ rules = [
   # Kubernetes configuration
   { action = "deny", tool = "read",  pattern = "**/kubeconfig" },
   { action = "deny", tool = "read",  pattern = "**/kubeconfig.*" },
+  { action = "deny", tool = "read",  pattern = "**/*kubeconfig*" },
+  { action = "deny", tool = "read",  pattern = "**/*.tfstate*" },
   { action = "deny", tool = "bash",  pattern = "**/kubeconfig*" },
+  { action = "deny", tool = "bash",  pattern = "**/*kubeconfig*" },
+  { action = "deny", tool = "bash",  pattern = "**/*.tfstate*" },
   { action = "deny", tool = "read",  pattern = "**/.kube/config" },
   { action = "deny", tool = "bash",  pattern = "**/.kube/config" },
 

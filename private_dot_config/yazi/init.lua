@@ -4,6 +4,19 @@ require("git"):setup()
 require("smart-enter"):setup({ open_multi = true })
 require("sops"):setup()
 
+-- Share the yank state between running yazi instances, so files yanked in one
+-- tmux pane can be pasted in another (Total Commander style). Bundled plugin;
+-- state rides on yazi's DDS, no extra process involved.
+require("session"):setup({ sync_yanked = true })
+
+-- Total Commander mode: two yazi panes side by side, each showing only the
+-- current directory instead of parent/current/preview. Set per instance by the
+-- tmuxinator panes (YAZI_SINGLE=1); a plain `y` keeps the three columns.
+-- `<C-x> 1` toggles this at runtime either way.
+if os.getenv("YAZI_SINGLE") then
+	rt.mgr.ratio = { 0, 1, 0 }
+end
+
 -- Ranger-style metadata bars. Only cheap, already-cached data goes here:
 -- the status line is redrawn synchronously, so no I/O (df, du) belongs in it.
 -- Directory totals live on <A-s> (what-size) and free space on <A-d> instead.

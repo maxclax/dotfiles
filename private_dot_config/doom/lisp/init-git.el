@@ -308,3 +308,63 @@
                    (not (persp-contain-buffer-p buf (get-current-persp))))
           (with-selected-window win (previous-buffer)))))))
 (add-hook 'persp-activated-functions #'my/magit-bury-foreign-h)
+
+;; ── Promote working-tree changes to `main' ──────────────────────────────────
+;; Several projects here keep the framework/template on `main' while daily
+;; work happens on another branch (personal / develop / application), with
+;; `main' checked out in a worktree. Changes meant for the template are
+;; usually noticed while sitting on the wrong branch. This commits them ON
+;; main (through that worktree) and merges main back — no branch switching,
+;; no stash dance. Aborts untouched if the patch does not apply on main.
+
+(defun my/git-main-worktree (&optional dir)
+  "Path of the worktree that has branch `main' checked out, or nil."
+  (let ((default-directory (or dir default-directory))
+        wt found)
+    (dolist (line (ignore-errors
+                    (process-lines "git" "worktree" "list" "--porcelain")))
+      (cond ((string-prefix-p "worktree " line)
+             (setq wt (substring line (length "worktree "))))
+            ((equal line "branch refs/heads/main")
+             (setq found wt))))
+    found))
+
+(defun my/magit-promote-to-main (message &optional include-untracked)
+  "Commit all working-tree changes on `main', then merge main into HEAD.
+With a prefix argument, also promote untracked files. The commit is made
+in the worktree that has `main' checked out; this buffer's branch is
+never switched."
+  (interactive (list (magit-read-string "Commit message (on main)")
+                     current-prefix-arg))
+  (let* ((src (or (magit-toplevel) (user-error "Not inside a git repository")))
+         (default-directory src)
+         (branch (magit-get-current-branch))
+         (wt (my/git-main-worktree src))
+         (patch (make-temp-file "magit-promote" nil ".patch"))
+         (untracked (and include-untracked (magit-untracked-files))))
+    (when (equal branch "main")
+      (user-error "Already on main — just commit normally"))
+    (unless wt
+      (user-error "No worktree of this repo has branch `main' checked out"))
+    (unwind-protect
+        (progn
+          ;; intent-to-add makes untracked files visible to `git diff'
+          (dolist (f untracked) (magit-call-git "add" "-N" f))
+          (with-temp-file patch
+            (call-process "git" nil t nil "diff" "HEAD"))
+          (when (zerop (file-attribute-size (file-attributes patch)))
+            (user-error "Nothing to promote"))
+          (let ((default-directory wt))
+            (unless (zerop (call-process "git" nil nil nil "apply" "--check" patch))
+              (user-error "Patch does not apply on main (branches diverged) — resolve manually"))
+            (magit-call-git "apply" patch)
+            (magit-call-git "add" "--all")
+            (magit-call-git "commit" "-m" message))
+          ;; drop the now-duplicated local copies, then merge main back
+          (magit-call-git "reset" "--hard" "HEAD")
+          (dolist (f untracked)
+            (ignore-errors (delete-file (expand-file-name f src))))
+          (magit-call-git "merge" "main" "--no-edit")
+          (magit-refresh)
+          (message "Promoted to main and merged into %s" branch))
+      (delete-file patch))))
