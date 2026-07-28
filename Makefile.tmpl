@@ -74,12 +74,20 @@ hm_commit:
 	@echo "✅ flake.lock changes committed!"
 
 hm_lock_to_main:
-	@WT=$$(cd {{ .chezmoi.sourceDir }} && git worktree list --porcelain | awk '/^worktree /{wt=$$2} /^branch refs\/heads\/main$$/{print wt}'); \
-	if [ -z "$$WT" ]; then echo "no worktree with branch main checked out"; exit 1; fi; \
-	cp {{ .chezmoi.sourceDir }}/private_dot_config/home-manager-flake/flake.lock "$$WT/private_dot_config/home-manager-flake/flake.lock"; \
-	cd "$$WT" && git diff --quiet -- private_dot_config/home-manager-flake/flake.lock && echo "main's lock already current" || \
-	git commit --only private_dot_config/home-manager-flake/flake.lock -m "dev: sync flake.lock from personal - $(shell date '+%Y-%m-%d')"
-	@echo "✅ main's flake.lock refreshed (merge back when batching)"
+	# Capture the CURRENT (system) flake.lock and commit it on main via its
+	# worktree — the working branch stays clean, so after `git merge main'
+	# history holds one lock commit plus the merge (no duplicate on this
+	# branch). Run after hmu; replaces hmc for the promote-to-main flow.
+	@echo "📄 Capturing current flake.lock..."
+	@chezmoi add ~/.config/home-manager-flake/flake.lock
+	@set -e; SRC={{ .chezmoi.sourceDir }}; L=private_dot_config/home-manager-flake/flake.lock; \
+	WT=$$(cd "$$SRC" && git worktree list --porcelain | awk '/^worktree /{wt=$$2} /^branch refs\/heads\/main$$/{print wt}'); \
+	[ -n "$$WT" ] || { echo "no worktree with branch main checked out"; exit 1; }; \
+	cp "$$SRC/$$L" "$$WT/$$L"; \
+	( cd "$$WT" && if git diff --quiet -- "$$L"; then echo "main's lock already current"; \
+	  else git commit --only "$$L" -m "dev: update Home Manager flake.lock - $(shell date '+%Y-%m-%d')"; fi ); \
+	( cd "$$SRC" && git checkout -- "$$L" 2>/dev/null || true )
+	@echo "✅ flake.lock committed on main — now merge main into your branch"
 
 hm_list:
 	@echo "📦 Home Manager packages:"
