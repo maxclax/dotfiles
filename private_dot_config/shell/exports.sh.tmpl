@@ -143,6 +143,24 @@ else
 fi
 
 # ============================================================================
+# Syntax Highlighting (bat)
+# ============================================================================
+# ranger's scope.sh previews text through `bat` (highlight/pygmentize are not
+# installed), and bat's built-in default is a dark theme — unreadable on a light
+# terminal. These themes mirror ghostty's `dark:Catppuccin Frappe,light:
+# Catppuccin Latte`, so previews follow the terminal instead of fighting it.
+export BAT_THEME_LIGHT="Catppuccin Latte"
+export BAT_THEME_DARK="Catppuccin Frappe"
+{{- if eq .chezmoi.os "darwin" }}
+# auto:system reads the macOS appearance directly: no terminal query, so it
+# still resolves correctly when bat's output is piped (as scope.sh does).
+export BAT_THEME="auto:system"
+{{- else }}
+# auto:always queries the terminal even when the output is redirected.
+export BAT_THEME="auto:always"
+{{- end }}
+
+# ============================================================================
 # Path and Repository Configuration
 # ============================================================================
 export PATH="$HOME/.local/bin:$PATH"                              # User binaries
