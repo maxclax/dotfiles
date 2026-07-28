@@ -24,6 +24,13 @@ prepend_keymap = [
 	{ on = "<C-w>", run = "yank --cut", desc = "Cut selected (C-w)" },
 	{ on = "<C-y>", run = "paste",      desc = "Paste (C-y)" },
 
+	# --- Full-screen preview (yazi's documented key for toggle-pane) ---
+	{ on = "T", run = "plugin toggle-pane max-preview", desc = "Maximize/restore the preview pane" },
+
+	# --- Sizes & disk (ranger's `sc`, and its "sum, free" statusline fields) ---
+	{ on = "<A-s>", run = "plugin what-size",         desc = "Total size of selection or cwd" },
+	{ on = "<A-d>", run = "shell --block -- df -h . | less", desc = "Disk free space" },
+
 	# --- isearch ---
 	{ on = "<C-s>", run = "find --smart",            desc = "Find next (C-s)" },
 	{ on = "<C-r>", run = "find --previous --smart", desc = "Find previous (C-r)" },
@@ -54,7 +61,6 @@ prepend_keymap = [
 
 	# --- macOS integration ---
 	{ on = "<C-o>", run = 'shell -- open -R "$@"',                desc = "Reveal in Finder (drag out from there)" },
-	{ on = "<A-y>", run = 'shell -- open -a Yoink "$@"',          desc = "Put files on Yoink shelf (drag-and-drop)" },
 	{ on = "<C-t>", run = 'shell --orphan -- qlmanage -p "$@"',   desc = "Quick Look preview" },
 {{- end }}
 ]

@@ -2,6 +2,7 @@
 
 [mgr]
 sort_dir_first = true
+linemode = "size"
 
 # Open text files in Emacs (client frame in the terminal; -a "" starts
 # a daemon if none is running). Overrides the default ${EDITOR:-vi} opener.
@@ -22,3 +23,10 @@ id    = "git"
 url   = "*/"
 run   = "git"
 group = "git"
+
+# sops.yazi — mark sops/age/gpg encrypted files (local plugin, see plugins/sops.yazi)
+[[plugin.prepend_fetchers]]
+id    = "sops"
+url   = "*"
+run   = "sops"
+group = "sops"

@@ -1,0 +1,13 @@
+#:schema https://yazi-rs.github.io/schemas/theme.json
+
+# git.yazi — the plugin's default `clean_sign` is empty, so clean files show
+# nothing at all. Ranger's vcs_aware marks them with a green check; do the same.
+# Every other sign/style keeps the plugin default (Nerd Font glyphs).
+[git]
+clean_sign = "✓"
+clean      = { fg = "green" }
+
+# sops.yazi — lock glyph on encrypted files
+[sops]
+sign  = ""
+style = { fg = "yellow" }

@@ -15,17 +15,20 @@ alias workspace_extra='cd {{ .workspace_extra }}'
 alias resources='cd {{ .resources }}'
 alias playground='cd {{ .playground  }}'
 
+# File manager; cd to the directory yazi was left in. `r` is kept as the old
+# ranger muscle memory — same wrapper, so both names behave identically.
 unalias r 2>/dev/null
-r() {
-  local tempfile
-  tempfile="$(mktemp -t ranger_cd.XXXXXX)"
-  ranger --choosedir="$tempfile" "${@:-.}"
-  if [ -f "$tempfile" ] && [ "$(cat "$tempfile")" != "$(pwd)" ]; then
-    cd "$(cat "$tempfile")" || return
+unalias y 2>/dev/null
+y() {
+  local tmp cwd
+  tmp="$(mktemp -t yazi-cwd.XXXXXX)"
+  yazi "${@:-.}" --cwd-file="$tmp"
+  if cwd="$(command cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+    builtin cd -- "$cwd" || return
   fi
-  rm -f "$tempfile"
+  rm -f -- "$tmp"
 }
-alias y='yazi .'
+alias r='y'
 alias br='broot'
 alias ll='eza --long --header --group-directories-first --git --group --all --color=auto'
 alias tree='tree -C'

@@ -147,6 +147,17 @@ workspace; the current tab stays selected."
 ;; (post-select runs my/tab-fix-dead-side-windows below, which reapplies)
 (advice-add 'tab-bar-select-tab :before #'my/dirvish-side-record-tab)
 (advice-add 'tab-bar-new-tab :before #'my/dirvish-side-record-tab)
+;; also record whenever the sidebar is toggled — tab-leave alone misses
+;; "opened it and stayed", leaving restore hooks with stale data
+(advice-add 'dirvish-side :after #'my/dirvish-side-record-tab)
+
+;; the git-commit flow (with-editor + magit diff) rebuilds the window
+;; layout and drops side windows — reapply the recorded sidebar state when
+;; the commit buffer appears and again after finishing/cancelling
+(add-hook 'git-commit-setup-hook #'my/dirvish-side-apply-tab-deferred)
+(with-eval-after-load 'with-editor
+  (add-hook 'with-editor-post-finish-hook #'my/dirvish-side-apply-tab-deferred)
+  (add-hook 'with-editor-post-cancel-hook #'my/dirvish-side-apply-tab-deferred))
 
 ;; workspace switches: record before doom's dirvish cleanup runs (add-hook
 ;; prepends, so ours fires before +dired--cleanup-dirvish-h), reapply after
