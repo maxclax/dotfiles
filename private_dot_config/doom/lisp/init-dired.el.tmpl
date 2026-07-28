@@ -237,7 +237,7 @@ workspace; the current tab stays selected."
   ;; sops markers), results cached per file+mtime so directory rendering
   ;; stays fast.
   (defvar my/sops-name-regex
-    "\.\(ya?ml\|json\|ini\)\'\|\.env\(\.[A-Za-z0-9_-]+\)?\'")
+    "\\.\\(ya?ml\\|json\\|ini\\)\\'\\|\\.env\\(\\.[A-Za-z0-9_-]+\\)?\\'")
 
   (defvar my/sops--enc-cache (make-hash-table :test 'equal))
 
@@ -254,7 +254,7 @@ workspace; the current tab stays selected."
                          (insert-file-contents-literally file nil 0 4096))
                        (goto-char (point-min))
                        (and (re-search-forward
-                             "ENC\[AES256_GCM\|^sops:\|"sops":\|^sops_" nil t)
+                             "ENC\\[AES256_GCM\\|^sops:\\|\"sops\":\\|^sops_" nil t)
                             t))))
             (puthash file (cons mtime enc) my/sops--enc-cache)
             enc)))))
