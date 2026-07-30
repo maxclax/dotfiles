@@ -10,13 +10,14 @@ attach: true
 windows:
   - main:
       # even-horizontal, even-vertical, main-horizontal, main-vertical, or tiled.
-      layout: 0db4,172x55,0,0[172x33,0,0{85x33,0,0,1,86x33,86,0,4},172x21,0,34{86x21,0,34,5,85x21,87,34,6}]
+      layout: ac40,172x55,0,0[172x33,0,0{85x33,0,0,1,86x33,86,0,4},172x21,0,34,5]
       panes:
         - clear
         - lp
-        - YAZI_SINGLE=1 yazi ~
-        - YAZI_SINGLE=1 yazi {{ .workspace }}
-        # - cmatrix
+        # wait for THIS pane to be focused: yazi probes the terminal and tmux
+        # gives the replies to the focused pane — starting it in a background
+        # pane times out and sprays escape codes wherever you are typing
+        - while [ "$(tmux display -p -t "$TMUX_PANE" '#{pane_active}')" != 1 ]; do sleep 0.5; done; YAZI_SINGLE=1 yazi ~
   - dotfiles:
       layout: tiled
       panes:
