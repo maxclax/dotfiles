@@ -50,6 +50,11 @@ set -g display-panes-time 4000  # 4 seconds instead of default 1 second
 # arrive and it fails with "Terminal response timeout".
 set -g allow-passthrough on
 
+# Correct terminfo for tmux (gpakosz's .tmux.conf ships screen-256color, which
+# lacks tmux's capabilities and confuses apps that probe the terminal).
+set -g default-terminal "tmux-256color"
+set -ga terminal-overrides ",*256col*:Tc"
+
 # === EMACS-STYLE PANE RESIZING (Shift + navigation) ===
 # Repeatable pane resizing with Shift + navigation letters
 bind -r P resize-pane -U 2     # C-x P (Shift+p) - resize up
