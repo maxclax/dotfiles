@@ -14,7 +14,6 @@
   # Basic system packages (minimal for now)
   environment.systemPackages = with pkgs; [
     vim       # Text editor
-    aerospace # Tiling window manager
   ];
 
   # User configuration
@@ -107,14 +106,15 @@
     onActivation = {
       autoUpdate = true;
       upgrade = true;
-      cleanup = "zap";
-      # Homebrew now refuses `brew bundle install --cleanup` without explicit
-      # confirmation; --force-cleanup lets the unattended activation prune
-      # casks/formulae not in this Brewfile (matches cleanup = "zap").
-      extraFlags = [ "--force-cleanup" ];
+      # Cleanup is NOT done here: activation's `brew cleanup' loads every cask
+      # of every tap, and third-party taps need trust that this unattended
+      # context does not resolve — it aborted the whole rebuild. `make
+      # hm_update' runs the equivalent zap afterwards, as the user.
+      cleanup = "none";
     };
 
     taps = [
+      "nikitabobko/tap"             # AeroSpace window manager (upstream, stable channel)
     ];
 
     brews = [
@@ -128,9 +128,9 @@
     casks = [
       "1Password"                   # Password manager and secure vault
       "BetterTouchTool"             # Customize trackpad, mouse, keyboard shortcuts
+      "aerospace"                   # Tiling window manager (stable channel, upstream tap)
       "alacritty"                   # GPU-accelerated terminal
       "alfred"                      # Productivity app and launcher
-      "appcleaner"                  # Thoroughly uninstall unwanted apps
       "balenaetcher"                # Flash OS images to SD cards & USB drives
       "chatbox"                     # Cross-platform desktop client for ChatGPT API
       "chatgpt"                     # Official ChatGPT desktop app

@@ -60,6 +60,15 @@ hm_update:
 {{- if and (eq .chezmoi.os "darwin") (not .extraUser) }}
 	@echo "🍎 Applying nix-darwin configuration (requires password)..."
 	sudo darwin-rebuild switch --flake ~/.config/home-manager-flake
+	@echo "🧹 Homebrew cleanup (as user, so third-party tap trust resolves)..."
+	# HOMEBREW_NO_REQUIRE_TAP_TRUST: cleanup loads every cask of every tap, and
+	# the trust check fails in brew's own subprocesses even when the tap IS
+	# trusted interactively. The taps here are the ones this Brewfile declares.
+	@BREWFILE=$$(grep -o -- "--file='[^']*'" /run/current-system/activate | head -1 | sed "s/--file='//; s/'$$//"); \
+	if [ -n "$$BREWFILE" ]; then \
+	  HOMEBREW_NO_REQUIRE_TAP_TRUST=1 brew bundle cleanup --file="$$BREWFILE" --zap --force || true; \
+	fi; \
+	HOMEBREW_NO_REQUIRE_TAP_TRUST=1 brew cleanup || true
 {{- else }}
 	@echo "👤 Applying Home Manager configuration (user-only)..."
 	home-manager switch --flake ~/.config/home-manager-flake
