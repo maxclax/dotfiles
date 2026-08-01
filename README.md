@@ -88,7 +88,7 @@ op item create --vault Automation --category="Secure Note" --title="github" \
   email="YOUR_GITHUB_EMAIL" \
   signing-key="YOUR_SSH_SIGNING_PUBLIC_KEY"
 
-# Automation vault: one item per API host for Emacs/aider runtime lookup,
+# Automation vault: one item per API host for Emacs runtime lookup,
 # e.g. item "api.anthropic.com" with field "apikey"; plus document
 # "sops-age-key" holding the sops age identity (fetched at decrypt time).
 ```

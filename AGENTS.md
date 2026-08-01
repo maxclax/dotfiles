@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This file provides guidance to AI coding agents (Claude Code, Grok Build, Cursor, Aider, etc.) when working with code in this repository.
+This file provides guidance to AI coding agents (Claude Code, Grok Build, Cursor, etc.) when working with code in this repository.
 
 ## Repository Overview
 
