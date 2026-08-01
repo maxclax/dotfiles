@@ -248,14 +248,7 @@
      :desc "Git time machine" "t"          #'git-timemachine-toggle)
 
     (:prefix ("C-c A" . "AI")
-     :desc "gptel: rewrite region"  "r" #'gptel-rewrite
-     :desc "aider: project session" "a" #'my/aider-project
-     :desc "aider: eat terminal"    "e" #'my/aider-eat
-     :desc "aider: code change"     "c" #'aider-function-or-region-change
-     :desc "aider: ask about code"  "q" #'aider-ask-question
-     :desc "aider: commit message"    "C" #'my/aider-commit-message
-     :desc "aider: fix flymake errors" "F" #'my/aider-flymake-fix-errors
-     :desc "aider: TDD cycle"          "t" #'aider-tdd-cycle)
+     :desc "gptel: rewrite region" "r" #'gptel-rewrite)
 
     (:prefix ("C-c t" . "Toggles")
      :desc "Fill column" "c"           #'global-display-fill-column-indicator-mode

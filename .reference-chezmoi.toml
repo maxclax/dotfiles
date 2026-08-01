@@ -20,7 +20,7 @@
 # ── AI keys (op://Automation/<host>/apikey) ──────────────────────────────────
 # api.openai.com, api.anthropic.com, generativelanguage.googleapis.com,
 # api.deepseek.com, api.z.ai/api/anthropic, ollama.com
-# → emacs auth-source + ~/.local/bin/aider wrapper (runtime, nothing on disk)
+# → emacs auth-source (runtime lookup, nothing on disk)
 #
 # ── sops (op://Automation/sops-age-key document) ──────────────────────────────
 # fetched at decrypt time via SOPS_AGE_KEY_CMD; never stored on disk
