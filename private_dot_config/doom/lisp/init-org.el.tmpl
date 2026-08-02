@@ -799,13 +799,41 @@ Heading links include file:path so navigation works across files."
            "* TODO %?")
           ("c" "Todo with context → inbox.org (adds link + timestamp)" entry (file org-default-notes-file)
            "* TODO %?\n%U\n  %i\n  %a" :clock-resume t)
-("j" "Journal todo → today's journal Todos section" entry (file+headline my/today-journal-file "Todos")
+          ;; file+function, not file+headline: the latter matches heading text
+          ;; exactly and would miss the emoji-prefixed `* ✅ Todos'
+          ("j" "Journal todo → today's journal Todos section" entry
+           (file+function my/today-journal-file my/journal-goto-todos)
            "* TODO %?" :clock-resume t)
           ("m" "Milestone → milestones.org (with start date)" entry (file my/milestones-file)
            "* %?\n:PROPERTIES:\n:STARTED: %^{Started}t\n:END:\n"
            :empty-lines 1)))
 
-  ;; Return path to today's journal file (used as file+headline capture target)
+  ;; Journal section headings carry an emoji in the template (`* ✅ Todos'),
+  ;; but older files and hand-made ones use the bare `* Todos'. Everything that
+  ;; targets the section matches both: an optional run of non-alphanumeric
+  ;; decoration between the stars and the word.
+  (defvar my/journal-todos-heading "✅ Todos"
+    "Heading inserted when a journal file has no Todos section yet.
+Only used as a fallback — an existing section is matched by
+`my/journal-todos-heading-regexp' whatever decoration it carries.")
+
+  (defconst my/journal-todos-heading-regexp
+    "^\\*+[ \t]+\\(?:[^[:alnum:]\n]+[ \t]*\\)?Todos\\b"
+    "Match a journal Todos heading with or without an emoji prefix.")
+
+  (defun my/journal-goto-todos ()
+    "Put point on the Todos heading of the current buffer, creating it if absent.
+Used as the `file+function' capture target and by the refile helpers."
+    (goto-char (point-min))
+    (if (re-search-forward my/journal-todos-heading-regexp nil t)
+        (goto-char (line-beginning-position))
+      (goto-char (point-max))
+      (unless (bolp) (insert "\n"))
+      (insert "* " my/journal-todos-heading "\n")
+      (forward-line -1)
+      (goto-char (line-beginning-position))))
+
+  ;; Return path to today's journal file (used as capture target)
   (defun my/today-journal-file ()
     "Return path to today's journal file, creating it if needed."
     (let* ((today (format-time-string "%Y%m%dT%H%M%S"))
@@ -1501,17 +1529,15 @@ went out. Inserts nothing when the queue is empty, so it disappears at zero."
       (when journal-file
         (with-current-buffer (find-file-noselect journal-file)
           (save-excursion
-            (goto-char (point-min))
-            (unless (re-search-forward "^\\*+ Todos" nil t)
-              (goto-char (point-max))
-              (insert "\n* Todos\n")
-              (save-buffer))))
-        (list "Todos" journal-file nil
-              (with-current-buffer (find-file-noselect journal-file)
-                (save-excursion
-                  (goto-char (point-min))
-                  (re-search-forward "^\\*+ Todos" nil t)
-                  (point-at-bol)))))))
+            (let ((created (not (save-excursion
+                                  (goto-char (point-min))
+                                  (re-search-forward
+                                   my/journal-todos-heading-regexp nil t)))))
+              (my/journal-goto-todos)
+              (when created (save-buffer))
+              ;; refile wants the heading's own text, so the entry is filed
+              ;; under `✅ Todos' rather than a second, bare `Todos'
+              (list (org-get-heading t t t t) journal-file nil (point))))))))
 
   (defun my/refile-to-today-journal ()
     "Refile current entry to today's journal under Todos heading.
@@ -2507,6 +2533,82 @@ Shows results in a navigable buffer with dates, locations, body, and images."
             (push (match-string 1) tags))))
       (delete-dups (mapcar #'downcase tags))))
 
+;; ── Checkbox completion stamps ────────────────────────────────────────────────
+;; Headings log their finish time via org-log-done/LOGBOOK, but plain `- [ ]'
+;; items have no such record. Stamp the end of the line when an item is
+;; checked and strip it when unchecked — the Obsidian behaviour, in org's own
+;; inactive-timestamp syntax so it stays greppable and out of the agenda.
+(defvar my/org-checkbox-stamp-format "✅ [%Y-%m-%d %a %H:%M]"
+  "`format-time-string' spec appended to a checkbox item when it is ticked.
+The leading ✅ separates the stamp from the item text at a glance; the
+timestamp itself stays an org inactive timestamp, so it is greppable and
+never reaches the agenda.")
+
+(defconst my/org-checkbox-stamp-regexp
+  "[ \t]+\\(?:✅[ \t]*\\)?\\[[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}[^]\n]*\\][ \t]*$"
+  "Trailing completion stamp written by `my/org-checkbox-stamp-line'.
+The ✅ is optional so stamps written before it was introduced are still
+removed on untick.  The leading whitespace is required: it keeps a
+hand-written range like `[…09:10]-[…10:00]' from having its second half
+stripped.")
+
+(defun my/org-checkbox-stamp-line ()
+  "Add or remove the completion stamp on the checkbox item at point.
+Adds one when the box is [X] and none is present, removes it for
+[ ] and [-].  Lines without a checkbox are left alone."
+  (save-excursion
+    (beginning-of-line)
+    (let ((bol (point))
+          (eol (line-end-position)))
+      (when (re-search-forward "\\=[ \t]*\\(?:[-+*]\\|[0-9]+[.)]\\)[ \t]+\\[\\([ Xx-]\\)\\][ \t]"
+                               eol t)
+        (let ((checked (member (match-string 1) '("X" "x")))
+              (line (buffer-substring-no-properties bol eol)))
+          (cond
+           ((and checked (not (string-match my/org-checkbox-stamp-regexp line)))
+            (goto-char eol)
+            (insert " " (format-time-string my/org-checkbox-stamp-format)))
+           ((and (not checked) (string-match my/org-checkbox-stamp-regexp line))
+            (delete-region (+ bol (match-beginning 0)) eol))))))))
+
+(defun my/org-checkbox-stamp-h (&rest _)
+  "Stamp every checkbox line the toggle just touched."
+  (when (derived-mode-p 'org-mode)
+    (if (use-region-p)
+        (save-excursion
+          (let ((end (copy-marker (region-end))))
+            (goto-char (region-beginning))
+            (while (< (point) end)
+              (my/org-checkbox-stamp-line)
+              (forward-line 1))
+            (set-marker end nil)))
+      (my/org-checkbox-stamp-line))))
+
+(defun my/org-checkbox-stamp-dodge-a (&rest _)
+  "Move point off a trailing completion stamp before C-c C-c dispatches.
+`org-ctrl-c-ctrl-c' acts on the element at point, so with point at end of
+line the stamp — a timestamp object — wins over the item and the checkbox
+never toggles.  Stepping back onto the item text restores the obvious
+behaviour."
+  (when (derived-mode-p 'org-mode)
+    (save-match-data
+      (let* ((bol (line-beginning-position))
+             (line (buffer-substring-no-properties bol (line-end-position))))
+        (when (and (string-match
+                    "^[ \t]*\\(?:[-+*]\\|[0-9]+[.)]\\)[ \t]+\\[[ Xx-]\\][ \t]" line)
+                   (string-match my/org-checkbox-stamp-regexp line)
+                   (> (point) (+ bol (match-beginning 0))))
+          (goto-char (+ bol (match-beginning 0))))))))
+
+;; Two entry points, because C-c C-c does NOT go through org-toggle-checkbox:
+;; `org-ctrl-c-ctrl-c' handles the `item' case itself via org-list-set-checkbox
+;; (org.el ~18160).  Advising it :after is safe — the stamp function is a no-op
+;; on any line that is not a checkbox item, so C-c C-c on tables, src blocks
+;; and keywords is unaffected.
+(advice-add 'org-toggle-checkbox :after #'my/org-checkbox-stamp-h)  ; C-c C-x C-b, mouse
+(advice-add 'org-ctrl-c-ctrl-c   :before #'my/org-checkbox-stamp-dodge-a)
+(advice-add 'org-ctrl-c-ctrl-c   :after #'my/org-checkbox-stamp-h)  ; C-c C-c
+
 ;; Reset function for checklists
 (defun my/org-reset-checklist ()
   "Reset all DONE items to TODO and uncheck all checkboxes in current buffer."
@@ -2521,10 +2623,17 @@ Shows results in a navigable buffer with dates, locations, body, and images."
         (replace-match "\\1 TODO " nil nil)
         (setq todo-count (1+ todo-count)))
 
-      ;; Reset checked checkboxes to unchecked
+      ;; Reset checked checkboxes to unchecked, dropping their completion
+      ;; stamps (see `my/org-checkbox-stamp-line') so a reused checklist
+      ;; doesn't carry last run's dates
       (goto-char (point-min))
       (while (re-search-forward "^[ \t]*- \\[X\\]" nil t)
         (replace-match "- [ ]" nil nil)
+        (save-excursion
+          (beginning-of-line)
+          (when (re-search-forward my/org-checkbox-stamp-regexp
+                                   (line-end-position) t)
+            (replace-match "")))
         (setq checkbox-count (1+ checkbox-count)))
 
       ;; Remove logbook entries
