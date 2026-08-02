@@ -212,7 +212,9 @@
   ;; Stock scanners are comment-blind: python `if DEBUG:' matches same as a
   ;; `DEBUG:' comment. This scanner requires the keyword right after a
   ;; comment marker (annotation style), so commented-out code like
-  ;; `# if settings.DEBUG:' doesn't count; org `* TODO' headings still match.
+  ;; `# if settings.DEBUG:' doesn't count. Org `* TODO' headings are NOT
+  ;; matched: they are agenda tasks, owned by org-agenda, not code
+  ;; annotations — in a notes repo they drowned the section (396 items).
   (magit-todos-defscanner "rg comments"
     :availablep (lambda () (executable-find "rg"))
     :directory-form (if (equal directory default-directory)
@@ -232,8 +234,8 @@
                        (--map (list "--glob" (concat "!" it))
                               (magit-list-module-paths)))
                      extra-args
-                     (format "(?:^\\*+[ \\t]+(?:%s)[ \\t])|(?:(?:#+|/{2,}|;+|-{2,}|/\\*+|<!--|^[ \\t]*\\*+)[ \\t]*(?:%s)(?:[\\[(][^\\])]*[)\\]])?:)"
-                             kws kws)
+                     (format "(?:#+|/{2,}|;+|-{2,}|/\\*+|<!--|^[ \\t]*\\*+)[ \\t]*(?:%s)(?:[\\[(][^\\])]*[)\\]])?:"
+                             kws)
                      directory)))
   (setq magit-todos-scanner #'magit-todos--scan-with-rg-comments)
   (magit-todos-mode 1))
