@@ -145,23 +145,39 @@ Heading links include file:path so navigation works across files."
 
   ;; Reset subtasks when repeating task is processed
   (defun my/reset-repeating-subtasks ()
-    "Reset subtasks and checkboxes when a repeating task is reset."
+    "Reset subtasks and checkboxes when a repeating task is reset.
+Unchecks every box in the subtree and strips the completion stamp
+`my/org-checkbox-stamp-line' wrote — without that the box comes back empty
+but still carries last cycle's ✅ date, which reads as though it were done."
     (when (org-get-repeat)              ; This is a repeating task
-      (message "Resetting repeating task subtasks...")
       (save-excursion
         (org-back-to-heading t)
-        (let ((end (save-excursion (org-end-of-subtree t))))
+        (let ((start (point))
+              ;; marker, not an integer: stripping stamps shortens the buffer
+              ;; and a fixed position would drift past the subtree
+              (end (copy-marker (save-excursion (org-end-of-subtree t t)))))
           ;; Reset all DONE subtasks back to TODO
           (org-map-entries
            (lambda ()
-             (when (string= (org-get-todo-state) "DONE")
-               (org-todo "TODO")
-               (message "Reset subtask: %s" (org-get-heading t t))))
+             (when (member (org-get-todo-state) org-done-keywords)
+               (org-todo "TODO")))
            nil 'tree)
-          ;; Reset checkboxes (this should already work, but ensure it)
-          (goto-char (point))
-          (while (re-search-forward "^[ \t]*- \\[X\\]" end t)
-            (replace-match "- [ ]" nil nil))))))
+          ;; Uncheck boxes — [X], [x] and partial [-], any bullet or number —
+          ;; and drop the completion stamp from each
+          (goto-char start)
+          (while (re-search-forward
+                  "^[ \t]*\\(?:[-+*]\\|[0-9]+[.)]\\)[ \t]+\\[\\([Xx-]\\)\\][ \t]"
+                  end t)
+            (replace-match " " nil nil nil 1)
+            (save-excursion
+              (beginning-of-line)
+              (when (re-search-forward my/org-checkbox-stamp-regexp
+                                       (line-end-position) t)
+                (replace-match "")))
+            (end-of-line))
+          (set-marker end nil)
+          ;; [n/m] cookies still show last cycle's count otherwise
+          (org-update-statistics-cookies nil)))))
 
   ;; Use the proper hook that runs after repeat processing
   (add-hook 'org-todo-repeat-hook #'my/reset-repeating-subtasks)

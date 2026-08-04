@@ -335,7 +335,11 @@
   "Commit all working-tree changes on `main', then merge main into HEAD.
 With a prefix argument, also promote untracked files. The commit is made
 in the worktree that has `main' checked out; this buffer's branch is
-never switched."
+never switched.
+
+Where main is simply behind, files it has not yet caught up on are merged
+three-way rather than refused. Real conflicts abort, and the local copies
+are only discarded once main is confirmed to have moved."
   (interactive (list (magit-read-string "Commit message (on main)")
                      current-prefix-arg))
   (let* ((src (or (magit-toplevel) (user-error "Not inside a git repository")))
@@ -343,11 +347,17 @@ never switched."
          (branch (magit-get-current-branch))
          (wt (my/git-main-worktree src))
          (patch (make-temp-file "magit-promote" nil ".patch"))
-         (untracked (and include-untracked (magit-untracked-files))))
+         (untracked (and include-untracked (magit-untracked-files)))
+         before)
     (when (equal branch "main")
       (user-error "Already on main — just commit normally"))
     (unless wt
       (user-error "No worktree of this repo has branch `main' checked out"))
+    ;; Backing out a failed apply means hard-resetting main's worktree, so
+    ;; refuse to start while it still holds anything of its own.
+    (when (let ((default-directory wt)) (magit-git-string "status" "--porcelain"))
+      (user-error "The `main' worktree is dirty — commit or discard there first"))
+    (setq before (magit-rev-parse "main"))
     (unwind-protect
         (progn
           ;; intent-to-add makes untracked files visible to `git diff'
@@ -357,11 +367,30 @@ never switched."
           (when (zerop (file-attribute-size (file-attributes patch)))
             (user-error "Nothing to promote"))
           (let ((default-directory wt))
-            (unless (zerop (call-process "git" nil nil nil "apply" "--check" patch))
-              (user-error "Patch does not apply on main (branches diverged) — resolve manually"))
-            (magit-call-git "apply" patch)
+            ;; The patch is cut against this branch's HEAD. If main is merely
+            ;; behind, its copy of a touched file has older context and a
+            ;; straight apply fails — retry as a three-way merge, which
+            ;; reconstructs the base from the blob ids in the patch.
+            ;; NB: `--3way --check' exits 0 even when it would conflict, so
+            ;; the real apply is the only usable gate.
+            (unless (zerop (call-process "git" nil nil nil "apply" patch))
+              (unless (zerop (call-process "git" nil nil nil "apply" "--3way" patch))
+                (let ((bad (magit-git-lines "diff" "--name-only" "--diff-filter=U")))
+                  (magit-call-git "reset" "--hard" "HEAD")
+                  (magit-call-git "clean" "-fd")
+                  (user-error "Conflicts on main in %s — promote those by hand"
+                              (string-join bad ", ")))))
             (magit-call-git "add" "--all")
             (magit-call-git "commit" "-m" message))
+          ;; Did main actually gain a commit? A rejected commit-msg hook, a
+          ;; signing failure or an empty tree all leave it where it was, and
+          ;; `magit-call-git' reports none of them. Never discard the local
+          ;; copies on the strength of a commit that did not happen.
+          (when (equal before (magit-rev-parse "main"))
+            (let ((default-directory wt))
+              (magit-call-git "reset" "--hard" "HEAD")
+              (magit-call-git "clean" "-fd"))
+            (user-error "Nothing was committed on main — your changes are untouched"))
           ;; drop the now-duplicated local copies, then merge main back
           (magit-call-git "reset" "--hard" "HEAD")
           (dolist (f untracked)
