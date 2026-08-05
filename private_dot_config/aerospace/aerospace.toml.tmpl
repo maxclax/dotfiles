@@ -229,6 +229,9 @@ run = ["layout tiling", "move-node-to-workspace I"]
 if.app-id = 'com.apple.mail'
 run = ["layout tiling", "move-node-to-workspace M"]
 [[on-window-detected]]
+if.app-id = 'ch.protonmail.desktop'
+run = ["layout tiling", "move-node-to-workspace M"]
+[[on-window-detected]]
 if.app-id = 'com.apple.Preview'
 run = ["layout tiling", "move-node-to-workspace M"]
 [[on-window-detected]]
