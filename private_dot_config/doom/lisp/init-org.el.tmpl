@@ -2659,6 +2659,45 @@ behaviour."
 
       (message "Reset %d TODO items and %d checkboxes" todo-count checkbox-count))))
 
+;; ── Display ───────────────────────────────────────────────────────────────────
+;; Reference notes — the `sticky' set above all — are read at a glance, not
+;; edited line by line. Strip the two things that add noise without adding
+;; information.
+
+(after! org
+  ;; Render =code=, *bold* and /italic/ without their delimiters. The sticky
+  ;; cheatsheets are mostly =...= markup (every key in every table), so hiding
+  ;; the markers is the biggest readability win available here. Editing still
+  ;; works: org-appear below puts them back around point.
+  (setq org-hide-emphasis-markers t))
+
+;; org-appear: re-reveal the markup hidden above, but only for the element
+;; point is inside. NOTE: this package sat in packages.el with no config and
+;; no effect — it is a no-op unless `org-hide-emphasis-markers' is non-nil.
+(use-package! org-appear
+  :hook (org-mode . org-appear-mode)
+  :config
+  (setq org-appear-autoemphasis   t     ; =code=, *bold*, /italic/
+        org-appear-autolinks    nil     ; links stay folded; C-c C-l to edit one
+        org-appear-autosubmarkers t))   ; a_1, x^2
+
+;; valign: REQUIRED once `org-hide-emphasis-markers' is on. Org sizes table
+;; columns from the source text, so a cell holding =C-c ^ u= is measured as 10
+;; characters but drawn as 8 — every markup-bearing cell comes up short and the
+;; right border goes ragged. valign re-aligns by rendered pixel width instead,
+;; which also survives variable-pitch fonts and wide glyphs.
+(use-package! valign
+  :hook (org-mode . valign-mode)
+  :config
+  ;; Plain box-drawing rules; `t' would swap in fancier bars that some
+  ;; monospace fonts render with gaps.
+  (setq valign-fancy-bar nil))
+
+;; Line numbers are for code. In prose and tables they are pure noise — nobody
+;; refers to "the magit key on line 14" — and they cost five columns in every
+;; window, which matters when three notes are tiled side by side.
+(add-hook! 'org-mode-hook (display-line-numbers-mode -1))
+
 ;; ── Link capture ──────────────────────────────────────────────────────────────
 ;; org-cliplink: paste URL from clipboard as [[url][page title]] org link
 (use-package! org-cliplink

@@ -58,6 +58,7 @@
 ;; → lisp/init-org.el
 
 (package! org-appear)                 ; Auto-hide/show markup in Org-mode
+(package! valign)                     ; Align tables by pixel width, not char count
 (package! org-ql)                     ; Query language for Org-mode files
 (package! org-super-agenda)           ; Enhanced agenda views and grouping
 (package! org-download)               ; Drag-and-drop image/link insertion
