@@ -189,6 +189,7 @@
       :desc "Keyword barchart" "k"          #'denote-explore-barchart-keywords
       :desc "Random note" "n"               #'denote-explore-random-note)
      :desc "Open inbox" "i"                 #'my/open-inbox
+     :desc "Sticky note (quick lookup)" "q" #'my/denote-sticky
      :desc "Insert tag index" "#"           #'my/denote-insert-tag-index
      (:prefix ("j" . "Journal")
       :desc "Today's journal" "j"           #'denote-journal-new-or-existing-entry
@@ -266,7 +267,7 @@
      :desc "Copilot" "a"               #'copilot-mode
      :desc "Prose mode" "P"             #'prose-mode
      :desc "Truncate lines" "t"        #'toggle-truncate-lines
-     :desc "Zen mode" "z"              #'+zen/toggle
+     :desc "Zoom window" "z"           #'my/toggle-window-zoom
      :desc "Zen mode (fullscreen)" "Z" #'+zen/toggle-fullscreen
      (:prefix ("T" . "Timing")
       :desc "Start timer" "t"          #'tmr

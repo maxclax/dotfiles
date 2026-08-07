@@ -17,15 +17,45 @@
   (setq denote-excluded-directories-regexp ".attach\\|data\\|images\\|archive")
 
   ;; Lifecycle keywords (inspired by EWS)
+  ;; `sticky' and `keyboardshortcuts' are listed so they autocomplete at
+  ;; creation time — without that, near-synonyms drift in (this set already
+  ;; grew a stray `commands' that means nothing `keyboardshortcuts' doesn't).
   (setq denote-known-keywords
         '("project" "area" "resource" "archive"
           "reference" "meeting" "finance" "work" "personal"
           "idea" "draft" "completed" "journal"
           "health" "shopping" "selling" "hold" "someday" "visit" "administration" "research"
-          "notoday"))
+          "notoday" "sticky" "keyboardshortcuts"))
 
   ;; Sort keywords for consistency
   (setq denote-sort-keywords t)
+
+  ;; --- Sticky notes ---------------------------------------------------
+  ;; The small, hot set looked up mid-task, whatever the subject: key
+  ;; bindings, CLI flags, a checklist, a config snippet, a phone number.
+  ;; `sticky' marks the ACCESS PATTERN, not the topic — subject tags stay
+  ;; orthogonal, so a note is `sticky' + `emacs', or `sticky' + `finance'.
+  ;; Deliberately NOT `pinned': that tag feeds the "📌 Pinned" agenda block,
+  ;; and lookup material has no business in a daily agenda. Sticky is a
+  ;; search surface — one keystroke away, invisible otherwise.
+  (defun my/denote--sticky-label (file)
+    "Human-readable label for FILE, from its Denote title slug.
+Parsed from the filename rather than the front matter: no file I/O,
+and nothing to break when Denote renames its retrieval functions."
+    (let ((base (file-name-nondirectory (file-name-sans-extension file))))
+      (if (string-match "--\\([^_]+\\)" base)
+          (replace-regexp-in-string "-" " " (match-string 1 base))
+        base)))
+
+  (defun my/denote-sticky ()
+    "Jump to a note tagged `sticky', completing over titles."
+    (interactive)
+    (let* ((files (denote-directory-files "_sticky"))
+           (cands (mapcar (lambda (f) (cons (my/denote--sticky-label f) f)) files)))
+      (unless cands
+        (user-error "No notes tagged `sticky' in %s" denote-directory))
+      (find-file
+       (cdr (assoc (completing-read "Sticky: " cands nil t) cands)))))
 
   ;; (denote-backlinks-show-context was removed: obsolete in denote 4.0 — the
   ;; C-c n b buffer is now an xref grep view. For a clean in-file "Linked
@@ -198,14 +228,23 @@
             (call-interactively #'denote))
         (message "Extra workspace not mounted."))))
 
-  ;; Dirvish showing both denote directories
+  ;; Browse a denote directory in dirvish.
+  ;; This used to call (dirvish (cons "Denote" dirs)) — an old dirvish API for
+  ;; named multi-directory sessions. Current dirvish is (dirvish &optional
+  ;; PATH) with PATH a string, so the list raised
+  ;;   dirvish--find-entry: Wrong type argument: stringp, ("Denote" ...)
+  ;; dired's list form still accepts several paths, but it lists them as two
+  ;; entries rather than their contents, which is not what this is for.
+  ;; So: open the one directory, and ask which when the extra one is mounted.
+  ;; Use `my/denote-find' when the goal is searching across both at once.
   (defun my/denote-dired ()
-    "Open dirvish with all denote directories."
+    "Open a denote directory in dirvish, prompting when there is a choice."
     (interactive)
-    (let ((dirs (list denote-directory))
-          (extra-dir (my/denote-extra-dir)))
-      (when extra-dir (push extra-dir dirs))
-      (dirvish (cons "Denote" dirs))))
+    (let* ((extra-dir (my/denote-extra-dir))
+           (dirs (delq nil (list denote-directory extra-dir))))
+      (dirvish (if (cdr dirs)
+                   (completing-read "Denote directory: " dirs nil t)
+                 (car dirs)))))
 
   ;; Find across all denote directories with live preview
   (defun my/denote-find ()
