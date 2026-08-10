@@ -5,6 +5,17 @@
 {{- $org_dir := promptStringOnce . "org_dir" "org directory" (printf "%s/.local/managed-sync/org" .chezmoi.homeDir) -}}
 {{- $primary_storage := promptStringOnce . "primary_storage" "primary storage" (printf "%s/primary_storage" .chezmoi.homeDir) -}}
 {{- $secondary_storage := promptStringOnce . "secondary_storage" "secondary storage" (printf "%s/secondary_storage" .chezmoi.homeDir) -}}
+{{- /* GGUF weights are multi-GB; default to llama.cpp's own cache but allow an
+       external volume so they never land on a small internal disk. */ -}}
+{{- $llama_models := promptStringOnce . "llama_models" "llama.cpp model cache (GGUF weights)" (printf "%s/.cache/llama.cpp" .chezmoi.homeDir) -}}
+{{- /* 9931 is upstream's future default; 8080 is being retired. Pinning it
+       means the upstream change is a no-op, but anything storing a URL (pi's
+       llama.cpp credential) has to agree with whatever is set here. */ -}}
+{{- $llama_port := promptStringOnce . "llama_port" "llama.cpp server port" "9931" -}}
+{{- /* Model `make llama_serve' loads on startup. An alias from
+       presets.ini; empty means no preload. The router has no preload
+       flag of its own, so the Makefile issues the load request. */ -}}
+{{- $llama_preload := promptStringOnce . "llama_preload" "llama.cpp model to preload (presets.ini alias, empty = none)" "qwen3-coder-30b" -}}
 
 {{- $emacsType := "default" -}}
 {{- if stdinIsATTY -}}
@@ -121,6 +132,9 @@ encryption = "age"
     org_dir = {{ $org_dir | quote }}
     primary_storage = {{ $primary_storage | quote }}
     secondary_storage = {{ $secondary_storage | quote }}
+    llama_models = {{ $llama_models | quote }}
+    llama_port = {{ $llama_port | quote }}
+    llama_preload = {{ $llama_preload | quote }}
     editor = "emacsclient"
     shell = {{ $shell | quote }}
 

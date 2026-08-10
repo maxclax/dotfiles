@@ -3,6 +3,7 @@
 [mgr]
 sort_dir_first = true
 linemode = "size"
+show_hidden = true # dotfiles are the point; `.' still toggles per-session
 
 # Open text files in Emacs (client frame in the terminal; -a "" starts
 # a daemon if none is running). Overrides the default ${EDITOR:-vi} opener.

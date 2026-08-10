@@ -121,6 +121,10 @@
       "dockutil"                    # Command-line tool for managing Dock items
       "grafana"                     # Metrics dashboards & visualization
       "herdr"                       # Agent multiplexer that lives in your terminal
+      # Local inference engine (llama-server/llama-cli/llama-bench). Brew, not
+      # nixpkgs: upstream moves fast and brew ships a Metal-enabled bottle,
+      # where nixpkgs lags and may build from source.
+      "llama.cpp"                   # Local LLM inference — GGUF models on Metal
       "mole"                        # Deep clean and optimize your Mac
       "snort"                       # Network intrusion detection system
     ];

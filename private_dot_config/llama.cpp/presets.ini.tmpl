@@ -1,0 +1,54 @@
+; -*- mode: conf-unix; -*-
+; llama.cpp router presets. Read via LLAMA_ARG_MODELS_PRESET (shell/exports.sh).
+;
+; WHY LOCAL PATHS RATHER THAN hf-repo:
+;   1. `hf-repo' makes the llama binary reach Hugging Face on every load. Behind
+;      Little Snitch that fails per-binary and per-session, with an unhelpful
+;      "HTTPLIB failed: Could not establish connection" and exit code 1. curl is
+;      already permitted, so weights are fetched with curl instead.
+;   2. `hf-repo' models are ALSO auto-discovered from the HF cache, producing a
+;      second entry for the same file that carries none of these flags — loading
+;      it would use the model's full trained context (262144-1048576 here) and
+;      exhaust 24 GB. A local path has no such twin, so short section names are
+;      safe again.
+;   3. A path either exists or errors at once; a stale LLAMA_CACHE silently
+;      re-downloads gigabytes.
+;
+; Keys are llama-server long options without the leading "--".
+; Weights live outside the dotfiles (multi-GB); this file only points at them.
+; Fetch a new one with:
+;   curl -L -o {{ dig "llama_models" "$LLAMA_CACHE" . }}/gguf/<name>.gguf <url>
+;
+; WHY EVERY SECTION PINS ctx-size AND cache-type:
+; Without them the router loads at the model's full trained context and the KV
+; cache alone exceeds this machine. Sizes are measured where marked.
+
+; MoE, ~3B of 30B active. Sparsity is what governs speed here: a dense 9B
+; managed 3.0 tok/s where this did 50.8 tok/s generation / 486 tok/s prompt.
+; ctx 32768 because pi sends ~24k tokens of system prompt before your first
+; word; 16384 returned exceed_context_size_error on every request.
+; KV is cheap — GQA with 4 KV heads, head dim 128 — so 32k at q4_0 costs
+; 0.84 GiB, versus 0.80 GiB for 16k at q8_0. Doubling context was ~free.
+;   weights 12.86 GiB -> 19.16 GiB WIRED (measured 2026-08-10)
+;   Only ~13.7 GiB of that is weights+KV; ~5.5 GiB is Metal compute and MoE
+;   routing buffers, which no cache setting reduces.
+[qwen3-coder-30b]
+model = {{ dig "llama_models" (printf "%s/.cache/llama.cpp" .chezmoi.homeDir) . }}/gguf/qwen3-coder-30b-A3B-UD-Q3_K_XL.gguf
+ctx-size = 32768
+gpu-layers = 99
+cache-type-k = q4_0
+cache-type-v = q4_0
+
+; Sparsest option here: 6 of 256 experts active. Also the only one at Q8_0,
+; i.e. effectively lossless, where the 30B above is squeezed to 3 bits.
+; 1 KV head (MLA-style), so KV at 32k is ~1.43 GiB and 65536 would add only
+; +1.43 more. Native context is 1,048,576.
+; DeepSWE 54.4 (vendor's own figure) vs GLM-5.2 46.2 and Opus-4.8 58.0.
+;   weights 10.15 GiB + KV 1.43 = 11.6 GiB before Metal/MoE overhead
+;   (UNVERIFIED — the 30B needed ~5.5 GiB of overhead on top)
+[deepseek-v4-flash]
+model = {{ dig "llama_models" (printf "%s/.cache/llama.cpp" .chezmoi.homeDir) . }}/gguf/deepseek-v4-flash-Q8_0.gguf
+ctx-size = 32768
+gpu-layers = 99
+cache-type-k = q8_0
+cache-type-v = q8_0
