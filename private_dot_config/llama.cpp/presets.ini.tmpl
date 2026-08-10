@@ -1,79 +1,33 @@
-; -*- mode: conf-unix; -*-
+; -*- mode: conf-windows; -*-
 ; llama.cpp router presets. Read via LLAMA_ARG_MODELS_PRESET (shell/exports.sh).
-;
-; WHY LOCAL PATHS RATHER THAN hf-repo:
-;   1. `hf-repo' makes the llama binary reach Hugging Face on every load. Behind
-;      Little Snitch that fails per-binary and per-session, with an unhelpful
-;      "HTTPLIB failed: Could not establish connection" and exit code 1. curl is
-;      already permitted, so weights are fetched with curl instead.
-;   2. `hf-repo' models are ALSO auto-discovered from the HF cache, producing a
-;      second entry for the same file that carries none of these flags — loading
-;      it would use the model's full trained context (262144-1048576 here) and
-;      exhaust 24 GB. A local path has no such twin, so short section names are
-;      safe again.
-;   3. A path either exists or errors at once; a stale LLAMA_CACHE silently
-;      re-downloads gigabytes.
-;
 ; Keys are llama-server long options without the leading "--".
-; Weights live outside the dotfiles (multi-GB); this file only points at them.
-; Fetch a new one with:
-;   curl -L -o {{ dig "llama_models" "$LLAMA_CACHE" . }}/gguf/<name>.gguf <url>
+; Weights live outside the dotfiles; this file only points at them.
 ;
-; WHY EVERY SECTION PINS ctx-size AND cache-type:
-; Without them the router loads at the model's full trained context and the KV
-; cache alone exceeds this machine. Sizes are measured where marked.
+; Local paths rather than hf-repo: no network fetch at load time, and no
+; duplicate auto-discovered entry that would ignore the flags below.
+; Every section pins ctx-size and cache-type — the default is the model's full
+; trained context, whose KV cache does not fit.
 
-; Newer generation than qwen3-coder-30b (Qwen3.6 vs Qwen3), MoE with ~3B of
-; 35B active. NOT coder-tuned — this is the general model; compare it against
-; qwen3-coder-30b on real work before deciding.
-; UD-IQ3_S (12.7 GiB) chosen to match the 30B's 12.86 GiB footprint: the larger
-; quants (UD-Q3_K_XL 15.7, UD-IQ4_XS 16.5) would land near 22 GiB wired once
-; Metal and MoE routing overhead is added, past the ~18 GiB GPU cap.
-; GGUF arch is qwen35moe, present in llama.cpp 10330.
-;   weights 12.7 GiB -> expect ~19 GiB wired, as the 30B measures (UNVERIFIED)
+; MoE, 8 of 256 experts active. General model, not coder-tuned.
+; Thinking model: reasoning stays enabled. Disabling it is not equivalent to
+; using a non-thinking model — prefer qwen3-coder-30b for code.
 [qwen3.6-35b]
 model = {{ dig "llama_models" (printf "%s/.cache/llama.cpp" .chezmoi.homeDir) . }}/gguf/qwen3.6-35b-a3b-UD-IQ3_S.gguf
 ctx-size = 32768
 gpu-layers = 99
 cache-type-k = q4_0
 cache-type-v = q4_0
+; thoughts into reasoning_content; `auto' mis-split this template
+reasoning-format = deepseek
+; runaway guard, not a limit
+reasoning-budget = 4096
 
-; MoE, ~3B of 30B active. Sparsity is what governs speed here: a dense 9B
-; managed 3.0 tok/s where this did 50.8 tok/s generation / 486 tok/s prompt.
-; ctx 32768 because pi sends ~24k tokens of system prompt before your first
-; word; 16384 returned exceed_context_size_error on every request.
-; KV is cheap — GQA with 4 KV heads, head dim 128 — so 32k at q4_0 costs
-; 0.84 GiB, versus 0.80 GiB for 16k at q8_0. Doubling context was ~free.
-;   weights 12.86 GiB -> 19.16 GiB WIRED (measured 2026-08-10)
-;   Only ~13.7 GiB of that is weights+KV; ~5.5 GiB is Metal compute and MoE
-;   routing buffers, which no cache setting reduces.
+; MoE, ~3B of 30B active. Not a thinking model, so no reasoning overhead.
+; ctx 32768 because pi sends a large system prompt before the first message;
+; 16384 returned exceed_context_size_error.
 [qwen3-coder-30b]
 model = {{ dig "llama_models" (printf "%s/.cache/llama.cpp" .chezmoi.homeDir) . }}/gguf/qwen3-coder-30b-A3B-UD-Q3_K_XL.gguf
 ctx-size = 32768
 gpu-layers = 99
 cache-type-k = q4_0
 cache-type-v = q4_0
-
-; DISABLED — does not run on llama.cpp 10330. The dflash arch loader is
-; present (general.architecture = "dflash" is recognised), but creating a
-; context fails with:
-;     dflash requires ctx_other to be set
-; and no CLI flag exposes ctx_other. Tried and rejected: --fit off,
-; --spec-type draft-dflash, --spec-type draft-dspark.
-; Upstream is mid-implementation: ggml-org/llama.cpp#26636 "add backends of the
-; other model to the context" is still OPEN, and #25668 is the same class of bug
-; for gemma4-style models. The 10.15 GiB of weights were deleted once the bug
-; was confirmed, so re-testing after a llama.cpp upgrade means downloading again.
-;
-; Worth re-testing because on paper it suits this machine better than the 30B:
-; 6 of 256 experts active, 2.7 GiB smaller, 1 KV head (MLA) so KV at 32k is only
-; ~1.43 GiB, and DeepSWE 54.4 (vendor's figure) vs Opus-4.8's 58.0.
-; NB the filename says Q8_0 but the GGUF header reports file_type 38 = MXFP4,
-; i.e. 4-bit — not the near-lossless 8-bit the name implies.
-;
-; [deepseek-v4-flash]
-; model = {{ dig "llama_models" (printf "%s/.cache/llama.cpp" .chezmoi.homeDir) . }}/gguf/deepseek-v4-flash-Q8_0.gguf
-; ctx-size = 32768
-; gpu-layers = 99
-; cache-type-k = q8_0
-; cache-type-v = q8_0
