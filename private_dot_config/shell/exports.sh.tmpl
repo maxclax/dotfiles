@@ -214,6 +214,35 @@ export OLLAMA_HOST="0.0.0.0:11434"              # Allow network access for agent
 export OLLAMA_CONTEXT_LENGTH=65536              # Default context window for ollama serve (M4 24GB)
 
 # ============================================================================
+# llama.cpp — local inference engine (`llama serve' router, llama-server, llama-cli)
+# Without LLAMA_CACHE, `-hf' re-downloads multi-GB GGUF weights to
+# ~/.cache/llama.cpp, and `llama serve' scans that dir and reports zero models.
+{{/* dig, not .llama_models: the key only exists after a `chezmoi init' that
+     prompted for it, and a bare reference makes apply fail on machines
+     initialised before it was added. */ -}}
+export LLAMA_CACHE={{ dig "llama_models" (printf "%s/.cache/llama.cpp" .chezmoi.homeDir) . | quote }}
+# Per-model context and KV-cache caps for router mode. The router otherwise
+# loads every model at its full trained context (262144+ for these), which
+# blows past 24GB of unified memory. Read by `llama serve' and llama-server
+# alike; harmless when the file is absent.
+# Lives in the dotfiles, not beside the weights: it is small config that should
+# be version-controlled, while the GGUFs are multi-GB and machine-local. The
+# sections point at $LLAMA_CACHE/gguf/*.gguf via local paths rather than
+# hf-repo — see the file's own header for why.
+export LLAMA_ARG_MODELS_PRESET="$HOME/.config/llama.cpp/presets.ini"
+# Pin the port. Upstream warns the built-in default moves from 8080 to 9931 in
+# a future release, so relying on the default would silently relocate the
+# server. 9931 now means the change is a no-op when it lands. Anything holding
+# a URL (pi's stored llama.cpp credential) must match this.
+export LLAMA_ARG_PORT={{ dig "llama_port" "9931" . }}
+# Model `make llama_serve' loads on startup. Not a llama.cpp variable — the
+# router has no preload flag, it only loads on demand, and pi cannot trigger
+# that because it lists only LOADED models. The Makefile nudges it instead.
+# Qwen3-Coder-30B-A3B rather than a newer dense model: it is MoE, so ~3B of 30B
+# is active per token and it measured 50.8 tok/s against a dense 9B's 3.0.
+export LLAMA_PRELOAD_MODEL={{ dig "llama_preload" "qwen3-coder-30b" . | quote }}
+
+# ============================================================================
 # Platform-Specific Configuration
 # ============================================================================
 # Use chezmoi OS detection if uname is not available (container environments)
