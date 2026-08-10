@@ -123,6 +123,8 @@ Files with `.tmpl` extension use chezmoi's Go templating:
 - `*.nix.tmpl` → `# -*- mode: nix; -*-`
 - `*.yml.tmpl` / `*.yaml.tmpl` → `# -*- mode: yaml; -*-`
 - `*.toml.tmpl` → `# -*- mode: conf-toml; -*-`
+- `*.ini.tmpl` → `; -*- mode: conf-windows; -*-` (INI comments are `;`; `conf-unix`
+  would treat those lines as data and let apostrophes open strings)
 
 ### External Dependencies
 
