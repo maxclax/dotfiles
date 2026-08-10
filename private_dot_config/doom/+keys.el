@@ -248,8 +248,23 @@
      :desc "Jump to previous hunk" "p"     #'+vc-gutter/previous-hunk
      :desc "Git time machine" "t"          #'git-timemachine-toggle)
 
+    ;; gptel for one-shot questions and region rewrites; pi for agentic work
+    ;; (it edits files and runs commands, which gptel deliberately cannot).
+    ;; Every command here is autoloaded by gptel itself except `gptel-abort',
+    ;; which init-gptel.el lists in `:commands'. `gptel-context-remove-all' is
+    ;; NOT bound: it lives in gptel-context.el with no autoload, and `C-- a'
+    ;; (negative prefix to `gptel-add') already clears the whole context.
     (:prefix ("C-c A" . "AI")
-     :desc "gptel: rewrite region" "r" #'gptel-rewrite)
+     :desc "gptel: chat buffer" "c"      #'gptel
+     :desc "gptel: send" "s"             #'gptel-send
+     :desc "gptel: menu (all options)" "m" #'gptel-menu
+     :desc "gptel: rewrite region" "r"   #'gptel-rewrite
+     ;; Context: what gets attached to every request. `a' is DWIM — region if
+     ;; one is active, marked files in dired, else the current buffer.
+     :desc "gptel: add to context" "a"   #'gptel-add
+     :desc "gptel: add file to context" "f" #'gptel-add-file
+     :desc "gptel: abort request" "k"    #'gptel-abort
+     :desc "pi: coding agent" "p"        #'pi-coding-agent)
 
     (:prefix ("C-c t" . "Toggles")
      :desc "Fill column" "c"           #'global-display-fill-column-indicator-mode
