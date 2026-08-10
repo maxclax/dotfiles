@@ -13,7 +13,10 @@
 ; using a non-thinking model — prefer qwen3-coder-30b for code.
 [qwen3.6-35b]
 model = {{ dig "llama_models" (printf "%s/.cache/llama.cpp" .chezmoi.homeDir) . }}/gguf/qwen3.6-35b-a3b-UD-IQ3_S.gguf
-ctx-size = 32768
+; 65536 rather than 32768: only 2 KV heads over 40 layers, so KV costs ~0.35 GiB
+; here versus ~0.85 GiB for the 30B at the same length. Agents reading files
+; overflow 32k easily.
+ctx-size = 65536
 gpu-layers = 99
 cache-type-k = q4_0
 cache-type-v = q4_0
