@@ -202,16 +202,6 @@ add_to_path prepend "$HOME/.local/bin"        # user-installed binaries
 # ============================================================================
 # AI Development Tools Configuration
 # ============================================================================
-# Ollama configuration for M4 Mac with 24GB RAM
-export OLLAMA_NUM_PARALLEL=2                    # Optimal for M4 Mac with dual model serving
-export OLLAMA_MAX_LOADED_MODELS=1               # Keep 1 model in memory for optimal performance
-export OLLAMA_FLASH_ATTENTION=1                 # Enable flash attention for better performance
-export OLLAMA_KV_CACHE_TYPE=f16                 # Use f16 for KV cache to save memory
-export OLLAMA_NUM_GPU=1                         # Use Metal GPU acceleration
-export OLLAMA_RUNNER_MAX_TOKENS=32768           # Maximum token limit for extended context
-export OLLAMA_RUNNER_TEMPERATURE=0.7            # Lower temperature for coding tasks
-export OLLAMA_HOST="0.0.0.0:11434"              # Allow network access for agent use
-export OLLAMA_CONTEXT_LENGTH=65536              # Default context window for ollama serve (M4 24GB)
 
 # ============================================================================
 # llama.cpp — local inference engine (`llama serve' router, llama-server, llama-cli)

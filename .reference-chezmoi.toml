@@ -19,7 +19,7 @@
 #
 # ── AI keys (op://Automation/<host>/apikey) ──────────────────────────────────
 # api.openai.com, api.anthropic.com, generativelanguage.googleapis.com,
-# api.deepseek.com, api.z.ai/api/anthropic, ollama.com
+# api.deepseek.com, api.z.ai/api/anthropic
 # → emacs auth-source (runtime lookup, nothing on disk)
 #
 # ── sops (op://Automation/sops-age-key document) ──────────────────────────────
