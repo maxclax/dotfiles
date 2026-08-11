@@ -138,6 +138,18 @@
       :desc "Delete image" "d"         #'org-download-delete))
 
     (:prefix ("C-c l" . "Tools")
+             ;; gptel for one-shot questions and region rewrites; pi for agentic
+             ;; work. `a' is DWIM context — region, dired marks, else the buffer.
+             ;; Not `C-c C-a': that is org-attach in org-mode-map.
+             (:prefix ("a" . "AI")
+              :desc "gptel: chat buffer" "c"         #'gptel
+              :desc "gptel: send" "s"                #'gptel-send
+              :desc "gptel: menu (all options)" "m"  #'gptel-menu
+              :desc "gptel: rewrite region" "r"      #'gptel-rewrite
+              :desc "gptel: add to context" "a"      #'gptel-add
+              :desc "gptel: add file to context" "f" #'gptel-add-file
+              :desc "gptel: abort request" "k"       #'gptel-abort
+              :desc "pi: coding agent" "p"           #'pi-coding-agent)
              (:prefix ("e" . "ERC IRC")
               :desc "Show all buffers" "a"    #'my/erc-show-all-buffers
               :desc "Connect to IRC" "c"      #'my/erc-connect
@@ -247,24 +259,6 @@
      :desc "Jump to next hunk" "n"         #'+vc-gutter/next-hunk
      :desc "Jump to previous hunk" "p"     #'+vc-gutter/previous-hunk
      :desc "Git time machine" "t"          #'git-timemachine-toggle)
-
-    ;; gptel for one-shot questions and region rewrites; pi for agentic work
-    ;; (it edits files and runs commands, which gptel deliberately cannot).
-    ;; Every command here is autoloaded by gptel itself except `gptel-abort',
-    ;; which init-gptel.el lists in `:commands'. `gptel-context-remove-all' is
-    ;; NOT bound: it lives in gptel-context.el with no autoload, and `C-- a'
-    ;; (negative prefix to `gptel-add') already clears the whole context.
-    (:prefix ("C-c A" . "AI")
-     :desc "gptel: chat buffer" "c"      #'gptel
-     :desc "gptel: send" "s"             #'gptel-send
-     :desc "gptel: menu (all options)" "m" #'gptel-menu
-     :desc "gptel: rewrite region" "r"   #'gptel-rewrite
-     ;; Context: what gets attached to every request. `a' is DWIM — region if
-     ;; one is active, marked files in dired, else the current buffer.
-     :desc "gptel: add to context" "a"   #'gptel-add
-     :desc "gptel: add file to context" "f" #'gptel-add-file
-     :desc "gptel: abort request" "k"    #'gptel-abort
-     :desc "pi: coding agent" "p"        #'pi-coding-agent)
 
     (:prefix ("C-c t" . "Toggles")
      :desc "Fill column" "c"           #'global-display-fill-column-indicator-mode
@@ -448,9 +442,11 @@
         "TAB"   #'dirvish-subtree-toggle
         "M-TAB" #'dirvish-layout-toggle
         "2"     #'my/dirvish-dual-panel
-        "V"     #'my/dired-toggle-details)
+        "V"     #'my/dired-toggle-details
+        "H"     #'my/dired-toggle-hidden)
   (map! :map dired-mode-map
-        "2"     #'my/dirvish-dual-panel))
+        "2"     #'my/dirvish-dual-panel
+        "H"     #'my/dired-toggle-hidden))
 
 (after! dired
   (map! :map dired-mode-map
