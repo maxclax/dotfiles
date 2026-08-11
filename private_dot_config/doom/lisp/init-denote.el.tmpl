@@ -705,7 +705,7 @@ buffer. PREVIEW-LINES (prefix arg) sets lines per backlink; default 5."
   (interactive)
   (let* ((yesterday (time-subtract (current-time) (days-to-time 1)))
          (date-string (format-time-string "%Y-%m-%d" yesterday)))
-    (denote-journal-extras-new-or-existing-entry date-string)))
+    (denote-journal-new-or-existing-entry date-string)))
 
 ;; Function to open tomorrow's journal
 (defun my/open-tomorrow-journal ()
@@ -713,7 +713,7 @@ buffer. PREVIEW-LINES (prefix arg) sets lines per backlink; default 5."
   (interactive)
   (let* ((tomorrow (time-add (current-time) (days-to-time 1)))
          (date-string (format-time-string "%Y-%m-%d" tomorrow)))
-    (denote-journal-extras-new-or-existing-entry date-string)))
+    (denote-journal-new-or-existing-entry date-string)))
 
 ;; Scrollable journal feed - all denote files in one buffer
 (defun my/denote-feed-open-entry ()
