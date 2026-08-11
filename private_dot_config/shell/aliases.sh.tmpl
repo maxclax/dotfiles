@@ -154,15 +154,6 @@ alias docker=podman
 alias docker-compose=podman-compose
 {{ end }}
 
-# ---- pay-respects -----
-if [[ "$DOTFILES_SHELL" == "zsh" ]]; then
-    eval "$(pay-respects zsh --alias)"
-elif [[ "$DOTFILES_SHELL" == "bash" ]]; then
-    eval "$(pay-respects bash --alias)"
-elif [[ "$DOTFILES_SHELL" == "fish" ]]; then
-    eval "$(pay-respects fish --alias)"
-fi
-
 # Per-platform settings, will override the above commands
 case $(uname) in
 Darwin)
