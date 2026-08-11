@@ -30,6 +30,22 @@ With prefix argument USE-PROJECT, open at the project root instead."
 
 (add-hook 'dired-mode-hook #'my/dired-apply-view-state)
 
+;; Dotfiles are on by default (-A in `dired-listing-switches'); this drops/re-adds
+;; the A in the leading flag cluster. Buffer-local, like dirvish's own switch menu.
+(defun my/dired-toggle-hidden ()
+  "Toggle dotfiles in this dired/dirvish buffer."
+  (interactive)
+  ;; [aA] explicitly, so the result does not depend on `case-fold-search'
+  (let* ((sw (or dired-actual-switches dired-listing-switches))
+         (case-fold-search nil)
+         (shown (string-match-p "\\`-[A-Za-z]*[aA]" sw)))
+    (setq dired-actual-switches
+          (if shown
+              (replace-regexp-in-string "\\`\\(-[A-Za-z]*?\\)[aA]" "\\1" sw)
+            (replace-regexp-in-string "\\`-" "-A" sw)))
+    (revert-buffer)
+    (message "Dired: dotfiles %s" (if shown "hidden" "shown"))))
+
 (defun my/dired-toggle-details ()
   "Toggle between clean and detailed view globally (persists across directories)."
   (interactive)
