@@ -41,3 +41,12 @@ precedence over this file; keep this to preferences that hold everywhere.
 - The local models run with a limited context window. Read the specific region
   of a file you need instead of whole large documents, and prefer `rg` over
   dumping directories.
+
+## Noise files
+
+- Ignore OS and editor metadata entirely: `.DS_Store`, `._*`, `.Spotlight-V100`,
+  `.Trashes`, `Thumbs.db`, `*~`, `#*#`, `.#*`. Never read, write, edit or delete
+  them, and never mention them in an answer.
+- When listing a directory, filter them out (`ls -A | grep -v '^\.DS_Store$'`,
+  or `rg --files` which skips them). A directory containing only such files is
+  empty — say "empty", not "effectively empty".

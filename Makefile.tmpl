@@ -517,12 +517,12 @@ llama_models:
 	  || echo "❌ router not running — make llama_serve"
 
 llama_load:
-	# Usage: make llama_load model=qwen3.5-9b    (aliases work; see llama_models)
+	# Usage: make llama_load [model=<id|alias>]   (default: $(LLAMA_PRELOAD_MODEL))
 	# Needed despite --models-autoload: autoload only fires when a client asks
 	# for a model, and pi lists only LOADED models — so nothing can ask first.
-	@test -n "$(model)" || { echo "Usage: make llama_load model=<id|alias>"; exit 1; }
+	@test -n "$(LLAMA_PRELOAD)" || { echo "Usage: make llama_load model=<id|alias>"; exit 1; }
 	curl -sS -X POST $(LLAMA_URL)/models/load \
-	  -H 'Content-Type: application/json' -d '{"model":"$(model)"}'
+	  -H 'Content-Type: application/json' -d '{"model":"$(LLAMA_PRELOAD)"}'
 
 llama_unload:
 	# Usage: make llama_unload [model=<id|alias>]      (frees the RAM)
