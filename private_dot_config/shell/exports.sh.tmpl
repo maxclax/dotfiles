@@ -225,12 +225,10 @@ export LLAMA_ARG_MODELS_PRESET="$HOME/.config/llama.cpp/presets.ini"
 # server. 9931 now means the change is a no-op when it lands. Anything holding
 # a URL (pi's stored llama.cpp credential) must match this.
 export LLAMA_ARG_PORT={{ dig "llama_port" "9931" . }}
-# Model `make llama_serve' loads on startup. Not a llama.cpp variable — the
-# router has no preload flag, it only loads on demand, and pi cannot trigger
-# that because it lists only LOADED models. The Makefile nudges it instead.
-# Qwen3-Coder-30B-A3B rather than a newer dense model: it is MoE, so ~3B of 30B
-# is active per token and it measured 50.8 tok/s against a dense 9B's 3.0.
-export LLAMA_PRELOAD_MODEL={{ dig "llama_preload" "qwen3-coder-30b" . | quote }}
+# Model `make llama_serve'/`make llama_load' use by default, and gptel's default
+# model. Not a llama.cpp variable: the router has no preload flag, so the
+# Makefile issues the load request.
+export LLAMA_PRELOAD_MODEL={{ dig "llama_preload" "qwen3.6-35b" . | quote }}
 
 # ============================================================================
 # Platform-Specific Configuration

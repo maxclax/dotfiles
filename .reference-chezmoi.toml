@@ -62,7 +62,7 @@ primary_storage = ""
 secondary_storage = ""
 llama_models = "USER_HOME/.cache/llama.cpp"
 llama_port = "9931"
-llama_preload = "qwen3-coder-30b"
+llama_preload = "qwen3.6-35b"
 editor = "emacsclient"
 shell = "zsh"
 
