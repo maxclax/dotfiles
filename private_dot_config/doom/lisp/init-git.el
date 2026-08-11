@@ -126,41 +126,10 @@
                           'magit-insert-modules-unpulled-from-upstream
                           'magit-insert-stashes t)
 
-  ;; Right margin: author + absolute datetime + relative age, in status
-  ;; recent-commits AND log buffers (format: (INIT STYLE WIDTH AUTHOR AUTHOR-W))
-  (customize-set-variable 'magit-status-margin '(t "%Y-%m-%d %H:%M" 30 t 7))
-  (customize-set-variable 'magit-log-margin '(t "%Y-%m-%d %H:%M" 30 t 7))
+  ;; Status: short age (" 9h") — 12 cols. Log buffers: full datetime — 24 cols.
+  (customize-set-variable 'magit-status-margin '(t age-abbreviated magit-log-margin-width t 7))
+  (customize-set-variable 'magit-log-margin '(t "%Y-%m-%d %H:%M" magit-log-margin-width t 7))
 
-  ;; Append "(2d)"-style age after the datetime. Magit's stock renderer does
-  ;; datetime OR age, never both — this override (copy of
-  ;; `magit-log-format-author-margin' from the pinned magit) adds the suffix.
-  (advice-add 'magit-log-format-author-margin :override
-              (defun my/magit-margin-datetime+age-a (author date)
-                (pcase-let ((`(,_ ,style ,width ,details ,details-width)
-                             (or magit--right-margin-config
-                                 (symbol-value (magit--right-margin-option))
-                                 (error "No margin format specified for %s" major-mode))))
-                  (magit-make-margin-overlay
-                   (concat (and details
-                                (concat (magit--propertize-face
-                                         (truncate-string-to-width
-                                          (or author "") details-width nil ?\s
-                                          (magit--ellipsis 'margin))
-                                         'magit-log-author)
-                                        " "))
-                           (magit--propertize-face
-                            (if (stringp style)
-                                (concat
-                                 (format-time-string
-                                  style (seconds-to-time (string-to-number date)))
-                                 (pcase-let ((`(,cnt ,unit) (magit--age date t)))
-                                   (format " (%d%c)" cnt unit)))
-                              (pcase-let* ((abbr (eq style 'age-abbreviated))
-                                           (`(,cnt ,unit) (magit--age date abbr)))
-                                (format (format (if abbr "%%2d%%-%dc" "%%2d %%-%ds")
-                                                (- width (if details (1+ details-width) 0)))
-                                        cnt unit)))
-                            'magit-log-date))))))
 
   ;; Auto-save WIP to hidden refs — never lose uncommitted work
   (magit-wip-mode 1)
