@@ -245,14 +245,19 @@ else
 	@echo "This target is for macOS only."
 endif
 
-# Clean up containers
-rm_a:
-	@$(CONTAINER_ENGINE) ps -aq | xargs $(CONTAINER_ENGINE) stop | xargs $(CONTAINER_ENGINE) rm
+# Engine-prefixed targets: make podman_rm_a / make docker_rm_a
+CE_ := $(CONTAINER_ENGINE)_
 
-# Clean up dangling (none) images
-rm_none_images:
+# Clean up containers
+$(CE_)rm_a:
+	@$(CONTAINER_ENGINE) ps -aq | xargs -r $(CONTAINER_ENGINE) stop | xargs -r $(CONTAINER_ENGINE) rm
+
+# Clean up dangling (none) images.
+# Not `images | grep "<none>"' — that also matches digest-pulled images, which
+# have a repo but no tag and may still be held by a container.
+$(CE_)rm_none_images:
 	@echo "Removing all dangling (none) images..."
-	@$(CONTAINER_ENGINE) images -a | grep "<none>" | awk '{print $$3}' | xargs -r $(CONTAINER_ENGINE) rmi
+	@$(CONTAINER_ENGINE) image prune -f
 
 # Launch k9s for Kubernetes
 k9s:

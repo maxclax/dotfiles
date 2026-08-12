@@ -57,15 +57,22 @@ make update_os
 ```
 
 ### Backup Operations
+Backups use restic via resticprofile; one repository per profile
+(`workspace`, `git`, `managed-configs`, `managed-sync`, `ai-history`,
+`extra-configs`). Config: `private_dot_config/resticprofile/profiles.toml.tmpl`.
 ```bash
-# Create backup with Borgmatic
+# Sync app configs to extra-configs, then back up every profile
 make backup_create
 
-# List available backups
+# List snapshots (all profiles, or one)
 make backup_list
+make restic_snapshots profile=workspace
 
-# Restore from backup
-make backup_restore repo=<path> archive=<name> dest=<destination>
+# Restore
+make restic_restore profile=<name> dest=<path> [snapshot=latest] [path=<subpath>]
+
+# Mount a repo to browse it
+make restic_browse [profile=workspace]
 ```
 
 ### Container Management
@@ -76,8 +83,11 @@ make proxy_start
 # Stop Tor proxy
 make torproxy_stop
 
-# Clean up all containers
-make rm_a
+# Clean up all containers (targets are prefixed with the engine)
+make podman_rm_a
+
+# Remove dangling <none> images
+make podman_rm_none_images
 ```
 
 ### Development Environment
@@ -138,7 +148,7 @@ External repositories are managed via `.chezmoiexternal.yaml.tmpl`:
 - Age encryption for sensitive files (identity: `~/.ssh/dotfiles`)
 - 1Password CLI integration for secure credential storage
 - Git signing configuration with SSH keys
-- Encrypted backup system with Borgmatic
+- Encrypted backup system with restic (resticprofile)
 
 ## Development Workflow
 
@@ -160,7 +170,7 @@ External repositories are managed via `.chezmoiexternal.yaml.tmpl`:
 - Cross-platform dotfile management
 - Declarative package management with Home Manager
 - Encrypted secrets with age and 1Password
-- Automated backups with Borgmatic
+- Automated backups with restic
 - Multiple editor configurations (Emacs distributions)
 - Container development environment support
 - Git configuration with SSH signing
