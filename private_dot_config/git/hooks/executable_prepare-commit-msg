@@ -12,7 +12,13 @@ if [ "$COMMIT_SOURCE" = "merge" ]; then
   # Rewrite "Merge ..." to "dev: merge ..."
   case "$MSG" in
     Merge*)
-      NEW_MSG="dev: $(echo "$MSG" | head -1 | sed 's/^Merge /merge /')"
+      # Merging an annotated tag inherits its body, so a release tag drags
+      # "BREAKING CHANGE:" in — the linter then demands "!" after the type.
+      TYPE="dev"
+      case "$MSG" in
+        *"BREAKING CHANGE:"*) TYPE="dev!" ;;
+      esac
+      NEW_MSG="$TYPE: $(echo "$MSG" | head -1 | sed 's/^Merge /merge /')"
       # Preserve any additional lines (conflict list, etc.)
       REST=$(echo "$MSG" | tail -n +2)
       if [ -n "$REST" ]; then
