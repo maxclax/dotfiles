@@ -88,6 +88,38 @@ exclude = [
     "*/build/*",
 ]
 
+# ── AI History ────────────────────────────────────────────────────────────────
+[ai-history]
+inherit    = "base"
+repository = {{ .resticRepo | printf "%s/ai-history" | quote }}
+
+[ai-history.backup]
+source = [
+    {{ printf "%s/.claude" .chezmoi.homeDir | quote }},
+    {{ printf "%s/.grok" .chezmoi.homeDir | quote }},
+]
+exclude = [
+    ".DS_Store",
+    # reinstallable from their marketplaces
+    "*/.claude/plugins/*",
+    "*/.grok/downloads/*",
+    "*/.grok/marketplace-cache/*",
+    "*/.grok/bundled/*",
+    "*/.grok/vendor/*",
+    "*/.grok/bin/*",
+    # a python venv and other regenerable state
+    "*/.claude/security/*",
+    # per-session scratch, useless without the live session
+    "*/.claude/file-history/*",
+    "*/.claude/shell-snapshots/*",
+    "*/.claude/paste-cache/*",
+    "*/.claude/cache/*",
+    "*/.grok/logs/*",
+    "*/.grok/upload_queue/*",
+    "*/__pycache__/*",
+    "*/node_modules/*",
+]
+
 # ── Extra Configs ─────────────────────────────────────────────────────────────
 [extra-configs]
 inherit    = "base"
