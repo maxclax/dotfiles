@@ -20,12 +20,10 @@
 			</dict>
 		</array>
 		<key>7692FDDB-832B-4091-B6A0-4A67C75ED38C</key>
-		<array/>
-		<key>A82F7BDF-A342-4AC5-A3D7-02A359413D96</key>
 		<array>
 			<dict>
 				<key>destinationuid</key>
-				<string>7692FDDB-832B-4091-B6A0-4A67C75ED38C</string>
+				<string>0D4F078C-5DA0-4207-A237-60CD014D3A96</string>
 				<key>modifiers</key>
 				<integer>0</integer>
 				<key>modifiersubtext</key>
@@ -33,9 +31,12 @@
 				<key>vitoclose</key>
 				<false/>
 			</dict>
+		</array>
+		<key>A82F7BDF-A342-4AC5-A3D7-02A359413D96</key>
+		<array>
 			<dict>
 				<key>destinationuid</key>
-				<string>C758B8C0-E991-4270-BF05-6D6B4933CD48</string>
+				<string>7692FDDB-832B-4091-B6A0-4A67C75ED38C</string>
 				<key>modifiers</key>
 				<integer>0</integer>
 				<key>modifiersubtext</key>
@@ -86,6 +87,21 @@
 			<string>alfred.workflow.input.keyword</string>
 			<key>uid</key>
 			<string>22219672-363B-4D56-AE66-C8BF9A98CA98</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>soundname</key>
+				<string>Submarine</string>
+				<key>systemsound</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.output.playsound</string>
+			<key>uid</key>
+			<string>0D4F078C-5DA0-4207-A237-60CD014D3A96</string>
 			<key>version</key>
 			<integer>1</integer>
 		</dict>
@@ -178,21 +194,6 @@ printf %s "$OUT"
 			<key>version</key>
 			<integer>2</integer>
 		</dict>
-		<dict>
-			<key>config</key>
-			<dict>
-				<key>soundname</key>
-				<string>Submarine</string>
-				<key>systemsound</key>
-				<true/>
-			</dict>
-			<key>type</key>
-			<string>alfred.workflow.output.playsound</string>
-			<key>uid</key>
-			<string>C758B8C0-E991-4270-BF05-6D6B4933CD48</string>
-			<key>version</key>
-			<integer>1</integer>
-		</dict>
 	</array>
 	<key>readme</key>
 	<string>Capture text into an Org inbox from anywhere in macOS.
@@ -216,42 +217,42 @@ NOTES
 </string>
 	<key>uidata</key>
 	<dict>
+		<key>0D4F078C-5DA0-4207-A237-60CD014D3A96</key>
+		<dict>
+			<key>xpos</key>
+			<real>690</real>
+			<key>ypos</key>
+			<real>110</real>
+		</dict>
 		<key>22219672-363B-4D56-AE66-C8BF9A98CA98</key>
 		<dict>
 			<key>xpos</key>
-			<real>40.0</real>
+			<real>40</real>
 			<key>ypos</key>
-			<real>40.0</real>
+			<real>40</real>
 		</dict>
 		<key>7692FDDB-832B-4091-B6A0-4A67C75ED38C</key>
 		<dict>
 			<key>xpos</key>
-			<real>540.0</real>
+			<real>540</real>
 			<key>ypos</key>
-			<real>110.0</real>
+			<real>110</real>
 		</dict>
 		<key>A82F7BDF-A342-4AC5-A3D7-02A359413D96</key>
 		<dict>
 			<key>xpos</key>
-			<real>300.0</real>
+			<real>300</real>
 			<key>ypos</key>
-			<real>110.0</real>
-		</dict>
-		<key>C758B8C0-E991-4270-BF05-6D6B4933CD48</key>
-		<dict>
-			<key>xpos</key>
-			<real>555.0</real>
-			<key>ypos</key>
-			<real>245.0</real>
+			<real>110</real>
 		</dict>
 		<key>F7F12029-D223-4562-8AA1-7E2F2A2E2AB7</key>
 		<dict>
 			<key>note</key>
-			<string>Captore to INBOX</string>
+			<string>Capture to INBOX</string>
 			<key>xpos</key>
-			<real>40.0</real>
+			<real>40</real>
 			<key>ypos</key>
-			<real>180.0</real>
+			<real>180</real>
 		</dict>
 	</dict>
 	<key>userconfigurationconfig</key>
