@@ -1,0 +1,18 @@
+#!/usr/bin/env python3
+# pi rewrites this file (lastChangelogVersion, /settings, /model), so it cannot be
+# a plain managed file. chezmoi pipes the current contents in and takes stdout.
+# Only sessionDir is enforced — the rest is left to pi.
+import json
+import sys
+
+try:
+    settings = json.loads(sys.stdin.read() or "{}")
+except json.JSONDecodeError:
+    settings = {}
+
+# Relative, so each project keeps its own transcripts instead of one shared tree
+# under ~/.pi/agent/sessions keyed by absolute path.
+settings["sessionDir"] = ".pi/sessions"
+
+json.dump(settings, sys.stdout, indent=2)
+sys.stdout.write("\n")
