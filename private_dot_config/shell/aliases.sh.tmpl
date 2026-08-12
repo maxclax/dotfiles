@@ -148,7 +148,10 @@ alias pqp='pueue pause'                 # Pause job
 alias pqr='pueue restart'               # Restart job
 alias pqd='pueued'                      # Start daemon
 
-{{ if eq .containerEngine "podman" }} 
+# ---- Org capture -----
+alias i='inbox'                         # i buy filters  → org inbox spool
+
+{{ if eq .containerEngine "podman" }}
 # ---- Podman -----
 alias docker=podman
 alias docker-compose=podman-compose
