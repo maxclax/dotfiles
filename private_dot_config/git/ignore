@@ -69,3 +69,6 @@ tmp/
 
 #
 **/.claude/settings.local.json
+
+# pi coding agent: per-project session transcripts (sessionDir)
+.pi/sessions/

@@ -3,3 +3,6 @@
 # Claude Code local project state (per-machine; not managed dotfiles).
 # The managed ~/.claude lives in dot_claude/, which IS tracked.
 .claude/
+
+# The Alfred workflow is a managed dotfile; the global ignore excludes *.plist
+!dot_local/extra-configs/Alfred/**/*.plist

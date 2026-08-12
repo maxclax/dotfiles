@@ -824,6 +824,16 @@ but still carries last cycle's ✅ date, which reads as though it were done."
            "* %?\n:PROPERTIES:\n:STARTED: %^{Started}t\n:END:\n"
            :empty-lines 1)))
 
+  ;; The `inbox' script appends to inbox.org from outside Emacs. If the file is
+  ;; visited, the agenda reads the buffer, so refresh it first. Unsaved edits win.
+  (defun my/org-inbox-revert (&rest _)
+    (when-let* ((buf (find-buffer-visiting org-default-notes-file)))
+      (with-current-buffer buf
+        (unless (or (buffer-modified-p) (verify-visited-file-modtime buf))
+          (revert-buffer :ignore-auto :noconfirm)))))
+  (advice-add 'org-agenda :before #'my/org-inbox-revert)
+  (advice-add 'org-agenda-redo-all :before #'my/org-inbox-revert)
+
   ;; Journal section headings carry an emoji in the template (`* ✅ Todos'),
   ;; but older files and hand-made ones use the bare `* Todos'. Everything that
   ;; targets the section matches both: an optional run of non-alphanumeric

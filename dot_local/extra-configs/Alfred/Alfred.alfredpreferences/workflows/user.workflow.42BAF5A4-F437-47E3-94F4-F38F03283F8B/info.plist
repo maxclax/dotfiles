@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bundleid</key>
+	<string>com.maxclax.org-inbox-capture</string>
+	<key>connections</key>
+	<dict>
+		<key>22219672-363B-4D56-AE66-C8BF9A98CA98</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>A82F7BDF-A342-4AC5-A3D7-02A359413D96</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+		<key>7692FDDB-832B-4091-B6A0-4A67C75ED38C</key>
+		<array/>
+		<key>A82F7BDF-A342-4AC5-A3D7-02A359413D96</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>7692FDDB-832B-4091-B6A0-4A67C75ED38C</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+			<dict>
+				<key>destinationuid</key>
+				<string>C758B8C0-E991-4270-BF05-6D6B4933CD48</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+		<key>F7F12029-D223-4562-8AA1-7E2F2A2E2AB7</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>A82F7BDF-A342-4AC5-A3D7-02A359413D96</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+	</dict>
+	<key>createdby</key>
+	<string>maxclax</string>
+	<key>description</key>
+	<string>Capture the current selection or a typed note into an Org inbox file</string>
+	<key>disabled</key>
+	<false/>
+	<key>name</key>
+	<string>Org Inbox Capture</string>
+	<key>objects</key>
+	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>argumenttype</key>
+				<integer>0</integer>
+				<key>keyword</key>
+				<string>i</string>
+				<key>subtext</key>
+				<string>{query}</string>
+				<key>text</key>
+				<string>Capture to org inbox</string>
+				<key>withspace</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.keyword</string>
+			<key>uid</key>
+			<string>22219672-363B-4D56-AE66-C8BF9A98CA98</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>concurrently</key>
+				<false/>
+				<key>escaping</key>
+				<integer>0</integer>
+				<key>script</key>
+				<string># Keyword passes the typed text; the hotkey passes the selection.
+INPUT="$1"
+if [ -z "$INPUT" ]; then
+  # Nothing selected: reopen Alfred prefilled, so one key does both.
+  osascript -e 'tell application id "com.runningwithcrayons.Alfred" to search "i "'
+  exit 0
+fi
+# Alfred runs non-interactively, so PATH may lack ~/.config/shell/bin.
+if command -v inbox &gt;/dev/null 2&gt;&amp;1; then
+  OUT=$(inbox "$INPUT") || exit 1
+else
+  OUT=$("$HOME/.config/shell/bin/inbox" "$INPUT") || exit 1
+fi
+printf %s "$OUT"
+</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>type</key>
+				<integer>0</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>A82F7BDF-A342-4AC5-A3D7-02A359413D96</string>
+			<key>version</key>
+			<integer>2</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>lastpathcomponent</key>
+				<false/>
+				<key>onlyshowifquerypopulated</key>
+				<true/>
+				<key>removeextension</key>
+				<false/>
+				<key>text</key>
+				<string>{query}</string>
+				<key>title</key>
+				<string>✅ Added to inbox</string>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.output.notification</string>
+			<key>uid</key>
+			<string>7692FDDB-832B-4091-B6A0-4A67C75ED38C</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>action</key>
+				<integer>0</integer>
+				<key>argument</key>
+				<integer>1</integer>
+				<key>focusedappvariable</key>
+				<false/>
+				<key>focusedappvariablename</key>
+				<string></string>
+				<key>hotkey</key>
+				<integer>49</integer>
+				<key>hotmod</key>
+				<integer>917504</integer>
+				<key>hotstring</key>
+				<string>Space</string>
+				<key>leftcursor</key>
+				<false/>
+				<key>modsmode</key>
+				<integer>0</integer>
+				<key>relatedAppsMode</key>
+				<integer>0</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.trigger.hotkey</string>
+			<key>uid</key>
+			<string>F7F12029-D223-4562-8AA1-7E2F2A2E2AB7</string>
+			<key>version</key>
+			<integer>2</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>soundname</key>
+				<string>Submarine</string>
+				<key>systemsound</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.output.playsound</string>
+			<key>uid</key>
+			<string>C758B8C0-E991-4270-BF05-6D6B4933CD48</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+	</array>
+	<key>readme</key>
+	<string>Capture text into an Org inbox from anywhere in macOS.
+
+USAGE
+  i &lt;text&gt;   type a note directly in Alfred
+  hotkey     capture the current selection; with nothing selected it
+             reopens Alfred prefilled with `i ' so the same key also types
+
+Each capture is appended as `* TODO &lt;text&gt;' followed by a blank line, and
+confirms with a notification and a sound.
+
+REQUIREMENT
+  An `inbox' script on PATH (or at ~/.config/shell/bin/inbox) that takes the
+  text as its argument and appends it to your inbox file. A reference
+  implementation ships in the repo above as shell/bin/inbox.
+
+NOTES
+  Assign your own hotkey in the Hotkey object; the shipped one is a
+  placeholder. Multi-line selections are collapsed to a single heading.
+</string>
+	<key>uidata</key>
+	<dict>
+		<key>22219672-363B-4D56-AE66-C8BF9A98CA98</key>
+		<dict>
+			<key>xpos</key>
+			<real>40.0</real>
+			<key>ypos</key>
+			<real>40.0</real>
+		</dict>
+		<key>7692FDDB-832B-4091-B6A0-4A67C75ED38C</key>
+		<dict>
+			<key>xpos</key>
+			<real>540.0</real>
+			<key>ypos</key>
+			<real>110.0</real>
+		</dict>
+		<key>A82F7BDF-A342-4AC5-A3D7-02A359413D96</key>
+		<dict>
+			<key>xpos</key>
+			<real>300.0</real>
+			<key>ypos</key>
+			<real>110.0</real>
+		</dict>
+		<key>C758B8C0-E991-4270-BF05-6D6B4933CD48</key>
+		<dict>
+			<key>xpos</key>
+			<real>555.0</real>
+			<key>ypos</key>
+			<real>245.0</real>
+		</dict>
+		<key>F7F12029-D223-4562-8AA1-7E2F2A2E2AB7</key>
+		<dict>
+			<key>note</key>
+			<string>Captore to INBOX</string>
+			<key>xpos</key>
+			<real>40.0</real>
+			<key>ypos</key>
+			<real>180.0</real>
+		</dict>
+	</dict>
+	<key>userconfigurationconfig</key>
+	<array/>
+	<key>version</key>
+	<string>1.0</string>
+	<key>webaddress</key>
+	<string>https://github.com/maxclax/dotfiles</string>
+</dict>
+</plist>

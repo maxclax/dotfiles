@@ -67,10 +67,21 @@ differ **only** in those pre-existing regions — check with
 ```bash
 git -C <trunk> reset                                # stage per commit, by name
 git -C <trunk> add <files for this commit>
-git -C <trunk> commit -m "type: summary"
+git -C <trunk> commit -m "type: summary"            # do NOT pipe this
+git -C <trunk> log --oneline -1                     # confirm the hash moved
 ```
 
 Never `git add -A`/`.`; never stage anything secret-shaped.
+
+**Never pipe `git commit` into another command.** A pipeline's exit status is the
+last command's, so a hook rejection returns 0 and `set -e` will not stop the run.
+The staged files then ride along in the *next* commit, producing a mixed commit
+with a wrong message — unfixable once pushed. Run the commit bare, and confirm
+`log --oneline -1` shows the new subject before staging the next group.
+
+The summary is checked by a commit-msg hook: **lowercase after the type**, even
+for identifiers. `feat: H toggles dotfiles` is rejected; write
+`feat: toggle dotfiles with H` instead.
 
 ### 6. Push the trunk
 
