@@ -107,18 +107,37 @@ hm_rollback:
 	home-manager rollback
 	@echo "✅ Rollback complete!"
 
+# Bump only the home-manager input, leaving nixpkgs pinned: a nixpkgs revision
+# change rebuilds most of the closure (~7 GiB of substitutions), this does not.
+hm_update_hm:
+	@echo "🔄 Updating the home-manager input only..."
+	cd ~/.config/home-manager-flake && nix flake update home-manager
+	@$(MAKE) hm_diff
+	@printf "Apply changes? [y/N] " && read confirm && [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ] || \
+		(echo "❌ Cancelled — restoring flake.lock" && cd ~/.config/home-manager-flake && git checkout flake.lock && exit 1)
+{{- if and (eq .chezmoi.os "darwin") (not .extraUser) }}
+	@echo "🍎 Applying nix-darwin configuration (requires password)..."
+	sudo darwin-rebuild switch --flake ~/.config/home-manager-flake
+{{- else }}
+	@echo "🏠 Applying Home Manager configuration..."
+	cd ~/.config/home-manager-flake && home-manager switch --flake .
+{{- end }}
+	@echo "✅ home-manager input updated!"
+
 hm_generations:
 	@echo "📋 Home Manager generations:"
 	home-manager generations
 
+# Keep 3 generations everywhere: `-2 days' with daily flake bumps left only the
+# current one, so there was nothing to roll back to when an update broke.
 hm_clean:
-	@echo "🧹 Expiring Home Manager generations (older than 2 days)..."
-	home-manager expire-generations '-2 days'
-	@echo "👤 Expiring user profile generations (keeping latest 2)..."
-	nix-env --delete-generations +2
+	@echo "🧹 Expiring Home Manager generations (keeping latest 3)..."
+	home-manager expire-generations '-14 days'
+	@echo "👤 Expiring user profile generations (keeping latest 3)..."
+	nix-env --delete-generations +3
 {{- if and (eq .chezmoi.os "darwin") (not .extraUser) }}
-	@echo "🍎 Expiring nix-darwin system generations (keeping latest 2)..."
-	sudo nix-env -p /nix/var/nix/profiles/system --delete-generations +2
+	@echo "🍎 Expiring nix-darwin system generations (keeping latest 3)..."
+	sudo nix-env -p /nix/var/nix/profiles/system --delete-generations +3
 {{- end }}
 	@echo "🗑️  Collecting unreachable store paths..."
 	nix-collect-garbage

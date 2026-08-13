@@ -594,6 +594,17 @@ but still carries last cycle's ✅ date, which reads as though it were done."
 
 
          ;; Friday Reflection - All Daily Outcomes Tasks
+          ;; What actually got finished this week, wherever it lives — keyed off
+          ;; the CLOSED: stamp rather than a heading position, so it also catches
+          ;; captures and project files. archives-mode because org-agenda-files
+          ;; excludes /archive/, and archiving a done task should not hide it here.
+          ("w" "Finished this week (CLOSED)" tags "CLOSED>=\"<-7d>\""
+           ((org-agenda-overriding-header "✅ Finished in the last 7 days")
+            (org-agenda-archives-mode t)
+            (org-agenda-prefix-format '((tags . "  %-11c ")))
+            (org-agenda-remove-tags nil)
+            (org-agenda-sorting-strategy '(timestamp-down))))
+
           ("F" "Friday Reflection - Daily Outcomes"
            (;; Weekly Outcomes TODOs from Monday (this week)
             (alltodo ""
@@ -789,7 +800,9 @@ but still carries last cycle's ✅ date, which reads as though it were done."
 
   (setq org-directory {{ .org_dir | quote }})
 
-  (setq org-log-done nil)
+  ;; 'time so completing a task records CLOSED: — the `w' agenda view keys off it.
+  ;; Only affects completions from now on; older DONE items have no stamp.
+  (setq org-log-done 'time)
   ;; single-key commands with point on a heading star: n/p/f/b/u nav, t todo, ? list
   (setq org-use-speed-commands t)
   (setq org-todo-repeat-to-state "TODO")
