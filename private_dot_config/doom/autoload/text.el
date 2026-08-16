@@ -83,24 +83,30 @@
 ;;;###autoload
 (defun my/copy-value (&optional whole)
   "Copy the value after the first `key SEP value' separator on the current line.
-SEP is a colon (`Key: value', `:PROP: value'), or a space-padded -, =, or |
-\(`Key - value'). Requiring spaces around -/=/| means hyphenated words like
-`triada-d1-set-week' are never split (and em-dashes in prose are left alone).
-With no separator — or with prefix arg WHOLE — the whole trimmed line is
-copied. Works from anywhere on the line."
+SEP is a colon (`Key: value', `:PROP: value'), a tight = (`KEY=value'), or a
+space-padded -, =, or |. Requiring spaces around - and | means hyphenated words
+like `some-hyphenated-name' are never split (and em-dashes in prose are left
+alone). The leftmost separator wins, so `KEY=123:abc' copies `123:abc'. With no
+separator — or with prefix arg WHOLE — the whole trimmed line is copied. Works
+from anywhere on the line."
   (interactive "P")
   (let* ((line (string-trim
                 (buffer-substring-no-properties
                  (line-beginning-position) (line-end-position))))
-         (val (cond
-               (whole line)
-               ;; colon: tight is fine (key:value, :PROP: value)
-               ((string-match "\\`:?[^:\n]+:[ \t]*\\(.*\\)\\'" line)
-                (match-string 1 line))
-               ;; -, =, | : only when space-padded (so words aren't split)
-               ((string-match "\\`.+?[ \t]+[-=|][ \t]+\\(.*\\)\\'" line)
-                (match-string 1 line))
-               (t line))))
+         (best (unless whole
+                 (car (sort (delq nil
+                                  (mapcar
+                                   (lambda (re)
+                                     (when (string-match re line)
+                                       (cons (match-beginning 1) (match-string 1 line))))
+                                   '(;; colon: tight is fine (key:value, :PROP: value)
+                                     "\\`:?[^:\n]+:[ \t]*\\(.*\\)\\'"
+                                     ;; tight = (env/ini), but not ==, !=, >=, +=
+                                     "\\`[^=\n]*[^=!<>+*/&|~^ \t-]=[ \t]*\\(.*\\)\\'"
+                                     ;; -, = or | : only when space-padded
+                                     "\\`.+?[ \t]+[-=|][ \t]+\\(.*\\)\\'")))
+                            #'car-less-than-car))))
+         (val (if best (cdr best) line)))
     (setq val (string-trim val))
     (if (string-empty-p val)
         (user-error "Nothing to copy on this line")
