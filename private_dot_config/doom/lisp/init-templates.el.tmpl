@@ -25,10 +25,6 @@
          (days-ahead (if (< days-ahead 0) (+ 7 days-ahead) days-ahead)))
     (time-add now (* days-ahead 86400))))
 
-;; Day-aware blocks for the `daily-journal' template: Monday gets weekly
-;; outcomes, Friday gets the reflection, other days get neither ("" inserts
-;; nothing). Plain strings, so no tempel fields to TAB through inside them.
-
 ;; The entry's own date, not today's — yesterday's/tomorrow's journal must use
 ;; its own weekday. Denote encodes it in the filename identifier (20260810T…).
 (defun tempel--journal-date ()
@@ -45,24 +41,19 @@
   "Org timestamp for the entry's own date."
   (format-time-string "[%Y-%m-%d %a]" (tempel--journal-date)))
 
-(defun tempel--weekly-outcomes-block ()
-  "Weekly Outcomes block on Mondays, empty string otherwise."
-  (let ((date (tempel--journal-date)))
-    (if (/= 1 (string-to-number (format-time-string "%u" date)))  ; %u: 1=Mon … 7=Sun
-        ""
-      (concat "\n* 🏆️ Weekly Outcomes → "
-              ;; Friday of the entry's own week, not of the current one
-              (format-time-string "[%Y-%m-%d %a]" (time-add date (* 4 86400)))
-              "\n\n** TODO 1.\n** TODO 2.\n** TODO 3.\n"))))
+(defun tempel--week-friday-stamp ()
+  "Org timestamp for the Friday of the entry's own week."
+  (format-time-string "[%Y-%m-%d %a]"
+                      (time-add (tempel--journal-date) (* 4 86400))))
 
-(defun tempel--friday-reflection-block ()
-  "Friday Reflection block on Fridays, empty string otherwise."
-  (if (/= 5 (string-to-number (format-time-string "%u" (tempel--journal-date))))
-      ""
-    (concat "\n* 🪞 Friday Reflection\n"
-            "\n** Identify 3 Things Going Well\n1.\n2.\n3.\n"
-            "\n** Identify 3 Things to Improve\n1.\n2.\n3.\n"
-            "\n** What Mattered Most\n")))
+(defun my/journal-template ()
+  "Tempel template for this journal entry, chosen by its own weekday.
+Monday adds Weekly Outcomes, Friday the reflection; both are full templates
+so every TODO is a field to TAB through."
+  (pcase (string-to-number (format-time-string "%u" (tempel--journal-date)))
+    (1 'monday-journal)                 ; %u: 1=Mon … 7=Sun
+    (5 'friday-journal)
+    (_ 'daily-journal)))
 
 (defun tempel--last-day-of-month ()
   "Return timestamp of last day of current month (leap-year safe)."

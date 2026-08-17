@@ -434,9 +434,9 @@ while empty (e.g. org not loaded yet), then freezes the first real quote."
   (unless (file-exists-p denote-journal-directory)
     (make-directory denote-journal-directory t))
 
-  ;; Automatic tempel daily-journal insertion for new journal entries
+  ;; Automatic tempel journal insertion for new journal entries
   (defun my/denote-journal-insert-tempel ()
-    "Insert daily-journal tempel template for new journal entries."
+    "Insert the weekday's journal tempel template for new journal entries."
     (when (and (derived-mode-p 'org-mode)
                (buffer-file-name)
                (string-match-p "journal" (buffer-file-name))
@@ -454,9 +454,9 @@ while empty (e.g. org not loaded yet), then freezes the first real quote."
           (condition-case err
               (progn
                 (require 'tempel)
-                (tempel-insert 'daily-journal))
+                (tempel-insert (my/journal-template)))
             (error
-             (message "Error inserting daily-journal template: %s" (error-message-string err))))))))
+             (message "Error inserting journal template: %s" (error-message-string err))))))))
 
   ;; Use find-file-hook to automatically insert template
   (add-hook 'find-file-hook #'my/denote-journal-insert-tempel)
