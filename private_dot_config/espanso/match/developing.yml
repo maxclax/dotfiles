@@ -27,5 +27,5 @@ matches:
   - trigger: "'rm"
     replace: "podman ps -a --format '{{.ID}} {{.Names}}' | grep -v 'kind-' | awk '{print $1}' | xargs -r podman stop | xargs -r podman rm"
 
-  - trigger: "'ri"
-    replace: "podman rmi -f $(docker images -a -q)"
+  - trigger: "'rmi"
+    replace: "podman rmi -f $(podman images -a -q)"
