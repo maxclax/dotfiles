@@ -23,7 +23,8 @@
 # → emacs auth-source (runtime lookup, nothing on disk)
 #
 # ── sops (op://Automation/sops-age-key document) ──────────────────────────────
-# fetched at decrypt time via SOPS_AGE_KEY_CMD; never stored on disk
+# seeded once into the login Keychain (service sops-age-key, account sops);
+# SOPS_AGE_KEY_CMD reads it back at decrypt time, so `op' is not in the path
 #
 # ── SSH ───────────────────────────────────────────────────────────────────────
 # op://Personal/localhost-ssh/public key → authorized_keys

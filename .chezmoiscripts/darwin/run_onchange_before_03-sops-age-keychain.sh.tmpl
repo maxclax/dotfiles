@@ -1,0 +1,19 @@
+#!/bin/bash
+# -*- mode: sh; lexical-binding: t; -*-
+# Copy the sops age key from 1Password to macOS Keychain (runs once per machine)
+{{- if and .useOp (eq .chezmoi.os "darwin") }}
+
+echo "🔑 Storing sops age key in macOS Keychain..."
+# Only the AGE-SECRET-KEY line: `security -w' returns hex for any value holding
+# a newline, and sops accepts a key file that is just the key.
+KEY=$(op document get sops-age-key --vault Automation | grep -o 'AGE-SECRET-KEY-[A-Z0-9]*' | head -1)
+if [ -n "$KEY" ]; then
+    security delete-generic-password -a sops -s sops-age-key 2>/dev/null
+    security add-generic-password -a sops -s sops-age-key -w "$KEY"
+    echo "✅ sops age key stored in Keychain"
+else
+    echo "❌ Failed to read sops age key from 1Password"
+    exit 1
+fi
+
+{{- end }}
