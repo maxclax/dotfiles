@@ -114,6 +114,23 @@ from anywhere on the line."
       (message "Copied: %s" val))))
 
 ;;;###autoload
+(defun my/copy-link ()
+  "Copy the target of the link at point to the kill ring.
+Handles Org links, bracketed or plain, and falls back to the URL at point
+in any other buffer.  `file:' targets are copied as bare paths."
+  (interactive)
+  (let ((url (or (and (derived-mode-p 'org-mode)
+                      (require 'org-element nil t)
+                      (let ((el (org-element-context)))
+                        (when (eq (org-element-type el) 'link)
+                          (org-element-property :raw-link el))))
+                 (thing-at-point 'url t))))
+    (unless url (user-error "No link at point"))
+    (setq url (string-remove-prefix "file:" url))
+    (kill-new url)
+    (message "Copied link: %s" url)))
+
+;;;###autoload
 (defun my/denote-copy-title ()
   "Copy the current note's title to the kill ring.
 Uses the `#+title:' value (without the keyword), falling back to the
