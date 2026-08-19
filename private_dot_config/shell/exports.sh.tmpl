@@ -161,6 +161,18 @@ export BAT_THEME="auto:always"
 {{- end }}
 
 # ============================================================================
+# Secrets
+# ============================================================================
+{{- if and .useOp (eq .chezmoi.os "darwin") }}
+# sops reads the age key from the login Keychain at decrypt time (the var holds
+# no secret). Seeded from 1Password once per machine by
+# run_onchange_before_03-sops-age-keychain, so decrypting prompts for nothing.
+# Here rather than in zsh.nix: bash sources this file too. sops runs the
+# command without a shell, so no pipes or fallbacks.
+export SOPS_AGE_KEY_CMD="security find-generic-password -a sops -s sops-age-key -w"
+{{- end }}
+
+# ============================================================================
 # Path and Repository Configuration
 # ============================================================================
 export PATH="$HOME/.local/bin:$PATH"                              # User binaries
