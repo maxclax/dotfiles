@@ -160,7 +160,11 @@ but still carries last cycle's ✅ date, which reads as though it were done."
           (org-map-entries
            (lambda ()
              (when (member (org-get-todo-state) org-done-keywords)
-               (org-todo "TODO")))
+               (org-todo "TODO")
+               ;; `org-auto-repeat-maybe' binds org-log-done to nil around this
+               ;; hook, and that same flag gates org-todo's CLOSED removal — so
+               ;; the subtask reverts to TODO still stamped CLOSED. Strip it.
+               (org-add-planning-info nil nil 'closed)))
            nil 'tree)
           ;; Uncheck boxes — [X], [x] and partial [-], any bullet or number —
           ;; and drop the completion stamp from each

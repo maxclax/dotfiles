@@ -33,6 +33,7 @@
      :desc "Copy org block contents" "B"      #'my/org-copy-block
      :desc "Copy note title" "t"              #'my/denote-copy-title
      :desc "Copy inside pair" "p"             #'my/copy-inside-pair
+     :desc "Copy link at point" "L"           #'my/copy-link
      (:prefix ("f" . "File")
       :desc "Copy file name" "n"              #'my/kill-buffer-filename
       :desc "Copy file path" "p"              #'my/kill-buffer-filepath))
