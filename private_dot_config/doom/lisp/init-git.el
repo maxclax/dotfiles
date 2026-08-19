@@ -301,7 +301,7 @@
     found))
 
 (defun my/magit-promote-to-main (message &optional include-untracked)
-  "Commit all working-tree changes on `main', then merge main into HEAD.
+  "Commit all working-tree changes on `main', push it, then merge into HEAD.
 With a prefix argument, also promote untracked files. The commit is made
 in the worktree that has `main' checked out; this buffer's branch is
 never switched.
@@ -317,7 +317,7 @@ are only discarded once main is confirmed to have moved."
          (wt (my/git-main-worktree src))
          (patch (make-temp-file "magit-promote" nil ".patch"))
          (untracked (and include-untracked (magit-untracked-files)))
-         before)
+         before pushed)
     (when (equal branch "main")
       (user-error "Already on main — just commit normally"))
     (unless wt
@@ -360,11 +360,22 @@ are only discarded once main is confirmed to have moved."
               (magit-call-git "reset" "--hard" "HEAD")
               (magit-call-git "clean" "-fd"))
             (user-error "Nothing was committed on main — your changes are untouched"))
+          ;; main is the shared branch, so publish it here — a promote left
+          ;; sitting locally is half done. A rejected push is reported, not
+          ;; fatal: the commit is on main either way, and merging back still
+          ;; beats keeping a duplicate copy on this branch.
+          (setq pushed
+                (let ((default-directory wt))
+                  (zerop (magit-call-git
+                          "push" (or (magit-get "branch.main.remote") "origin")
+                          "main"))))
           ;; drop the now-duplicated local copies, then merge main back
           (magit-call-git "reset" "--hard" "HEAD")
           (dolist (f untracked)
             (ignore-errors (delete-file (expand-file-name f src))))
           (magit-call-git "merge" "main" "--no-edit")
           (magit-refresh)
-          (message "Promoted to main and merged into %s" branch))
+          (message "Promoted to main%s and merged into %s"
+                   (if pushed " and pushed" " (PUSH FAILED — push main by hand)")
+                   branch))
       (delete-file patch))))
