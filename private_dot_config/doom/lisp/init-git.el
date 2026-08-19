@@ -379,3 +379,50 @@ are only discarded once main is confirmed to have moved."
                    (if pushed " and pushed" " (PUSH FAILED — push main by hand)")
                    branch))
       (delete-file patch))))
+
+;; ── Cherry-pick a finished commit onto `main' ───────────────────────────────
+;; The counterpart of `my/magit-promote-to-main' for work already committed on
+;; this branch: the commit is copied to main (through its worktree) and pushed.
+;; It stays on this branch too — two SHAs for one patch, which merges cleanly;
+;; removing it here would mean rewriting the branch, so it is left alone.
+
+(defun my/magit-cherry-pick-to-main (commit)
+  "Cherry-pick COMMIT onto `main' in its worktree, then push main.
+Defaults to HEAD; with a prefix argument, prompt for the commit. This
+buffer's branch is never switched and keeps the commit as well."
+  (interactive
+   (list (if current-prefix-arg
+             (magit-read-branch-or-commit "Cherry-pick to main")
+           (or (magit-rev-parse "HEAD")
+               (user-error "No commit at HEAD")))))
+  (let* ((src (or (magit-toplevel) (user-error "Not inside a git repository")))
+         (default-directory src)
+         (branch (magit-get-current-branch))
+         (wt (my/git-main-worktree src))
+         (subject (magit-rev-format "%s" commit))
+         before pushed)
+    (when (equal branch "main")
+      (user-error "Already on main — nothing to cherry-pick"))
+    (unless wt
+      (user-error "No worktree of this repo has branch `main' checked out"))
+    (when (let ((default-directory wt)) (magit-git-string "status" "--porcelain"))
+      (user-error "The `main' worktree is dirty — commit or discard there first"))
+    (setq before (let ((default-directory wt)) (magit-rev-parse "HEAD")))
+    (let ((default-directory wt))
+      ;; A conflict leaves main mid-sequence; back it out so the worktree is
+      ;; usable again and the resolution can be done deliberately.
+      (unless (zerop (magit-call-git "cherry-pick" commit))
+        (let ((bad (magit-git-lines "diff" "--name-only" "--diff-filter=U")))
+          (magit-call-git "cherry-pick" "--abort")
+          (user-error "Conflicts on main in %s — cherry-pick it by hand"
+                      (string-join bad ", "))))
+      ;; A rejected commit-msg hook or an empty pick leaves main where it was.
+      (when (equal before (magit-rev-parse "HEAD"))
+        (user-error "Nothing landed on main — main is unchanged"))
+      (setq pushed (zerop (magit-call-git
+                           "push" (or (magit-get "branch.main.remote") "origin")
+                           "main"))))
+    (magit-refresh)
+    (message "Cherry-picked \"%s\" onto main%s"
+             subject
+             (if pushed " and pushed" " (PUSH FAILED — push main by hand)"))))
