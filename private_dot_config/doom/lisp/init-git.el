@@ -405,6 +405,11 @@ buffer's branch is never switched and keeps the commit as well."
       (user-error "Already on main — nothing to cherry-pick"))
     (unless wt
       (user-error "No worktree of this repo has branch `main' checked out"))
+    ;; HEAD is a merge commit right after `git merge main' — git refuses to
+    ;; cherry-pick one without -m, so say which commit was meant instead.
+    (when (> (length (magit-commit-parents commit)) 1)
+      (user-error "%s is a merge commit — pick the real one with C-u" 
+                  (magit-rev-abbrev commit)))
     (when (let ((default-directory wt)) (magit-git-string "status" "--porcelain"))
       (user-error "The `main' worktree is dirty — commit or discard there first"))
     (setq before (let ((default-directory wt)) (magit-rev-parse "HEAD")))
