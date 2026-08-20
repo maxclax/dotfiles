@@ -1,5 +1,6 @@
 {
   "autoUpdate": true,
+  "model": "claude-fable-5",
   "cleanupPeriodDays": 180,
   "env": {},
   "permissions": {
@@ -24,7 +25,10 @@
       "Read(**/.authinfo)",
       "Read(**/.authinfo.gpg)",
       "Read(**/.netrc)",
-      "Read({{ .workspace_extra }}/**)",
+      "Read(/{{ .workspace_extra }})",
+      "Read(/{{ .workspace_extra }}/**)",
+      "Edit(/{{ .workspace_extra }}/**)",
+      "Write(/{{ .workspace_extra }}/**)",
       "Bash(**/.env)",
       "Bash(**/.env.*)",
       "Bash(**/secrets/**)",
@@ -42,7 +46,7 @@
       "Bash(**/.authinfo)",
       "Bash(**/.authinfo.gpg)",
       "Bash(**/.netrc)",
-      "Bash({{ .workspace_extra }}/**)"
+      "Bash(**{{ .workspace_extra }}/**)"
     ]
   },
   "enabledPlugins": {
