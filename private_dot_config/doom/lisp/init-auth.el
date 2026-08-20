@@ -72,6 +72,13 @@ lookups quietly fall back to ~/.authinfo; refresh to retry."
   ;; default prefilter only matches trailing .env — also catch .env.prod etc.
   (setq sops-prefilter-regex
         "\\.\\(ya?ml\\|json\\|ini\\|txt\\)\\'\\|\\.env\\(\\.[A-Za-z0-9_-]+\\)?\\'")
+  ;; sops--run's wait loop ends only when its sentinel fires — no timeout, no
+  ;; liveness check — so a missed sentinel spins at 100% CPU and wedges the
+  ;; whole daemon. Seen repeatedly on file open; bound it.
+  (define-advice sops--run (:around (fn &rest args) my/sops-run-timeout)
+    (with-timeout (15 (user-error "sops: timed out, skipping"))
+      (apply fn args)))
+
   ;; doom-modeline hides minor-mode lighters — show our own encrypted badge
   (add-to-list 'mode-line-misc-info '(sops-mode " 🔒sops "))
 

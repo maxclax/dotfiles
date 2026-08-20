@@ -485,3 +485,25 @@
         "M-n"     #'copilot-next-completion
         "M-p"     #'copilot-previous-completion))
 
+
+;; With a daemon, C-x C-c and ⌘Q kill the whole session — and
+;; `confirm-kill-emacs' is nil, so there is no prompt. Close the frame instead;
+;; `M-x kill-emacs' still ends the daemon deliberately.
+(defun my/close-frame-or-kill-emacs ()
+  "Delete this frame; kill Emacs only if it is the last one and no daemon."
+  (interactive)
+  (if (or (daemonp) (cdr (frame-list)))
+      (delete-frame)
+    (save-buffers-kill-emacs)))
+(global-set-key (kbd "C-x C-c") #'my/close-frame-or-kill-emacs)
+(global-set-key (kbd "s-q")     #'my/close-frame-or-kill-emacs)
+
+;; A frameless daemon keeps its app presence — focused, menu bar, no window.
+;; Hide the app when the last GUI frame closes; ec brings it back.
+(defun my/ns-hide-when-frameless (frame)
+  (when (and (fboundp 'ns-hide-emacs)
+             (not (seq-some (lambda (f)
+                              (and (not (eq f frame)) (display-graphic-p f)))
+                            (frame-list))))
+    (ns-hide-emacs t)))
+(add-hook 'delete-frame-functions #'my/ns-hide-when-frameless)

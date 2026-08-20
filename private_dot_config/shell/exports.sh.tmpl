@@ -132,12 +132,12 @@ export X_BEARER_OP_REF="op://Private/chezmoi-data/x-api-bearer-token"
 # Editor Configuration
 # ============================================================================
 
-export GIT_EDITOR="emacsclient -t -a emacs"
-export EDITOR="emacsclient -t -a emacs"
+export GIT_EDITOR="emacsclient -t -a ''"
+export EDITOR="emacsclient -t -a ''"
 
 # Only use GUI (-c) when we are in an interactive terminal AND have a display
 if [[ -n "$DISPLAY" || -n "$WAYLAND_DISPLAY" ]] && [[ -t 1 ]]; then
-    export VISUAL="emacsclient -c -a emacs"     # GUI with fallback to GUI emacs
+    export VISUAL="emacsclient -c -a ''"     # GUI with fallback to GUI emacs
 else
     export VISUAL="$EDITOR"                     # fall back to terminal version
 fi
