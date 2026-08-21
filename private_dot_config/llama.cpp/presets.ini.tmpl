@@ -8,29 +8,12 @@
 ; Every section pins ctx-size and cache-type — the default is the model's full
 ; trained context, whose KV cache does not fit.
 
-; MoE, 8 of 256 experts active. General model, not coder-tuned.
-; Thinking model: reasoning stays enabled. Disabling it is not equivalent to
-; using a non-thinking model — prefer qwen3-coder-30b for code.
-[qwen3.6-35b]
-model = {{ dig "llama_models" (printf "%s/.cache/llama.cpp" .chezmoi.homeDir) . }}/gguf/qwen3.6-35b-a3b-UD-IQ3_S.gguf
-; 65536 rather than 32768: only 2 KV heads over 40 layers, so KV costs ~0.35 GiB
-; here versus ~0.85 GiB for the 30B at the same length. Agents reading files
-; overflow 32k easily.
-ctx-size = 65536
-gpu-layers = 99
-cache-type-k = q4_0
-cache-type-v = q4_0
-; thoughts into reasoning_content; `auto' mis-split this template
-reasoning-format = deepseek
-; runaway guard, not a limit
-reasoning-budget = 4096
-
 ; MoE, ~3B of 30B active. Not a thinking model, so no reasoning overhead.
-; ctx 32768 because pi sends a large system prompt before the first message;
-; 16384 returned exceed_context_size_error.
+; 65536: agent loops overflow 32k; 16384 returned exceed_context_size_error.
+; KV ~27 MB/1k tokens at q4_0, so ~1.7 GiB on top of 13 GiB weights.
 [qwen3-coder-30b]
 model = {{ dig "llama_models" (printf "%s/.cache/llama.cpp" .chezmoi.homeDir) . }}/gguf/qwen3-coder-30b-A3B-UD-Q3_K_XL.gguf
-ctx-size = 32768
+ctx-size = 65536
 gpu-layers = 99
 cache-type-k = q4_0
 cache-type-v = q4_0
@@ -40,14 +23,33 @@ cache-type-v = q4_0
 ; recommendation.
 [qwen3.8-27b]
 model = {{ dig "llama_models" (printf "%s/.cache/llama.cpp" .chezmoi.homeDir) . }}/gguf/Qwen3.8-27B-UD-IQ4_XS.gguf
-ctx-size = 32768
+; vision encoder (~0.9 GiB); each image costs ~0.5-1.5k tokens of context
+mmproj = {{ dig "llama_models" (printf "%s/.cache/llama.cpp" .chezmoi.homeDir) . }}/gguf/Qwen3.8-27B-mmproj-F16.gguf
+; KV ~30 MB/1k tokens at q4_0, so 64k costs ~2 GiB on top of 14.3 GiB weights.
+ctx-size = 65536
 gpu-layers = 99
 cache-type-k = q4_0
 cache-type-v = q4_0
-; `auto' splits this template correctly (verified), unlike qwen3.6
+; `auto' splits this template correctly (verified)
 reasoning-format = auto
 reasoning-budget = 4096
 temp = 1.0
 top-p = 0.95
+top-k = 20
+presence-penalty = 1.5
+
+; Same weights, thinking disabled in the template. For chat, screenshots,
+; rewrites; use qwen3.8-27b for agents and debugging.
+[qwen3.8-27b-fast]
+model = {{ dig "llama_models" (printf "%s/.cache/llama.cpp" .chezmoi.homeDir) . }}/gguf/Qwen3.8-27B-UD-IQ4_XS.gguf
+mmproj = {{ dig "llama_models" (printf "%s/.cache/llama.cpp" .chezmoi.homeDir) . }}/gguf/Qwen3.8-27B-mmproj-F16.gguf
+ctx-size = 65536
+gpu-layers = 99
+cache-type-k = q4_0
+cache-type-v = q4_0
+chat-template-kwargs = {"enable_thinking":false}
+; Unsloth instruct-mode sampling
+temp = 0.7
+top-p = 0.8
 top-k = 20
 presence-penalty = 1.5

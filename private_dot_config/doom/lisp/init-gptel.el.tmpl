@@ -32,8 +32,8 @@
           :endpoint "/v1/chat/completions"
           :stream t
           :key "local"
-          :models '(qwen3-coder-30b qwen3.6-35b)))
-  (setq gptel-model '{{ dig "llama_preload" "qwen3.6-35b" . }})
+          :models '(qwen3-coder-30b qwen3.8-27b qwen3.8-27b-fast)))
+  (setq gptel-model '{{ dig "llama_preload" "qwen3.8-27b" . }})
   (setq gptel-default-mode 'org-mode)
 
   ;; Follow the response while it streams and land point at its end when done.

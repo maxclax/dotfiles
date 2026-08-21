@@ -15,7 +15,7 @@
 {{- /* Model `make llama_serve' loads on startup. An alias from
        presets.ini; empty means no preload. The router has no preload
        flag of its own, so the Makefile issues the load request. */ -}}
-{{- $llama_preload := promptStringOnce . "llama_preload" "llama.cpp model to preload (presets.ini alias, empty = none)" "qwen3.6-35b" -}}
+{{- $llama_preload := promptStringOnce . "llama_preload" "llama.cpp model to preload (presets.ini alias, empty = none)" "qwen3.8-27b" -}}
 
 {{- $emacsType := "default" -}}
 {{- if stdinIsATTY -}}

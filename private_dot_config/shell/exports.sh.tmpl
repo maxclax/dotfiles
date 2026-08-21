@@ -240,7 +240,7 @@ export LLAMA_ARG_PORT={{ dig "llama_port" "9931" . }}
 # Model `make llama_serve'/`make llama_load' use by default, and gptel's default
 # model. Not a llama.cpp variable: the router has no preload flag, so the
 # Makefile issues the load request.
-export LLAMA_PRELOAD_MODEL={{ dig "llama_preload" "qwen3.6-35b" . | quote }}
+export LLAMA_PRELOAD_MODEL={{ dig "llama_preload" "qwen3.8-27b" . | quote }}
 
 # ============================================================================
 # Platform-Specific Configuration
