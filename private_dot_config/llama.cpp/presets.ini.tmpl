@@ -34,3 +34,20 @@ ctx-size = 32768
 gpu-layers = 99
 cache-type-k = q4_0
 cache-type-v = q4_0
+
+; Dense 27B, thinking model. Slower than the A3B MoEs, stronger on
+; long-horizon agentic work and writing. Sampling per Unsloth thinking-mode
+; recommendation.
+[qwen3.8-27b]
+model = {{ dig "llama_models" (printf "%s/.cache/llama.cpp" .chezmoi.homeDir) . }}/gguf/Qwen3.8-27B-UD-IQ4_XS.gguf
+ctx-size = 32768
+gpu-layers = 99
+cache-type-k = q4_0
+cache-type-v = q4_0
+; `auto' splits this template correctly (verified), unlike qwen3.6
+reasoning-format = auto
+reasoning-budget = 4096
+temp = 1.0
+top-p = 0.95
+top-k = 20
+presence-penalty = 1.5

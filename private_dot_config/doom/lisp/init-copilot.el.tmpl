@@ -11,6 +11,8 @@
               :config
               (setq copilot-max-char 3000000)
               (setq copilot-idle-delay 1)
+              ;; modes outside copilot's indent table fall back to tab-width
+              (setq copilot-indent-offset-warning-disable t)
 
               (add-to-list 'copilot-indentation-alist '(web-mode 2))
               (add-to-list 'copilot-indentation-alist '(html-mode 2))

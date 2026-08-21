@@ -247,7 +247,24 @@
                  (when-let ((buf (magit-get-mode-buffer 'magit-status-mode)))
                    (with-current-buffer buf (magit-refresh-buffer))))))))))))
 
+(defun my/magit-kill-stale-buffers ()
+  "Kill magit buffers whose repository directory no longer exists."
+  (interactive)
+  (let ((n 0))
+    (dolist (buf (buffer-list))
+      (let ((dir (buffer-local-value 'default-directory buf)))
+        (when (and (with-current-buffer buf (derived-mode-p 'magit-mode))
+                   (not (file-remote-p dir))
+                   (not (file-directory-p dir)))
+          (kill-buffer buf)
+          (setq n (1+ n)))))
+    (when (called-interactively-p 'any)
+      (message "Killed %d stale magit buffer(s)" n))
+    n))
+
 (defun my/magit-autofetch ()
+  ;; a deleted worktree leaves its status buffer behind; fetching there errors
+  (my/magit-kill-stale-buffers)
   (mapc #'my/magit-autofetch--fetch (my/magit-autofetch--repos)))
 
 (after! magit
