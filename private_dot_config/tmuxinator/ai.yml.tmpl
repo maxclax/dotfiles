@@ -1,0 +1,25 @@
+# -*- mode: yaml; -*-
+# convert to bash = `tmuxinator debug ai`
+# <% t = ->(n, c) { %{tmux set-option -qp -t "$TMUX_PANE" @name "#{n}" ; clear ; #{c}} } %>
+
+name: ai
+root: ~
+
+attach: true
+
+pre_window: "tmux set-option -qw -t $TMUX_PANE pane-border-status top ; tmux set-option -qw -t $TMUX_PANE pane-border-format '#[fg=colour232,bold]#{?pane_active,#[bg=colour45],#[bg=colour245]} #P #{@name} #[default]'"
+
+windows:
+  - llama:
+      layout: tiled
+      panes:
+        # pre-typed, not run: Enter -> pick preload model -> router; C-c stops it
+        - <%= t.("server", "tmux send-keys -t $TMUX_PANE 'llama-serve'") %>
+        - <%= t.("status", "watch -t -n1 llama-status") %>
+        - <%= t.("memory", "watch -t -n2 llama-mem") %>
+        # make llama_load model=<id> | make llama_unload | make llama_stop
+        - <%= t.("control", "make llama_models") %>
+  - chat:
+      panes:
+        # pre-typed; Enter once the router is up, then type the loaded model's number
+        - <%= t.("chat", "tmux send-keys -t $TMUX_PANE 'llama-chat'") %>

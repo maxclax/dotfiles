@@ -1,0 +1,17 @@
+#!/bin/bash
+# Pick a preset with fzf, then start the router preloading it.
+# Enter on the default keeps $LLAMA_PRELOAD_MODEL; Esc = no preload.
+presets=${LLAMA_ARG_MODELS_PRESET:-$HOME/.config/llama.cpp/presets.ini}
+# "name  (use)" from each section's `; use:' line
+list=$(awk '/^\[/ { n=substr($0,2,length($0)-2) } /^; use:/ && n { sub(/^; use: */,""); printf "%-26s (%s)\n", n, $0; n="" }' "$presets")
+default=${LLAMA_PRELOAD_MODEL:-}
+sel=$( { echo "$list" | grep "^$default "; echo "$list" | grep -v "^$default "; } \
+  | fzf --height=40% --reverse --prompt='preload > ' --header="Enter: start router (Esc: no preload)" \
+  | awk '{print $1}')
+# a router left over on the port (another shell, a test) would make this one exit
+port=${LLAMA_ARG_PORT:-9931}
+if pid=$(lsof -tiTCP:"$port" -sTCP:LISTEN); then
+  echo "🛑 stopping router already on :$port (pid $pid)"
+  pkill -f 'llama serve'; sleep 1
+fi
+cd ~ && exec make llama_serve model="$sel"
