@@ -10,10 +10,11 @@
 
 ; MoE, ~3B of 30B active. Not a thinking model, so no reasoning overhead.
 ; 65536: agent loops overflow 32k; 16384 returned exceed_context_size_error.
-; KV ~27 MB/1k tokens at q4_0, so ~1.7 GiB on top of 13 GiB weights.
+; KV ~27 MB/1k tokens at q4_0, so 32k costs ~0.9 GiB on top of 13 GiB weights.
 [qwen3-coder-30b]
+; use: ~50 t/s | fast edits, refactors, agent loops
 model = {{ dig "llama_models" (printf "%s/.cache/llama.cpp" .chezmoi.homeDir) . }}/gguf/qwen3-coder-30b-A3B-UD-Q3_K_XL.gguf
-ctx-size = 65536
+ctx-size = 32768
 gpu-layers = 99
 cache-type-k = q4_0
 cache-type-v = q4_0
@@ -22,11 +23,12 @@ cache-type-v = q4_0
 ; long-horizon agentic work and writing. Sampling per Unsloth thinking-mode
 ; recommendation.
 [qwen3.8-27b]
+; use: ~10 t/s | best quality: hard bugs, agent tasks, screenshots
 model = {{ dig "llama_models" (printf "%s/.cache/llama.cpp" .chezmoi.homeDir) . }}/gguf/Qwen3.8-27B-UD-IQ4_XS.gguf
 ; vision encoder (~0.9 GiB); each image costs ~0.5-1.5k tokens of context
 mmproj = {{ dig "llama_models" (printf "%s/.cache/llama.cpp" .chezmoi.homeDir) . }}/gguf/Qwen3.8-27B-mmproj-F16.gguf
-; KV ~30 MB/1k tokens at q4_0, so 64k costs ~2 GiB on top of 14.3 GiB weights.
-ctx-size = 65536
+; KV ~30 MB/1k tokens at q4_0, so 32k costs ~1 GiB on top of 14.3 GiB weights.
+ctx-size = 32768
 gpu-layers = 99
 cache-type-k = q4_0
 cache-type-v = q4_0
@@ -40,10 +42,11 @@ presence-penalty = 1.5
 
 ; Same weights, thinking disabled in the template. For chat, screenshots,
 ; rewrites; use qwen3.8-27b for agents and debugging.
-[qwen3.8-27b-fast]
+[qwen3.8-27b-nothink]
+; use: ~10 t/s | chat, rewrites, quick answers
 model = {{ dig "llama_models" (printf "%s/.cache/llama.cpp" .chezmoi.homeDir) . }}/gguf/Qwen3.8-27B-UD-IQ4_XS.gguf
 mmproj = {{ dig "llama_models" (printf "%s/.cache/llama.cpp" .chezmoi.homeDir) . }}/gguf/Qwen3.8-27B-mmproj-F16.gguf
-ctx-size = 65536
+ctx-size = 32768
 gpu-layers = 99
 cache-type-k = q4_0
 cache-type-v = q4_0
@@ -53,3 +56,62 @@ temp = 0.7
 top-p = 0.8
 top-k = 20
 presence-penalty = 1.5
+
+[qwen3.8-27b-lite]
+; use: ~10 t/s | 27b when desktop is full (-3 GB)
+; IQ3_S (12 GiB): same model ~2.3 GiB lighter, for when the desktop is full
+model = {{ dig "llama_models" (printf "%s/.cache/llama.cpp" .chezmoi.homeDir) . }}/gguf/Qwen3.8-27B-UD-IQ3_S.gguf
+mmproj = {{ dig "llama_models" (printf "%s/.cache/llama.cpp" .chezmoi.homeDir) . }}/gguf/Qwen3.8-27B-mmproj-F16.gguf
+ctx-size = 32768
+gpu-layers = 99
+cache-type-k = q4_0
+cache-type-v = q4_0
+reasoning-format = auto
+reasoning-budget = 4096
+temp = 1.0
+top-p = 0.95
+top-k = 20
+presence-penalty = 1.5
+
+[qwen3.8-27b-lite-nothink]
+; use: ~10 t/s | lite for chat and quick answers
+model = {{ dig "llama_models" (printf "%s/.cache/llama.cpp" .chezmoi.homeDir) . }}/gguf/Qwen3.8-27B-UD-IQ3_S.gguf
+mmproj = {{ dig "llama_models" (printf "%s/.cache/llama.cpp" .chezmoi.homeDir) . }}/gguf/Qwen3.8-27B-mmproj-F16.gguf
+ctx-size = 32768
+gpu-layers = 99
+cache-type-k = q4_0
+cache-type-v = q4_0
+chat-template-kwargs = {"enable_thinking":false}
+; Unsloth instruct-mode sampling
+temp = 0.7
+top-p = 0.8
+top-k = 20
+presence-penalty = 1.5
+
+; Gemma 4 MoE (4B active), Google. Second voice for writing and multilingual
+; text; behind qwen3.8 on code. The dense 31B swapped the machine on 24 GiB.
+; Thinking is on by default in this template, so off here;
+; `enable_thinking: true' re-enables it per request.
+[gemma4-26b-a4b-nothink]
+; use: ~60 t/s | prose, multilingual
+model = {{ dig "llama_models" (printf "%s/.cache/llama.cpp" .chezmoi.homeDir) . }}/gguf/gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.gguf
+mmproj = {{ dig "llama_models" (printf "%s/.cache/llama.cpp" .chezmoi.homeDir) . }}/gguf/gemma-4-26B-A4B-mmproj-F16.gguf
+ctx-size = 32768
+gpu-layers = 99
+cache-type-k = q4_0
+cache-type-v = q4_0
+reasoning-format = auto
+chat-template-kwargs = {"enable_thinking":false}
+temp = 1.0
+top-p = 0.95
+top-k = 64
+
+[devstral-small-2]
+; use: ~14 t/s | second agentic coder, tool calls
+model = {{ dig "llama_models" (printf "%s/.cache/llama.cpp" .chezmoi.homeDir) . }}/gguf/Devstral-Small-2-24B-UD-Q4_K_XL.gguf
+mmproj = {{ dig "llama_models" (printf "%s/.cache/llama.cpp" .chezmoi.homeDir) . }}/gguf/Devstral-Small-2-24B-mmproj-F16.gguf
+ctx-size = 32768
+gpu-layers = 99
+cache-type-k = q4_0
+cache-type-v = q4_0
+temp = 0.15
