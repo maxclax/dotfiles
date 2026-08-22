@@ -1,0 +1,20 @@
+#!/bin/bash
+# Memory view for llama.cpp, narrow so it fits a tmux side pane. Use: watch -n2 llama-mem
+t=$(top -l1 -o mem -n 12 -stats mem,command 2>/dev/null)
+phys=$(echo "$t" | grep PhysMem)
+used=$(echo "$phys"  | sed -E 's/.*PhysMem: ([0-9]+[MG]) used.*/\1/')
+wired=$(echo "$phys" | sed -E 's/.*\(([0-9]+[MG]) wired.*/\1/')
+unused=$(echo "$phys"| sed -E 's/.*, ([0-9]+[MG]) unused.*/\1/')
+swap=$(sysctl -n vm.swapusage | sed -E 's/.*used = ([0-9.]+)M.*/\1/' | cut -d. -f1)
+cap=$(sysctl -n iogpu.wired_limit_mb)
+[ "$cap" = 0 ] && cap="default" || cap="${cap}M"
+
+printf 'used  %-6s wired %-6s free %s\n' "$used" "$wired" "$unused"
+printf 'swap  %sM   metal cap %s\n\n' "$swap" "$cap"
+
+printf 'model worker\n'
+ps -axo rss=,command= | awk '/bin\/llama serve/ {
+  a=""; for(i=2;i<=NF;i++) if($i=="--alias") a=$(i+1);
+  if(a!="") printf "  %-18s %4.1fG\n", a, $1/1048576 }'
+printf '\napps\n'
+echo "$t" | tail -12 | grep -v ' llama' | head -10 | awk '{printf "  %-6s %s\n", $1, substr($2,1,18)}' | sed 's/2\.1\.[0-9]*/claude (&)/'

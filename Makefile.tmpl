@@ -160,12 +160,19 @@ endif
 e:
 	tmuxinator main;
 
+# AI session: llama router, load status, control shell
+ai:
+	tmuxinator ai;
+
 # Kill tmux session
 tke:
 	@tmux kill-session -t main || echo "Session 'main' does not exist."
 
 tkea:
 	pkill -f tmux
+
+tkai:
+	@tmux kill-session -t ai || echo "Session 'ai' does not exist."
 
 
 quitapps:

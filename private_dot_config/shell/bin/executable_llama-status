@@ -1,0 +1,37 @@
+#!/usr/bin/env python3
+# Show llama-server router model status; loading progress = child RSS / GGUF size.
+# Usage: llama-status   |   watch -n1 llama-status
+import json, os, subprocess, sys, urllib.request
+
+port = os.environ.get("LLAMA_ARG_PORT", "9931")
+try:
+    data = json.load(urllib.request.urlopen(f"http://localhost:{port}/models", timeout=2))["data"]
+except Exception as e:
+    sys.exit(f"router down (:{port})")
+
+ps = subprocess.run(["ps", "-axo", "pid=,rss=,command="], capture_output=True, text=True).stdout
+
+def rss_for(alias):
+    for line in ps.splitlines():
+        if "llama" in line and f"--alias {alias} " in line + " ":
+            return int(line.split()[1]) * 1024
+    return 0
+
+def bar(frac, width=12):
+    n = int(frac * width)
+    return "[" + "#" * n + "-" * (width - n) + f"] {frac*100:3.0f}%"
+
+for m in data:
+    st = m["status"]
+    val = st["value"]
+    args = st.get("args", [])
+    path = args[args.index("--model") + 1] if "--model" in args else ""
+    size = os.path.getsize(path) if path and os.path.exists(path) else 0
+    rss = rss_for(m["id"])
+    if val == "loaded":
+        line = bar(1.0) + f" {size/2**30:.0f}G"
+    elif val == "loading" and size:
+        line = bar(min(rss / size, 0.99))
+    else:
+        line = "[" + "-" * 12 + "]"
+    print(f"{m['id']:18} {val:8} {line}")

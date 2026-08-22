@@ -1,0 +1,19 @@
+#!/bin/bash
+# Terminal chat against the running router. `llama cli` ignores -m in server
+# mode and asks for a number, so ask here first: Enter = loaded model, or a
+# number/name; the answer is then typed into the cli prompt (tmux only).
+port=${LLAMA_ARG_PORT:-9931}
+url="http://localhost:$port"
+models=$(curl -sf --max-time 3 "$url/models" | jq -r '.data[] | "\(.id) \(.status.value)"' | sort)
+[ -n "$models" ] || { echo "router down (:$port)"; exit 1; }
+echo "$models" | awk '{ printf "  %d. %s%s\n", NR, $1, ($2=="loaded" ? "  (loaded)" : "") }'
+def=$(echo "$models" | awk '$2=="loaded" { print NR; exit }')
+read -r -p "model [${def:-none}]: " ans
+case "$ans" in
+  "") n=$def ;;
+  [0-9]*) n=$ans ;;
+  *) n=$(echo "$models" | awk -v w="$ans" '$1==w { print NR; exit }') ;;
+esac
+[ -n "$n" ] || { echo "no model loaded — give a number"; exit 1; }
+[ -n "$TMUX_PANE" ] && ( sleep 1.5; tmux send-keys -t "$TMUX_PANE" "$n" Enter ) &
+exec llama cli --server-base "$url" "$@"

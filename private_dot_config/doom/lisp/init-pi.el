@@ -36,7 +36,18 @@
 
   ;; Yank the underlying Markdown rather than the rendered text, so code blocks
   ;; survive a copy out of the chat buffer.
-  (setopt pi-coding-agent-copy-raw-markdown t))
+  (setopt pi-coding-agent-copy-raw-markdown t)
+
+  ;; Open on the right (40%) instead of taking over the current window; pi
+  ;; still stacks its input pane below the chat inside that column.
+  (defun my/pi-display-on-right (orig chat-buf input-buf &optional chat-only)
+    (if (or (get-buffer-window chat-buf) (get-buffer-window input-buf))
+        (funcall orig chat-buf input-buf chat-only)
+      (let ((win (split-window (frame-root-window)
+                               (- (round (* 0.4 (frame-width)))) 'right)))
+        (select-window win)
+        (funcall orig chat-buf input-buf chat-only))))
+  (advice-add 'pi-coding-agent--display-buffers :around #'my/pi-display-on-right))
 
 (provide 'init-pi)
 ;;; init-pi.el ends here

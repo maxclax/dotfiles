@@ -32,9 +32,41 @@
           :endpoint "/v1/chat/completions"
           :stream t
           :key "local"
-          :models '(qwen3-coder-30b qwen3.8-27b qwen3.8-27b-fast)))
+          :models '(qwen3-coder-30b qwen3.8-27b qwen3.8-27b-nothink qwen3.8-27b-lite qwen3.8-27b-lite-nothink gemma4-26b-a4b-nothink devstral-small-2)))
   (setq gptel-model '{{ dig "llama_preload" "qwen3.8-27b" . }})
   (setq gptel-default-mode 'org-mode)
+
+  ;; Chat buffers open in a side window on the right, not split below.
+  (setq gptel-display-buffer-action
+        '((display-buffer-in-side-window)
+          (side . right)
+          (window-width . 0.4)))
+
+  ;; Follow whatever the router has loaded (--models-max 1: asking for another
+  ;; preset would unload it and spend ~40 s reloading). Falls back to
+  ;; `gptel-model' when nothing is loaded or the router is down.
+  (defun my/gptel-llama-loaded-model ()
+    (ignore-errors
+      (with-current-buffer
+          (let ((url-request-method "GET") (url-show-status nil))
+            (url-retrieve-synchronously
+             "http://127.0.0.1:{{ dig "llama_port" "9931" . }}/models" t nil 2))
+        (goto-char url-http-end-of-headers)
+        (let ((data (gethash "data" (json-parse-buffer))))
+          (kill-buffer)
+          (seq-some (lambda (m)
+                      (when (equal (gethash "value" (gethash "status" m)) "loaded")
+                        (intern (gethash "id" m))))
+                    data)))))
+  (defun my/gptel-use-loaded-llama (&rest _)
+    (when (equal (gptel-backend-name gptel-backend) "llama.cpp")
+      (when-let ((m (my/gptel-llama-loaded-model)))
+        (setq-local gptel-model m))))
+  (advice-add 'gptel-request :before #'my/gptel-use-loaded-llama)
+  ;; also on opening a chat buffer, so the header line shows the real model
+  (add-hook 'gptel-mode-hook #'my/gptel-use-loaded-llama)
+  ;; chat buffers one step smaller than editing buffers
+  (add-hook 'gptel-mode-hook (lambda () (text-scale-set -1)))
 
   ;; Follow the response while it streams and land point at its end when done.
   ;; Both hooks are nil upstream, so without this the window sits still while
