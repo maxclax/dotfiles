@@ -42,6 +42,14 @@ precedence over this file; keep this to preferences that hold everywhere.
   of a file you need instead of whole large documents, and prefer `rg` over
   dumping directories.
 
+## Images
+
+- When a message contains a path to an image (`.png`, `.jpg`, `.webp`,
+  screenshots, `pi-clipboard-*.png`), call `read` on it immediately. The tool
+  returns the image itself, so you can see it; there is no need to verify the
+  path with `ls` first or to ask for an upload.
+- Only say an image is unreadable after `read` has actually failed.
+
 ## Noise files
 
 - Ignore OS and editor metadata entirely: `.DS_Store`, `._*`, `.Spotlight-V100`,

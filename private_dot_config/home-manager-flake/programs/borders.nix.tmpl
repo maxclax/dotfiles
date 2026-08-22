@@ -12,7 +12,8 @@
       ProgramArguments = [
         "${pkgs.jankyborders}/bin/borders"
         "style=square"
-        "hidpi=on"
+        # 1x layers: ~half the memory of hidpi=on, slightly softer edge
+        "hidpi=off"
         "width=5.0"
         "active_color=0xff00ff00"
         "inactive_color=0xff2e2e2e"

@@ -139,8 +139,9 @@
       :desc "Delete image" "d"         #'org-download-delete))
 
     (:prefix ("C-c l" . "Tools")
-             ;; gptel for one-shot questions and region rewrites; pi for agentic
-             ;; work. `a' is DWIM context — region, dired marks, else the buffer.
+             ;; gptel for one-shot questions and region rewrites; agentic work
+             ;; is pi in a terminal. `a' is DWIM context — region, dired marks,
+             ;; else the buffer.
              ;; Not `C-c C-a': that is org-attach in org-mode-map.
              (:prefix ("a" . "AI")
               :desc "gptel: chat buffer" "c"         #'gptel
@@ -149,8 +150,7 @@
               :desc "gptel: rewrite region" "r"      #'gptel-rewrite
               :desc "gptel: add to context" "a"      #'gptel-add
               :desc "gptel: add file to context" "f" #'gptel-add-file
-              :desc "gptel: abort request" "k"       #'gptel-abort
-              :desc "pi: coding agent" "p"           #'pi-coding-agent)
+              :desc "gptel: abort request" "k"       #'gptel-abort)
              (:prefix ("e" . "ERC IRC")
               :desc "Show all buffers" "a"    #'my/erc-show-all-buffers
               :desc "Connect to IRC" "c"      #'my/erc-connect

@@ -20,7 +20,6 @@
 
 (package! copilot)                    ; GitHub Copilot AI code completion
 (package! gptel)                      ; LLM integration — inline rewrite, code transforms
-(package! pi-coding-agent)             ; Emacs frontend for the pi coding agent (MELPA)
 
 ;; =====================================================================
 ;; NOTE-TAKING & KNOWLEDGE MANAGEMENT

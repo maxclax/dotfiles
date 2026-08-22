@@ -38,10 +38,3 @@ if ! command -v pi &> /dev/null; then
 else
   echo "Pi already installed: $(pi --version 2>/dev/null || echo 'version unknown')"
 fi
-
-# ── npm tools ─────────────────────────────────────────────────────────────────
-if command -v npm &> /dev/null; then
-  npm install -g opencode-ai cline
-else
-  echo "npm not available, skipping npm tools installation."
-fi
