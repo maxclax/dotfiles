@@ -290,11 +290,10 @@ but still carries last cycle's ✅ date, which reads as though it were done."
                         (org-agenda-entry-types '(:deadline))
                         (org-deadline-warning-days 0)
                         (org-agenda-show-all-dates nil)
-                        ;; Each deadline shows under its own due date, so the
-                        ;; built-in leader would read 0d everywhere — use a
-                        ;; days-from-today badge instead.
+                        ;; Days-from-today shown once per date header, not per item.
+                        (org-agenda-format-date #'my/agenda-format-date-offset)
                         (org-agenda-prefix-format
-                         '((agenda . " %i%(my/agenda-bold-prefix)%?-12t %(my/deadline-days-from-today) %(my/org-agenda-repeater)")))
+                         '((agenda . " %i%(my/agenda-bold-prefix)%?-12t%(my/org-agenda-repeater)")))
                         (org-agenda-skip-function
                          '(lambda ()
                             (when (member "nodeadline" (org-get-tags))
@@ -962,33 +961,14 @@ Used as the `file+function' capture target and by the refile helpers."
           (tags   priority-down category-keep)
           (search category-keep)))
 
-  ;; Show the repeater (++7d, +1m, …) inline in the agenda for deadlines
-  ;; and scheduled items, so a glance tells me whether something recurs.
+  ;; Show the repeater (++7d, +1m, …) inline for deadlines and scheduled
+  ;; items; nothing at all when the entry does not recur, so no reserved gap.
   (defun my/org-agenda-repeater ()
     "Repeater shown in org-agenda-prefix for agenda entries."
-    (let ((pom (org-get-at-bol 'org-marker)))
-      (if (or (org-get-scheduled-time pom) (org-get-deadline-time pom))
-          (format "%5s " (or (org-get-repeat) ""))
-        "      ")))
-
-  ;; Days-from-TODAY badge for calendar-style deadline blocks.
-  ;; In a multi-day deadline view each entry appears under its own due date,
-  ;; so the built-in deadline leader (%s) always reads "0d". This computes the
-  ;; distance from today instead, matching `org-agenda-deadline-leaders' style.
-  (defun my/deadline-days-from-today ()
-    "Return a 🔴 badge with whole days from today until this entry's deadline."
-    ;; During %(…) prefix eval point sits at the entry in the source org
-    ;; buffer, so `org-get-at-bol' returns nil here; pass it through and let
-    ;; `org-get-deadline-time' fall back to point (same as the repeater).
     (let* ((pom (org-get-at-bol 'org-marker))
-           (dl  (org-get-deadline-time (or pom (point)))))
-      (if dl
-          (let ((diff (- (time-to-days dl) (org-today))))
-            (cond
-             ((> diff 0) (format "🔴%2dd" diff))
-             ((= diff 0) "🔴 0d")
-             (t          (format "🔴-%dd" (- diff)))))
-        "     ")))
+           (rep (and (or (org-get-scheduled-time pom) (org-get-deadline-time pom))
+                     (org-get-repeat))))
+      (if rep (concat rep " ") "")))
 
   ;; Vivid deadline faces in agenda: overdue/today = bold red, approaching = orange
   (custom-set-faces!
@@ -1498,7 +1478,7 @@ went out. Inserts nothing when the queue is empty, so it disappears at zero."
   (add-hook 'org-agenda-finalize-hook #'my/agenda-uppercase-headers)
 
   (setq org-agenda-prefix-format
-        '((agenda . " %i%(my/agenda-bold-prefix)%?-12t% s %(my/org-agenda-repeater)")
+        '((agenda . " %i%(my/agenda-bold-prefix)%?-12t% s%(my/org-agenda-repeater)")
           (todo   . " %i%(my/agenda-bold-prefix)")
           (tags   . " %i%(my/agenda-bold-prefix)")
           (search . " %i%(my/agenda-bold-prefix)")))
@@ -1515,20 +1495,28 @@ went out. Inserts nothing when the queue is empty, so it disappears at zero."
 
   (advice-add 'org-agenda-list :before #'my/agenda-reset-first-day)
 
-  (setq org-agenda-format-date
-        (lambda (date)
-          (prog1
-              (concat (if my/agenda-block-first-day "" "\n")
-                      (org-agenda-format-date-aligned date))
-            (setq my/agenda-block-first-day nil))))
+  (defun my/agenda-format-date (date)
+    "Date header, blank line before every day but the block's first."
+    (prog1
+        (concat (if my/agenda-block-first-day "" "\n")
+                (org-agenda-format-date-aligned date))
+      (setq my/agenda-block-first-day nil)))
+
+  (defun my/agenda-format-date-offset (date)
+    "Date header plus distance from today, e.g. \"28 August 2026 (+3d)\"."
+    (let ((diff (- (calendar-absolute-from-gregorian date) (org-today))))
+      (concat (my/agenda-format-date date)
+              (cond ((> diff 0) (format "  (+%dd)" diff))
+                    ((= diff 0) "  (today)")
+                    (t          (format "  (%dd)" diff))))))
+
+  (setq org-agenda-format-date #'my/agenda-format-date)
 
   ;; Single horizontal rule between agenda blocks — visible split, no padding
   (setq org-agenda-block-separator ?─)
 
-  ;; Right-align tags to the window edge so the tag badges form one clean
-  ;; vertical column across all blocks, regardless of line length. A fixed
-  ;; column (e.g. -80) looks ragged because long items push their tags past it.
-  (setq org-agenda-tags-column 'auto)
+  ;; Tags follow the item text with one space, not aligned to the window edge.
+  (setq org-agenda-tags-column 0)
   (setq org-agenda-window-setup 'current-window)
   (setq org-agenda-restore-windows-after-quit t)
 
