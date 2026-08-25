@@ -21,11 +21,7 @@ windows:
       panes:
         - <%= t.("shell", "clear") %>
         - <%= t.("lazypodman", "lp") %>
-        # wait for THIS pane to be focused: yazi probes the terminal and tmux
-        # gives the replies to the focused pane — starting it in a background
-        # pane times out and sprays escape codes wherever you are typing.
-        # Named inline, not via t.(): the command itself contains #{pane_active}.
-        - tmux set-option -qp -t "$TMUX_PANE" @name yazi ; while [ "$(tmux display -p -t "$TMUX_PANE" '#{pane_active}')" != 1 ]; do sleep 0.5; done; YAZI_SINGLE=1 yazi ~
+        - <%= t.("ranger", "ranger ~") %>
   - dotfiles:
       layout: tiled
       panes:
