@@ -10,6 +10,7 @@ install.sh
 .chezmoiscripts/darwin/**
 .config/aerospace
 .config/homebrew
+.hammerspoon
 Library/Application\ Support/lazygit/config.yml
 {{ end }}
 
