@@ -39,6 +39,9 @@
         ;; Word-level diff highlighting in all hunks
         magit-diff-refine-hunk 'all
 
+        ;; Ahead/behind counts in the refs buffer (y): <N ahead, N> behind, =
+        magit-refs-show-commit-count 'all
+
         ;; Faster diffs
         magit-diff-highlight-hunk-region-functions nil
         magit-diff-paint-whitespace nil
