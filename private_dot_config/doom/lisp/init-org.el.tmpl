@@ -205,6 +205,10 @@ but still carries last cycle's ✅ date, which reads as though it were done."
   ;; Dim blocked tasks
   (setq org-agenda-dim-blocked-tasks t)
 
+  ;; Body text under agenda lines when `E' is on (drawers are stripped by org;
+  ;; image links stay literal — use `F' follow mode to actually see pictures).
+  (setq org-agenda-add-entry-text-maxlines 10)
+
   ;; Hide DONE tasks from agenda
   (setq org-agenda-skip-scheduled-if-done t
         org-agenda-skip-deadline-if-done t
@@ -955,10 +959,28 @@ Used as the `file+function' capture target and by the refile helpers."
   (setq org-agenda-scheduled-leaders '("Sched" "S.%2dx"))
   (setq org-agenda-deadline-leaders  '("🔴 0d" "🔴%2dd" "🔴-%1dd"))
 
+  ;; Claim markers: headlines ending in [c1]…[cN] sort in that order in tag
+  ;; views. Returns nil when neither side carries one, so other tag views keep
+  ;; their usual order.
+  (defun my/agenda-claim-number (entry)
+    "Number in ENTRY's [cN] claim marker, or nil."
+    (when (and (stringp entry) (string-match "\\[c\\([0-9]+\\)\\]" entry))
+      (string-to-number (match-string 1 entry))))
+
+  (defun my/agenda-cmp-claim (a b)
+    "Compare agenda entries A and B by [cN]; unmarked entries sort last."
+    (let ((na (my/agenda-claim-number a))
+          (nb (my/agenda-claim-number b)))
+      (cond ((and na nb) (cond ((< na nb) -1) ((> na nb) +1)))
+            (na -1)
+            (nb +1))))
+
+  (setq org-agenda-cmp-user-defined #'my/agenda-cmp-claim)
+
   (setq org-agenda-sorting-strategy
         '((agenda deadline-up habit-down time-up priority-down category-keep)
           (todo   priority-down category-keep)
-          (tags   priority-down category-keep)
+          (tags   user-defined-up priority-down category-keep)
           (search category-keep)))
 
   ;; Show the repeater (++7d, +1m, …) inline for deadlines and scheduled
@@ -981,14 +1003,25 @@ Used as the `file+function' capture target and by the refile helpers."
   ;; background bar (:extend fills to the window edge when the face also
   ;; covers the trailing newline; see `my/agenda-uppercase-headers').
   ;; The bar must follow the theme: cream on light, raised bg-alt on dark —
-  ;; a hardcoded light cream glares after circadian switches to dark.
+  ;; a hardcoded light cream glares once the theme switches to dark.
+  ;; Read the live `default' face, never `doom-color': doom-themes only
+  ;; repopulates its palette on `load-theme', so after an `enable-theme' switch
+  ;; it still reports the outgoing theme — that is how a dark bar once stuck
+  ;; under the light theme. Deferred so the switch has fully settled.
   (defun my/agenda-structure-face-h (&rest _)
-    (custom-set-faces!
-     `(org-agenda-structure
-       :weight bold :height 1.05 :extend t
-       :background ,(if (eq (frame-parameter nil 'background-mode) 'light)
-                        "#fdf8e1"
-                      (doom-color 'bg-alt)))))
+    (run-at-time
+     0 nil
+     (lambda ()
+       (require 'color)
+       (let* ((bg (face-attribute 'default :background nil t))
+              (fg (face-attribute 'default :foreground nil t))
+              (lightp (and (stringp bg)
+                           (> (apply #'+ (color-values bg)) (* 1.5 65535)))))
+         (custom-set-faces!
+          `(org-agenda-structure
+            :weight bold :height 1.05 :extend t
+            :foreground ,fg
+            :background ,(if lightp "#fdf8e1" (color-darken-name bg 15))))))))
   (my/agenda-structure-face-h)
   (add-hook 'doom-load-theme-hook #'my/agenda-structure-face-h)
 
