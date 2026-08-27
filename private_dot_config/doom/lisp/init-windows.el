@@ -67,4 +67,8 @@ layout that no longer makes sense."
 
 
 
+;; Horizontal trackpad scrolling: mwheel's left/right branches are gated on
+;; this, nil by default. Only visible where lines are truncated.
+(setq mouse-wheel-tilt-scroll t)
+
 (provide 'init-windows)
