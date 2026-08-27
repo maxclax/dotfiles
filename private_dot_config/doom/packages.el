@@ -84,7 +84,7 @@
 ;; =====================================================================
 
 (package! flymake-cspell)             ; cspell backend for flymake
-(package! circadian)                  ; Automatic theme switching (day/night modes)
+(package! auto-dark)                  ; Follow the macOS light/dark appearance
 (package! beacon)                     ; Highlight cursor position after scrolling/jumping
 (package! keycast)                    ; Display current command/key sequence in mode line
 (package! page-break-lines
