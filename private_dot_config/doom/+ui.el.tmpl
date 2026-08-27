@@ -3,27 +3,22 @@
 ;; Set fallback theme
 (setq fancy-splash-image (concat doom-private-dir "assets/GNUEmacs.png"))
 
-(use-package! circadian
+(setq doom-theme 'doom-one-light)
+
+;; Follow the macOS appearance rather than a clock of our own — macOS already
+;; auto-switches, and two schedules drift apart. This build has no
+;; `ns-system-appearance', so auto-dark polls with AppleScript; 60s is ample
+;; for something that changes twice a day.
+(use-package! auto-dark
   :config
-  (setq circadian-themes '(("5:00" . doom-one-light)
-                           ("21:00" . doom-one)))
-
-  ;; Determine the correct initial theme based on current time
-  (let* ((hour-now (string-to-number (format-time-string "%H")))
-         (minute-now (string-to-number (format-time-string "%M")))
-         (time-now (+ (* hour-now 60) minute-now))
-         (light-start (+ (* 5 60) 0))   ;; 5:00 in minutes
-         (dark-start (+ (* 18 60) 30))) ;; 18:30 in minutes
-
-    ;; Set the initial theme based on current time
-    (setq doom-theme
-          (if (and (>= time-now light-start)
-                   (< time-now dark-start))
-              'doom-one-light ;; During day (5:00-18:30)
-            'doom-one)))      ;; During night
-
-  ;; Setup circadian for automatic switching
-  (circadian-setup))
+  (setq auto-dark-polling-interval-seconds 60
+        ;; the applescript path additionally requires `window-system' to be ns,
+        ;; which is nil at daemon init — without this, detection finds no
+        ;; viable method and falls back to dark
+        auto-dark-allow-osascript t)
+  ;; setopt, not setq: `auto-dark-themes' has a :set that preloads the themes
+  (setopt auto-dark-themes '((doom-one) (doom-one-light)))
+  (auto-dark-mode 1))
 
 ;; Perfect font + theme for emacsclient frames
 (setq display-line-numbers-type t)
@@ -32,11 +27,10 @@
 (defun my/apply-gui-settings (&optional frame)
   "Apply font and current theme to FRAME (or current frame)."
   (when (display-graphic-p frame)
-    ;; Fall back to `doom-theme' when circadian hasn't applied a theme yet
-    ;; (e.g. the daemon's first GUI frame) — otherwise that frame keeps
-    ;; half-applied faces and the first agenda renders unstyled.
-    (when-let ((theme (or (bound-and-true-p circadian--current-theme)
-                          doom-theme)))
+    ;; Fall back to `doom-theme' when no theme is applied yet (e.g. the
+    ;; daemon's first GUI frame) — otherwise that frame keeps half-applied
+    ;; faces and the first agenda renders unstyled.
+    (when-let ((theme (or (car custom-enabled-themes) doom-theme)))
       (load-theme theme t))
     (set-face-attribute 'default nil
                         :font "Berkeley Mono Variable-18"
