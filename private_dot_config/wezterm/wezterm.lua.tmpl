@@ -64,6 +64,11 @@ config.font = wezterm.font_with_fallback({
 	{ family = "Noto Color Emoji" },
 	{ family = "Noto Emoji" },
 })
+
+-- wezterm can only reach this font's SemiCondensed instance (wdth 90); its
+-- stretch comes from the static OS/2 table, so wdth 100 is unaddressable.
+-- Narrower cells at unchanged line height read as too tall -- scale it back.
+config.line_height = 0.937
 {{ end }}
 
 if is_windows then
