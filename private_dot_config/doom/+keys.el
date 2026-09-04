@@ -186,6 +186,7 @@
      :desc "Edit beginnings of lines" "b" #'mc/edit-beginnings-of-lines)
 
     (:prefix ("C-c n" . "Notes")
+     :desc "Archive note" "A"               #'my/denote-archive-note
      :desc "Denote backlinks (xref)" "b"    #'denote-backlinks
      :desc "Backlinks + preview" "B"        #'my/denote-insert-backlinks-context
      :desc "Backlinks preview (virtual)" "v" #'my/denote-backlinks-preview
