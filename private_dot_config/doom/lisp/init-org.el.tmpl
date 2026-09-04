@@ -1180,11 +1180,30 @@ Scale: great=🤩 good=👍 ok=🙂 meh=😕 bad=💀"
 
   ;; Make filename/title BOLD in agenda – guaranteed to work
   ;; ──────────────────────────────────────────────────────────────
+  (defvar my/agenda-prefix-title-width 28
+    "Max display width of the file title in agenda prefixes.
+Longer titles are trimmed with \"...\" so the TODO keyword, priority
+and heading stay on-screen. A wrapped prefix hides those faces and
+leaves hl-line covering only the first visual line.")
+
+  (defun my/agenda-trim-title (title)
+    "Trim TITLE to `my/agenda-prefix-title-width', appending \"...\" if needed.
+Breaks at the last space that still fits, so names don't end mid-word."
+    (if (<= (string-width title) my/agenda-prefix-title-width)
+        title
+      (let* ((budget (max 1 (- my/agenda-prefix-title-width 3)))
+             (cut (string-trim-right (truncate-string-to-width title budget)))
+             (spc (string-match " [^ ]+\\'" cut)))
+        (concat (if (and spc (> spc 8))
+                    (string-trim-right (substring cut 0 spc))
+                  cut)
+                "..."))))
+
   (defun my/agenda-bold-prefix ()
     "Return the cleaned filename/title with arrow separator (bolding applied post-render)."
     (let ((clean (my/clean-denote-title-for-agenda)))
       (when (and clean (not (string-empty-p clean)))
-        (concat clean " → "))))
+        (concat (my/agenda-trim-title clean) " → "))))
 
   (defun my/agenda-apply-bold-prefix ()
     "Re-apply bold face to prefix titles after agenda render."
