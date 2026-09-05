@@ -51,6 +51,10 @@
 ;; Apply to every new emacsclient frame
 (add-hook 'after-make-frame-functions #'my/apply-gui-settings)
 
+;; Apple Color Emoji renders natively; image mode re-reads PNGs on refontify
+(after! emojify
+  (setq emojify-display-style 'unicode))
+
 
 (setq-default fill-column 80
               delete-trailing-lines t)
