@@ -42,8 +42,8 @@
     ;; Berkeley Mono has no Cyrillic — without this Emacs falls back to
     ;; proportional Helvetica and org tables with Ukrainian text misalign.
     ;; JetBrains Mono matches Berkeley's advance width exactly at this size.
-    (set-fontset-font t 'cyrillic (font-spec :family "JetBrains Mono"))
-    (set-fontset-font t ?№ (font-spec :family "JetBrains Mono"))))
+    (set-fontset-font t 'cyrillic (font-spec :family "JetBrains Mono" :weight 'regular))
+    (set-fontset-font t ?№ (font-spec :family "JetBrains Mono" :weight 'regular))))
 
 ;; Apply on startup
 (my/apply-gui-settings)
