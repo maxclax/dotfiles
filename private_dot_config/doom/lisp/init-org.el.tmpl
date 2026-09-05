@@ -1155,17 +1155,79 @@ Used as the `file+function' capture target and by the refile helpers."
     (format-time-string "[%Y-%m-%d %a]"))
 
   ;; ──────────────────────────────────────────────────────────────
+  ;; Same proximity scale as `my/org-deadline-fontify': overdue/today red,
+  ;; ≤3d red, ≤7d orange (the "in 6d" case), rest of the warning window
+  ;; dark orange. Subscriptions block only — other agenda views keep
+  ;; their own tag/TODO/deadline faces.
+  (defun my/agenda-deadline-face (days)
+    "Face for a deadline DAYS from today, or nil if it should stay default."
+    (cond
+     ((<= days 0) 'org-imminent-deadline)
+     ((<= days 3) 'org-warning)
+     ((<= days 7) 'org-upcoming-deadline)
+     ((<= days org-deadline-warning-days) 'org-upcoming-distant-deadline)))
+
   (defun my/sub-deadline-info ()
     "Return days until deadline as a string for subscription agenda."
     (let ((dl (org-get-deadline-time (point))))
-      (if dl
-          (let ((days (- (time-to-days dl) (time-to-days (current-time)))))
-            (cond
-             ((< days 0) (format "%dd overdue" (abs days)))
-             ((= days 0) "today")
-             ((< days 30) (format "in %dd" days))
-             (t (format "in %dm" (/ days 30)))))
-        "")))
+      (if (not dl)
+          ""
+        (let* ((days (- (time-to-days dl) (time-to-days (current-time))))
+               (txt (cond
+                     ((< days 0) (format "%dd overdue" (abs days)))
+                     ((= days 0) "today")
+                     ((< days 30) (format "in %dd" days))
+                     (t (format "in %dm" (/ days 30)))))
+               (face (my/agenda-deadline-face days)))
+          (if face (propertize txt 'face face) txt)))))
+
+  (defun my/agenda-color-soon-deadlines ()
+    "Paint soon-due countdown + title on subscription lines only.
+Org stamps tags/todo lines with `face nil', which wipes the prefix
+face from `my/sub-deadline-info', so this re-applies it after
+finalize. Other agenda blocks (Today, Upcoming, …) are left alone
+so tag badges keep `my/agenda-style-tags'."
+    (save-excursion
+      (goto-char (point-min))
+      (let ((inhibit-read-only t)
+            (pri-re "\\[#[A-Z0-9]\\][ \t]*"))
+        (while (not (eobp))
+          (when-let* ((m (or (org-get-at-bol 'org-hd-marker)
+                             (org-get-at-bol 'org-marker)))
+                      (buf (marker-buffer m))
+                      (file (buffer-file-name buf)))
+            (when (and (buffer-live-p buf)
+                       (string-match-p "subscriptions" file))
+              (let* ((dl (org-with-point-at m (org-get-deadline-time (point))))
+                     (days (and dl (- (time-to-days dl)
+                                      (time-to-days (current-time)))))
+                     (face (and days (my/agenda-deadline-face days))))
+                (when face
+                  (let ((bol (line-beginning-position))
+                        (eol (line-end-position)))
+                    (save-excursion
+                      (when (re-search-forward
+                             "\\(?:[0-9]+d overdue\\|\\<today\\>\\|in [0-9]+d\\)"
+                             eol t)
+                        (put-text-property (match-beginning 0) (match-end 0)
+                                           'face face)))
+                    (when-let ((beg (text-property-any bol eol 'org-heading t)))
+                      (goto-char beg)
+                      (when-let ((todo-re (org-get-at-bol 'org-todo-regexp)))
+                        (when (looking-at (concat todo-re "[ \t]+"))
+                          (goto-char (match-end 0))))
+                      (when (looking-at pri-re)
+                        (goto-char (match-end 0)))
+                      (when (< (point) eol)
+                        (put-text-property (point) eol 'face face))))))))
+          (forward-line 1)))))
+
+  ;; Advice, not hook — custom commands let-bind `org-agenda-finalize-hook'.
+  ;; Skip the no-op calls made for each block while `org-agenda-multi' is t.
+  (advice-add 'org-agenda-finalize :after
+              (defun my/agenda-color-soon-deadlines-a (&rest _)
+                (unless org-agenda-multi
+                  (my/agenda-color-soon-deadlines))))
 
   (defun my/sub-rating ()
     "Return rating emoji for current subscription based on RATING property.
