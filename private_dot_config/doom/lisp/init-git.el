@@ -130,8 +130,12 @@
                           'magit-insert-stashes t)
 
   ;; Status: short age (" 9h") — 12 cols. Log buffers: full datetime — 24 cols.
-  (customize-set-variable 'magit-status-margin '(t age-abbreviated magit-log-margin-width t 7))
-  (customize-set-variable 'magit-log-margin '(t "%Y-%m-%d %H:%M" magit-log-margin-width t 7))
+  ;; `setq', not `customize-set-variable': magit's :set function walks every
+  ;; magit-status/log buffer and `magit-refresh'es it. On doom/reload that
+  ;; freezes Emacs (and the machine) before the rest of config.el — including
+  ;; init-org.el — has even loaded.
+  (setq magit-status-margin '(t age-abbreviated magit-log-margin-width t 7)
+        magit-log-margin '(t "%Y-%m-%d %H:%M" magit-log-margin-width t 7))
 
 
   ;; Auto-save WIP to hidden refs — never lose uncommitted work
