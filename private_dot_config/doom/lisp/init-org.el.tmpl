@@ -1182,39 +1182,54 @@ Used as the `file+function' capture target and by the refile helpers."
           (if face (propertize txt 'face face) txt)))))
 
   (defun my/agenda-color-soon-deadlines ()
-    "Paint soon-due countdown + title on subscription lines only.
+    "Paint deadline proximity in the Subscriptions and Upcoming blocks.
 Org stamps tags/todo lines with `face nil', which wipes the prefix
-face from `my/sub-deadline-info', so this re-applies it after
-finalize. Other agenda blocks (Today, Upcoming, …) are left alone
-so tag badges keep `my/agenda-style-tags'."
+face from `my/sub-deadline-info'; and in day blocks Org colours an
+entry relative to its own date, so a deadline five days out is
+already `org-warning'. Both are re-applied here, relative to today.
+Other blocks are left alone so tag badges keep `my/agenda-style-tags'."
     (save-excursion
       (goto-char (point-min))
       (let ((inhibit-read-only t)
-            (pri-re "\\[#[A-Z0-9]\\][ \t]*"))
+            (pri-re "[ \t]*\\[#[A-Z0-9]\\][ \t]*")
+            block)
         (while (not (eobp))
-          (when-let* ((m (or (org-get-at-bol 'org-hd-marker)
+          (when (get-text-property (point) 'org-agenda-structural-header)
+            (let ((hdr (downcase (buffer-substring-no-properties
+                                  (point) (line-end-position)))))
+              (setq block (cond ((string-match-p "subscriptions" hdr) 'subs)
+                                ((string-match-p "upcoming deadlines" hdr) 'upcoming)))))
+          (when-let* ((block)
+                      (m (or (org-get-at-bol 'org-hd-marker)
                              (org-get-at-bol 'org-marker)))
-                      (buf (marker-buffer m))
-                      (file (buffer-file-name buf)))
-            (when (and (buffer-live-p buf)
-                       (string-match-p "subscriptions" file))
-              (let* ((dl (org-with-point-at m (org-get-deadline-time (point))))
-                     (days (and dl (- (time-to-days dl)
-                                      (time-to-days (current-time)))))
+                      (buf (marker-buffer m)))
+            (when (buffer-live-p buf)
+              (let* ((days (pcase block
+                             ;; day blocks list a repeater on its next date
+                             ('upcoming (when-let ((d (org-get-at-bol 'date)))
+                                          (- d (org-today))))
+                             (_ (when-let ((dl (org-with-point-at m
+                                                 (org-get-deadline-time (point)))))
+                                  (- (time-to-days dl) (org-today))))))
                      (face (and days (my/agenda-deadline-face days))))
                 (when face
                   (let ((bol (line-beginning-position))
-                        (eol (line-end-position)))
-                    (save-excursion
-                      (when (re-search-forward
-                             "\\(?:[0-9]+d overdue\\|\\<today\\>\\|in [0-9]+d\\)"
-                             eol t)
-                        (put-text-property (match-beginning 0) (match-end 0)
-                                           'face face)))
-                    (when-let ((beg (text-property-any bol eol 'org-heading t)))
+                        (eol (line-end-position))
+                        (beg (text-property-any (line-beginning-position)
+                                                (line-end-position)
+                                                'org-heading t)))
+                    (pcase block
+                      ('upcoming (when beg (put-text-property bol beg 'face face)))
+                      (_ (save-excursion
+                           (when (re-search-forward
+                                  "\\(?:[0-9]+d overdue\\|\\<today\\>\\|in [0-9]+d\\)"
+                                  eol t)
+                             (put-text-property (match-beginning 0) (match-end 0)
+                                                'face face)))))
+                    (when beg
                       (goto-char beg)
                       (when-let ((todo-re (org-get-at-bol 'org-todo-regexp)))
-                        (when (looking-at (concat todo-re "[ \t]+"))
+                        (when (looking-at todo-re)
                           (goto-char (match-end 0))))
                       (when (looking-at pri-re)
                         (goto-char (match-end 0)))
