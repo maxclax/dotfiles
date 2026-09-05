@@ -65,3 +65,8 @@
 (global-auto-revert-mode 1)
 (setq global-auto-revert-non-file-buffers t)
 (setq auto-revert-verbose nil)   ; ← silence the "reverted buffer …" messagen
+
+;; GC only when idle: raise the threshold before each command, not after
+(after! gcmh
+  (setq gcmh-low-cons-threshold (* 16 1024 1024))
+  (add-hook 'pre-command-hook #'gcmh-set-high-threshold))
