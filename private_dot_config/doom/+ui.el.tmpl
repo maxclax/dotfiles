@@ -65,6 +65,21 @@
       doom-modeline-persp-name t  ;; adds perspective name to modeline
       doom-modeline-persp-icon t) ;; adds folder icon next to persp name
 
+;; doom-modeline-vcs-icon always uses the `devicon' family, but the
+;; worktree glyph is a codicon (`nf-cod-worktree'). Org notes live in a
+;; git worktree, so every redisplay threw
+;; "Unable to find icon … nf-cod-worktree" and navigation felt frozen.
+(after! doom-modeline
+  (defun doom-modeline-vcs-icon (icon &optional unicode text face)
+    "Display VCS ICON, picking the nerd-icons family from its prefix."
+    (let ((family (cond ((string-prefix-p "nf-cod-" icon) 'codicon)
+                        ((string-prefix-p "nf-oct-" icon) 'octicon)
+                        ((string-prefix-p "nf-fa-" icon) 'faicon)
+                        ((string-prefix-p "nf-md-" icon) 'mdicon)
+                        (t 'devicon))))
+      (doom-modeline-icon family (and doom-modeline-vcs-icon icon)
+                          unicode text :face face))))
+
 ;; Create workspace only on explicit project switch, not on magit/dired/etc.
 (setq +workspaces-on-switch-project-behavior t)
 
