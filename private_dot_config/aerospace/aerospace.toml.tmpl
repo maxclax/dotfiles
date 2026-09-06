@@ -193,31 +193,31 @@ run = "move-node-to-workspace 5"
 # Emacs (6)
 
 [[on-window-detected]]
+if.app-id = 'com.mitchellh.ghostty'
+  run = "move-node-to-workspace 8"
+
+[[on-window-detected]]
 if.app-id = 'com.apple.Safari'
-run = "move-node-to-workspace 7"
+run = "move-node-to-workspace 9"
 [[on-window-detected]]
 if.app-id = 'com.openai.chat'
-run = "move-node-to-workspace 7"
+run = "move-node-to-workspace 9"
 [[on-window-detected]]
 if.app-id = 'com.anthropic.claudefordesktop'
-run = "move-node-to-workspace 7"
+run = "move-node-to-workspace 9"
 [[on-window-detected]]
 if.app-id = 'com.anysphere.sand' # Grok Bot
-run = "move-node-to-workspace 7"
-
-[[on-window-detected]]
-if.app-id = 'com.mitchellh.ghostty'
-run = "move-node-to-workspace 8"
-
-[[on-window-detected]]
-if.app-id = 'org.alacritty'
 run = "move-node-to-workspace 9"
 
 [[on-window-detected]]
 if.app-id = 'net.kovidgoyal.kitty'
 run = "move-node-to-workspace 10"
+
 [[on-window-detected]]
 if.app-id = 'com.github.wez.wezterm'
+run = "move-node-to-workspace D"
+[[on-window-detected]]
+if.app-id = 'org.alacritty'
 run = "move-node-to-workspace D"
 
 
@@ -287,11 +287,11 @@ run = 'move-node-to-workspace 1'
 4  = 1                  # Dev (Emacs)
 5  = 'main'             # Dev (Emacs F1)
 6  = [4, 3]             # Dev (Emacs)
-7  = [4, 3]             # AI GUI chats
+7  = [4, 3]             #
 8  = 'main'             # terminal
-9  = [3, 4]             # Dev (env)
-10 = [4, 3]             # AI CLI & Agents
-# D  = [4, 3]             # Dev
+9  = [3, 4]             # AI GUI
+10 = [3, 4]             # AI CLI & Agents
+D  = [4, 3]             # Dev
 I  = ['iPad', 'Retina'] # Info (references, reading)
 M  = [3, 1]             # Media, Mail
 # U  = 'main'             # Utilities, etc.
