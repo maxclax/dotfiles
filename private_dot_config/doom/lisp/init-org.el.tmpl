@@ -1188,10 +1188,10 @@ face from `my/sub-deadline-info'; and in day blocks Org colours an
 entry relative to its own date, so a deadline five days out is
 already `org-warning'. Both are re-applied here, relative to today.
 Other blocks are left alone so tag badges keep `my/agenda-style-tags'."
-    (save-excursion
+    (with-silent-modifications
+     (save-excursion
       (goto-char (point-min))
-      (let ((inhibit-read-only t)
-            (pri-re "[ \t]*\\[#[A-Z0-9]\\][ \t]*")
+      (let ((pri-re "[ \t]*\\[#[A-Z0-9]\\][ \t]*")
             block)
         (while (not (eobp))
           (when (get-text-property (point) 'org-agenda-structural-header)
@@ -1235,7 +1235,7 @@ Other blocks are left alone so tag badges keep `my/agenda-style-tags'."
                         (goto-char (match-end 0)))
                       (when (< (point) eol)
                         (put-text-property (point) eol 'face face))))))))
-          (forward-line 1)))))
+          (forward-line 1))))))
 
   ;; Advice, not hook — custom commands let-bind `org-agenda-finalize-hook'.
   ;; Skip the no-op calls made for each block while `org-agenda-multi' is t.
