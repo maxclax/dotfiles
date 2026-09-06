@@ -1,0 +1,59 @@
+# -*- mode: nix; -*-
+{ config, pkgs, lib, ... }:
+
+let
+  # Unsigned network tools with no signed upstream build. The real binary is
+  # copied to a fixed path so a Little Snitch rule with "Identification: Path"
+  # survives updates; ~/.local/bin/<name> is a shim that sets the same env the
+  # nixpkgs wrapper does and execs the copy.
+  helm = pkgs.kubernetes-helm.overrideAttrs (old: { doCheck = false; });
+  tools = [
+    { name = "kubectl"; pkg = pkgs.kubectl; }
+    { name = "helm";    pkg = helm; }
+    { name = "gh";      pkg = pkgs.gh;
+      env = ''export GH_TELEMETRY="''${GH_TELEMETRY-false}"''; }
+    { name = "restic";  pkg = pkgs.restic;
+      env = ''export PATH="${pkgs.rclone}/bin:$PATH"''; }
+    { name = "atuin";   pkg = pkgs.atuin; }
+    { name = "tofu";    pkg = pkgs.opentofu; }
+    { name = "k9s";     pkg = pkgs.k9s; }  # wrapper only adds kubectl to PATH; the shim is there already
+{{- if .podmanEnabled }}
+    # podman finds gvproxy in $BINDIR/../libexec/podman next to the copy, and
+    # vfkit on PATH; both do the machine's networking, so they get copies too
+    { name = "podman";  pkg = pkgs.podman;
+      env = ''export PATH="$HOME/.local/libexec/stable-bins:${pkgs.krunkit}/bin:$PATH"''; }
+{{- end }}
+  ];
+  helpers = [
+{{- if .podmanEnabled }}
+    { src = "${pkgs.vfkit}/bin/vfkit";                   dst = "stable-bins/vfkit"; }
+    { src = "${pkgs.podman}/libexec/podman/gvproxy";     dst = "podman/gvproxy"; }
+    { src = "${pkgs.podman}/libexec/podman/gvforwarder"; dst = "podman/gvforwarder"; }
+{{- end }}
+  ];
+  copyHelper = h: ''
+    mkdir -p "$HOME/.local/libexec/$(dirname "${h.dst}")"
+    cmp -s "${h.src}" "$HOME/.local/libexec/${h.dst}" \
+      || $DRY_RUN_CMD install -m755 "${h.src}" "$HOME/.local/libexec/${h.dst}"
+  '';
+  copyOne = t: ''
+    src="${t.pkg}/bin/.${t.name}-wrapped"
+    [ -f "$src" ] || src="${t.pkg}/bin/${t.name}"
+    dst="$lib/${t.name}"
+    cmp -s "$src" "$dst" || $DRY_RUN_CMD install -m755 "$src" "$dst"
+    printf '%s\n' '#!/bin/sh' ${lib.escapeShellArg (t.env or "")} \
+      'exec "$HOME/.local/libexec/stable-bins/${t.name}" "$@"' > "$bin/${t.name}.tmp"
+    if cmp -s "$bin/${t.name}.tmp" "$bin/${t.name}"; then rm "$bin/${t.name}.tmp"
+    else $DRY_RUN_CMD mv "$bin/${t.name}.tmp" "$bin/${t.name}"; fi
+    chmod 755 "$bin/${t.name}"
+  '';
+in
+{
+  home.activation.stableBins = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    bin="$HOME/.local/bin"
+    lib="$HOME/.local/libexec/stable-bins"
+    mkdir -p "$bin" "$lib"
+    ${lib.concatMapStrings copyOne tools}
+    ${lib.concatMapStrings copyHelper helpers}
+  '';
+}

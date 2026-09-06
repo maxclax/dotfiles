@@ -14,13 +14,18 @@
     gnused                 # GNU sed — stream editor
     util-linux             # Low-level system utilities (lsblk, mount, etc.)
     bash                   # Bourne Again Shell
+{{- if ne .chezmoi.os "darwin" }}
+    # macOS uses Apple's signed /usr/bin/{curl,ssh} so Little Snitch rules survive updates
     curl                   # Transfer data via URLs (HTTP, FTP, etc.)
     openssh                # SSH client/server for secure remote access
-    rsync                  # Upstream rsync — macOS now ships Apple's openrsync, which lacks --info=progress2 and other long options
+{{- end }}
+    rsync                 # Upstream rsync — macOS now ships Apple's openrsync, which lacks --info=progress2 and other long options
     wget                   # Non-interactive web file retriever
 
     # ── Version Control ──────────────────────────────────────────────────
-    git                    # Distributed version control system
+{{- if ne .chezmoi.os "darwin" }}
+    git                    # Distributed version control system (macOS: Apple's signed git)
+{{- end }}
     gh                     # GitHub CLI — PRs, issues, repos from terminal
     git-absorb             # Auto-absorb staged changes into prior commits
     git-lfs                # Git extension for large binary files
@@ -199,7 +204,7 @@
     tokei                  # Count lines of code by language
 
     # ── Node.js ──────────────────────────────────────────────────────────
-    nodejs                 # JavaScript runtime (V8 engine)
+    fnm                    # Node version manager; installs nodejs.org builds (signed, Little Snitch rules survive updates)
     # deno — installed via deno.land installer (prebuilt binary, faster updates)
     prettier               # Opinionated code formatter (JS, TS, CSS, HTML, JSON, Markdown)
 
