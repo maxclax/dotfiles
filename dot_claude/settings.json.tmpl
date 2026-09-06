@@ -1,8 +1,12 @@
 {
   "autoUpdate": true,
   "model": "claude-fable-5",
-  "cleanupPeriodDays": 180,
+  "cleanupPeriodDays": 45,
   "env": {},
+  "statusLine": {
+    "type": "command",
+    "command": "{{ .chezmoi.homeDir }}/.claude/statusline.sh"
+  },
   "permissions": {
     "allow": [],
     "deny": [
@@ -50,12 +54,12 @@
   },
   "enabledPlugins": {
     "context7@claude-plugins-official": true,
-    "playwright@claude-plugins-official": true,
-    "pyright-lsp@claude-plugins-official": true,
+    "playwright@claude-plugins-official": false,
+    "pyright-lsp@claude-plugins-official": false,
     "frontend-design@claude-plugins-official": false,
     "feature-dev@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
-    "security-guidance@claude-code-plugins": true,
+    "security-guidance@claude-code-plugins": false,
     "superpowers@claude-plugins-official": true,
     "ui-ux-pro-max@ui-ux-pro-max-skill": true,
     "code-review@claude-plugins-official": true
@@ -88,5 +92,6 @@
     ]
   },
   "mcpServers": {},
-  "voiceEnabled": true
+  "voiceEnabled": true,
+  "agentPushNotifEnabled": true
 }
