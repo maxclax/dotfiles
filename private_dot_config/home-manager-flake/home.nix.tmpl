@@ -23,6 +23,7 @@
     ./programs/syncthing.nix     # Syncthing service
 {{- if eq .chezmoi.os "darwin" }}
     ./programs/borders.nix       # Borders window management
+    ./programs/stable-bins.nix   # fixed-path copies for Little Snitch path rules
 {{- end }}
   ];
 
