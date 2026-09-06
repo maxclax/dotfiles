@@ -1,0 +1,5 @@
+# -*- mode: conf-toml; -*-
+# gvproxy from the fixed-path copy (see home-manager programs/stable-bins.nix),
+# so the Little Snitch path rule for the machine's networking survives updates.
+[engine]
+helper_binaries_dir = ["{{ .chezmoi.homeDir }}/.local/libexec/podman"]
