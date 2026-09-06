@@ -464,34 +464,33 @@ restic_status:
 
 ##############################
 
-# Syncthing file synchronization (Home Manager service)
+# Syncthing file synchronization (macOS: Syncthing.app cask; Linux: Home Manager service)
 sync_start:
-	@echo "🔄 Starting Syncthing service..."
+	@echo "🔄 Starting Syncthing..."
 {{- if eq .chezmoi.os "darwin" }}
-	launchctl load ~/Library/LaunchAgents/org.nix-community.home.syncthing.plist 2>/dev/null || echo "Service already loaded"
-	launchctl start org.nix-community.home.syncthing 2>/dev/null || echo "Service already running"
+	open -a Syncthing
 {{- else }}
 	systemctl --user start syncthing.service
 {{- end }}
 	@sleep 2
-	@echo "✅ Syncthing service started. Access web GUI at http://127.0.0.1:8384"
+	@echo "✅ Syncthing started. Access web GUI at http://127.0.0.1:8384"
 
 sync_stop:
-	@echo "🛑 Stopping Syncthing service..."
+	@echo "🛑 Stopping Syncthing..."
 {{- if eq .chezmoi.os "darwin" }}
-	launchctl stop org.nix-community.home.syncthing 2>/dev/null || echo "Service not running"
+	osascript -e 'tell application "Syncthing" to quit' 2>/dev/null || echo "Not running"
 {{- else }}
 	systemctl --user stop syncthing.service
 {{- end }}
 
 sync_status:
-	@echo "📊 Syncthing service status:"
+	@echo "📊 Syncthing status:"
 {{- if eq .chezmoi.os "darwin" }}
-	@launchctl list org.nix-community.home.syncthing 2>/dev/null >/dev/null && echo "✅ Service loaded and running" || echo "❌ Service not running"
+	@launchctl list org.nix-community.home.syncthing-app >/dev/null 2>&1 && echo "✅ Autostart agent loaded" || echo "ℹ️  No autostart agent (syncthingAutostart=false)"
 {{- else }}
 	@systemctl --user is-active syncthing.service >/dev/null && echo "✅ Service active" || echo "❌ Service not active"
 {{- end }}
-	@pgrep -f syncthing > /dev/null && echo "   Process running (PID: $$(pgrep -f syncthing))" || echo "   No syncthing process found"
+	@pgrep -x syncthing > /dev/null && echo "   Process running (PID: $$(pgrep -x syncthing | head -1))" || echo "   No syncthing process found"
 
 sync_browser:
 	@echo "🌐 Opening Syncthing web GUI..."
