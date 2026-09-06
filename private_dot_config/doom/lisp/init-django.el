@@ -152,7 +152,7 @@ Activated automatically in any project containing manage.py."
                     lsp-pyright-python-executable-cmd
                     (expand-file-name ".venv/bin/python" root)
                     lsp-pyright-multi-root      nil
-                    lsp-pyright-diagnostic-mode "workspace"))
+                    lsp-pyright-diagnostic-mode "openFilesOnly"))
       ;; Navigation keys
       (local-set-key (kbd "C-c c o o") #'my/django-open-at-point)
       (local-set-key (kbd "C-c c o t") #'my/django-open-template-at-point)

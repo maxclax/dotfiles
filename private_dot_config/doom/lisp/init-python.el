@@ -14,9 +14,10 @@
 (add-hook 'python-ts-mode-hook #'my/python-annotate-pdb)
 
 
-;; Pyright LSP configuration
+;; Pyright LSP configuration. `setq-default': lsp-pyright loads lazily from a
+;; buffer where `my/django-setup' already set these buffer-locally.
 (after! lsp-pyright
-  (setq lsp-pyright-python-executable-cmd "python3"
+  (setq-default lsp-pyright-python-executable-cmd "python3"
         lsp-pyright-multi-root nil
         lsp-pyright-type-checking-mode "basic"
         lsp-pyright-auto-import-completions t
