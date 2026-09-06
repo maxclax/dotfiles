@@ -221,7 +221,6 @@
     # ── Session & Task Management ────────────────────────────────────────
     pueue                  # Background task queue manager with TUI
     tmuxinator             # Manage complex tmux sessions via YAML
-    syncthing              # Continuous peer-to-peer file synchronization
 
     # ── Fonts & Display ──────────────────────────────────────────────────
     fontconfig             # Font configuration and discovery library
@@ -252,6 +251,9 @@
     # Linux Server / Headless Machines
     # ========================================================================
 {{- if eq .chezmoi.os "linux" }}
+
+    # ── Linux Sync ───────────────────────────────────────────────────────
+    syncthing              # Continuous peer-to-peer file synchronization (macOS: brew cask)
 
     # ── Linux Build Essentials ───────────────────────────────────────────
     gcc                    # GNU Compiler Collection (C, C++, Fortran)

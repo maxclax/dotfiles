@@ -301,6 +301,15 @@
         :desc "Split horizontally instead" "C-x |" #'my/split-window-horizontally-instead
         :desc "Split vertically instead" "C-x _"   #'my/split-window-vertically-instead))
 
+;; Terminal buffers are read-only; their own paste sends text to the process.
+(defun my/paste ()
+  "Paste like `yank', routed through the terminal in eat/vterm/term buffers."
+  (interactive)
+  (cond ((derived-mode-p 'eat-mode)   (call-interactively #'eat-yank))
+        ((derived-mode-p 'vterm-mode) (call-interactively #'vterm-yank))
+        ((derived-mode-p 'term-mode)  (call-interactively #'term-paste))
+        (t                            (call-interactively #'yank))))
+
 ;; Mac-style Cmd shortcuts for GUI Emacs
 (defun my/setup-mac-cmd-shortcuts ()
   "Setup Mac-style Cmd+C/V/X/Z shortcuts for GUI Emacs."
@@ -308,7 +317,7 @@
     (map!
      (:map override
       :desc "Copy (Cmd+C)" "H-c" #'kill-ring-save
-      :desc "Paste (Cmd+V)" "H-v" #'yank
+      :desc "Paste (Cmd+V)" "H-v" #'my/paste
       :desc "Cut (Cmd+X)" "H-x" #'kill-region
       :desc "Undo (Cmd+Z)" "H-z" #'undo
       :desc "Redo (Shift+Cmd+Z)" "H-Z" #'redo
@@ -333,6 +342,7 @@
         :desc "Tab 8"          "M-8" (cmd! (tab-bar-select-tab 8))
         :desc "Tab 9"          "M-9" (cmd! (tab-bar-select-tab 9))
         :desc "Last workspace" "M-`" #'+workspace/other
+        :desc "Last workspace" "M-<tab>" #'+workspace/other
         :desc "Kill workspace"     "M-D" #'+workspace/kill
         :desc "Display workspaces" "M-W" #'+workspace/display
         :desc "Switch workspace"   "M-S" #'+workspace/switch-to))
