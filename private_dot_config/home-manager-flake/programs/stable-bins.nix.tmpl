@@ -12,8 +12,9 @@ let
     { name = "helm";    pkg = helm; }
     { name = "gh";      pkg = pkgs.gh;
       env = ''export GH_TELEMETRY="''${GH_TELEMETRY-false}"''; }
+    { name = "rclone";  pkg = pkgs.rclone; }
     { name = "restic";  pkg = pkgs.restic;
-      env = ''export PATH="${pkgs.rclone}/bin:$PATH"''; }
+      env = ''export PATH="$HOME/.local/libexec/stable-bins:$PATH"''; }
     { name = "atuin";   pkg = pkgs.atuin; }
     { name = "tofu";    pkg = pkgs.opentofu; }
     { name = "k9s";     pkg = pkgs.k9s; }  # wrapper only adds kubectl to PATH; the shim is there already
