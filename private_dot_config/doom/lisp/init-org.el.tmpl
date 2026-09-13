@@ -1045,8 +1045,6 @@ Used as the `file+function' capture target and by the refile helpers."
                 (cond
                  ((<= diff 0)  ; today or overdue
                   (overlay-put ov 'face '(:foreground "red" :weight bold :underline t)))
-                 ((<= diff 3)  ; within 3 days
-                  (overlay-put ov 'face '(:foreground "red" :weight bold)))
                  ((<= diff 7)  ; within a week
                   (overlay-put ov 'face '(:foreground "orange" :weight bold)))
                  (t             ; rest of warning period
@@ -1156,14 +1154,12 @@ Used as the `file+function' capture target and by the refile helpers."
 
   ;; ──────────────────────────────────────────────────────────────
   ;; Same proximity scale as `my/org-deadline-fontify': overdue/today red,
-  ;; ≤3d red, ≤7d orange (the "in 6d" case), rest of the warning window
-  ;; dark orange. Subscriptions block only — other agenda views keep
-  ;; their own tag/TODO/deadline faces.
+  ;; ≤7d orange, rest of the warning window dark orange. Subscriptions and
+  ;; Upcoming blocks only — other agenda views keep their own faces.
   (defun my/agenda-deadline-face (days)
     "Face for a deadline DAYS from today, or nil if it should stay default."
     (cond
      ((<= days 0) 'org-imminent-deadline)
-     ((<= days 3) 'org-warning)
      ((<= days 7) 'org-upcoming-deadline)
      ((<= days org-deadline-warning-days) 'org-upcoming-distant-deadline)))
 
