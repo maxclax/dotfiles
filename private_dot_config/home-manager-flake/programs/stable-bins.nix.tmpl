@@ -13,6 +13,7 @@ let
     { name = "gh";      pkg = pkgs.gh;
       env = ''export GH_TELEMETRY="''${GH_TELEMETRY-false}"''; }
     { name = "rclone";  pkg = pkgs.rclone; }
+    { name = "sentry-cli"; pkg = pkgs.sentry-cli; }
     { name = "restic";  pkg = pkgs.restic;
       env = ''export PATH="$HOME/.local/libexec/stable-bins:$PATH"''; }
     { name = "atuin";   pkg = pkgs.atuin; }
