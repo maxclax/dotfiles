@@ -10,8 +10,8 @@
    never sign more files than were named, and never sign a file received from
    a third party unless the human confirms they have reviewed it.
 2. **Confirm before every signature.** Show the human the file path, size,
-   SHA-256, profile, mode (detached or attached) and output path, then wait
-   for an explicit "yes".
+   SHA-256, profile, mode (detached or attached), level and output path, then
+   wait for an explicit "yes".
 3. **Never touch key material.** Do not read, print, log, copy or store the key
    store or its password. Do not run `op read` or `op item get` on the
    `eusign` item yourself, do not pass passwords as arguments, and do not set
@@ -32,10 +32,16 @@ sign-file --key NAME --info                        # certificate validity; no pa
 sign-file --key NAME document.xml                  # detached → document.xml.p7s
 sign-file --key NAME document.xml signed.p7s       # detached, explicit output
 sign-file --key NAME --attached document.xml out.p7s   # only when asked for attached
+sign-file --key NAME --level t document.xml        # only when asked for a lower level
+sign-file --inspect document.xml.p7s              # report a signature's level
 ```
 
 Detached is the default and leaves the original file unchanged. Use
 `--attached` only when the human asks for it.
+
+The default level is `x-long`: a timestamp plus certificate and revocation
+data, which document-exchange services expect. Use `--level t` or
+`--level bes` only when the human asks for that level.
 
 ## Make commands
 
@@ -64,7 +70,9 @@ the confirmation in rule 2.
 3. `shasum -a 256 FILE` and `ls -l FILE`, then present the confirmation summary
    from rule 2 and wait.
 4. Sign.
-5. Confirm the `.p7s` exists and is not empty, then report its path and size.
+5. Confirm the `.p7s` exists and is not empty, run `sign-file --inspect` on it,
+   and report its path, size and level. If the level is lower than requested,
+   stop and tell the human instead of uploading it.
 
 ## Errors
 
@@ -75,6 +83,9 @@ the confirmation in rule 2.
 | `EUSign lib dir missing` | Libraries not installed | Tell the human to run `chezmoi apply` |
 | `EUReadPrivateKeyBinary` | Wrong password or unreadable key | Stop and tell the human; do not retry |
 | certificate expired, not found, or cannot be used | Key needs renewal | Stop and give the human the command from **Renewing a key** |
+| `EUSignFile` with a server, network or timestamp message | Timestamp or OCSP server unreachable | Tell the human; Little Snitch may be blocking `/usr/bin/python3`. Do not retry in a loop |
+| `is CAdES-…, not CAdES-…; do not upload it` | The signature came out below the requested level | Do not upload it; report to the human |
+| `no timestamp server for issuer` or `CA list missing` | The authority list lacks the signer's authority | Tell the human to run `chezmoi apply` to refresh it |
 | exit code 134 or 139, or no output | Crash | Stop and report it; do not retry |
 
 ## Keys

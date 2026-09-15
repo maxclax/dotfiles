@@ -79,6 +79,30 @@ sign-file --key NAME document.xml signed.p7s
 sign-file --key NAME --attached document.xml signed.p7s  # data embedded
 ```
 
+## Signature levels
+
+`--level` sets the CAdES level. The default is `x-long`.
+
+| Level | Contents | Network |
+|---|---|---|
+| `bes` | signature and signer certificate | none |
+| `t` | adds a timestamp from the signer's certification authority | timestamp server |
+| `x-long` | adds the timestamp plus certificate and revocation data, so it stays verifiable long-term | timestamp and OCSP servers |
+
+Many document-exchange services reject `bes`. Check any signature's level with:
+
+```bash
+sign-file --inspect document.xml.p7s
+```
+
+The servers come from ІІТ's public list of certification authorities, which the
+install hook saves as `~/opt/eusign/certs/CAs.json`. `sign-file` picks the entry
+matching the signing certificate's issuer, so any authority in that list works.
+
+The requests leave from Apple's `/usr/bin/python3`: `sign-file` re-runs itself
+under it when the developer tools are installed. One firewall rule for that
+binary therefore keeps working across nix updates.
+
 ## Updating the libraries
 
 Bump the version marker in the hook and run `chezmoi apply`. Add
