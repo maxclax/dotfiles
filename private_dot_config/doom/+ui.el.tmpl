@@ -205,11 +205,14 @@
    :save-vars '(major-mode default-directory)
    :load-function
    (lambda (savelist &rest _)
-     (when-let ((dir (alist-get 'default-directory (caddr savelist))))
-       (when (file-directory-p dir)
-         (save-window-excursion
-           (magit-status dir)
-           (current-buffer))))))
+     ;; A gone repo returns t: nil would fall through to Doom's handler,
+     ;; which prompts to create a repository there.
+     (let ((dir (alist-get 'default-directory (caddr savelist))))
+       (if (and dir (file-exists-p (expand-file-name ".git" dir)))
+           (save-window-excursion
+             (magit-status dir)
+             (current-buffer))
+         t))))
 
   ;; org-agenda buffers: persist the command that generated them and
   ;; regenerate on load. org-agenda-redo-command is NOT buffer-local (org

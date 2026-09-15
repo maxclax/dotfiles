@@ -19,6 +19,10 @@ let
     { name = "atuin";   pkg = pkgs.atuin; }
     { name = "tofu";    pkg = pkgs.opentofu; }
     { name = "k9s";     pkg = pkgs.k9s; }  # wrapper only adds kubectl to PATH; the shim is there already
+    { name = "stern";   pkg = pkgs.stern; }
+    { name = "linkerd"; pkg = pkgs.linkerd; }
+    { name = "popeye";  pkg = pkgs.popeye; }
+    { name = "hcloud";  pkg = pkgs.hcloud; }
 {{- if .podmanEnabled }}
     # podman finds gvproxy in $BINDIR/../libexec/podman next to the copy, and
     # vfkit on PATH; both do the machine's networking, so they get copies too
