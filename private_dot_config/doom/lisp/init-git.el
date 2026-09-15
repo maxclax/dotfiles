@@ -152,6 +152,27 @@
     (cond ((magit-rev-verify "refs/heads/main") "refs/heads/main")
           ((magit-rev-verify "origin/main") "origin/main")))
 
+  (defun my/magit--origin-badge (kind label help &optional extra)
+    "KIND is `main', `new', or `here'. EXTRA is appended (e.g. drifted !)."
+    (let* ((face (pcase kind
+                   ('main 'magit-dimmed)
+                   ('new 'magit-diff-added)
+                   ('here 'magit-branch-local)))
+           (icon-name (pcase kind
+                        ('main "nf-oct-dot_fill")
+                        ('new "nf-oct-plus")
+                        ('here "nf-oct-git_branch")))
+           (icon (and (display-graphic-p)
+                      (fboundp 'nerd-icons-octicon)
+                      (nerd-icons-octicon icon-name :face face
+                                          :height 0.85 :v-adjust 0.0)))
+           (ascii (pcase kind ('main "= ") ('new "+ ") ('here "* ")))
+           (text (concat (or icon ascii)
+                         (and icon " ")
+                         (propertize label 'font-lock-face face)
+                         (or extra ""))))
+      (propertize text 'help-echo help)))
+
   (defun my/magit--module-origin-tag (module branch head-sha main-sha live-sha)
     "Propertized pin-origin suffix for MODULE. Empty when already on main."
     (if (equal branch "main")
@@ -164,19 +185,6 @@
                       ('main "main")
                       ('new "new")
                       ('here (or branch "here"))))
-             (face (pcase kind
-                     ('main 'magit-dimmed)
-                     ('new 'magit-diff-added)
-                     ('here 'magit-branch-local)))
-             (icon-name (pcase kind
-                          ('main "nf-oct-dot_fill")
-                          ('new "nf-oct-plus")
-                          ('here "nf-oct-git_branch")))
-             (icon (and (display-graphic-p)
-                        (fboundp 'nerd-icons-octicon)
-                        (nerd-icons-octicon icon-name :face face
-                                            :height 0.85 :v-adjust 0.0)))
-             (ascii (pcase kind ('main "= ") ('new "+ ") ('here "* ")))
              (help (format
                     (concat "%s\nrecorded on %s: %s\n"
                             "recorded on main: %s\ncheckout: %s%s")
@@ -191,12 +199,9 @@
                     (if drifted "\nCheckout does not match the recorded pin." "")))
              (mark (if drifted
                        (concat " " (propertize "!" 'font-lock-face 'warning))
-                     ""))
-             (text (concat (or icon ascii)
-                           (and icon " ")
-                           (propertize label 'font-lock-face face)
-                           mark)))
-        (propertize text 'help-echo help 'module module))))
+                     "")))
+        (propertize (my/magit--origin-badge kind label help mark)
+                    'module module))))
 
   (defun my/magit--insert-modules-overview (&optional _section repos)
     "Like `magit--insert-modules-overview', plus pin-origin vs `main'."
@@ -269,6 +274,51 @@
   (add-to-list 'magit-submodule-list-columns
                '("Pin" 12 my/magit-modulelist-column-origin ())
                t)
+
+  ;; Same badge on untracked / unstaged / staged file lines in magit-status:
+  ;;   ≡ main  path exists on main (HEAD blob matches, if HEAD has it)
+  ;;   ● <br>  path exists on main, but this branch committed a different blob
+  ;;   + new   path does not exist on main at all
+  (defun my/magit--file-origin-tag (file)
+    "Badge for FILE vs parent `main'. Empty on main or if main is missing."
+    (let ((branch (magit-get-current-branch))
+          (main-rev (my/magit--main-rev))
+          (path (directory-file-name file)))
+      (if (or (not main-rev) (equal branch "main") (string-empty-p path))
+          ""
+        (let* ((main-oid (magit-git-string "rev-parse" "--verify" "--quiet"
+                                           (concat main-rev ":" path)))
+               (head-oid (magit-git-string "rev-parse" "--verify" "--quiet"
+                                           (concat "HEAD:" path)))
+               (kind (cond ((not main-oid) 'new)
+                           ((or (not head-oid) (equal head-oid main-oid)) 'main)
+                           (t 'here)))
+               (label (pcase kind
+                        ('main "main")
+                        ('new "new")
+                        ('here (or branch "here"))))
+               (help (format "%s\nHEAD: %s\nmain: %s"
+                             (pcase kind
+                               ('main "Also on main.")
+                               ('new "Not on main — only here.")
+                               ('here "On main too, but this branch has a different committed version."))
+                             (or (my/magit--abbrev-oid head-oid) "—")
+                             (or (my/magit--abbrev-oid main-oid) "—"))))
+          (my/magit--origin-badge kind label help)))))
+
+  (defvar my/magit--orig-format-file nil)
+
+  (defun my/magit-format-file-with-origin (kind file face &optional status orig)
+    (let ((base (funcall my/magit--orig-format-file kind file face status orig)))
+      (if (and (derived-mode-p 'magit-status-mode)
+               (memq kind '(list diff)))
+          (let ((tag (my/magit--file-origin-tag file)))
+            (if (string-empty-p tag) base (concat base "  " tag)))
+        base)))
+
+  (unless (eq magit-format-file-function #'my/magit-format-file-with-origin)
+    (setq my/magit--orig-format-file magit-format-file-function
+          magit-format-file-function #'my/magit-format-file-with-origin))
 
   ;; Status: short age (" 9h") — 12 cols. Log buffers: full datetime — 24 cols.
   ;; `setq', not `customize-set-variable': magit's :set function walks every
