@@ -129,6 +129,147 @@
                           'magit-insert-modules-unpulled-from-upstream
                           'magit-insert-stashes t)
 
+  ;; Pin-origin tag on each Modules overview line (and the `o l` list):
+  ;;   ≡ main     gitlink identical to parent `main` (inherited)
+  ;;   ● <branch> gitlink differs from `main` (this branch moved it)
+  ;;   + new      gitlink not on `main` at all
+  ;;   !          working-tree checkout ≠ recorded gitlink
+  ;; Gitlinks are submodule oids — compare as strings. Never magit-rev-eq
+  ;; in the parent repo: the object is not there.
+  (defun my/magit--gitlinks (rev)
+    "Alist of (PATH . SHA1) for submodule gitlinks recorded at REV."
+    (let (alist)
+      (dolist (line (magit-git-lines "ls-tree" "-r" rev))
+        (when (string-match "\\`160000 commit \\([0-9a-f]+\\)\t\\(.+\\)\\'" line)
+          (push (cons (match-string 2 line) (match-string 1 line)) alist)))
+      alist))
+
+  (defun my/magit--abbrev-oid (oid)
+    (and oid (if (> (length oid) 7) (substring oid 0 7) oid)))
+
+  (defun my/magit--main-rev ()
+    "Parent-repo rev to treat as the template branch, or nil."
+    (cond ((magit-rev-verify "refs/heads/main") "refs/heads/main")
+          ((magit-rev-verify "origin/main") "origin/main")))
+
+  (defun my/magit--module-origin-tag (module branch head-sha main-sha live-sha)
+    "Propertized pin-origin suffix for MODULE. Empty when already on main."
+    (if (equal branch "main")
+        ""
+      (let* ((drifted (and head-sha live-sha (not (equal head-sha live-sha))))
+             (kind (cond ((and head-sha main-sha (equal head-sha main-sha)) 'main)
+                         ((not main-sha) 'new)
+                         (t 'here)))
+             (label (pcase kind
+                      ('main "main")
+                      ('new "new")
+                      ('here (or branch "here"))))
+             (face (pcase kind
+                     ('main 'magit-dimmed)
+                     ('new 'magit-diff-added)
+                     ('here 'magit-branch-local)))
+             (icon-name (pcase kind
+                          ('main "nf-oct-dot_fill")
+                          ('new "nf-oct-plus")
+                          ('here "nf-oct-git_branch")))
+             (icon (and (display-graphic-p)
+                        (fboundp 'nerd-icons-octicon)
+                        (nerd-icons-octicon icon-name :face face
+                                            :height 0.85 :v-adjust 0.0)))
+             (ascii (pcase kind ('main "= ") ('new "+ ") ('here "* ")))
+             (help (format
+                    (concat "%s\nrecorded on %s: %s\n"
+                            "recorded on main: %s\ncheckout: %s%s")
+                    (pcase kind
+                      ('main "Pin identical to main — this branch did not move it.")
+                      ('new "Not on main — added on this branch.")
+                      ('here "Pin unique to this branch — differs from main."))
+                    (or branch "HEAD")
+                    (or (my/magit--abbrev-oid head-sha) "—")
+                    (or (my/magit--abbrev-oid main-sha) "—")
+                    (or (my/magit--abbrev-oid live-sha) "—")
+                    (if drifted "\nCheckout does not match the recorded pin." "")))
+             (mark (if drifted
+                       (concat " " (propertize "!" 'font-lock-face 'warning))
+                     ""))
+             (text (concat (or icon ascii)
+                           (and icon " ")
+                           (propertize label 'font-lock-face face)
+                           mark)))
+        (propertize text 'help-echo help 'module module))))
+
+  (defun my/magit--insert-modules-overview (&optional _section repos)
+    "Like `magit--insert-modules-overview', plus pin-origin vs `main'."
+    (magit-with-toplevel
+      (let* ((modules (or repos (magit-list-module-paths)))
+             (path-format (format "%%-%ds "
+                                  (min (apply #'max (mapcar #'length modules))
+                                       (/ (window-width) 2))))
+             (branch-format (format "%%-%ds " (min 25 (/ (window-width) 3))))
+             (parent-branch (magit-get-current-branch))
+             (head-links (my/magit--gitlinks "HEAD"))
+             (main-rev (my/magit--main-rev))
+             (main-links (and main-rev (my/magit--gitlinks main-rev)))
+             (tag-pins (and main-rev (not (equal parent-branch "main")))))
+        (dolist (module modules)
+          (let* ((default-directory
+                  (expand-file-name (file-name-as-directory module)))
+                 (populated (file-exists-p ".git")))
+            (magit-insert-section (module module t)
+              (insert (propertize (format path-format module)
+                                  'font-lock-face 'magit-diff-file-heading))
+              (if (not populated)
+                  (insert "(unpopulated)")
+                (insert
+                 (format
+                  branch-format
+                  (if-let ((branch (magit-get-current-branch)))
+                      (propertize branch 'font-lock-face 'magit-branch-local)
+                    (propertize "(detached)" 'font-lock-face 'warning))))
+                (cond-let
+                  ([desc (magit-git-string "describe" "--tags")]
+                   (when (and magit-modules-overview-align-numbers
+                              (string-match-p "\\`[0-9]" desc))
+                     (insert ?\s))
+                   (insert (propertize desc 'font-lock-face 'magit-tag)))
+                  ([abbrev (magit-rev-format "%h")]
+                   (insert (propertize abbrev 'font-lock-face 'magit-hash)))))
+              (when tag-pins
+                (let ((tag (my/magit--module-origin-tag
+                            module parent-branch
+                            (cdr (assoc module head-links))
+                            (cdr (assoc module main-links))
+                            (and populated (magit-rev-parse "HEAD")))))
+                  (unless (string-empty-p tag)
+                    (insert "  " tag))))
+              (insert ?\n))))))
+    (insert ?\n))
+
+  (advice-add 'magit--insert-modules-overview :override
+              #'my/magit--insert-modules-overview)
+
+  (defun my/magit-modulelist-column-origin (_id)
+    "Pin origin vs parent `main'. `default-directory' is the module."
+    (when-let* ((super (magit-git-string "rev-parse" "--show-superproject-working-tree"))
+                (path (directory-file-name
+                       (file-relative-name
+                        (directory-file-name (expand-file-name default-directory))
+                        (directory-file-name (expand-file-name super)))))
+                (live (magit-rev-parse "HEAD")))
+      (let* ((default-directory super)
+             (branch (magit-get-current-branch))
+             (main-rev (my/magit--main-rev)))
+        (when (and main-rev (not (equal branch "main")))
+          (my/magit--module-origin-tag
+           path branch
+           (cdr (assoc path (my/magit--gitlinks "HEAD")))
+           (cdr (assoc path (my/magit--gitlinks main-rev)))
+           live)))))
+
+  (add-to-list 'magit-submodule-list-columns
+               '("Pin" 12 my/magit-modulelist-column-origin ())
+               t)
+
   ;; Status: short age (" 9h") — 12 cols. Log buffers: full datetime — 24 cols.
   ;; `setq', not `customize-set-variable': magit's :set function walks every
   ;; magit-status/log buffer and `magit-refresh'es it. On doom/reload that
