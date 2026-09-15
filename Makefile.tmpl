@@ -502,6 +502,33 @@ sync_config:
 
 ##############################
 
+# ── eusign: qualified signing keys in 1Password ─────────────────────────────
+# See ~/.local/share/eusign/README.md. Keys are managed by hand, never by agents.
+{{- if eq .chezmoi.os "darwin" }}
+SIGN_FILE := $(HOME)/.local/bin/sign-file
+
+eusign_keys:
+	@$(SIGN_FILE) --keys
+
+eusign_info:
+	@[ -n "$(key)" ] || { echo "usage: make eusign_info key=NAME"; exit 1; }
+	@$(SIGN_FILE) --key "$(key)" --info
+
+eusign_check:
+	@[ -n "$(key)" ] || { echo "usage: make eusign_check key=NAME"; exit 1; }
+	@$(SIGN_FILE) --key "$(key)" --check
+
+eusign_key_set:
+	@[ -n "$(key)" ] && [ -n "$(jks)" ] || { echo "usage: make eusign_key_set key=NAME jks=/path/to/key.jks"; exit 1; }
+	@$(SIGN_FILE) --set-key "$(key)" "$(jks)"
+
+eusign_key_delete:
+	@[ -n "$(key)" ] || { echo "usage: make eusign_key_delete key=NAME"; exit 1; }
+	@$(SIGN_FILE) --delete-key "$(key)"
+{{- end }}
+
+##############################
+
 # ── llama.cpp local inference ─────────────────────────────────────────────────
 # LLAMA_CACHE, LLAMA_ARG_MODELS_PRESET and LLAMA_ARG_PORT come from
 # shell/exports.sh; the router reads them from its own environment, so always
