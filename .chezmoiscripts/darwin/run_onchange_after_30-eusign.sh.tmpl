@@ -2,7 +2,7 @@
 #!/bin/bash
 # run_onchange_after_30-eusign.sh -*- mode: sh; -*-
 # Install ІІТ EUSignCP libraries and EU.app user-locally for sign-file.
-# version marker: euscp-1.3.109
+# version marker: euscp-1.3.109, CAs.json
 
 set -euo pipefail
 
@@ -60,4 +60,7 @@ fi
 
 curl -fL --retry 3 -o "$OPT/certs/CACertificates.p7b" "$BASE/CACertificates.p7b" \
   || echo "eusign: warning — CACertificates.p7b download failed" >&2
+# CA list with each authority's timestamp and OCSP servers, used by sign-file --level
+curl -fL --retry 3 -o "$OPT/certs/CAs.json" "$BASE/CAs.json" \
+  || echo "eusign: warning — CAs.json download failed" >&2
 {{- end -}}
