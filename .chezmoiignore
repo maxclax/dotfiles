@@ -12,6 +12,8 @@ install.sh
 .config/containers
 .config/homebrew
 .hammerspoon
+.local/bin/sign-file
+.local/share/eusign
 Library/Application\ Support/lazygit/config.yml
 {{ end }}
 

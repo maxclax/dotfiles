@@ -1,0 +1,63 @@
+{{- if and (eq .chezmoi.os "darwin") (not .ephemeral) -}}
+#!/bin/bash
+# run_onchange_after_30-eusign.sh -*- mode: sh; -*-
+# Install ІІТ EUSignCP libraries and EU.app user-locally for sign-file.
+# version marker: euscp-1.3.109
+
+set -euo pipefail
+
+if [ "{{ .extraUser }}" == "true" ]; then
+  echo "eusign: extra user — skipping"
+  exit 0
+fi
+
+OPT="${HOME}/opt/eusign"
+BASE="https://iit.com.ua/download/productfiles"
+TEAM_ID="46QPJ3JVC9" # Institute of Information Technologies
+
+mkdir -p "$OPT/lib" "$OPT/certs" "${HOME}/Applications" "${HOME}/Library/Application Support/EU"
+
+# Refuse packages not signed by ІІТ's Developer ID and notarized by Apple
+verify_pkg() {
+  local out
+  out="$(pkgutil --check-signature "$1" 2>&1)" || { echo "eusign: $1 is not signed" >&2; exit 1; }
+  grep -q "trusted by the Apple notary service" <<<"$out" || { echo "eusign: $1 is not notarized" >&2; exit 1; }
+  grep -q "($TEAM_ID)" <<<"$out" || { echo "eusign: $1 is not signed by team $TEAM_ID" >&2; exit 1; }
+}
+
+extract() { mkdir -p "$2" && (cd "$2" && gunzip -dc <"$1" | cpio -idm 2>/dev/null); }
+
+if [ ! -f "$OPT/lib/euscp.dylib" ] || [ "${EUSIGN_FORCE_REINSTALL:-}" = "1" ]; then
+  work="$(mktemp -d "${TMPDIR:-/tmp}/eusign-XXXXXX")"
+  trap 'rm -rf "$work"' EXIT
+
+  for pkg in EUSignWebInstall EUInstall; do
+    echo "📦 eusign: downloading $pkg.pkg"
+    curl -fL --retry 3 -o "$work/$pkg.pkg" "$BASE/$pkg.pkg"
+    verify_pkg "$work/$pkg.pkg"
+    pkgutil --expand "$work/$pkg.pkg" "$work/$pkg"
+  done
+
+  # euscp.dylib with the JKS APIs ships inside EUSAManager
+  extract "$work/EUSignWebInstall/eusamanager.pkg/Payload" "$work/web"
+  src="$work/web/EUSAManager.app/Contents/MacOS"
+  [ -f "$src/euscp.dylib" ] || { echo "eusign: euscp.dylib not found in package" >&2; exit 1; }
+  cp -f "$src"/*.dylib "$OPT/lib/"
+
+  extract "$work/EUInstall/EU.pkg/Payload" "$work/eu"
+  if [ -d "$work/eu/EU.app" ]; then
+    rm -rf "${HOME}/Applications/EU.app"
+    cp -R "$work/eu/EU.app" "${HOME}/Applications/EU.app"
+  fi
+  if [ -f "$work/EUInstall/osplm.pkg/Payload" ]; then
+    extract "$work/EUInstall/osplm.pkg/Payload" "$work/osplm" || true
+    if [ -f "$work/osplm/osplm.ini" ]; then cp -f "$work/osplm/osplm.ini" "$OPT/lib/osplm.ini"; fi
+  fi
+  echo "✅ eusign: libraries → $OPT/lib"
+else
+  echo "eusign: libraries present (EUSIGN_FORCE_REINSTALL=1 to refresh)"
+fi
+
+curl -fL --retry 3 -o "$OPT/certs/CACertificates.p7b" "$BASE/CACertificates.p7b" \
+  || echo "eusign: warning — CACertificates.p7b download failed" >&2
+{{- end -}}
