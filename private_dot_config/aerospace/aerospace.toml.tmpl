@@ -243,6 +243,12 @@ run = ["layout tiling", "move-node-to-workspace M"]
 
 # Utilities, etc.
 [[on-window-detected]]
+if.app-id = "at.obdev.littlesnitch"
+run = "move-node-to-workspace U"
+[[on-window-detected]]
+if.app-id = "at.obdev.littlesnitch.agent"
+run = "move-node-to-workspace U"
+[[on-window-detected]]
 if.app-id = "com.iggsoftware.banktivity"
 run = "move-node-to-workspace U"
 [[on-window-detected]]
