@@ -1,17 +1,29 @@
 #!/usr/bin/env python3
-"""sign-file — CAdES (.p7s) signatures via ІІТ EUSignCP (euscp.dylib) and a JKS key store.
+"""sign-file — CAdES (.p7s) signatures via ІІТ EUSignCP (euscp.dylib) and JKS key stores.
+
+Keys come from one 1Password item, or from environment variables.
+
+The 1Password item (title `eusign` by default) holds one section per key. The
+section name is the profile name. Each section has a `password` field, the key
+store attached as a file, and optionally an `alias` field. A key store may also
+be attached to the item itself as `<profile>.jks`.
 
 Env:
-  EUSIGN_JKS           path to the .jks key store (required)
-  EUSIGN_JKS_PASSWORD  key password (required to sign; env only, never argv)
-  EUSIGN_ALIAS         key alias (required if the store holds several keys)
+  EUSIGN_KEY           default profile (same as --key)
+  EUSIGN_OP_ITEM       1Password item title (default: eusign)
+  EUSIGN_OP_VAULT      1Password vault, if the title is not unique
+  EUSIGN_JKS           key store path, used when no profile is selected
+  EUSIGN_JKS_PASSWORD  its password (env only, never argv)
+  EUSIGN_ALIAS         its key alias (required if the store holds several keys)
   EUSIGN_LIB_DIR       library dir (default: ~/opt/eusign/lib)
   EUSIGN_CERTS_DIR     certificate file store (default: ~/opt/eusign/certs)
 
 Usage:
-  sign-file --list
-  sign-file <input> [output.p7s]
-  sign-file --attached <input> [output.p7s]
+  sign-file --keys                              list profiles
+  sign-file [--key NAME] --list                 list aliases in the key store
+  sign-file [--key NAME] --check                confirm the password opens the key
+  sign-file [--key NAME] <input> [output.p7s]
+  sign-file [--key NAME] --attached <input> [output.p7s]
 
 Default is a detached signature (.p7s beside the original); --attached embeds
 the data in the .p7s.
@@ -19,7 +31,9 @@ the data in the .p7s.
 from __future__ import annotations
 
 import argparse
+import json
 import os
+import subprocess
 import sys
 import ctypes
 from ctypes import (
@@ -29,14 +43,14 @@ from ctypes import (
     c_char_p,
     c_int,
     c_ubyte,
-    c_uint32,
+    c_ulong,
     c_void_p,
 )
 
 EU_ERROR_NONE = 0
 EU_ERROR_WARNING_END_OF_ENUM = 7
 BOOL = c_int
-DWORD = c_uint32
+DWORD = c_ulong  # ІІТ's DWORD is unsigned long: 8 bytes on macOS
 PBYTE = POINTER(c_ubyte)
 PPBYTE = POINTER(PBYTE)
 PDWORD = POINTER(DWORD)
@@ -44,6 +58,8 @@ PPDWORD = POINTER(PDWORD)
 
 
 class EU_CERT_OWNER_INFO(Structure):
+    _pack_ = 1  # ІІТ packs this struct: the pointers start at byte 4
+    _layout_ = "ms"
     _fields_ = [
         ("bFilled", BOOL),
         ("pszIssuer", c_char_p),
@@ -129,8 +145,9 @@ def load_euscp():
 
     lib.EUFreeMemory.argtypes = [c_void_p]
     lib.EUFreeMemory.restype = DWORD
-    lib.EUFreeCertificatesArray.argtypes = [PPBYTE, PDWORD, DWORD]
-    lib.EUFreeCertificatesArray.restype = DWORD
+    # count first: the other order aborts the process
+    lib.EUFreeCertificatesArray.argtypes = [DWORD, PPBYTE, PDWORD]
+    lib.EUFreeCertificatesArray.restype = None
     lib.EUSaveCertificate.argtypes = [PBYTE, DWORD]
     lib.EUSaveCertificate.restype = DWORD
     lib.EUReadPrivateKeyBinary.argtypes = [
@@ -158,6 +175,15 @@ def err_desc(lib, code: int) -> str:
     return f"EU error {code}"
 
 
+def cstr(b: bytes | None) -> str:
+    if not b:
+        return ""
+    try:
+        return b.decode("utf-8")
+    except UnicodeDecodeError:
+        return b.decode("cp1251", errors="replace")
+
+
 def check(lib, code: int, what: str) -> None:
     if code != EU_ERROR_NONE:
         die(f"{what}: {err_desc(lib, code)} ({code})")
@@ -175,15 +201,12 @@ def init_lib(lib):
     )
 
 
-def read_jks(jks: str):
-    with open(jks, "rb") as f:
-        data = f.read()
-    buf = (c_ubyte * len(data)).from_buffer_copy(data)
-    return buf, len(data)
+def jks_buffer(data: bytes):
+    return (c_ubyte * len(data)).from_buffer_copy(data), len(data)
 
 
-def list_aliases(lib, jks: str) -> list[str]:
-    buf, n = read_jks(jks)
+def list_aliases(lib, data: bytes) -> list[str]:
+    buf, n = jks_buffer(data)
     aliases: list[str] = []
     idx = 0
     while idx < 64:
@@ -200,8 +223,8 @@ def list_aliases(lib, jks: str) -> list[str]:
     return aliases
 
 
-def load_jks_key(lib, jks: str, alias: str, password: str) -> EU_CERT_OWNER_INFO:
-    buf, n = read_jks(jks)
+def load_jks_key(lib, data: bytes, alias: str, password: str) -> EU_CERT_OWNER_INFO:
+    buf, n = jks_buffer(data)
     priv = PBYTE()
     priv_len = DWORD(0)
     cert_count = DWORD(0)
@@ -246,7 +269,7 @@ def load_jks_key(lib, jks: str, alias: str, password: str) -> EU_CERT_OWNER_INFO
         if priv:
             lib.EUFreeMemory(priv)
         if certs and cert_lens:
-            lib.EUFreeCertificatesArray(certs, cert_lens, cert_count)
+            lib.EUFreeCertificatesArray(cert_count, certs, cert_lens)
 
 
 def sign_one(lib, inp: str, out: str, external: bool) -> None:
@@ -261,12 +284,110 @@ def sign_one(lib, inp: str, out: str, external: bool) -> None:
     )
 
 
+def op(*args: str) -> bytes:
+    try:
+        r = subprocess.run(["op", *args], capture_output=True, timeout=120)
+    except FileNotFoundError:
+        die("1Password CLI 'op' not found")
+    except subprocess.TimeoutExpired:
+        die("1Password CLI timed out; is 1Password unlocked?")
+    if r.returncode != 0:
+        die("op: " + r.stderr.decode("utf-8", "replace").strip())
+    return r.stdout
+
+
+def op_item() -> dict:
+    cmd = ["item", "get", os.environ.get("EUSIGN_OP_ITEM") or "eusign", "--format", "json"]
+    if os.environ.get("EUSIGN_OP_VAULT"):
+        cmd += ["--vault", os.environ["EUSIGN_OP_VAULT"]]
+    return json.loads(op(*cmd))
+
+
+def profile_sections(item: dict) -> dict[str, dict]:
+    """Section label -> section, for sections that hold a password field."""
+    with_password = {
+        (f.get("section") or {}).get("id")
+        for f in item.get("fields", [])
+        if (f.get("label") or "").lower() == "password"
+    }
+    return {
+        sec["label"]: sec
+        for sec in item.get("sections", [])
+        if sec.get("label") and sec.get("id") in with_password
+    }
+
+
+def key_from_profile(name: str, need_password: bool) -> tuple[bytes, str, str]:
+    item = op_item()
+    sections = profile_sections(item)
+    if name not in sections:
+        have = ", ".join(sorted(sections)) or "none"
+        die(f"no profile {name!r} in 1Password item {item.get('title')!r}; have: {have}")
+    sid = sections[name]["id"]
+    fields = {
+        (f.get("label") or "").lower(): f
+        for f in item.get("fields", [])
+        if (f.get("section") or {}).get("id") == sid
+    }
+
+    files = [x for x in item.get("files", []) if (x.get("section") or {}).get("id") == sid]
+    if len(files) > 1:
+        files = [x for x in files if x.get("name", "").lower().endswith(".jks")]
+    if not files:
+        files = [
+            x for x in item.get("files", [])
+            if not (x.get("section") or {}).get("id") and x.get("name") == f"{name}.jks"
+        ]
+    if len(files) != 1:
+        die(f"profile {name!r} needs exactly one attached key store file")
+    store = files[0]
+    store_sid = (store.get("section") or {}).get("id")
+    ref = f"op://{item['vault']['id']}/{item['id']}/" + (f"{store_sid}/" if store_sid else "") + store["id"]
+    data = op("read", ref)
+    # op read appends a newline to stdout; trust the recorded size, not the tail byte
+    size = store.get("size")
+    if isinstance(size, int):
+        if len(data) == size + 1 and data.endswith(b"\n"):
+            data = data[:-1]
+        if len(data) != size:
+            die(f"profile {name!r}: key store read back {len(data)} bytes, expected {size}")
+
+    password = ""
+    if need_password:
+        pwf = fields.get("password") or {}
+        password = pwf.get("value") or ""
+        if not password and pwf.get("reference"):
+            password = op("read", pwf["reference"]).decode("utf-8").rstrip("\n")
+        if not password:
+            die(f"profile {name!r} has an empty password field")
+    alias = (fields.get("alias") or {}).get("value") or ""
+    return data, password, alias
+
+
+def key_from_env(need_password: bool) -> tuple[bytes, str, str]:
+    jks = os.environ.get("EUSIGN_JKS")
+    if not jks:
+        die("no key selected: use --key NAME, set EUSIGN_KEY, or set EUSIGN_JKS")
+    path = os.path.abspath(os.path.expanduser(jks))
+    if not os.path.isfile(path):
+        die(f"key store not found: {path}")
+    with open(path, "rb") as f:
+        data = f.read()
+    password = os.environ.get("EUSIGN_JKS_PASSWORD", "")
+    if need_password and not password:
+        die("EUSIGN_JKS_PASSWORD is not set")
+    return data, password, os.environ.get("EUSIGN_ALIAS", "")
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(
         prog="sign-file",
         description="Sign a file to CAdES .p7s via ІІТ EUSignCP and a JKS key store",
     )
-    p.add_argument("--list", action="store_true", help="List key aliases in EUSIGN_JKS")
+    p.add_argument("--key", metavar="NAME", help="Profile: a section of the 1Password item (default: $EUSIGN_KEY)")
+    p.add_argument("--keys", action="store_true", help="List profiles in the 1Password item")
+    p.add_argument("--list", action="store_true", help="List key aliases in the key store")
+    p.add_argument("--check", action="store_true", help="Confirm the password opens the key; sign nothing")
     p.add_argument(
         "--attached",
         action="store_true",
@@ -276,19 +397,18 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("output", nargs="?", help="Output .p7s (default: <input>.p7s)")
     args = p.parse_args(argv)
 
-    jks = os.environ.get("EUSIGN_JKS")
-    if not jks:
-        die("EUSIGN_JKS is not set (path to the .jks key store)")
-    # load_euscp() changes the working directory, so resolve user paths first
-    jks = os.path.abspath(os.path.expanduser(jks))
-    if not os.path.isfile(jks):
-        die(f"key store not found: {jks}")
+    if args.keys:
+        for label in sorted(profile_sections(op_item())):
+            print(label)
+        return 0
 
-    inp = out = password = ""
-    if not args.list:
+    signing = not (args.list or args.check)
+    inp = out = ""
+    if signing:
         if not args.input:
             p.print_help()
             return 2
+        # load_euscp() changes the working directory, so resolve user paths first
         inp = os.path.abspath(os.path.expanduser(args.input))
         if not os.path.isfile(inp):
             die(f"input not found: {args.input}")
@@ -297,46 +417,51 @@ def main(argv: list[str] | None = None) -> int:
             if args.output
             else inp + ".p7s"
         )
-        password = os.environ.get("EUSIGN_JKS_PASSWORD", "")
-        if not password:
-            die("EUSIGN_JKS_PASSWORD is not set")
+
+    name = args.key or os.environ.get("EUSIGN_KEY", "")
+    need_password = not args.list
+    if name:
+        data, password, alias = key_from_profile(name, need_password)
+    else:
+        data, password, alias = key_from_env(need_password)
 
     lib = load_euscp()
     init_lib(lib)
 
     try:
-        aliases = list_aliases(lib, jks)
+        aliases = list_aliases(lib, data)
         if args.list:
             if not aliases:
                 print("(no aliases found)")
             for a in aliases:
-                mark = " *" if a == os.environ.get("EUSIGN_ALIAS") else ""
-                print(f"{a}{mark}")
+                print(f"{a}{' *' if a == alias else ''}")
             return 0
 
         if not aliases:
             die("key store has no private-key aliases")
-        alias = os.environ.get("EUSIGN_ALIAS") or ""
         if alias:
             if alias not in aliases:
-                die(f"EUSIGN_ALIAS={alias!r} not in key store; have: {aliases}")
+                die(f"alias {alias!r} not in key store; have: {aliases}")
         elif len(aliases) > 1:
-            die("several aliases in key store; set EUSIGN_ALIAS to one of: " + ", ".join(aliases))
+            die("several aliases in key store; set the profile's alias field "
+                "or EUSIGN_ALIAS to one of: " + ", ".join(aliases))
         else:
             alias = aliases[0]
 
-        external = not args.attached
-        info = load_jks_key(lib, jks, alias, password)
+        info = load_jks_key(lib, data, alias, password)
         try:
-            subj = (info.pszSubjCN or b"").decode("utf-8", errors="replace")
+            subj = cstr(info.pszSubjCN)
             who = f" cn={subj!r}" if subj else ""
             print(f"sign-file: using alias={alias!r}{who}", file=sys.stderr)
-            sign_one(lib, inp, out, external)
+            if args.check:
+                print("key opens with the stored password; nothing signed")
+                return 0
+            sign_one(lib, inp, out, not args.attached)
         finally:
             lib.EUFreeCertOwnerInfo(byref(info))
             lib.EUResetPrivateKey()
 
-        mode = "detached" if external else "attached"
+        mode = "attached" if args.attached else "detached"
         print(f"wrote {out} ({mode} CAdES)")
         return 0
     finally:
