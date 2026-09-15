@@ -349,10 +349,42 @@
   :config
   ;; --no-gitconfig: gitconfig `delta.line-numbers' leaks through --color-only
   ;; and replaces the -/+ markers magit parses — sections collapse and diff
-  ;; text lands orphaned at the buffer bottom (terminal delta is unaffected)
-  (setq magit-delta-delta-args
-        '("--max-line-distance" "0.6" "--true-color" "always"
-          "--color-only" "--no-gitconfig")))
+  ;; text lands orphaned at the buffer bottom (terminal delta is unaffected).
+  ;;
+  ;; --dark/--light must be explicit. magit-delta only injects --syntax-theme
+  ;; from the frame's background-mode; delta still auto-detects dark/light for
+  ;; plus/minus and merge-conflict headers, and a pipe looks like a light
+  ;; terminal. On doom-one that yields pastel conflict bars and added lines
+  ;; whose foreground sits on the background.
+  (defun my/emacs-bg-dark-p ()
+    "Non-nil if the default face background is dark."
+    (let* ((bg (face-background 'default nil t))
+           (rgb (and bg (color-name-to-rgb bg))))
+      (if rgb
+          (< (+ (nth 0 rgb) (nth 1 rgb) (nth 2 rgb)) 1.5)
+        (eq (frame-parameter nil 'background-mode) 'dark))))
+
+  (defun my/magit-delta-sync-theme (&rest _)
+    "Match delta's dark/light styles to the current Emacs background."
+    (setq magit-delta-delta-args
+          (append '("--max-line-distance" "0.6"
+                    "--true-color" "always"
+                    "--color-only"
+                    "--no-gitconfig")
+                  (if (my/emacs-bg-dark-p)
+                      '("--dark" "--syntax-theme" "OneHalfDark")
+                    '("--light" "--syntax-theme" "OneHalfLight"))))
+    (when after-init-time
+      (dolist (buf (buffer-list))
+        (with-current-buffer buf
+          (when (derived-mode-p 'magit-mode)
+            (magit-refresh-buffer))))))
+
+  (my/magit-delta-sync-theme)
+  (when (boundp 'enable-theme-functions)
+    (add-hook 'enable-theme-functions #'my/magit-delta-sync-theme))
+  (add-hook 'auto-dark-dark-mode-hook #'my/magit-delta-sync-theme)
+  (add-hook 'auto-dark-light-mode-hook #'my/magit-delta-sync-theme))
 
 ;; TODO/FIXME/NOTE items from the repo as a section in magit status.
 ;; Keywords and colors come from hl-todo (configured in +ui.el).
