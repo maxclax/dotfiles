@@ -25,11 +25,13 @@ Usage:
   sign-file [--key NAME] --info                 certificate validity (no password)
   sign-file --set-key NAME JKS                  add or renew a profile (asks for the password)
   sign-file --delete-key NAME                   remove a profile
-  sign-file [--key NAME] <input> [output.p7s]
+  sign-file [--key NAME] [--level bes|t|x-long] <input> [output.p7s]
   sign-file [--key NAME] --attached <input> [output.p7s]
+  sign-file --inspect <file.p7s>                report a signature's level
 
 Default is a detached signature (.p7s beside the original); --attached embeds
-the data in the .p7s.
+the data in the .p7s. The default level is x-long: a timestamp plus certificate
+and revocation data, from the servers CAs.json lists for the signer's issuer.
 """
 from __future__ import annotations
 
@@ -64,6 +66,16 @@ PBYTE = POINTER(c_ubyte)
 PPBYTE = POINTER(PBYTE)
 PDWORD = POINTER(DWORD)
 PPDWORD = POINTER(PDWORD)
+
+LEVELS = {"bes": 0x01, "t": 0x04, "x-long": 0x10}
+LEVEL_NAMES = ["CAdES-BES", "CAdES-T", "CAdES-C", "CAdES-X Long"]
+WANTED = {"bes": "CAdES-BES", "t": "CAdES-T", "x-long": "CAdES-X Long"}
+AA = "1.2.840.113549.1.9.16.2."
+OID_TIMESTAMP = AA + "14"
+OID_REFS = (AA + "21", AA + "22")
+OID_VALUES = (AA + "23", AA + "24")
+OID_SIGNING_TIME = "1.2.840.113549.1.9.5"
+APPLE_PYTHON = "/usr/bin/python3"
 
 
 class EU_CERT_OWNER_INFO(Structure):
@@ -169,6 +181,21 @@ def load_euscp():
     lib.EUResetPrivateKey.restype = None
     lib.EUSignFile.argtypes = [c_char_p, c_char_p, BOOL]
     lib.EUSignFile.restype = DWORD
+
+    lib.EUSetRuntimeParameter.argtypes = [c_char_p, c_void_p, DWORD]
+    lib.EUSetRuntimeParameter.restype = DWORD
+    lib.EUSetModeSettings.argtypes = [BOOL]
+    lib.EUSetModeSettings.restype = DWORD
+    lib.EUSetOCSPSettings.argtypes = [BOOL, BOOL, c_char_p, c_char_p]
+    lib.EUSetOCSPSettings.restype = DWORD
+    lib.EUSetOCSPAccessInfoModeSettings.argtypes = [BOOL]
+    lib.EUSetOCSPAccessInfoModeSettings.restype = DWORD
+    lib.EUSetOCSPAccessInfoSettings.argtypes = [c_char_p, c_char_p, c_char_p]
+    lib.EUSetOCSPAccessInfoSettings.restype = DWORD
+    lib.EUSetTSPSettings.argtypes = [BOOL, c_char_p, c_char_p]
+    lib.EUSetTSPSettings.restype = DWORD
+    lib.EUSetCMPSettings.argtypes = [BOOL, c_char_p, c_char_p, c_char_p]
+    lib.EUSetCMPSettings.restype = DWORD
     return lib
 
 
@@ -202,6 +229,8 @@ def init_lib(lib):
     lib.EUSetUIMode(0)
     if not lib.EUIsInitialized():
         check(lib, lib.EUInitialize(), "EUInitialize")
+    # settings below are per run; never persist them over EU.app's
+    set_param(lib, "SaveSettings", 0)
     cdir = certs_dir().encode("utf-8")
     check(
         lib,
@@ -291,6 +320,201 @@ def sign_one(lib, inp: str, out: str, external: bool) -> None:
         ),
         "EUSignFile",
     )
+
+
+def set_param(lib, name: str, value: int) -> None:
+    v = ctypes.c_int32(value)
+    check(
+        lib,
+        lib.EUSetRuntimeParameter(name.encode(), ctypes.addressof(v), DWORD(4)),
+        f"EUSetRuntimeParameter({name})",
+    )
+
+
+def norm_cn(name: str) -> str:
+    return re.sub(r"[«»“”„\"]", '"', name).casefold().strip()
+
+
+def configure_servers(lib, issuer: bytes, level: str) -> None:
+    """Point timestamp, OCSP and CMP at the servers CAs.json lists for the issuer."""
+    enc = "utf-8"
+    try:
+        name = issuer.decode("utf-8")
+    except UnicodeDecodeError:
+        enc, name = "cp1251", issuer.decode("cp1251", errors="replace")
+    path = os.path.join(certs_dir(), "CAs.json")
+    try:
+        with open(path, encoding="utf-8") as f:
+            cas = json.load(f)
+    except (OSError, ValueError):
+        die(f"CA list missing or unreadable: {path} (run chezmoi apply)")
+    want = norm_cn(name)
+    ca = next((c for c in cas if any(norm_cn(n) == want for n in c.get("issuerCNs", []))), None)
+    if not ca or not ca.get("tspAddress"):
+        die(f"no timestamp server for issuer {name!r} in {path}")
+    if level == "x-long" and not ca.get("ocspAccessPointAddress"):
+        die(f"no OCSP server for issuer {name!r} in {path}")
+
+    def b(value, default: str = "") -> bytes:
+        return str(value or default).encode(enc, errors="replace")
+
+    check(lib, lib.EUSetModeSettings(0), "EUSetModeSettings")
+    check(lib, lib.EUSetOCSPAccessInfoModeSettings(1), "EUSetOCSPAccessInfoModeSettings")
+    for c in cas:
+        if not c.get("ocspAccessPointAddress"):
+            continue
+        for n in c.get("issuerCNs", []):
+            check(
+                lib,
+                lib.EUSetOCSPAccessInfoSettings(
+                    b(n), b(c["ocspAccessPointAddress"]), b(c.get("ocspAccessPointPort"), "80")
+                ),
+                "EUSetOCSPAccessInfoSettings",
+            )
+    if ca.get("ocspAccessPointAddress"):
+        check(
+            lib,
+            lib.EUSetOCSPSettings(
+                1, 1, b(ca["ocspAccessPointAddress"]), b(ca.get("ocspAccessPointPort"), "80")
+            ),
+            "EUSetOCSPSettings",
+        )
+    check(
+        lib,
+        lib.EUSetTSPSettings(1, b(ca["tspAddress"]), b(ca.get("tspAddressPort"), "80")),
+        "EUSetTSPSettings",
+    )
+    if ca.get("cmpAddress"):
+        check(lib, lib.EUSetCMPSettings(1, b(ca["cmpAddress"]), b"80", b""), "EUSetCMPSettings")
+
+
+def der_items(b: bytes, i: int = 0, end: int | None = None):
+    """Yield (tag, start, end) for each DER element in b[i:end]."""
+    end = len(b) if end is None else end
+    while i < end:
+        tag = b[i]
+        ln = b[i + 1]
+        i += 2
+        if ln == 0x80:
+            raise ValueError("indefinite length")
+        if ln & 0x80:
+            n = ln & 0x7F
+            ln = int.from_bytes(b[i:i + n], "big")
+            i += n
+        if i + ln > end:
+            raise ValueError("truncated element")
+        yield tag, i, i + ln
+        i += ln
+
+
+def der_children(b: bytes, item) -> list:
+    return list(der_items(b, item[1], item[2]))
+
+
+def oid_str(v: bytes) -> str:
+    parts, n = [], 0
+    for x in v:
+        n = (n << 7) | (x & 0x7F)
+        if not x & 0x80:
+            parts.append(n)
+            n = 0
+    head = min(parts[0] // 40, 2)
+    return ".".join(map(str, [head, parts[0] - 40 * head, *parts[1:]]))
+
+
+def der_time(b: bytes, item) -> str:
+    text = b[item[1]:item[2]].decode("ascii").rstrip("Z")
+    if item[0] == 0x17:
+        t = datetime.datetime.strptime(text[:12], "%y%m%d%H%M%S")
+    else:
+        t = datetime.datetime.strptime(text[:14], "%Y%m%d%H%M%S")
+    return f"{t:%Y-%m-%d %H:%M:%S} UTC"
+
+
+def signed_data(b: bytes, content_info) -> list:
+    ci = der_children(b, content_info)
+    if oid_str(b[ci[0][1]:ci[0][2]]) != "1.2.840.113549.1.7.2":
+        raise ValueError("not CMS signed data")
+    return der_children(b, der_children(b, ci[1])[0])
+
+
+def attributes(b: bytes, item) -> dict:
+    out = {}
+    for attr in der_children(b, item):
+        oid, values = der_children(b, attr)[:2]
+        out[oid_str(b[oid[1]:oid[2]])] = der_children(b, values)
+    return out
+
+
+def token_time(b: bytes, token) -> str:
+    sd = signed_data(b, token)
+    econtent = der_children(b, sd[2])[1]
+    octets = der_children(b, econtent)[0]
+    tst_info = der_children(b, octets)[0]
+    return der_time(b, der_children(b, tst_info)[4])
+
+
+def cms_summary(b: bytes) -> dict:
+    try:
+        sd = signed_data(b, next(der_items(b)))
+        if sd[-1][0] != 0x31:
+            raise ValueError("no signer infos")
+        signers = der_children(b, sd[-1])
+        if not signers:
+            raise ValueError("no signers")
+        signed, unsigned = {}, {}
+        for part in der_children(b, signers[0]):
+            if part[0] == 0xA0:
+                signed = attributes(b, part)
+            elif part[0] == 0xA1:
+                unsigned = attributes(b, part)
+        if OID_TIMESTAMP not in unsigned:
+            level = "CAdES-BES"
+        elif all(o in unsigned for o in OID_REFS + OID_VALUES):
+            level = "CAdES-X Long"
+        elif all(o in unsigned for o in OID_REFS):
+            level = "CAdES-C"
+        else:
+            level = "CAdES-T"
+        return {
+            "level": level,
+            "attached": len(der_children(b, sd[2])) > 1,
+            "signers": len(signers),
+            "signing_time": der_time(b, signed[OID_SIGNING_TIME][0]) if OID_SIGNING_TIME in signed else "",
+            "timestamp": token_time(b, unsigned[OID_TIMESTAMP][0]) if OID_TIMESTAMP in unsigned else "",
+        }
+    except (IndexError, StopIteration, ValueError, UnicodeDecodeError) as e:
+        raise ValueError(f"not a readable CAdES signature ({e})") from None
+
+
+def inspect(path: str) -> int:
+    try:
+        with open(path, "rb") as f:
+            s = cms_summary(f.read())
+    except OSError as e:
+        die(f"cannot read {path}: {e.strerror}")
+    except ValueError as e:
+        die(f"{path}: {e}")
+    print(f"level         {s['level']}")
+    print(f"content       {'attached' if s['attached'] else 'detached'}")
+    print(f"signers       {s['signers']}")
+    if s["signing_time"]:
+        print(f"signing time  {s['signing_time']}")
+    print(f"timestamp     {s['timestamp'] or 'none'}")
+    return 0
+
+
+def prefer_apple_python() -> None:
+    """Re-run under Apple's signed python so firewall rules survive nix updates."""
+    if sys.platform != "darwin" or os.environ.get("EUSIGN_REEXEC"):
+        return
+    try:
+        if subprocess.run(["/usr/bin/xcode-select", "-p"], capture_output=True, timeout=10).returncode != 0:
+            return
+    except (OSError, subprocess.TimeoutExpired):
+        return
+    os.environ["EUSIGN_REEXEC"] = "1"
+    os.execv(APPLE_PYTHON, [APPLE_PYTHON, "-I", os.path.abspath(__file__), *sys.argv[1:]])
 
 
 def op_run(*args: str) -> subprocess.CompletedProcess:
@@ -626,10 +850,15 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Attached CAdES (data embedded) instead of detached",
     )
+    p.add_argument("--level", choices=list(LEVELS), default="x-long",
+                   help="CAdES level (default: x-long)")
+    p.add_argument("--inspect", metavar="P7S", help="Report a signature's level; no key needed")
     p.add_argument("input", nargs="?", help="Input file to sign")
     p.add_argument("output", nargs="?", help="Output .p7s (default: <input>.p7s)")
     args = p.parse_args(argv)
 
+    if args.inspect:
+        return inspect(os.path.expanduser(args.inspect))
     if args.set_key:
         return set_key(*args.set_key)
     if args.delete_key:
@@ -700,13 +929,24 @@ def main(argv: list[str] | None = None) -> int:
             if args.check:
                 print("key opens with the stored password; nothing signed")
                 return 0
+            if args.level != "bes":
+                configure_servers(lib, info.pszIssuerCN or b"", args.level)
+            set_param(lib, "SignType", LEVELS[args.level])
             sign_one(lib, inp, out, not args.attached)
         finally:
             lib.EUFreeCertOwnerInfo(byref(info))
             lib.EUResetPrivateKey()
 
+        try:
+            with open(out, "rb") as f:
+                got = cms_summary(f.read())["level"]
+        except (OSError, ValueError) as e:
+            die(f"cannot read back {out}: {e}")
+        want = WANTED[args.level]
+        if LEVEL_NAMES.index(got) < LEVEL_NAMES.index(want):
+            die(f"{out} is {got}, not {want}; do not upload it")
         mode = "attached" if args.attached else "detached"
-        print(f"wrote {out} ({mode} CAdES)")
+        print(f"wrote {out} ({mode} {got})")
         return 0
     finally:
         if lib.EUIsInitialized():
@@ -714,4 +954,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    prefer_apple_python()
     raise SystemExit(main())
