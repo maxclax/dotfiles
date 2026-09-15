@@ -1,0 +1,348 @@
+#!/usr/bin/env python3
+"""sign-file — CAdES (.p7s) signatures via ІІТ EUSignCP (euscp.dylib) and a JKS key store.
+
+Env:
+  EUSIGN_JKS           path to the .jks key store (required)
+  EUSIGN_JKS_PASSWORD  key password (required to sign; env only, never argv)
+  EUSIGN_ALIAS         key alias (required if the store holds several keys)
+  EUSIGN_LIB_DIR       library dir (default: ~/opt/eusign/lib)
+  EUSIGN_CERTS_DIR     certificate file store (default: ~/opt/eusign/certs)
+
+Usage:
+  sign-file --list
+  sign-file <input> [output.p7s]
+  sign-file --attached <input> [output.p7s]
+
+Default is a detached signature (.p7s beside the original); --attached embeds
+the data in the .p7s.
+"""
+from __future__ import annotations
+
+import argparse
+import os
+import sys
+import ctypes
+from ctypes import (
+    POINTER,
+    Structure,
+    byref,
+    c_char_p,
+    c_int,
+    c_ubyte,
+    c_uint32,
+    c_void_p,
+)
+
+EU_ERROR_NONE = 0
+EU_ERROR_WARNING_END_OF_ENUM = 7
+BOOL = c_int
+DWORD = c_uint32
+PBYTE = POINTER(c_ubyte)
+PPBYTE = POINTER(PBYTE)
+PDWORD = POINTER(DWORD)
+PPDWORD = POINTER(PDWORD)
+
+
+class EU_CERT_OWNER_INFO(Structure):
+    _fields_ = [
+        ("bFilled", BOOL),
+        ("pszIssuer", c_char_p),
+        ("pszIssuerCN", c_char_p),
+        ("pszSerial", c_char_p),
+        ("pszSubject", c_char_p),
+        ("pszSubjCN", c_char_p),
+        ("pszSubjOrg", c_char_p),
+        ("pszSubjOrgUnit", c_char_p),
+        ("pszSubjTitle", c_char_p),
+        ("pszSubjState", c_char_p),
+        ("pszSubjLocality", c_char_p),
+        ("pszSubjFullName", c_char_p),
+        ("pszSubjAddress", c_char_p),
+        ("pszSubjPhone", c_char_p),
+        ("pszSubjEMail", c_char_p),
+        ("pszSubjDNS", c_char_p),
+        ("pszSubjEDRPOUCode", c_char_p),
+        ("pszSubjDRFOCode", c_char_p),
+    ]
+
+
+def die(msg: str, code: int = 1) -> None:
+    print(f"sign-file: {msg}", file=sys.stderr)
+    raise SystemExit(code)
+
+
+def lib_dir() -> str:
+    d = os.environ.get("EUSIGN_LIB_DIR") or os.path.expanduser("~/opt/eusign/lib")
+    if not os.path.isdir(d):
+        die(f"EUSign lib dir missing: {d} (run chezmoi eusign install hook)")
+    return d
+
+
+def certs_dir() -> str:
+    d = os.environ.get("EUSIGN_CERTS_DIR") or os.path.expanduser("~/opt/eusign/certs")
+    os.makedirs(d, exist_ok=True)
+    return d
+
+
+def load_euscp():
+    d = lib_dir()
+    # Stay in lib dir so @loader_path / sibling km.*.dylib resolve (SIP-safe).
+    os.chdir(d)
+    try:
+        lib = ctypes.CDLL(os.path.join(d, "euscp.dylib"))
+    except OSError as e:
+        die(f"failed to load euscp.dylib from {d}: {e}")
+
+    lib.EUSetUIMode.argtypes = [BOOL]
+    lib.EUSetUIMode.restype = None
+    lib.EUInitialize.argtypes = []
+    lib.EUInitialize.restype = DWORD
+    lib.EUIsInitialized.argtypes = []
+    lib.EUIsInitialized.restype = BOOL
+    lib.EUFinalize.argtypes = []
+    lib.EUFinalize.restype = DWORD
+    lib.EUGetErrorDesc.argtypes = [DWORD]
+    lib.EUGetErrorDesc.restype = c_char_p
+
+    lib.EUSetFileStoreSettings.argtypes = [
+        c_char_p, BOOL, BOOL, BOOL, BOOL, BOOL, BOOL, DWORD
+    ]
+    lib.EUSetFileStoreSettings.restype = DWORD
+
+    # Prefer in-memory JKS APIs — File* variants fail on emoji/iCloud paths.
+    lib.EUEnumJKSPrivateKeys.argtypes = [PBYTE, DWORD, DWORD, POINTER(c_char_p)]
+    lib.EUEnumJKSPrivateKeys.restype = DWORD
+
+    # Order per IIT NIXes CPP appendix:
+    #   priv, privLen, certsCount, certs**, certLens**
+    lib.EUGetJKSPrivateKey.argtypes = [
+        PBYTE,
+        DWORD,
+        c_char_p,
+        POINTER(PBYTE),
+        PDWORD,
+        PDWORD,
+        POINTER(PPBYTE),
+        POINTER(PDWORD),
+    ]
+    lib.EUGetJKSPrivateKey.restype = DWORD
+
+    lib.EUFreeMemory.argtypes = [c_void_p]
+    lib.EUFreeMemory.restype = DWORD
+    lib.EUFreeCertificatesArray.argtypes = [PPBYTE, PDWORD, DWORD]
+    lib.EUFreeCertificatesArray.restype = DWORD
+    lib.EUSaveCertificate.argtypes = [PBYTE, DWORD]
+    lib.EUSaveCertificate.restype = DWORD
+    lib.EUReadPrivateKeyBinary.argtypes = [
+        PBYTE, DWORD, c_char_p, POINTER(EU_CERT_OWNER_INFO)
+    ]
+    lib.EUReadPrivateKeyBinary.restype = DWORD
+    lib.EUFreeCertOwnerInfo.argtypes = [POINTER(EU_CERT_OWNER_INFO)]
+    lib.EUFreeCertOwnerInfo.restype = DWORD
+    lib.EUResetPrivateKey.argtypes = []
+    lib.EUResetPrivateKey.restype = None
+    lib.EUSignFile.argtypes = [c_char_p, c_char_p, BOOL]
+    lib.EUSignFile.restype = DWORD
+    return lib
+
+
+def err_desc(lib, code: int) -> str:
+    s = lib.EUGetErrorDesc(DWORD(code))
+    if not s:
+        return f"EU error {code}"
+    for enc in ("cp1251", "utf-8"):
+        try:
+            return s.decode(enc)
+        except Exception:
+            continue
+    return f"EU error {code}"
+
+
+def check(lib, code: int, what: str) -> None:
+    if code != EU_ERROR_NONE:
+        die(f"{what}: {err_desc(lib, code)} ({code})")
+
+
+def init_lib(lib):
+    lib.EUSetUIMode(0)
+    if not lib.EUIsInitialized():
+        check(lib, lib.EUInitialize(), "EUInitialize")
+    cdir = certs_dir().encode("utf-8")
+    check(
+        lib,
+        lib.EUSetFileStoreSettings(cdir, 0, 1, 0, 0, 0, 1, DWORD(3600)),
+        "EUSetFileStoreSettings",
+    )
+
+
+def read_jks(jks: str):
+    with open(jks, "rb") as f:
+        data = f.read()
+    buf = (c_ubyte * len(data)).from_buffer_copy(data)
+    return buf, len(data)
+
+
+def list_aliases(lib, jks: str) -> list[str]:
+    buf, n = read_jks(jks)
+    aliases: list[str] = []
+    idx = 0
+    while idx < 64:
+        alias_ptr = c_char_p()
+        code = lib.EUEnumJKSPrivateKeys(buf, DWORD(n), DWORD(idx), byref(alias_ptr))
+        if code == EU_ERROR_WARNING_END_OF_ENUM:
+            break
+        check(lib, code, f"EUEnumJKSPrivateKeys[{idx}]")
+        if not alias_ptr or not alias_ptr.value:
+            break
+        aliases.append(alias_ptr.value.decode("utf-8", errors="replace"))
+        lib.EUFreeMemory(alias_ptr)
+        idx += 1
+    return aliases
+
+
+def load_jks_key(lib, jks: str, alias: str, password: str) -> EU_CERT_OWNER_INFO:
+    buf, n = read_jks(jks)
+    priv = PBYTE()
+    priv_len = DWORD(0)
+    cert_count = DWORD(0)
+    certs = PPBYTE()
+    cert_lens = PDWORD()
+
+    check(
+        lib,
+        lib.EUGetJKSPrivateKey(
+            buf,
+            DWORD(n),
+            alias.encode("utf-8"),
+            byref(priv),
+            byref(priv_len),
+            byref(cert_count),
+            byref(certs),
+            byref(cert_lens),
+        ),
+        "EUGetJKSPrivateKey",
+    )
+
+    try:
+        for i in range(cert_count.value):
+            ln = int(cert_lens[i])
+            if ln <= 0:
+                continue
+            check(
+                lib,
+                lib.EUSaveCertificate(certs[i], DWORD(ln)),
+                f"EUSaveCertificate[{i}]",
+            )
+        info = EU_CERT_OWNER_INFO()
+        check(
+            lib,
+            lib.EUReadPrivateKeyBinary(
+                priv, priv_len, password.encode("utf-8"), byref(info)
+            ),
+            "EUReadPrivateKeyBinary",
+        )
+        return info
+    finally:
+        if priv:
+            lib.EUFreeMemory(priv)
+        if certs and cert_lens:
+            lib.EUFreeCertificatesArray(certs, cert_lens, cert_count)
+
+
+def sign_one(lib, inp: str, out: str, external: bool) -> None:
+    check(
+        lib,
+        lib.EUSignFile(
+            os.path.abspath(inp).encode("utf-8"),
+            os.path.abspath(out).encode("utf-8"),
+            BOOL(1 if external else 0),
+        ),
+        "EUSignFile",
+    )
+
+
+def main(argv: list[str] | None = None) -> int:
+    p = argparse.ArgumentParser(
+        prog="sign-file",
+        description="Sign a file to CAdES .p7s via ІІТ EUSignCP and a JKS key store",
+    )
+    p.add_argument("--list", action="store_true", help="List key aliases in EUSIGN_JKS")
+    p.add_argument(
+        "--attached",
+        action="store_true",
+        help="Attached CAdES (data embedded) instead of detached",
+    )
+    p.add_argument("input", nargs="?", help="Input file to sign")
+    p.add_argument("output", nargs="?", help="Output .p7s (default: <input>.p7s)")
+    args = p.parse_args(argv)
+
+    jks = os.environ.get("EUSIGN_JKS")
+    if not jks:
+        die("EUSIGN_JKS is not set (path to the .jks key store)")
+    # load_euscp() changes the working directory, so resolve user paths first
+    jks = os.path.abspath(os.path.expanduser(jks))
+    if not os.path.isfile(jks):
+        die(f"key store not found: {jks}")
+
+    inp = out = password = ""
+    if not args.list:
+        if not args.input:
+            p.print_help()
+            return 2
+        inp = os.path.abspath(os.path.expanduser(args.input))
+        if not os.path.isfile(inp):
+            die(f"input not found: {args.input}")
+        out = (
+            os.path.abspath(os.path.expanduser(args.output))
+            if args.output
+            else inp + ".p7s"
+        )
+        password = os.environ.get("EUSIGN_JKS_PASSWORD", "")
+        if not password:
+            die("EUSIGN_JKS_PASSWORD is not set")
+
+    lib = load_euscp()
+    init_lib(lib)
+
+    try:
+        aliases = list_aliases(lib, jks)
+        if args.list:
+            if not aliases:
+                print("(no aliases found)")
+            for a in aliases:
+                mark = " *" if a == os.environ.get("EUSIGN_ALIAS") else ""
+                print(f"{a}{mark}")
+            return 0
+
+        if not aliases:
+            die("key store has no private-key aliases")
+        alias = os.environ.get("EUSIGN_ALIAS") or ""
+        if alias:
+            if alias not in aliases:
+                die(f"EUSIGN_ALIAS={alias!r} not in key store; have: {aliases}")
+        elif len(aliases) > 1:
+            die("several aliases in key store; set EUSIGN_ALIAS to one of: " + ", ".join(aliases))
+        else:
+            alias = aliases[0]
+
+        external = not args.attached
+        info = load_jks_key(lib, jks, alias, password)
+        try:
+            subj = (info.pszSubjCN or b"").decode("utf-8", errors="replace")
+            who = f" cn={subj!r}" if subj else ""
+            print(f"sign-file: using alias={alias!r}{who}", file=sys.stderr)
+            sign_one(lib, inp, out, external)
+        finally:
+            lib.EUFreeCertOwnerInfo(byref(info))
+            lib.EUResetPrivateKey()
+
+        mode = "detached" if external else "attached"
+        print(f"wrote {out} ({mode} CAdES)")
+        return 0
+    finally:
+        if lib.EUIsInitialized():
+            lib.EUFinalize()
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
