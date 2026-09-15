@@ -22,6 +22,9 @@ Usage:
   sign-file --keys                              list profiles
   sign-file [--key NAME] --list                 list aliases in the key store
   sign-file [--key NAME] --check                confirm the password opens the key
+  sign-file [--key NAME] --info                 certificate validity (no password)
+  sign-file --set-key NAME JKS                  add or renew a profile (asks for the password)
+  sign-file --delete-key NAME                   remove a profile
   sign-file [--key NAME] <input> [output.p7s]
   sign-file [--key NAME] --attached <input> [output.p7s]
 
@@ -31,10 +34,16 @@ the data in the .p7s.
 from __future__ import annotations
 
 import argparse
+import datetime
+import getpass
 import json
 import os
+import re
+import secrets
+import shutil
 import subprocess
 import sys
+import tempfile
 import ctypes
 from ctypes import (
     POINTER,
@@ -284,23 +293,42 @@ def sign_one(lib, inp: str, out: str, external: bool) -> None:
     )
 
 
-def op(*args: str) -> bytes:
+def op_run(*args: str) -> subprocess.CompletedProcess:
     try:
-        r = subprocess.run(["op", *args], capture_output=True, timeout=120)
+        # no inherited stdin: op refuses --template while stdin is a pipe
+        return subprocess.run(["op", *args], stdin=subprocess.DEVNULL, capture_output=True, timeout=180)
     except FileNotFoundError:
         die("1Password CLI 'op' not found")
     except subprocess.TimeoutExpired:
         die("1Password CLI timed out; is 1Password unlocked?")
+
+
+def op(*args: str) -> bytes:
+    r = op_run(*args)
     if r.returncode != 0:
         die("op: " + r.stderr.decode("utf-8", "replace").strip())
     return r.stdout
 
 
-def op_item() -> dict:
-    cmd = ["item", "get", os.environ.get("EUSIGN_OP_ITEM") or "eusign", "--format", "json"]
+def op_item_args() -> list[str]:
+    args = [os.environ.get("EUSIGN_OP_ITEM") or "eusign"]
     if os.environ.get("EUSIGN_OP_VAULT"):
-        cmd += ["--vault", os.environ["EUSIGN_OP_VAULT"]]
-    return json.loads(op(*cmd))
+        args += ["--vault", os.environ["EUSIGN_OP_VAULT"]]
+    return args
+
+
+def op_item() -> dict:
+    return json.loads(op("item", "get", *op_item_args(), "--format", "json"))
+
+
+def op_item_or_none() -> dict | None:
+    r = op_run("item", "get", *op_item_args(), "--format", "json")
+    if r.returncode == 0:
+        return json.loads(r.stdout)
+    err = r.stderr.decode("utf-8", "replace")
+    if "isn't an item" in err:
+        return None
+    die("op: " + err.strip())
 
 
 def profile_sections(item: dict) -> dict[str, dict]:
@@ -379,6 +407,208 @@ def key_from_env(need_password: bool) -> tuple[bytes, str, str]:
     return data, password, os.environ.get("EUSIGN_ALIAS", "")
 
 
+def write_private(path: str, data: bytes) -> None:
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    with os.fdopen(fd, "wb") as fh:
+        fh.write(data)
+
+
+def assign_name(text: str) -> str:
+    """Escape a section or field name for an op assignment statement."""
+    return text.replace("\\", "\\\\").replace(".", "\\.").replace("=", "\\=")
+
+
+def keystore_certs(lib, data: bytes, alias: str) -> list[bytes]:
+    buf, n = jks_buffer(data)
+    priv, priv_len, cert_count = PBYTE(), DWORD(0), DWORD(0)
+    certs, cert_lens = PPBYTE(), PDWORD()
+    check(
+        lib,
+        lib.EUGetJKSPrivateKey(
+            buf, DWORD(n), alias.encode("utf-8"), byref(priv), byref(priv_len),
+            byref(cert_count), byref(certs), byref(cert_lens),
+        ),
+        "EUGetJKSPrivateKey",
+    )
+    try:
+        return [
+            ctypes.string_at(certs[i], int(cert_lens[i]))
+            for i in range(cert_count.value)
+            if int(cert_lens[i]) > 0
+        ]
+    finally:
+        if priv:
+            lib.EUFreeMemory(priv)
+        if certs and cert_lens:
+            lib.EUFreeCertificatesArray(cert_count, certs, cert_lens)
+
+
+def print_validity(ders: list[bytes]) -> None:
+    now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+    for der in ders:
+        try:
+            r = subprocess.run(
+                ["openssl", "x509", "-inform", "der", "-noout", "-enddate", "-text"],
+                input=der, capture_output=True, timeout=30,
+            )
+            text = r.stdout.decode("utf-8", "replace")
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            text = ""
+        if "CA:TRUE" in text:
+            role = "certification authority"
+        elif "Digital Signature" in text:
+            role = "signing"
+        elif "Key Agreement" in text:
+            role = "key agreement"
+        else:
+            role = "certificate"
+        found = re.search(r"notAfter=(.+)", text)
+        try:
+            until = datetime.datetime.strptime(found.group(1).strip(), "%b %d %H:%M:%S %Y %Z")
+        except (AttributeError, ValueError):
+            print(f"  {role:<24} validity unknown")
+            continue
+        days = (until - now).days
+        note = "  EXPIRED" if days < 0 else ("  renew soon" if days <= 30 else "")
+        print(f"  {role:<24} valid until {until:%Y-%m-%d} ({days} days){note}")
+
+
+def pick_alias(aliases: list[str], preferred: str) -> str:
+    if not aliases:
+        die("key store has no private-key aliases")
+    if preferred:
+        if preferred not in aliases:
+            die(f"alias {preferred!r} not in key store; have: {aliases}")
+        return preferred
+    if len(aliases) == 1:
+        return aliases[0]
+    for i, a in enumerate(aliases, 1):
+        print(f"  {i}. {a}", file=sys.stderr)
+    choice = input("Key store holds several keys; choose a number: ").strip()
+    if not choice.isdigit() or not 1 <= int(choice) <= len(aliases):
+        die("no valid key chosen")
+    return aliases[int(choice) - 1]
+
+
+def set_key(name: str, jks_path: str) -> int:
+    name = name.strip()
+    if not name:
+        die("profile name is empty")
+    path = os.path.abspath(os.path.expanduser(jks_path))
+    if not os.path.isfile(path):
+        die(f"key store not found: {path}")
+    with open(path, "rb") as f:
+        data = f.read()
+    password = getpass.getpass(f"Password for {os.path.basename(path)}: ")
+    if not password:
+        die("empty password")
+
+    # prove the password opens the key before anything is stored
+    lib = load_euscp()
+    init_lib(lib)
+    try:
+        aliases = list_aliases(lib, data)
+        alias = pick_alias(aliases, os.environ.get("EUSIGN_ALIAS", ""))
+        info = load_jks_key(lib, data, alias, password)
+        lib.EUFreeCertOwnerInfo(byref(info))
+        lib.EUResetPrivateKey()
+        ders = keystore_certs(lib, data, alias)
+    finally:
+        if lib.EUIsInitialized():
+            lib.EUFinalize()
+    print("key opens with this password")
+
+    section = assign_name(name)
+    item = op_item_or_none()
+    tmpdir = tempfile.mkdtemp()
+    os.chmod(tmpdir, 0o700)
+    try:
+        store = os.path.join(tmpdir, "keystore")
+        template = os.path.join(tmpdir, "item.json")
+        write_private(store, data)
+        if item is None:
+            vault = os.environ.get("EUSIGN_OP_VAULT")
+            if not vault:
+                die("no 1Password item yet; set EUSIGN_OP_VAULT to the vault that should hold it")
+            tpl = json.loads(op("item", "template", "get", "Secure Note"))
+            tpl["title"] = os.environ.get("EUSIGN_OP_ITEM") or "eusign"
+            tpl["tags"] = ["eusign"]
+            tpl["sections"] = [{"id": "key1", "label": name}]
+            tpl["fields"] = [f for f in tpl.get("fields", []) if f.get("purpose") == "NOTES"]
+            tpl["fields"].append({"id": "key1password", "section": {"id": "key1"},
+                                  "type": "CONCEALED", "label": "password", "value": password})
+            if len(aliases) > 1:
+                tpl["fields"].append({"id": "key1alias", "section": {"id": "key1"},
+                                      "type": "STRING", "label": "alias", "value": alias})
+            write_private(template, json.dumps(tpl).encode())
+            op("item", "create", "--vault", vault, "--template", template,
+               f"{section}.keystore[file]={store}")
+        else:
+            vault_id, item_id = item["vault"]["id"], item["id"]
+            sec = next((x for x in item.get("sections", []) if x.get("label") == name), None)
+            if sec is None:
+                sid = "key" + secrets.token_hex(4)
+                item.setdefault("sections", []).append({"id": sid, "label": name})
+            else:
+                sid = sec["id"]
+                stale = [
+                    f["name"] for f in item.get("files", [])
+                    if (f.get("section") or {}).get("id") == sid and f.get("name") != "keystore"
+                ]
+                if stale:
+                    op("item", "edit", item_id, "--vault", vault_id,
+                       *[f"{section}.{assign_name(n)}[delete]" for n in stale])
+                    item = json.loads(op("item", "get", item_id, "--vault", vault_id, "--format", "json"))
+            fields = item.setdefault("fields", [])
+
+            def upsert(label: str, ftype: str, value: str) -> None:
+                for f in fields:
+                    if (f.get("section") or {}).get("id") == sid and (f.get("label") or "").lower() == label:
+                        f["type"], f["value"] = ftype, value
+                        return
+                fields.append({"id": f"{sid}{label}", "section": {"id": sid},
+                               "type": ftype, "label": label, "value": value})
+
+            upsert("password", "CONCEALED", password)
+            has_alias = any((f.get("section") or {}).get("id") == sid and (f.get("label") or "").lower() == "alias"
+                            for f in fields)
+            if len(aliases) > 1 or has_alias:
+                upsert("alias", "STRING", alias)
+            write_private(template, json.dumps(item).encode())
+            op("item", "edit", item_id, "--vault", vault_id, "--template", template,
+               f"{section}.keystore[file]={store}")
+    finally:
+        shutil.rmtree(tmpdir, ignore_errors=True)
+
+    stored, stored_password, _ = key_from_profile(name, need_password=True)
+    if stored != data or stored_password != password:
+        die("the copy in 1Password does not match; check the item before signing")
+    print(f"stored profile {name!r} in 1Password and verified the stored copy")
+    print_validity(ders)
+    return 0
+
+
+def delete_key(name: str) -> int:
+    item = op_item()
+    sec = next((x for x in item.get("sections", []) if x.get("label") == name), None)
+    if sec is None:
+        die(f"no profile {name!r} in 1Password item {item.get('title')!r}")
+    sid = sec["id"]
+    labels = [f["label"] for f in item.get("fields", [])
+              if (f.get("section") or {}).get("id") == sid and f.get("label")]
+    labels += [f["name"] for f in item.get("files", [])
+               if (f.get("section") or {}).get("id") == sid and f.get("name")]
+    if input(f"Type {name} to delete this key from 1Password: ").strip() != name:
+        die("not confirmed; nothing deleted")
+    section = assign_name(name)
+    op("item", "edit", item["id"], "--vault", item["vault"]["id"],
+       *[f"{section}.{assign_name(label)}[delete]" for label in labels])
+    if name in profile_sections(op_item()):
+        die("profile is still present after the delete")
+    print(f"deleted profile {name!r}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(
         prog="sign-file",
@@ -388,6 +618,9 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--keys", action="store_true", help="List profiles in the 1Password item")
     p.add_argument("--list", action="store_true", help="List key aliases in the key store")
     p.add_argument("--check", action="store_true", help="Confirm the password opens the key; sign nothing")
+    p.add_argument("--info", action="store_true", help="Show certificate validity; no password needed")
+    p.add_argument("--set-key", nargs=2, metavar=("NAME", "JKS"), help="Add or renew a profile in 1Password")
+    p.add_argument("--delete-key", metavar="NAME", help="Remove a profile from 1Password")
     p.add_argument(
         "--attached",
         action="store_true",
@@ -397,12 +630,17 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("output", nargs="?", help="Output .p7s (default: <input>.p7s)")
     args = p.parse_args(argv)
 
+    if args.set_key:
+        return set_key(*args.set_key)
+    if args.delete_key:
+        return delete_key(args.delete_key)
+
     if args.keys:
         for label in sorted(profile_sections(op_item())):
             print(label)
         return 0
 
-    signing = not (args.list or args.check)
+    signing = not (args.list or args.check or args.info)
     inp = out = ""
     if signing:
         if not args.input:
@@ -419,7 +657,7 @@ def main(argv: list[str] | None = None) -> int:
         )
 
     name = args.key or os.environ.get("EUSIGN_KEY", "")
-    need_password = not args.list
+    need_password = not (args.list or args.info)
     if name:
         data, password, alias = key_from_profile(name, need_password)
     else:
@@ -430,6 +668,12 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         aliases = list_aliases(lib, data)
+        if args.info:
+            for a in ([alias] if alias else aliases):
+                print(f"{a}:")
+                print_validity(keystore_certs(lib, data, a))
+            return 0
+
         if args.list:
             if not aliases:
                 print("(no aliases found)")

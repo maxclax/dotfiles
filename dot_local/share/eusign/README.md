@@ -28,8 +28,7 @@ is one section of that item:
   itself as `<profile>.jks`)
 - optionally an `alias` field, when the store holds several keys
 
-To add a key, add a section to the item, fill in the fields and attach the
-key store, then confirm it with `sign-file --key NAME --check`.
+Add, renew and remove keys with the `make` targets below.
 
 The key store and password are read into memory for each run and never written
 to disk.
@@ -41,6 +40,26 @@ sign-file --key NAME --check         # confirm the password opens the key
 sign-file --key NAME document.xml    # detached → document.xml.p7s
 export EUSIGN_KEY=NAME               # default profile for this shell
 ```
+
+## Managing keys
+
+Run these yourself; agents must never add, renew or delete keys.
+
+```bash
+make eusign_keys                                   # list profiles
+make eusign_info key=NAME                          # certificate validity, no password
+make eusign_check key=NAME                         # confirm the password opens the key
+make eusign_key_set key=NAME jks=/path/to/key.jks  # add a key, or renew one in place
+make eusign_key_delete key=NAME                    # remove a key (asks you to confirm)
+```
+
+`eusign_key_set` asks for the key store password and opens the key locally, so a
+wrong password never reaches 1Password. It then stores the key store and password
+in the profile's section, replacing what was there, and reads the stored copy
+back to compare it before reporting success. The first key creates the item;
+set `EUSIGN_OP_VAULT` to choose its vault.
+
+`eusign_info` flags certificates that are expired or expire within 30 days.
 
 ## Keys from environment variables
 
