@@ -57,18 +57,18 @@ end
 -- https://fonts.google.com/noto/specimen/Noto+Color+Emoji
 local disable_ligatures = { "calt=0", "clig=0", "liga=0" }
 config.font = wezterm.font_with_fallback({
-	{ family = "Berkeley Mono Variable" },
+	-- Normal (wdth 100) is available as variation=57. SemiCondensed was the
+	-- default match and made glyphs look stretched vertically; squeezing
+	-- line_height only cramped rows without fixing the aspect ratio.
+	-- Medium matches Ghostty's wght=500.
+	{ family = "Berkeley Mono Variable", weight = "Medium", stretch = "Normal" },
 	-- { family = "JetBrains Mono", harfbuzz_features = disable_ligatures },
 	-- { family = "JetBrainsMono Nerd Font", harfbuzz_features = disable_ligatures },
 	{ family = "Symbols Nerd Font Mono" },
 	{ family = "Noto Color Emoji" },
 	{ family = "Noto Emoji" },
 })
-
--- wezterm can only reach this font's SemiCondensed instance (wdth 90); its
--- stretch comes from the static OS/2 table, so wdth 100 is unaddressable.
--- Narrower cells at unchanged line height read as too tall -- scale it back.
-config.line_height = 0.937
+config.line_height = 1.0
 {{ end }}
 
 if is_windows then
