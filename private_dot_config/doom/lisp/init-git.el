@@ -383,11 +383,13 @@
       (funcall orig-fn)))
 
   (defun my/magit-delta-refresh (&rest _)
+    ;; skip killed buffers — org restart can race the auto-dark timer
     (when after-init-time
       (dolist (buf (buffer-list))
-        (with-current-buffer buf
-          (when (derived-mode-p 'magit-mode)
-            (magit-refresh-buffer))))))
+        (when (buffer-live-p buf)
+          (with-current-buffer buf
+            (when (derived-mode-p 'magit-mode)
+              (magit-refresh-buffer)))))))
 
   (when (boundp 'enable-theme-functions)
     (add-hook 'enable-theme-functions #'my/magit-delta-refresh))
