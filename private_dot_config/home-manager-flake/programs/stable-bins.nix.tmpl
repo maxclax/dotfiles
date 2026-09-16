@@ -18,6 +18,7 @@ let
       env = ''export PATH="$HOME/.local/libexec/stable-bins:$PATH"''; }
     { name = "atuin";   pkg = pkgs.atuin; }
     { name = "tofu";    pkg = pkgs.opentofu; }
+    { name = "tofu-ls"; pkg = pkgs.tofu-ls; }
     { name = "k9s";     pkg = pkgs.k9s; }  # wrapper only adds kubectl to PATH; the shim is there already
     { name = "stern";   pkg = pkgs.stern; }
     { name = "linkerd"; pkg = pkgs.linkerd; }
