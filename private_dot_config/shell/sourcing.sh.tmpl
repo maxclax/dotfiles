@@ -153,6 +153,34 @@ fp() {
   [[ -n "$selected_dir" ]] && z "$selected_dir"
 }
 
+# Jump between the current repo's worktrees, main checkout included
+fw() {
+  git rev-parse --git-dir >/dev/null 2>&1 || { echo "fw: not inside a git repository" >&2; return 1; }
+  local here list selected
+  here=$(git rev-parse --show-toplevel)
+  list=$(git worktree list --porcelain | awk -v here="$here" '
+    function emit() { if (p != "") printf "%s %-40s\t%s\n", (p == here ? "*" : " "), (n == 1 ? b " [root]" : b), p; p = "" }
+    /^worktree / { n++; p = substr($0, 10); b = "" }
+    /^branch /   { b = substr($0, 19) }
+    /^detached/  { b = "(detached)" }
+    /^bare/      { p = "" }
+    /^prunable/  { p = "" }
+    /^$/         { emit() }
+    END          { emit() }')
+  if [[ $(printf '%s\n' "$list" | grep -c .) -le 1 ]]; then
+    echo "fw: no other worktrees"
+    return 0
+  fi
+  selected=$(printf '%s\n' "$list" | fzf \
+    --prompt='fw> ' \
+    --header='Worktrees (* = current)' \
+    --delimiter=$'\t' \
+    --query="${1:-}" --select-1 --exit-0 \
+    --preview 'git -C {2} log --oneline --color=always -10; echo; git -C {2} status --short' \
+    --preview-window=right:50%) || return
+  [[ -n "$selected" ]] && z "${selected#*$'\t'}"
+}
+
 
 function j() {
 	cd "$(find . -type d 2>/dev/null | fzf)" || return
@@ -235,7 +263,7 @@ fenv() {
 }
 
 # Command inspector - understand what any command/alias/function does
-fw() {
+what() {
 	if [[ -z "$1" ]]; then
 		echo "Usage: what <command>"
 		return 1
