@@ -59,10 +59,11 @@ command = "cur=$(herdr pane current); pid=$(printf '%s' \"$cur\" | jq -r .result
 
 [ui]
 show_agent_labels_on_pane_borders = true
-# narrower sidebar, auto-scaled to workspace names within these bounds
-sidebar_width = 16
-sidebar_min_width = 12
-sidebar_max_width = 18
+# herdr is a TUI — sidebar text cannot be smaller than pane text. Widen
+# instead: 16/18 was truncating long workspace names.
+sidebar_width = 32
+sidebar_min_width = 22
+sidebar_max_width = 40
 
 agent_panel_sort = "priority"
 [experimental]
@@ -72,17 +73,13 @@ switch_ascii_input_source_in_prefix = true
 [ui.toast]
 delivery = "herdr"
 
-# Agent rows: the CHAT (terminal title / pane name) leads — it's the most
-# distinguishing info; the space name moves to the second row.
+# Stock Herdr agent rows. Leading with terminal_title made every grok
+# pane look like "Waiting for res..." — workspace + tab is the identity.
 [ui.sidebar.agents]
-rows = [["state_icon", { token = "pane", bold = true, dim = false }, { token = "terminal_title_stripped", bold = true, dim = false }], [{ token = "workspace", bold = false, dim = true }], ["agent"]]
-# claude reports its current task via the terminal title — show it live
-[ui.sidebar.agents.rows_by_agent]
-claude = [["state_icon", { token = "terminal_title_stripped", bold = true, dim = false }], [{ token = "workspace", bold = false, dim = true }], ["agent"]]
+rows = [["state_icon", "machine", "workspace", "tab"], ["agent"]]
 
-# Space rows: the name leads, branch and git status recede. herdr is a TUI, so
-# the sidebar cannot use a smaller font than the panes — every cell is one
-# terminal cell — and weight/colour is the only lever for making it quieter.
+# Space rows: the name leads, branch and git status recede. Weight/colour is
+# the only density lever; font size is the terminal's.
 [ui.sidebar.spaces]
 row_gap = 0
 rows = [["state_icon", { token = "workspace", bold = true }], [{ token = "branch", dim = true }, { token = "git_status", dim = true }]]
