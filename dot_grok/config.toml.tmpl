@@ -67,6 +67,11 @@ rules = [
 ]
 
 [ui]
-# "ask" is the safest default — matches Claude Code behavior.
-# Change to "always-approve" only if you want fewer prompts (not recommended).
-permission_mode = "ask"
+# Live machine uses always-approve (fewer prompts). "ask" is safer on a new box.
+permission_mode = "always-approve"
+yolo = false
+compact_mode = false
+# Claude-like: sending a prompt does not snap the viewport to the top.
+page_flip_on_send = false
+max_thoughts_width = 120
+fork_secondary_model = "grok-4.6"

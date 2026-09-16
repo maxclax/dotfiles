@@ -321,12 +321,14 @@
           magit-format-file-function #'my/magit-format-file-with-origin))
 
   ;; Status: short age (" 9h") — 12 cols. Log buffers: full datetime — 24 cols.
-  ;; `setq', not `customize-set-variable': magit's :set function walks every
-  ;; magit-status/log buffer and `magit-refresh'es it. On doom/reload that
-  ;; freezes Emacs (and the machine) before the rest of config.el — including
-  ;; init-org.el — has even loaded.
-  (setq magit-status-margin '(t age-abbreviated magit-log-margin-width t 7)
-        magit-log-margin '(t "%Y-%m-%d %H:%M" magit-log-margin-width t 7))
+  ;; WIDTH must be an integer. Magit's `magit-log-margin-width' *function* is
+  ;; only resolved in `magit-set-buffer-margins'; `magit-log-format-margin'
+  ;; reads the raw option first and `(- magit-log-margin-width …)` errors
+  ;; (persp restore, fetch sentinel). `setq', not `customize-set-variable':
+  ;; magit's :set walks every magit-status/log buffer and refreshes it, which
+  ;; on doom/reload freezes Emacs before init-org.el has loaded.
+  (setq magit-status-margin '(t age-abbreviated 12 t 7)
+        magit-log-margin '(t "%Y-%m-%d %H:%M" 24 t 7))
 
 
   ;; Auto-save WIP to hidden refs — never lose uncommitted work
@@ -351,40 +353,46 @@
   ;; and replaces the -/+ markers magit parses — sections collapse and diff
   ;; text lands orphaned at the buffer bottom (terminal delta is unaffected).
   ;;
-  ;; --dark/--light must be explicit. magit-delta only injects --syntax-theme
-  ;; from the frame's background-mode; delta still auto-detects dark/light for
+  ;; --dark/--light must be explicit *and chosen at call time*. magit-delta
+  ;; only injects --syntax-theme; delta still auto-detects dark/light for
   ;; plus/minus and merge-conflict headers, and a pipe looks like a light
-  ;; terminal. On doom-one that yields pastel conflict bars and added lines
-  ;; whose foreground sits on the background.
+  ;; terminal. Caching the flags at load/theme-hook time is wrong with
+  ;; auto-dark: config often runs on a dark/unspecified daemon frame, then
+  ;; doom-one-light is applied and Magit keeps painting dark hunks.
   (defun my/emacs-bg-dark-p ()
-    "Non-nil if the default face background is dark."
-    (let* ((bg (face-background 'default nil t))
-           (rgb (and bg (color-name-to-rgb bg))))
-      (if rgb
-          (< (+ (nth 0 rgb) (nth 1 rgb) (nth 2 rgb)) 1.5)
-        (eq (frame-parameter nil 'background-mode) 'dark))))
+    "Non-nil if the current frame is dark."
+    (pcase (frame-parameter nil 'background-mode)
+      ('dark t)
+      ('light nil)
+      (_
+       (let* ((bg (face-background 'default nil t))
+              (rgb (and bg (color-name-to-rgb bg))))
+         (and rgb (< (+ (nth 0 rgb) (nth 1 rgb) (nth 2 rgb)) 1.5))))))
 
-  (defun my/magit-delta-sync-theme (&rest _)
-    "Match delta's dark/light styles to the current Emacs background."
-    (setq magit-delta-delta-args
-          (append '("--max-line-distance" "0.6"
-                    "--true-color" "always"
-                    "--color-only"
-                    "--no-gitconfig")
-                  (if (my/emacs-bg-dark-p)
-                      '("--dark" "--syntax-theme" "OneHalfDark")
-                    '("--light" "--syntax-theme" "OneHalfLight"))))
+  (defadvice! my/magit-delta--make-delta-args-a (orig-fn)
+    "Pick --dark/--light from the live frame, not from a cached list."
+    :around #'magit-delta--make-delta-args
+    (let ((magit-delta-delta-args
+           (append '("--max-line-distance" "0.6"
+                     "--true-color" "always"
+                     "--color-only"
+                     "--no-gitconfig")
+                   (if (my/emacs-bg-dark-p)
+                       '("--dark" "--syntax-theme" "OneHalfDark")
+                     '("--light" "--syntax-theme" "OneHalfLight")))))
+      (funcall orig-fn)))
+
+  (defun my/magit-delta-refresh (&rest _)
     (when after-init-time
       (dolist (buf (buffer-list))
         (with-current-buffer buf
           (when (derived-mode-p 'magit-mode)
             (magit-refresh-buffer))))))
 
-  (my/magit-delta-sync-theme)
   (when (boundp 'enable-theme-functions)
-    (add-hook 'enable-theme-functions #'my/magit-delta-sync-theme))
-  (add-hook 'auto-dark-dark-mode-hook #'my/magit-delta-sync-theme)
-  (add-hook 'auto-dark-light-mode-hook #'my/magit-delta-sync-theme))
+    (add-hook 'enable-theme-functions #'my/magit-delta-refresh))
+  (add-hook 'auto-dark-dark-mode-hook #'my/magit-delta-refresh)
+  (add-hook 'auto-dark-light-mode-hook #'my/magit-delta-refresh))
 
 ;; TODO/FIXME/NOTE items from the repo as a section in magit status.
 ;; Keywords and colors come from hl-todo (configured in +ui.el).
