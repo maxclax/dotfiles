@@ -229,7 +229,7 @@ but still carries last cycle's ✅ date, which reads as though it were done."
           ;; GTD Full Review with Journal Integration
           ("d" "Dashboard (GTD)"
            (;; 🏆 Daily Outcomes — today's three outcomes, shown first so they
-            ;; sit right under the random-quote banner. A freshly created
+            ;; sit at the top of the dashboard. A freshly created
             ;; journal still carries the template placeholders ("1." "2." "3.");
             ;; those are skipped, the block empties out, and
             ;; `my/agenda-remove-empty-blocks' drops it until a real outcome is
@@ -476,7 +476,6 @@ but still carries last cycle's ✅ date, which reads as though it were done."
                                         my/agenda-remove-empty-blocks
                                         my/agenda-compact-separators
                                         my/agenda-uppercase-headers
-                                        my/agenda-insert-quote
                                         my/agenda-goto-top))))
 
           ;; Active Subscriptions
@@ -1345,10 +1344,10 @@ Breaks at the last space that still fits, so names don't end mid-word."
       m)
     "Keymap active on draft lines in the agenda review block.")
 
-  ;; ── Random quote banner ───────────────────────────────────────────────────
-  ;; Tag any org heading `:quote:' and one is picked at random and shown,
-  ;; citation-styled (small italic), at the very top of the dashboard. Put the
-  ;; attribution right in the heading, e.g. "The obstacle is the way — Marcus".
+  ;; ── Quotes ────────────────────────────────────────────────────────────────
+  ;; Tag any org heading `:quote:'; the daily journal template picks one at
+  ;; random. Not shown in the agenda: collecting reads every org file.
+  ;; Put the attribution in the heading, e.g. "The obstacle is the way — Marcus".
   (defun my/agenda-quotes-from-journelly ()
     "Collect `#quote' entries from Journelly.org.
 Journelly uses markdown-style #hashtags instead of org `:tags:', and the
@@ -1421,20 +1420,6 @@ added quotes file is always picked up."
                           (push clean quotes)))))))))))
       ;; Fold in Journelly's markdown-style #quote entries.
       (append quotes (my/agenda-quotes-from-journelly))))
-
-  (defun my/agenda-insert-quote ()
-    "Prepend a random `:quote:' heading to the top of the agenda buffer.
-Runs as a finalize hook (after all blocks render) so it can't be wiped by
-block setup the way a leading function block can."
-    (let ((quotes (my/agenda-quotes-collect))
-          (inhibit-read-only t))
-      (when quotes
-        (let ((q (nth (random (length quotes)) quotes)))
-          (save-excursion
-            (goto-char (point-min))
-            (insert (propertize (concat "  ❝ " q " ❞")
-                                'face '(:height 0.9 :slant italic :foreground "#9aa0a6")))
-            (insert "\n\n"))))))
 
   ;; Article drafts carry their publish slot as a file-level `#+scheduled:'
   ;; keyword, e.g. `#+scheduled:  <2026-07-30 Thu 13:30>'. A timestamp above the
