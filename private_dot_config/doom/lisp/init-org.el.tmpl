@@ -783,17 +783,20 @@ but still carries last cycle's ✅ date, which reads as though it were done."
                        ((org-agenda-overriding-header "🔥 Important & Urgent (Priority A)")
                         (org-agenda-skip-function
                          '(lambda ()
-                            (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))))))
+                            (or (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))
+                                (my/agenda-skip-far-deadline))))))
             (tags-todo "PRIORITY=\"B\"-someday"
                        ((org-agenda-overriding-header "📅 Important & Not Urgent (Priority B)")
                         (org-agenda-skip-function
                          '(lambda ()
-                            (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))))))
+                            (or (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))
+                                (my/agenda-skip-far-deadline))))))
             (tags-todo "PRIORITY=\"C\"-someday"
                        ((org-agenda-overriding-header "👥 Not Important & Urgent (Priority C)")
                         (org-agenda-skip-function
                          '(lambda ()
-                            (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))))))))
+                            (or (org-agenda-skip-entry-if 'todo '("WAITING" "HOLD"))
+                                (my/agenda-skip-far-deadline))))))))
 
           ;; Shopping & Selling Lists
           ("b" "Buy & Sell"
@@ -937,6 +940,18 @@ Used as the `file+function' capture target and by the refile helpers."
     (let* ((rgb (color-name-to-rgb hex))
            (mix (mapcar (lambda (c) (+ c (* fraction (- 1.0 c)))) rgb)))
       (apply #'color-rgb-to-hex (append mix '(2)))))
+
+  (defvar my/agenda-matrix-deadline-days 14
+    "Matrix view hides tasks whose deadline is further away than this.")
+
+  (defun my/agenda-skip-far-deadline ()
+    "Skip the entry when its deadline is more than `my/agenda-matrix-deadline-days' away."
+    (let ((deadline (org-get-deadline-time (point))))
+      (when (and deadline
+                 (time-less-p (time-add (current-time)
+                                        (days-to-time my/agenda-matrix-deadline-days))
+                              deadline))
+        (or (outline-next-heading) (point-max)))))
 
   ;; Eisenhower Matrix priority system (A=I-U, B=I-NU, C=NI-U, D=NI-NU)
   (setq org-priority-highest ?A)
