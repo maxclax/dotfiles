@@ -2,7 +2,7 @@ config-version = 2
 
 # v2 no longer infers persistent workspaces from the keybindings —
 # they must be declared explicitly or empty workspaces disappear
-persistent-workspaces = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',  'D', 'I', 'M', 'U']
+persistent-workspaces = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',  'D', 'I', 'M', 'U', 'X']
 
 after-login-command = []
 after-startup-command = []
@@ -106,7 +106,7 @@ cmd-i = 'workspace I' # Finder & Timing (tempo, pomodoro)
 cmd-m = 'workspace M' # Media
 # alt-n = 'workspace N'
 # alt-o = 'workspace O'
-# alt-p = 'workspace P'
+# cmd-p = 'workspace P' # taken by focus up
 # alt-q = 'workspace Q'
 # alt-r = 'workspace R'
 # alt-s = 'workspace S'
@@ -114,7 +114,7 @@ cmd-m = 'workspace M' # Media
 cmd-u = 'workspace U' #
 # alt-v = 'workspace V'
 # alt-w = 'workspace W'
-# alt-x = 'workspace X'
+cmd-x = 'workspace X' # Playground
 # alt-y = 'workspace Y'
 # alt-z = 'workspace Z'
 
@@ -141,7 +141,7 @@ cmd-ctrl-i = 'move-node-to-workspace I'
 cmd-ctrl-m = 'move-node-to-workspace M'
 # cmd-ctrl-n = 'move-node-to-workspace N'
 # cmd-ctrl-o = 'move-node-to-workspace O'
-# cmd-ctrl-p = 'move-node-to-workspace P'
+# cmd-ctrl-p = 'move-node-to-workspace P' # taken by move up
 # cmd-ctrl-q = 'move-node-to-workspace Q'
 # cmd-ctrl-r = 'move-node-to-workspace R'
 # cmd-ctrl-s = 'move-node-to-workspace S'
@@ -149,7 +149,7 @@ cmd-ctrl-m = 'move-node-to-workspace M'
 cmd-ctrl-u = 'move-node-to-workspace U'
 # cmd-ctrl-v = 'move-node-to-workspace V'
 # cmd-ctrl-w = 'move-node-to-workspace W'
-# cmd-ctrl-x = 'move-node-to-workspace X'
+cmd-ctrl-x = 'move-node-to-workspace X'
 # cmd-ctrl-y = 'move-node-to-workspace Y'
 # cmd-ctrl-z = 'move-node-to-workspace Z'
 
@@ -197,16 +197,16 @@ if.app-id = 'com.mitchellh.ghostty'
   run = "move-node-to-workspace 8"
 
 [[on-window-detected]]
-if.app-id = 'com.apple.Safari'
-run = "move-node-to-workspace 9"
-[[on-window-detected]]
-if.app-id = 'com.openai.chat'
-run = "move-node-to-workspace 9"
-[[on-window-detected]]
 if.app-id = 'com.anthropic.claudefordesktop'
 run = "move-node-to-workspace 9"
 [[on-window-detected]]
 if.app-id = 'com.anysphere.sand' # Grok Bot
+run = "move-node-to-workspace 9"
+[[on-window-detected]]
+if.app-id = 'com.apple.Safari'
+run = "move-node-to-workspace 9"
+[[on-window-detected]]
+if.app-id = 'com.openai.chat'
 run = "move-node-to-workspace 9"
 
 [[on-window-detected]]
@@ -226,19 +226,19 @@ if.app-id = 'com.maxclax.tempo'
 run = ["layout tiling", "move-node-to-workspace I"]
 
 [[on-window-detected]]
-if.app-id = 'com.apple.mail'
-run = ["layout tiling", "move-node-to-workspace M"]
-[[on-window-detected]]
 if.app-id = 'ch.protonmail.desktop'
 run = ["layout tiling", "move-node-to-workspace M"]
 [[on-window-detected]]
-if.app-id = 'com.apple.Preview'
+if.app-id = 'com.apple.mail'
+run = ["layout tiling", "move-node-to-workspace M"]
+[[on-window-detected]]
+if.app-id = 'com.apple.Music'
 run = ["layout tiling", "move-node-to-workspace M"]
 [[on-window-detected]]
 if.app-id = 'com.apple.Photos'
 run = ["layout tiling", "move-node-to-workspace M"]
 [[on-window-detected]]
-if.app-id = 'com.apple.Music'
+if.app-id = 'com.apple.Preview'
 run = ["layout tiling", "move-node-to-workspace M"]
 [[on-window-detected]]
 if.app-id = 'com.deezer.deezer-desktop'
@@ -246,6 +246,11 @@ run = ["layout tiling", "move-node-to-workspace M"]
 [[on-window-detected]]
 if.app-id = 'com.endel.endel'
 run = ["layout tiling", "move-node-to-workspace M"]
+
+# X
+[[on-window-detected]]
+if.app-id = "com.apple.dt.Xcode"
+run = "move-node-to-workspace X"
 
 # Utilities, etc.
 [[on-window-detected]]
@@ -258,37 +263,34 @@ run = "move-node-to-workspace U"
 if.app-id = "com.iggsoftware.banktivity"
 run = "move-node-to-workspace U"
 [[on-window-detected]]
-if.app-id = "com.tacx.tacxtraining"
-run = "move-node-to-workspace U"
-[[on-window-detected]]
 if.app-id = "com.insta360.linkcontroller"
 run = "move-node-to-workspace U"
 [[on-window-detected]]
 if.app-id = "com.mikrotik.winbox"
 run = "move-node-to-workspace U"
 [[on-window-detected]]
-if.app-id = "com.apple.dt.Xcode"
+if.app-id = "com.tacx.tacxtraining"
 run = "move-node-to-workspace U"
 
 # ---------------------------------------------------------
 
 [[on-window-detected]]
+if.app-id = "com.1password.1password"
+run = ["layout floating"]
+[[on-window-detected]]
 if.app-id = 'com.apple.finder'
+run = ["layout floating"]
+[[on-window-detected]]
+if.app-id = "com.apple.systempreferences"
+run = ["layout floating"]
+[[on-window-detected]]
+if.app-id = "com.daisydiskapp.DaisyDiskStandAlone"
 run = ["layout floating"]
 [[on-window-detected]]
 if.app-id = "com.federicoterzi.espanso"
 run = ["layout floating"]
 [[on-window-detected]]
 if.app-id = "com.noodlesoft.Hazel"
-run = ["layout floating"]
-[[on-window-detected]]
-if.app-id = "com.apple.systempreferences"
-run = ["layout floating"]
-[[on-window-detected]]
-if.app-id = "com.1password.1password"
-run = ["layout floating"]
-[[on-window-detected]]
-if.app-id = "com.daisydiskapp.DaisyDiskStandAlone"
 run = ["layout floating"]
 [[on-window-detected]]
 if.app-id = "com.runningwithcrayons.Alfred-Preferences"
@@ -316,3 +318,4 @@ D  = [4, 3]             # Dev
 I  = ['iPad', 'Retina'] # Info (references, reading)
 M  = [3, 1]             # Media, Mail
 # U  = 'main'             # Utilities, etc.
+# X  = 'main'             # Playground
