@@ -235,9 +235,6 @@ run = ["layout tiling", "move-node-to-workspace M"]
 if.app-id = 'com.apple.Music'
 run = ["layout tiling", "move-node-to-workspace M"]
 [[on-window-detected]]
-if.app-id = 'com.apple.Photos'
-run = ["layout tiling", "move-node-to-workspace M"]
-[[on-window-detected]]
 if.app-id = 'com.apple.Preview'
 run = ["layout tiling", "move-node-to-workspace M"]
 [[on-window-detected]]
@@ -260,10 +257,16 @@ run = "move-node-to-workspace U"
 if.app-id = "at.obdev.littlesnitch.agent"
 run = "move-node-to-workspace U"
 [[on-window-detected]]
+if.app-id = 'com.apple.Photos'
+run = ["layout tiling", "move-node-to-workspace U"]
+[[on-window-detected]]
 if.app-id = "com.iggsoftware.banktivity"
 run = "move-node-to-workspace U"
 [[on-window-detected]]
 if.app-id = "com.insta360.linkcontroller"
+run = "move-node-to-workspace U"
+[[on-window-detected]]
+if.app-id = "com.maxclax.keysun"
 run = "move-node-to-workspace U"
 [[on-window-detected]]
 if.app-id = "com.mikrotik.winbox"
