@@ -13,7 +13,7 @@
 
 (after! org
   ;; Register app protocols so C-c C-o opens in the right app
-  (dolist (protocol '("obsidian" "drafts" "alfred"))
+  (dolist (protocol '("obsidian" "drafts" "alfred" "tempo"))
     (org-link-set-parameters protocol
       :follow `(lambda (path _) (browse-url (concat ,protocol ":" path)))))
 
