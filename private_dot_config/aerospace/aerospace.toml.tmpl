@@ -222,10 +222,6 @@ run = "move-node-to-workspace D"
 
 
 [[on-window-detected]]
-if.app-id = 'com.maxclax.tempo'
-run = ["layout tiling", "move-node-to-workspace I"]
-
-[[on-window-detected]]
 if.app-id = 'com.apple.mail'
 run = ["layout tiling", "move-node-to-workspace M"]
 [[on-window-detected]]
@@ -256,6 +252,12 @@ run = "move-node-to-workspace U"
 [[on-window-detected]]
 if.app-id = "com.maxclax.keysun"
 run = "move-node-to-workspace U"
+[[on-window-detected]]
+if.app-id = "com.maxclax.tempo"
+run = ["layout tiling", "move-node-to-workspace U"]
+[[on-window-detected]]
+if.app-id = "com.maxclax.tempo.dev"
+run = ["layout tiling", "move-node-to-workspace U"]
 
 # ---------------------------------------------------------
 
