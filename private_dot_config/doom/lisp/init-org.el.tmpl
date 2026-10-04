@@ -12,10 +12,40 @@
       (and (image-supported-file-p path) path))))
 
 (after! org
-  ;; Register app protocols so C-c C-o opens in the right app
-  (dolist (protocol '("obsidian" "drafts" "alfred" "tempo"))
-    (org-link-set-parameters protocol
-      :follow `(lambda (path _) (browse-url (concat ,protocol ":" path)))))
+  ;; Every URL scheme an installed macOS app claims (tempo:, sunclax:, obsidian:
+  ;; …) becomes an org link that C-c C-o hands to `open'. Read from
+  ;; LaunchServices at startup, so a new app's scheme works after a restart.
+  (defvar my/org-app-scheme-skip
+    '("http" "https" "ftp" "file" "mailto" "news" "shell" "elisp" "help"
+      "info" "id" "doi" "attachment" "denote")
+    "Schemes left to org's own handlers.")
+
+  (defun my/org-app-url-schemes ()
+    "URL schemes claimed by installed macOS apps, from LaunchServices."
+    (let ((ls "/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister")
+          out)
+      (when (file-executable-p ls)
+        (with-temp-buffer
+          (call-process ls nil t nil "-dump" "URLSchemeBinding")
+          (goto-char (point-min))
+          (while (re-search-forward "^\\([a-z][a-z0-9+.-]*\\):" nil t)
+            (push (match-string 1) out))))
+      (delete-dups (append '("obsidian" "drafts" "alfred" "tempo" "sunclax") out))))
+
+  (defun my/org-register-app-schemes ()
+    "Register app URL schemes as org links opened by macOS `open'."
+    (dolist (scheme (my/org-app-url-schemes))
+      (unless (or (assoc scheme org-link-parameters)
+                  (member scheme my/org-app-scheme-skip))
+        (push (list scheme :follow
+                    (lambda (path _) (call-process "open" nil 0 nil (concat scheme ":" path))))
+              org-link-parameters)))
+    ;; once, not per scheme: rebuilding the link regexps is the slow part
+    (org-link-make-regexps)
+    (when (featurep 'org-element) (org-element-update-syntax)))
+
+  (when (eq system-type 'darwin)
+    (my/org-register-app-schemes))
 
   ;; ── org-ql: query language for org files ────────────────────────────────────
   ;; Dynamic blocks:
