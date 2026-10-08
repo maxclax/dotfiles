@@ -2,7 +2,7 @@ config-version = 2
 
 # v2 no longer infers persistent workspaces from the keybindings —
 # they must be declared explicitly or empty workspaces disappear
-persistent-workspaces = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',  'D', 'I', 'M', 'U', 'X']
+persistent-workspaces = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',  'D', 'I', 'M', 'T', 'U', 'X']
 
 after-login-command = []
 after-startup-command = []
@@ -110,11 +110,11 @@ cmd-m = 'workspace M' # Media
 # alt-q = 'workspace Q'
 # alt-r = 'workspace R'
 # alt-s = 'workspace S'
-# alt-t = 'workspace T'
+cmd-t = 'workspace T' # Playground
 cmd-u = 'workspace U' #
 # alt-v = 'workspace V'
 # alt-w = 'workspace W'
-cmd-x = 'workspace X' # Playground
+cmd-x = 'workspace X' # Tempo
 # alt-y = 'workspace Y'
 # alt-z = 'workspace Z'
 
@@ -145,7 +145,7 @@ cmd-ctrl-m = 'move-node-to-workspace M'
 # cmd-ctrl-q = 'move-node-to-workspace Q'
 # cmd-ctrl-r = 'move-node-to-workspace R'
 # cmd-ctrl-s = 'move-node-to-workspace S'
-# cmd-ctrl-t = 'move-node-to-workspace T'
+cmd-ctrl-t = 'move-node-to-workspace T'
 cmd-ctrl-u = 'move-node-to-workspace U'
 # cmd-ctrl-v = 'move-node-to-workspace V'
 # cmd-ctrl-w = 'move-node-to-workspace W'
@@ -173,9 +173,6 @@ cmd-ctrl-r = 'mode resize' # in i3
 
 [[on-window-detected]]
 if.app-id = 'com.agiletortoise.Drafts-OSX'
-run = "move-node-to-workspace 2"
-[[on-window-detected]]
-if.app-id = 'md.obsidian'
 run = "move-node-to-workspace 2"
 
 [[on-window-detected]]
@@ -221,12 +218,19 @@ if.app-id = 'org.alacritty'
 run = "move-node-to-workspace D"
 
 
+# Tempo & other maxclax apps (X)
 [[on-window-detected]]
-if.app-id = 'com.maxclax.tempo'
-run = ["layout tiling", "move-node-to-workspace I"]
+if.app-id = "com.maxclax.keysun.dev"
+run = "move-node-to-workspace X"
 [[on-window-detected]]
-if.app-id = 'com.maxclax.tempo.dev'
-run = ["layout tiling", "move-node-to-workspace I"]
+if.app-id = "com.maxclax.sunclax"
+run = "move-node-to-workspace X"
+[[on-window-detected]]
+if.app-id = "com.maxclax.tempo"
+run = ["layout tiling", "move-node-to-workspace X"]
+[[on-window-detected]]
+if.app-id = "com.maxclax.tempo.dev"
+run = ["layout tiling", "move-node-to-workspace X"]
 
 [[on-window-detected]]
 if.app-id = 'com.apple.mail'
@@ -241,10 +245,10 @@ run = ["layout tiling", "move-node-to-workspace M"]
 if.app-id = 'com.apple.Preview'
 run = ["layout tiling", "move-node-to-workspace M"]
 
-# X
+# Playground (T)
 [[on-window-detected]]
 if.app-id = "com.apple.dt.Xcode"
-run = "move-node-to-workspace X"
+run = "move-node-to-workspace T"
 
 # Utilities, etc.
 [[on-window-detected]]
@@ -255,9 +259,6 @@ if.app-id = "at.obdev.littlesnitch.agent"
 run = "move-node-to-workspace U"
 [[on-window-detected]]
 if.app-id = "com.iggsoftware.banktivity"
-run = "move-node-to-workspace U"
-[[on-window-detected]]
-if.app-id = "com.maxclax.keysun"
 run = "move-node-to-workspace U"
 
 # ---------------------------------------------------------
@@ -306,4 +307,4 @@ D  = [4, 3]             # Dev
 I  = ['iPad', 'Retina'] # Info (references, reading)
 M  = [3, 1]             # Media, Mail
 # U  = 'main'             # Utilities, etc.
-# X  = 'main'             # Playground
+X  = 'main'             # Tempo
