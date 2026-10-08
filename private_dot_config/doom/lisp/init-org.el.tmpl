@@ -2907,13 +2907,12 @@ behaviour."
 (defvar org-export-with-toc)
 (defvar org-export-with-author)
 (defvar org-export-with-title)
+(defvar org-html-doctype)
+(defvar org-html-html5-fancy)
 
-(defun my/org-copy-rich-html ()
-  "Copy the current Org buffer to the clipboard as HTML (rich) + plain text.
-Paste into any web editor to keep headings, bold, italic, links and lists; paste
-into a shell to get clean text. For code-heavy posts the browser route
-(C-c C-e h o) still renders code blocks most faithfully."
-  (interactive)
+(defun my/org--copy-rich-html (&optional html-fn txt-fn)
+  "Export the Org buffer and put HTML + plain text on the clipboard.
+HTML-FN and TXT-FN, when given, transform each flavour before copying."
   (unless (derived-mode-p 'org-mode)
     (user-error "Run this in an Org buffer"))
   (require 'ox)
@@ -2933,6 +2932,8 @@ into a shell to get clean text. For code-heavy posts the browser route
     ;; blank gap after every heading. Strip the wrapper divs; the real block
     ;; elements (h2/p/pre/ul…) are all the editor needs.
     (setq html (replace-regexp-in-string "</?div[^>]*>[ \t]*\n?" "" html))
+    (when html-fn (setq html (funcall html-fn html)))
+    (when txt-fn (setq txt (funcall txt-fn txt)))
     (with-temp-file hf (insert html))
     (with-temp-file tf (insert txt))
     (call-process
@@ -2949,7 +2950,85 @@ into a shell to get clean text. For code-heavy posts the browser route
        "pb.setStringForType(t,'public.utf8-plain-text');")
       hf tf))
     (delete-file hf)
-    (delete-file tf)
-    (message "Copied to clipboard (HTML + text).")))
+    (delete-file tf)))
+
+(defun my/org-copy-rich-html ()
+  "Copy the current Org buffer to the clipboard as HTML (rich) + plain text.
+Paste into any web editor to keep headings, bold, italic, links and lists; paste
+into a shell to get clean text. For code-heavy posts the browser route
+(C-c C-e h o) still renders code blocks most faithfully."
+  (interactive)
+  (my/org--copy-rich-html)
+  (message "Copied to clipboard (HTML + text)."))
+
+;; Per-project web settings, set in the site's .dir-locals.el (C-c n M).
+(defvar-local my/web-static-root nil
+  "Directory, relative to its .dir-locals.el, served at `my/web-static-url'.")
+(defvar-local my/web-static-url nil
+  "Public URL of `my/web-static-root', ending in \"/\".")
+(defvar-local my/web-post-url nil
+  "Format string for the post's address; %s is the file name without .org.")
+(dolist (v '(my/web-static-root my/web-static-url my/web-post-url))
+  (put v 'safe-local-variable #'stringp))
+
+(defun my/org-copy-rich-html-for-web ()
+  "Like `my/org-copy-rich-html', with pictures as public URLs.
+Local <img> sources become `my/web-static-url' links, captions stay
+<figcaption>, and `my/web-post-url' adds an \"Originally published\" line."
+  (interactive)
+  (unless buffer-file-name
+    (user-error "Buffer has no file"))
+  (dolist (v '(my/web-static-root my/web-static-url))
+    (unless (and (boundp v) (symbol-value v))
+      (user-error "Set %s in the project's .dir-locals.el" v)))
+  (let* ((locals (locate-dominating-file default-directory ".dir-locals.el"))
+         (root (file-name-as-directory
+                (expand-file-name my/web-static-root locals)))
+         (base my/web-static-url)
+         (dir default-directory)
+         (post (and my/web-post-url
+                    (format my/web-post-url (file-name-base buffer-file-name))))
+         (count 0)
+         missing
+         (html-fn
+          (lambda (html)
+            (setq html
+                  (replace-regexp-in-string
+                   "<img src=\"\\([^\"]+\\)\""
+                   (lambda (m)
+                     (let ((src (match-string 1 m)))
+                       (if (string-match-p "\\`https?:" src)
+                           m
+                         (let ((file (expand-file-name
+                                      (url-unhex-string
+                                       (replace-regexp-in-string
+                                        "\\`file:\\(//\\)?" "" src))
+                                      dir)))
+                           (unless (file-exists-p file) (push src missing))
+                           (setq count (1+ count))
+                           (format "<img src=\"%s%s\"" base
+                                   (file-relative-name file root))))))
+                   html t t))
+            ;; Medium shows the figcaption; drop Org's "Figure N:" prefix.
+            (setq html (replace-regexp-in-string
+                        "<span class=\"figure-number\">[^<]*</span>" "" html t t))
+            (if post
+                (format "%s\n<p><em>Originally published at <a href=\"%s\">%s</a>.</em></p>\n"
+                        html post post)
+              html)))
+         (txt-fn (and post
+                      (lambda (txt)
+                        (format "%s\nOriginally published at %s.\n" txt post))))
+         ;; html5-fancy turns captioned images into <figure>/<figcaption>.
+         (org-html-doctype "html5")
+         (org-html-html5-fancy t))
+    (my/org--copy-rich-html html-fn txt-fn)
+    (message "Copied for the web: %d picture%s rewritten%s; %s.%s"
+             count (if (= count 1) "" "s")
+             (if missing (format " (%d missing)" (length missing)) "")
+             (if post "original-address line added" "no original-address line")
+             (if missing
+                 (concat " Missing: " (string-join (nreverse missing) ", "))
+               ""))))
 
 (provide 'init-org)
