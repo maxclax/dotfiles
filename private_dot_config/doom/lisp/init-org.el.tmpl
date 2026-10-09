@@ -2909,6 +2909,7 @@ behaviour."
 (defvar org-export-with-title)
 (defvar org-html-doctype)
 (defvar org-html-html5-fancy)
+(defvar org-export-before-parsing-functions)
 
 (defun my/org--copy-rich-html (&optional html-fn txt-fn)
   "Export the Org buffer and put HTML + plain text on the clipboard.
@@ -2971,10 +2972,26 @@ into a shell to get clean text. For code-heavy posts the browser route
 (dolist (v '(my/web-static-root my/web-static-url my/web-post-url))
   (put v 'safe-local-variable #'stringp))
 
+(defun my/org--web-post-link (file fmt)
+  "Return (URL . MEDIUM-P) for the post in FILE.
+URL is its #+MEDIUM address, else FMT applied to its slug."
+  (let ((slug (replace-regexp-in-string
+               "\\.[a-z][a-z]\\'" "" (file-name-base file)))
+        medium)
+    (when (file-readable-p file)
+      (with-temp-buffer
+        (insert-file-contents file nil 0 4096)
+        (let ((case-fold-search t))
+          (when (re-search-forward "^#\\+MEDIUM:[ \t]*\\(\\S-+\\)" nil t)
+            (setq medium (match-string 1))))))
+    (cons (or medium (and fmt (format fmt slug)) (concat "file:" file))
+          (and medium t))))
+
 (defun my/org-copy-rich-html-for-web ()
   "Like `my/org-copy-rich-html', with pictures as public URLs.
 Local <img> sources become `my/web-static-url' links, captions stay
-<figcaption>, and `my/web-post-url' adds an \"Originally published\" line."
+<figcaption>, links to other posts go to their #+MEDIUM address, and
+`my/web-post-url' adds an \"Originally published\" line."
   (interactive)
   (unless buffer-file-name
     (user-error "Buffer has no file"))
@@ -2990,6 +3007,27 @@ Local <img> sources become `my/web-static-url' links, captions stay
                     (format my/web-post-url (file-name-base buffer-file-name))))
          (count 0)
          missing
+         no-medium
+         (post-fmt my/web-post-url)
+         ;; Links to sibling posts go to their Medium copy (else the site).
+         (org-export-before-parsing-functions
+          (cons (lambda (_backend)
+                  (goto-char (point-min))
+                  (while (re-search-forward org-link-bracket-re nil t)
+                    (let ((beg (match-beginning 0))
+                          (end (match-end 0))
+                          (target (match-string-no-properties 1))
+                          (desc (match-string-no-properties 2)))
+                      (when (string-match
+                             "\\`file:\\([^:]+\\.org\\)\\(::.*\\)?\\'" target)
+                        (let* ((file (expand-file-name (match-string 1 target) dir))
+                               (link (my/org--web-post-link file post-fmt))
+                               (slug (file-name-base file)))
+                          (unless (cdr link) (push slug no-medium))
+                          (delete-region beg end)
+                          (goto-char beg)
+                          (insert (format "[[%s][%s]]" (car link) (or desc slug))))))))
+                org-export-before-parsing-functions))
          (html-fn
           (lambda (html)
             (setq html
@@ -3023,12 +3061,16 @@ Local <img> sources become `my/web-static-url' links, captions stay
          (org-html-doctype "html5")
          (org-html-html5-fancy t))
     (my/org--copy-rich-html html-fn txt-fn)
-    (message "Copied for the web: %d picture%s rewritten%s; %s.%s"
+    (setq no-medium (delete-dups (nreverse no-medium)))
+    (message "Copied for the web: %d picture%s rewritten%s; %s.%s%s"
              count (if (= count 1) "" "s")
              (if missing (format " (%d missing)" (length missing)) "")
              (if post "original-address line added" "no original-address line")
              (if missing
                  (concat " Missing: " (string-join (nreverse missing) ", "))
+               "")
+             (if no-medium
+                 (concat " No Medium address yet: " (string-join no-medium ", "))
                ""))))
 
 (provide 'init-org)
