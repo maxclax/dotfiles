@@ -2910,6 +2910,7 @@ behaviour."
 (defvar org-html-doctype)
 (defvar org-html-html5-fancy)
 (defvar org-export-before-parsing-functions)
+(defvar org-html-htmlize-output-type)
 
 (defun my/org--copy-rich-html (&optional html-fn txt-fn)
   "Export the Org buffer and put HTML + plain text on the clipboard.
@@ -2991,7 +2992,7 @@ URL is its #+MEDIUM address, else FMT applied to its slug."
   "Like `my/org-copy-rich-html', with pictures as public URLs.
 Local <img> sources become `my/web-static-url' links, captions stay
 <figcaption>, links to other posts go to their #+MEDIUM address, and
-`my/web-post-url' adds an \"Originally published\" line."
+`my/web-post-url' adds a \"read it free on my blog\" note under the title."
   (interactive)
   (unless buffer-file-name
     (user-error "Buffer has no file"))
@@ -3005,6 +3006,7 @@ Local <img> sources become `my/web-static-url' links, captions stay
          (dir default-directory)
          (post (and my/web-post-url
                     (format my/web-post-url (file-name-base buffer-file-name))))
+         (title (cadr (assoc "TITLE" (org-collect-keywords '("TITLE")))))
          (count 0)
          missing
          no-medium
@@ -3018,8 +3020,12 @@ Local <img> sources become `my/web-static-url' links, captions stay
                           (end (match-end 0))
                           (target (match-string-no-properties 1))
                           (desc (match-string-no-properties 2)))
-                      (when (string-match
-                             "\\`file:\\([^:]+\\.org\\)\\(::.*\\)?\\'" target)
+                      (when (and (string-match
+                                  "\\`file:\\([^:]+\\.org\\)\\(::.*\\)?\\'" target)
+                                 ;; Links shown as code stay as written.
+                                 (not (memq (org-element-type
+                                             (save-match-data (org-element-at-point)))
+                                            '(src-block example-block fixed-width))))
                         (let* ((file (expand-file-name (match-string 1 target) dir))
                                (link (my/org--web-post-link file post-fmt))
                                (slug (file-name-base file)))
@@ -3034,6 +3040,7 @@ Local <img> sources become `my/web-static-url' links, captions stay
                   (replace-regexp-in-string
                    "<img src=\"\\([^\"]+\\)\""
                    (lambda (m)
+                     (save-match-data
                      (let ((src (match-string 1 m)))
                        (if (string-match-p "\\`https?:" src)
                            m
@@ -3045,27 +3052,64 @@ Local <img> sources become `my/web-static-url' links, captions stay
                            (unless (file-exists-p file) (push src missing))
                            (setq count (1+ count))
                            (format "<img src=\"%s%s\"" base
-                                   (file-relative-name file root))))))
+                                   (file-relative-name file root)))))))
                    html t t))
             ;; Medium shows the figcaption; drop Org's "Figure N:" prefix.
             (setq html (replace-regexp-in-string
                         "<span class=\"figure-number\">[^<]*</span>" "" html t t))
-            (if post
-                (format "%s\n<p><em>Originally published at <a href=\"%s\">%s</a>.</em></p>\n"
-                        html post post)
-              html)))
-         (txt-fn (and post
-                      (lambda (txt)
-                        (format "%s\nOriginally published at %s.\n" txt post))))
+            ;; Medium splits <pre> at blank lines and pads quotes with empty
+            ;; paragraphs: keep each one a single block.
+            (setq html (replace-regexp-in-string
+                        "<pre[^>]*>\\(\\(?:.\\|\n\\)*?\\)</pre>"
+                        (lambda (m)
+                          (save-match-data
+                          (format "<pre>%s</pre>"
+                                  (replace-regexp-in-string
+                                   "\n" "<br>"
+                                   (string-trim (match-string 1 m)
+                                                "\\(?:<code>\\)?\n*" "\n*\\(?:</code>\\)?\n*")
+                                   t t))))
+                        html t t))
+            (setq html (replace-regexp-in-string
+                        "<blockquote>\\(\\(?:.\\|\n\\)*?\\)</blockquote>"
+                        (lambda (m)
+                          (save-match-data
+                          (format "<blockquote>%s</blockquote>"
+                                  (replace-regexp-in-string
+                                   "[ \t\n]*</p>[ \t\n]*<p>[ \t\n]*" "<br><br>"
+                                   (replace-regexp-in-string
+                                    "\\`[ \t\n]*<p>[ \t\n]*\\|[ \t\n]*</p>[ \t\n]*\\'" ""
+                                    (match-string 1 m) t t)
+                                   t t))))
+                        html t t))
+            (concat
+             (and title (format "<h1>%s</h1>\n" (org-html-encode-plain-text title)))
+             (and post
+                  (format (concat "<p><em>You can read this article for free on "
+                                  "<a href=\"%s\">my blog</a>, but if you're a Medium "
+                                  "member, reading it here supports me.</em></p>\n")
+                          post))
+             html)))
+         (txt-fn (lambda (txt)
+                   (concat
+                    (and title (concat title "\n\n"))
+                    (and post
+                         (format (concat "You can read this article for free on my blog "
+                                         "(%s), but if you're a Medium member, reading "
+                                         "it here supports me.\n\n")
+                                 post))
+                    txt)))
          ;; html5-fancy turns captioned images into <figure>/<figcaption>.
          (org-html-doctype "html5")
-         (org-html-html5-fancy t))
+         (org-html-html5-fancy t)
+         ;; Plain code: fontified Org hides link and emphasis markup.
+         (org-html-htmlize-output-type nil))
     (my/org--copy-rich-html html-fn txt-fn)
     (setq no-medium (delete-dups (nreverse no-medium)))
     (message "Copied for the web: %d picture%s rewritten%s; %s.%s%s"
              count (if (= count 1) "" "s")
              (if missing (format " (%d missing)" (length missing)) "")
-             (if post "original-address line added" "no original-address line")
+             (if post "blog note added on top" "no blog note")
              (if missing
                  (concat " Missing: " (string-join (nreverse missing) ", "))
                "")
