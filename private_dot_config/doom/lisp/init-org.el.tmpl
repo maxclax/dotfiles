@@ -3066,8 +3066,12 @@ Local <img> sources become `my/web-static-url' links, captions stay
                           (format "<pre>%s</pre>"
                                   (replace-regexp-in-string
                                    "\n" "<br>"
-                                   (string-trim (match-string 1 m)
+                                   ;; An empty line ends Medium's block.
+                                   (replace-regexp-in-string
+                                    "^$" "&nbsp;"
+                                    (string-trim (match-string 1 m)
                                                 "\\(?:<code>\\)?\n*" "\n*\\(?:</code>\\)?\n*")
+                                    t t)
                                    t t))))
                         html t t))
             (setq html (replace-regexp-in-string
@@ -3082,14 +3086,20 @@ Local <img> sources become `my/web-static-url' links, captions stay
                                     (match-string 1 m) t t)
                                    t t))))
                         html t t))
-            (concat
-             (and title (format "<h1>%s</h1>\n" (org-html-encode-plain-text title)))
-             (and post
-                  (format (concat "<p><em>You can read this article for free on "
-                                  "<a href=\"%s\">my blog</a>, but if you're a Medium "
-                                  "member, reading it here supports me.</em></p>\n")
-                          post))
-             html)))
+            ;; The note goes after a leading header picture.
+            (let ((cut (if (string-match
+                            "\\`[ \t\n]*<figure[^>]*>\\(?:.\\|\n\\)*?</figure>\n?" html)
+                           (match-end 0)
+                         0)))
+              (concat
+               (and title (format "<h1>%s</h1>\n" (org-html-encode-plain-text title)))
+               (substring html 0 cut)
+               (and post
+                    (format (concat "<p><em>You can read this article for free on "
+                                    "<a href=\"%s\">my blog</a>, but if you're a Medium "
+                                    "member, reading it here supports me.</em></p>\n")
+                            post))
+               (substring html cut)))))
          (txt-fn (lambda (txt)
                    (concat
                     (and title (concat title "\n\n"))

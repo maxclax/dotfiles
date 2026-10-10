@@ -7,7 +7,7 @@
 
   # Create a LaunchAgent for jankyborders to start automatically
   launchd.agents.jankyborders = {
-    enable = true;
+    enable = false; # off: macOS 27 glitches in v1.9.0
     config = {
       ProgramArguments = [
         "${pkgs.jankyborders}/bin/borders"
