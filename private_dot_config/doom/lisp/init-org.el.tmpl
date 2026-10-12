@@ -2988,11 +2988,27 @@ URL is its #+MEDIUM address, else FMT applied to its slug."
     (cons (or medium (and fmt (format fmt slug)) (concat "file:" file))
           (and medium t))))
 
+(defun my/org--web-note-cut (text para-re text-fn thanks-re)
+  "Position in TEXT after the third paragraph matched by PARA-RE.
+A match counts when TEXT-FN, given group 1, returns a non-empty string.
+With fewer than three, return the start of THANKS-RE, else the end."
+  (let ((pos 0) (n 0) cut)
+    (save-match-data
+      (while (and (not cut) (string-match para-re text pos))
+        (setq pos (max (match-end 0) (1+ (match-beginning 0))))
+        (unless (string-empty-p (funcall text-fn (match-string 1 text)))
+          (setq n (1+ n))
+          (when (= n 3) (setq cut (match-end 0)))))
+      (or cut
+          (let ((case-fold-search t))
+            (and (string-match thanks-re text) (match-beginning 0)))
+          (length text)))))
+
 (defun my/org-copy-rich-html-for-web ()
   "Like `my/org-copy-rich-html', with pictures as public URLs.
 Local <img> sources become `my/web-static-url' links, captions stay
 <figcaption>, links to other posts go to their #+MEDIUM address, and
-`my/web-post-url' adds a \"read it free on my blog\" note under the title."
+`my/web-post-url' adds a \"read it free on my blog\" note after the third paragraph."
   (interactive)
   (unless buffer-file-name
     (user-error "Buffer has no file"))
@@ -3086,29 +3102,37 @@ Local <img> sources become `my/web-static-url' links, captions stay
                                     (match-string 1 m) t t)
                                    t t))))
                         html t t))
-            ;; The note goes after a leading header picture.
-            (let ((cut (if (string-match
-                            "\\`[ \t\n]*<figure[^>]*>\\(?:.\\|\n\\)*?</figure>\n?" html)
-                           (match-end 0)
-                         0)))
+            ;; The note goes after the third text paragraph: Medium mails
+            ;; the first one as the preview, so that must be article text.
+            ;; Image-only paragraphs do not count.  With fewer than three,
+            ;; it goes before "Thanks for reading", else at the end.
+            (let ((cut (my/org--web-note-cut
+                        html "<p\\(?: [^>]*\\)?>\\(\\(?:.\\|\n\\)*?\\)</p>\n?"
+                        (lambda (m) (replace-regexp-in-string "<[^>]*>\\|&nbsp;\\|[ \t\n]" "" m))
+                        "<p[^>]*>[ \t\n]*Thanks for reading")))
               (concat
                (and title (format "<h1>%s</h1>\n" (org-html-encode-plain-text title)))
                (substring html 0 cut)
                (and post
-                    (format (concat "<p><em>You can read this article for free on "
+                    (format (concat "<blockquote>You can read this article for free on "
                                     "<a href=\"%s\">my blog</a>, but if you're a Medium "
-                                    "member, reading it here supports me.</em></p>\n")
+                                    "member, reading it here supports me.</blockquote>\n")
                             post))
                (substring html cut)))))
          (txt-fn (lambda (txt)
-                   (concat
-                    (and title (concat title "\n\n"))
-                    (and post
-                         (format (concat "You can read this article for free on my blog "
-                                         "(%s), but if you're a Medium member, reading "
-                                         "it here supports me.\n\n")
-                                 post))
-                    txt)))
+                   (let ((cut (my/org--web-note-cut
+                               txt "^\\([^ \t\n].*\\(?:\n[^\n].*\\)*\\)\n*"
+                               (lambda (m) (if (string-match-p "\\`\\[" m) "" m))
+                               "^Thanks for reading")))
+                     (concat
+                      (and title (concat title "\n\n"))
+                      (substring txt 0 cut)
+                      (and post
+                           (format (concat "You can read this article for free on my blog "
+                                           "(%s), but if you're a Medium member, reading "
+                                           "it here supports me.\n\n")
+                                   post))
+                      (substring txt cut)))))
          ;; html5-fancy turns captioned images into <figure>/<figcaption>.
          (org-html-doctype "html5")
          (org-html-html5-fancy t)
@@ -3119,7 +3143,7 @@ Local <img> sources become `my/web-static-url' links, captions stay
     (message "Copied for the web: %d picture%s rewritten%s; %s.%s%s"
              count (if (= count 1) "" "s")
              (if missing (format " (%d missing)" (length missing)) "")
-             (if post "blog note added on top" "no blog note")
+             (if post "blog note after the third paragraph" "no blog note")
              (if missing
                  (concat " Missing: " (string-join (nreverse missing) ", "))
                "")
