@@ -166,15 +166,15 @@ and nothing to break when Denote renames its retrieval functions."
     (let ((dir (expand-file-name "org" {{ .workspace_extra | quote }})))
       (when (file-exists-p dir) dir)))
 
+  (defun my/denote-extra-dirs ()
+    "Extra workspace dir plus chezmoi `org_agenda_dirs' that exist."
+    (seq-filter #'file-directory-p
+                (delq nil (list (my/denote-extra-dir){{ range splitList ":" .org_agenda_dirs }}{{ if . }} {{ . | quote }}{{ end }}{{ end }}))))
+
   ;; Collect denote files from all directories
   (defun my/denote-all-files ()
-    "Return denote files from both primary and extra directories."
-    (let ((primary-files (denote-directory-files))
-          (extra-dir (my/denote-extra-dir)))
-      (if extra-dir
-          (let ((denote-directory extra-dir))
-            (append primary-files (denote-directory-files)))
-        primary-files)))
+    "Return denote files from primary and extra directories."
+    (denote-directory-files))
 
   ;; Files to offer in *search* prompts: everything except journal entries.
   ;; Journal is hidden from find/search/link prompts but stays fully indexed
@@ -192,13 +192,12 @@ and nothing to break when Denote renames its retrieval functions."
                 "Include files from extra denote directory."
                 (if my/denote-in-multi-dir
                     (apply orig-fn args)
-                  (let* ((my/denote-in-multi-dir t)
-                         (primary-files (apply orig-fn args))
-                         (extra-dir (my/denote-extra-dir)))
-                    (if extra-dir
-                        (let ((denote-directory extra-dir))
-                          (append primary-files (apply orig-fn args)))
-                      primary-files)))))
+                  (let ((my/denote-in-multi-dir t))
+                    (apply #'append (apply orig-fn args)
+                           (mapcar (lambda (d)
+                                     (let ((denote-directory d))
+                                       (apply orig-fn args)))
+                                   (my/denote-extra-dirs)))))))
 
   ;; Make all denote commands that use denote-file-prompt search both dirs
   (advice-add 'denote-file-prompt :around
@@ -213,10 +212,10 @@ and nothing to break when Denote renames its retrieval functions."
               (lambda (orig-fn id &rest args)
                 "Search extra dir if file not found in primary."
                 (or (apply orig-fn id args)
-                    (let ((extra-dir (my/denote-extra-dir)))
-                      (when extra-dir
-                        (let ((denote-directory extra-dir))
-                          (apply orig-fn id args)))))))
+                    (seq-some (lambda (d)
+                                (let ((denote-directory d))
+                                  (apply orig-fn id args)))
+                              (my/denote-extra-dirs)))))
 
   ;; Create denote note in extra workspace
   (defun my/denote-create-in-extra ()
@@ -311,6 +310,9 @@ With prefix arg TEXT-ONLY, exclude attachments from the graph."
       (let ((extra-denote-dir (expand-file-name "org" {{ .workspace_extra | quote }})))
         (when (file-exists-p extra-denote-dir)
           (push `("Denote Extra" ?x ,extra-denote-dir) sources)))
+      (dolist (d (seq-filter #'file-directory-p
+                             (list{{ range splitList ":" .org_agenda_dirs }}{{ if . }} {{ . | quote }}{{ end }}{{ end }})))
+        (push `(,(capitalize (file-name-nondirectory (directory-file-name d))) ?l ,d) sources))
       (reverse sources)))
 
   ;; Override consult-notes to always use fresh sources

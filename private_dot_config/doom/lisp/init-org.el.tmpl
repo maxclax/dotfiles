@@ -11,6 +11,11 @@
     (when-let* ((path (org-attach-expand link)))
       (and (image-supported-file-p path) path))))
 
+(defvar my/org-agenda-dirs
+  (seq-filter #'file-directory-p
+              (list {{ .org_dir | quote }}{{ range splitList ":" .org_agenda_dirs }}{{ if . }} {{ . | quote }}{{ end }}{{ end }}))
+  "Org dir plus extra agenda dirs (chezmoi `org_agenda_dirs').")
+
 (after! org
   ;; Every URL scheme an installed macOS app claims (tempo:, sunclax:, obsidian:
   ;; …) becomes an org link that C-c C-o hands to `open'. Read from
@@ -487,7 +492,7 @@ but still carries last cycle's ✅ date, which reads as though it were done."
 
             (tags-todo "TODO={TODO}"
                        ((org-agenda-overriding-header "💳 Subscriptions")
-                        (org-agenda-files '({{ .org_dir | quote }}))
+                        (org-agenda-files my/org-agenda-dirs)
                         (org-agenda-skip-function
                          '(lambda ()
                             (unless (string-match-p "subscriptions"
@@ -512,7 +517,7 @@ but still carries last cycle's ✅ date, which reads as though it were done."
           ("$" "Subscriptions"
            ((tags-todo "TODO={TODO}"
                        ((org-agenda-overriding-header "💳 Active Subscriptions")
-                        (org-agenda-files '({{ .org_dir | quote }}))
+                        (org-agenda-files my/org-agenda-dirs)
                         (org-agenda-skip-function
                          '(lambda ()
                             (unless (string-match-p "subscriptions"
@@ -855,11 +860,10 @@ but still carries last cycle's ✅ date, which reads as though it were done."
                                ;; even though the draft itself lives in /archive/.
                                (and (string-match-p "/archive/" file)
                                     (not (string-match-p "_\\(re\\)?draft" file))))))
-                    (append (directory-files-recursively {{ .org_dir | quote }} "\\.org$")
+                    (append (mapcan (lambda (d) (directory-files-recursively d "\\.org$"))
+                                    my/org-agenda-dirs)
                             (when (file-exists-p (expand-file-name "org" {{ .workspace_extra | quote }}))
-                              (directory-files-recursively (expand-file-name "org" {{ .workspace_extra | quote }}) "\\.org$"))
-                            ;; Include journal files in agenda
-                            (directory-files-recursively (expand-file-name "journal" {{ .org_dir | quote }}) "\\.org$"))))
+                              (directory-files-recursively (expand-file-name "org" {{ .workspace_extra | quote }}) "\\.org$")))))
 
   (setq org-default-notes-file (expand-file-name "inbox.org" {{ .org_dir | quote }}))
   (setq org-capture-templates
