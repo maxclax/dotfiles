@@ -86,7 +86,7 @@ cmd-alt-f = 'fullscreen' # in i3 (but no cmd)
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
 cmd-1 = 'workspace 1'  # Undifined apps + dev: logs with console
-cmd-2 = 'workspace 2'  # Drafts, PARA
+cmd-2 = 'workspace 2'  # PARA
 cmd-3 = 'workspace 3'  # Browser
 cmd-4 = 'workspace 4'  # Dev (Emacs)
 cmd-5 = 'workspace 5'  # Dev (Emacs)
@@ -170,10 +170,6 @@ cmd-ctrl-r = 'mode resize' # in i3
 
 # Undefined apps (1)
 
-
-[[on-window-detected]]
-if.app-id = 'com.agiletortoise.Drafts-OSX'
-run = "move-node-to-workspace 2"
 
 [[on-window-detected]]
 if.app-id = "app.zen-browser.zen"
@@ -294,7 +290,7 @@ run = 'move-node-to-workspace 1'
 # https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
 [workspace-to-monitor-force-assignment]
 1  = 1                  # Undifined apps
-2  = 1                  # Drafts, PARA
+2  = 1                  # PARA
 3  = 'main'             # Browser
 4  = 1                  # Dev (Emacs)
 5  = 'main'             # Dev (Emacs F1)

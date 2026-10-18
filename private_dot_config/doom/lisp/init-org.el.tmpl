@@ -17,7 +17,7 @@
   "Org dir plus extra agenda dirs (chezmoi `org_agenda_dirs').")
 
 (after! org
-  ;; Every URL scheme an installed macOS app claims (tempo:, sunclax:, obsidian:
+  ;; Every URL scheme an installed macOS app claims (tempo:, sunclax:,
   ;; …) becomes an org link that C-c C-o hands to `open'. Read from
   ;; LaunchServices at startup, so a new app's scheme works after a restart.
   (defvar my/org-app-scheme-skip
@@ -35,7 +35,7 @@
           (goto-char (point-min))
           (while (re-search-forward "^\\([a-z][a-z0-9+.-]*\\):" nil t)
             (push (match-string 1) out))))
-      (delete-dups (append '("obsidian" "drafts" "alfred" "tempo" "sunclax") out))))
+      (delete-dups (append '("alfred" "tempo" "sunclax") out))))
 
   (defun my/org-register-app-schemes ()
     "Register app URL schemes as org links opened by macOS `open'."
@@ -2726,7 +2726,7 @@ Shows results in a navigable buffer with dates, locations, body, and images."
 ;; ── Checkbox completion stamps ────────────────────────────────────────────────
 ;; Headings log their finish time via org-log-done/LOGBOOK, but plain `- [ ]'
 ;; items have no such record. Stamp the end of the line when an item is
-;; checked and strip it when unchecked — the Obsidian behaviour, in org's own
+;; checked and strip it when unchecked, in org's own
 ;; inactive-timestamp syntax so it stays greppable and out of the agenda.
 (defvar my/org-checkbox-stamp-format "✅ [%Y-%m-%d %a %H:%M]"
   "`format-time-string' spec appended to a checkbox item when it is ticked.
