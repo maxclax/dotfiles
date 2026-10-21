@@ -2,7 +2,7 @@ config-version = 2
 
 # v2 no longer infers persistent workspaces from the keybindings —
 # they must be declared explicitly or empty workspaces disappear
-persistent-workspaces = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',  'D', 'I', 'M', 'T', 'U', 'X']
+persistent-workspaces = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',  'D', 'I', 'M', 'T', 'U']
 
 after-login-command = []
 after-startup-command = []
@@ -102,7 +102,7 @@ cmd-0 = 'workspace 10' # AI CLI & Agents
 cmd-d = 'workspace D' # Dev
 # alt-e = 'workspace E'
 # alt-g = 'workspace G'
-cmd-i = 'workspace I' # Finder & Timing (tempo, pomodoro)
+cmd-i = 'workspace I' # Tempo, Sunclax, Finder & Timing
 cmd-m = 'workspace M' # Media
 # alt-n = 'workspace N'
 # alt-o = 'workspace O'
@@ -114,7 +114,7 @@ cmd-t = 'workspace T' # Playground
 cmd-u = 'workspace U' #
 # alt-v = 'workspace V'
 # alt-w = 'workspace W'
-cmd-x = 'workspace X' # Tempo
+# cmd-x = 'workspace X' # off: clashes with cut
 # alt-y = 'workspace Y'
 # alt-z = 'workspace Z'
 
@@ -149,7 +149,7 @@ cmd-ctrl-t = 'move-node-to-workspace T'
 cmd-ctrl-u = 'move-node-to-workspace U'
 # cmd-ctrl-v = 'move-node-to-workspace V'
 # cmd-ctrl-w = 'move-node-to-workspace W'
-cmd-ctrl-x = 'move-node-to-workspace X'
+# cmd-ctrl-x = 'move-node-to-workspace X'
 # cmd-ctrl-y = 'move-node-to-workspace Y'
 # cmd-ctrl-z = 'move-node-to-workspace Z'
 
@@ -214,19 +214,19 @@ if.app-id = 'org.alacritty'
 run = "move-node-to-workspace D"
 
 
-# Tempo & other maxclax apps (X)
+# Tempo & other maxclax apps (I)
 [[on-window-detected]]
 if.app-id = "com.maxclax.keysun.dev"
-run = "move-node-to-workspace X"
+run = "move-node-to-workspace I"
 [[on-window-detected]]
 if.app-id = "com.maxclax.sunclax"
-run = "move-node-to-workspace X"
+run = "move-node-to-workspace I"
 [[on-window-detected]]
 if.app-id = "com.maxclax.tempo"
-run = ["layout tiling", "move-node-to-workspace X"]
+run = ["layout tiling", "move-node-to-workspace I"]
 [[on-window-detected]]
 if.app-id = "com.maxclax.tempo.dev"
-run = ["layout tiling", "move-node-to-workspace X"]
+run = ["layout tiling", "move-node-to-workspace I"]
 
 [[on-window-detected]]
 if.app-id = 'com.apple.mail'
@@ -300,7 +300,7 @@ run = 'move-node-to-workspace 1'
 9  = [3, 4]             # AI GUI
 10 = [3, 4]             # AI CLI & Agents
 D  = [4, 3]             # Dev
-I  = ['iPad', 'Retina'] # Info (references, reading)
+I  = 'main'             # Tempo, Sunclax, Info
 M  = [3, 1]             # Media, Mail
 # U  = 'main'             # Utilities, etc.
-X  = 'main'             # Tempo
+# X  = 'main'             # off: cmd-x is cut
