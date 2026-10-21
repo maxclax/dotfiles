@@ -5,6 +5,8 @@
   # Vim Configuration with plugins
   programs.vim = {
     enable = true;
+    # terminal only: the darwin GTK2 GUI fails to compile
+    packageConfigurable = pkgs.vim-full.override { guiSupport = "none"; };
 
     plugins = with pkgs.vimPlugins; [
       # Core plugins
