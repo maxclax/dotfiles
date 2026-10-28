@@ -59,7 +59,7 @@ make update_os
 ### Backup Operations
 Backups use restic via resticprofile; one repository per profile
 (`workspace`, `git`, `managed-configs`, `managed-sync`, `ai-history`,
-`extra-configs`). Config: `private_dot_config/resticprofile/profiles.toml.tmpl`.
+`extra-configs`, `vault`). Config: `private_dot_config/resticprofile/profiles.toml.tmpl`.
 ```bash
 # Sync app configs to extra-configs, then back up every profile
 make backup_create
