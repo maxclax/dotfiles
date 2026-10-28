@@ -127,15 +127,15 @@ repository = {{ .resticRepo | printf "%s/extra-configs" | quote }}
 
 [extra-configs.backup]
 source = [{{ printf "%s/.local/extra-configs" .chezmoi.homeDir | quote }}]
-{{- if .vault_dir }}
+{{- if .primary_vault_dir }}
 
-# ── Vault ─────────────────────────────────────────────────────────────────────
-[vault]
+# ── Primary vault ─────────────────────────────────────────────────────────────
+[primary-vault]
 inherit    = "base"
-repository = {{ .resticRepo | printf "%s/vault" | quote }}
+repository = {{ .resticRepo | printf "%s/primary-vault" | quote }}
 
-[vault.backup]
-source  = [{{ .vault_dir | quote }}]
+[primary-vault.backup]
+source  = [{{ .primary_vault_dir | quote }}]
 exclude = [".DS_Store", ".Trash"]
 {{- end }}
 

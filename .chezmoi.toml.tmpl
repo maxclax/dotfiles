@@ -4,7 +4,7 @@
 {{- $managed_sync := promptStringOnce . "managed_sync" "managed sync storage" (printf "%s/.local/managed-sync" .chezmoi.homeDir) -}}
 {{- $org_dir := promptStringOnce . "org_dir" "org directory" (printf "%s/.local/managed-sync/org" .chezmoi.homeDir) -}}
 {{- $org_agenda_dirs := promptStringOnce . "org_agenda_dirs" "extra org agenda dirs (colon-separated, empty = none)" "" -}}
-{{- $vault_dir := promptStringOnce . "vault_dir" "notes vault to back up with restic (empty = none)" "" -}}
+{{- $primary_vault_dir := promptStringOnce . "primary_vault_dir" "primary notes vault to back up with restic (empty = none)" "" -}}
 {{- $primary_storage := promptStringOnce . "primary_storage" "primary storage" (printf "%s/primary_storage" .chezmoi.homeDir) -}}
 {{- $secondary_storage := promptStringOnce . "secondary_storage" "secondary storage" (printf "%s/secondary_storage" .chezmoi.homeDir) -}}
 {{- /* GGUF weights are multi-GB; default to llama.cpp's own cache but allow an
@@ -133,7 +133,7 @@ encryption = "age"
     managed_sync = {{ $managed_sync | quote }}
     org_dir = {{ $org_dir | quote }}
     org_agenda_dirs = {{ $org_agenda_dirs | quote }}
-    vault_dir = {{ $vault_dir | quote }}
+    primary_vault_dir = {{ $primary_vault_dir | quote }}
     primary_storage = {{ $primary_storage | quote }}
     secondary_storage = {{ $secondary_storage | quote }}
     llama_models = {{ $llama_models | quote }}
