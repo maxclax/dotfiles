@@ -73,8 +73,6 @@ hm_update:
 	@echo "👤 Applying Home Manager configuration (user-only)..."
 	home-manager switch --flake ~/.config/home-manager-flake
 {{- end }}
-	@# schedules hold resticprofile's store path; refresh it after an update
-	@$(MAKE) restic_schedule
 	@echo "✅ Update complete! Run 'make hm_commit' to commit the changes"
 
 # Commit the CURRENT (system) flake.lock on main via its worktree, then merge
@@ -119,7 +117,6 @@ hm_update_hm:
 	@echo "🏠 Applying Home Manager configuration..."
 	cd ~/.config/home-manager-flake && home-manager switch --flake .
 {{- end }}
-	@$(MAKE) restic_schedule
 	@echo "✅ home-manager input updated!"
 
 hm_generations:
